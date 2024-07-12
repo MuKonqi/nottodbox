@@ -57,6 +57,116 @@ def db_start():
         db.commit()
 db_start()
 
+class TodolistListView(QListView):
+    def __init__(self, parent, todolist, caller = "todolists"):
+        super().__init__(parent)
+        
+        global todolist_model1, todolist_model2
+        
+        self.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
+        self.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+        
+        self.proxy = QSortFilterProxyModel(self)
+        
+        if caller == "todolists":  
+            todolist_model1 = QStringListModel(self)
+            self.proxy.setSourceModel(todolist_model1)
+            
+        elif caller == "home":
+            todolist_model2 = QStringListModel(self)
+            self.proxy.setSourceModel(todolist_model2)
+        
+        self.setModel(self.proxy)
+        
+        if caller == "todolists":
+            self.selectionModel().selectionChanged.connect(
+                lambda: Todolist.insert(parent, self.proxy.itemData(self.currentIndex())))
+        
+        self.doubleClicked.connect(lambda: self.mark(todolist, self.proxy.itemData(self.currentIndex())))
+        
+        self.refresh(todolist)
+        
+    def refresh(self, todolist):
+        global todolist_model1, todolist_model2, todolist_list
+        
+        todolist_list = []
+        
+        with sqlite3.connect(f"{userdata}todos.db", timeout=5.0) as self.db_refresh:
+            self.cur_refresh = self.db_refresh.cursor()
+            self.cur_refresh.execute(f"select * from {todolist}")
+            self.fetch_refresh = self.cur_refresh.fetchall()
+        
+        for i in range(0, len(self.fetch_refresh)):
+            
+            if self.fetch_refresh[i][1] == "completed":
+                todolist_list.append(f"[+] {self.fetch_refresh[i][0]}")
+                
+            elif self.fetch_refresh[i][1] == "uncompleted":
+                todolist_list.append(f"[-] {self.fetch_refresh[i][0]}")
+
+        try:
+            todolist_model1.setStringList(todolist_list)
+        except NameError:
+            pass
+        
+        try:
+            todolist_model2.setStringList(todolist_list)
+        except NameError:
+            pass
+        
+    def mark(self, todolist, todo):
+        if todo[0].startswith("[-]") == True:
+            todo = todo[0].replace("[-] ", "")
+        elif todo[0].startswith("[+]") == True:
+            todo = todo[0].replace("[+] ", "")
+                
+        with sqlite3.connect(f"{userdata}todos.db", timeout=5.0) as self.db_mark:
+            self.cur_mark = self.db_mark.cursor()
+            self.cur_mark.execute(f"select status from {todolist} where todo = '{todo}'")
+            self.fetch_comp2 = self.cur_mark.fetchone()[0]
+        
+        if self.fetch_comp2 == "completed":
+            self.uncomp(todolist, todo)  
+        elif self.fetch_comp2 == "uncompleted":
+            self.comp(todolist, todo, datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"))
+            
+    def comp(self, todolist, todo, date):
+        with sqlite3.connect(f"{userdata}todos.db", timeout=5.0) as self.db_comp1:
+            self.cur_comp1 = self.db_comp1.cursor()
+            self.cur_comp1.execute(f"update {todolist} set status = 'completed', completed = '{date}' where todo = '{todo}'")
+            self.db_comp1.commit()
+        
+        with sqlite3.connect(f"{userdata}todos.db", timeout=5.0) as self.db_comp2:
+            self.cur_comp2 = self.db_comp2.cursor()
+            self.cur_comp2.execute(f"select status from {todolist} where todo = '{todo}'")
+            self.fetch_comp2 = self.cur_comp2.fetchone()[0]
+        
+        self.refresh(todolist)
+        
+        if self.fetch_comp2 == "completed":
+            QMessageBox.information(self, _("Successful"), _("{todo} in {todolist} marked as completed.").format(todo = todo, todolist = todolist))
+        else:
+            QMessageBox.critical(self, _("Error"), _("Failed to mark {todo} in {todolist} as completed.").format(todo = todo, todolist = self.todolist))
+    
+    def uncomp(self, todolist, todo):
+        with sqlite3.connect(f"{userdata}todos.db", timeout=5.0) as self.db_uncomp1:
+            self.cur_uncomp1 = self.db_uncomp1.cursor()
+            self.cur_uncomp1.execute(f"update {todolist} set status = 'uncompleted', completed = NULL where todo = '{todo}'")
+            self.db_uncomp1.commit()
+        
+        with sqlite3.connect(f"{userdata}todos.db", timeout=5.0) as self.db_uncomp2:
+            self.cur_uncomp2 = self.db_uncomp2.cursor()
+            self.cur_uncomp2.execute(f"select status from {todolist} where todo = '{todo}'")
+            self.fetch_uncomp2 = self.cur_uncomp2.fetchone()[0]
+            
+        self.refresh(todolist)
+        
+        if self.fetch_uncomp2 == "uncompleted":
+            QMessageBox.information(self, _("Successful"), _("{todo} in {todolist} marked as uncompleted.").format(todo = todo, todolist = todolist))
+        else:
+            QMessageBox.critical(self, _("Error"), _("Failed to mark {todo} in {todolist} as uncompleted.").format(todo = todo, todolist = todolist))
+
 
 class Todolist(QWidget):
     def __init__(self, parent, todolist = "main"):
@@ -71,24 +181,12 @@ class Todolist(QWidget):
         self.completed = QLabel(self, alignment=align_center, 
                                 text=_("Completed:"))
         
-        self.listview = QListView(self)
-        self.listview.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
-        self.listview.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
-        self.listview.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
-        
-        self.model = QStringListModel(self)
-        
-        self.proxy = QSortFilterProxyModel(self)
-        self.proxy.setSourceModel(self.model)
-        
-        self.listview.setModel(self.proxy)
-        self.listview.selectionModel().selectionChanged.connect(
-            lambda: self.insert(self.proxy.itemData(self.listview.currentIndex())))
+        self.listview = TodolistListView(self, self.todolist)
         
         self.entry = QLineEdit(self)
         self.entry.setPlaceholderText(_("Type anything/a todo"))
         self.entry.textChanged.connect(
-            lambda: self.proxy.setFilterRegularExpression(QRegularExpression
+            lambda: self.listview.proxy.setFilterRegularExpression(QRegularExpression
                                                           (self.entry.text(), QRegularExpression.PatternOption.CaseInsensitiveOption)))
         
         self.comp_button = QPushButton(self, text=_("Mark as completed"))
@@ -114,32 +212,13 @@ class Todolist(QWidget):
         self.layout().addWidget(self.started, 0, 0, 1, 1)
         self.layout().addWidget(self.completed, 0, 1, 1, 1)
         self.layout().addWidget(self.listview, 1, 0, 1, 2)
-        self.layout().addWidget(self.entry, 2, 0, 1, 2)
+        self.layout().addWidget(self.entry, 2, 0, 1, 1)
         self.layout().addWidget(self.comp_button, 3, 0, 1, 1)
         self.layout().addWidget(self.uncomp_button, 3, 1, 1, 1)
         self.layout().addWidget(self.add_button, 4, 0, 1, 1)
         self.layout().addWidget(self.edit_button, 4, 1, 1, 1)
         self.layout().addWidget(self.delete_button, 5, 0, 1, 1)
         self.layout().addWidget(self.delete_all_button, 5, 1, 1, 1)
-        
-        self.refresh()
-        
-    def refresh(self):
-        self.list = []
-        
-        with sqlite3.connect(f"{userdata}todos.db", timeout=5.0) as self.db_refresh:
-            self.cur_refresh = self.db_refresh.cursor()
-            self.cur_refresh.execute(f"select * from {self.todolist}")
-            self.fetch_refresh = self.cur_refresh.fetchall()
-        
-        for i in range(0, len(self.fetch_refresh)):
-            if self.fetch_refresh[i][1] == "completed":
-                self.list.append(f"[+] {self.fetch_refresh[i][0]}")
-                
-            elif self.fetch_refresh[i][1] == "uncompleted":
-                self.list.append(f"[-] {self.fetch_refresh[i][0]}")
-
-        self.model.setStringList(self.list)
         
     def insert(self, todo):
         if todo != {}:
@@ -187,7 +266,7 @@ class Todolist(QWidget):
             self.cur_comp2.execute(f"select status from {self.todolist} where todo = '{todo}'")
             self.fetch_comp2 = self.cur_comp2.fetchone()[0]
         
-        self.refresh()
+        TodolistListView.refresh(self, self.todolist)
         
         if self.fetch_comp2 == "completed":
             QMessageBox.information(self, _("Successful"), _("{todo} in {todolist} marked as completed.").format(todo = todo, todolist = self.todolist))
@@ -208,7 +287,7 @@ class Todolist(QWidget):
             self.cur_uncomp2.execute(f"select status from {self.todolist} where todo = '{todo}'")
             self.fetch_uncomp2 = self.cur_uncomp2.fetchone()[0]
             
-        self.refresh()
+        TodolistListView.refresh(self, self.todolist)
         
         if self.fetch_uncomp2 == "uncompleted":
             QMessageBox.information(self, _("Successful"), _("{todo} in {todolist} marked as uncompleted.").format(todo = todo, todolist = self.todolist))
@@ -231,7 +310,7 @@ class Todolist(QWidget):
             QMessageBox.critical(self, _('Error'), _('{todo} todo already added to {todolist}.').format(todo = todo, todolist = self.todolist))
             return
                 
-        self.refresh()
+        TodolistListView.refresh(self, self.todolist)
     
         with sqlite3.connect(f"{userdata}todos.db", timeout=5.0) as self.db_add2:
             self.cur_add2 = self.db_add2.cursor()
@@ -264,7 +343,7 @@ class Todolist(QWidget):
                 self.cur_edit1.execute(self.sql_edit1)
                 self.db_edit1.commit()
             
-            self.refresh()
+            TodolistListView.refresh(self, self.todolist)
             self.entry.setText(self.newtodo)
 
             try:
@@ -298,7 +377,7 @@ class Todolist(QWidget):
             self.cur_remove1.execute(f"delete from {self.todolist} where todo = '{todo}'")
             self.db_remove1.commit()
             
-        self.refresh()
+        TodolistListView.refresh(self, self.todolist)
         self.entry.setText("")
             
         if self.control(todo, "inverted") == False:
@@ -323,12 +402,13 @@ class Todolist(QWidget):
             self.cur_delete_all3.execute(f"select * from {self.todolist}")
             self.fetch_delete_all3 = self.cur_delete_all3.fetchall()
         
-        self.refresh()
+        TodolistListView.refresh(self, self.todolist)
         
         if self.fetch_delete_all3 == []:
             QMessageBox.information(self, _('Successful'), _('All todos in {todolist} deleted.').format(todolist = self.todolist))
         else:
             QMessageBox.critical(self, _('Error'), _('Failed to delete all todos in {todolist}.').format(todolist = self.todolist))
+
 
 class Todos(QTabWidget):
     def __init__(self, parent):

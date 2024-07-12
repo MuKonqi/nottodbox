@@ -53,6 +53,27 @@ def db_start():
         diaries_db.commit()
 db_start()
 
+with sqlite3.connect(f"{userdata}settings.db", timeout=5.0) as db_init:
+    cur_init = db_init.cursor()
+
+    try:
+        cur_init.execute(f"select value from settings where setting = 'diaries-autosave'")
+        fetch_autosave = cur_init.fetchone()[0]
+
+    except:
+        cur_init.execute(f"insert into settings (setting, value) values ('diaries-autosave', 'true')")
+        db_init.commit()
+        fetch_autosave = "true"
+
+    try:
+        cur_init.execute(f"select value from settings where setting = 'diaries-outmode'")
+        fetch_outmode = cur_init.fetchone()[0]
+
+    except:
+        cur_init.execute(f"insert into settings (setting, value) values ('diaries-outmode', 'markdown')")
+        db_init.commit()
+        fetch_outmode = "markdown"
+
 
 class Diary(QWidget):
     def __init__(self, parent, date, mode):
@@ -66,7 +87,7 @@ class Diary(QWidget):
 
         self.autosave = QCheckBox(self)
         if self.mode == "today":
-            self.autosave.setText(_('Enable auto-save for this time'))
+            self.autosave.setText(_('Enable auto-save for this page'))
             if fetch_autosave == "true":
                 self.autosave.setChecked(True)
             try:
@@ -199,9 +220,9 @@ class Diary(QWidget):
                 self.fetch_save4 = self.cur_save4.fetchone()[0]
 
             if self.fetch_save4 == content:
-                QMessageBox.information(self, _('Successful'), _('Diary in {date} saved.').format(date = date))
+                QMessageBox.information(self, _('Successful'), _('Diary for {date} saved.').format(date = date))
             else:
-                QMessageBox.critical(self, _('Error'), _('Failed to save diary in {date}.').format(date = date))
+                QMessageBox.critical(self, _('Error'), _('Failed to save diary for {date}.').format(date = date))
 
         elif mode == "auto" and self.fetch_autosave == "true":
             try:
@@ -335,28 +356,7 @@ class Diaries(QTabWidget):
     def __init__(self, parent):
         super().__init__(parent)
 
-        global edited, fetch_autosave, fetch_outmode
-
-        with sqlite3.connect(f"{userdata}settings.db", timeout=5.0) as self.db_init:
-            self.cur_init = self.db_init.cursor()
-
-            try:
-                self.cur_init.execute(f"select value from settings where setting = 'diaries-autosave'")
-                fetch_autosave = self.cur_init.fetchone()[0]
-
-            except:
-                self.cur_init.execute(f"insert into settings (setting, value) values ('diaries-autosave', 'true')")
-                self.db_init.commit()
-                fetch_autosave = "true"
-
-            try:
-                self.cur_init.execute(f"select value from settings where setting = 'diaries-outmode'")
-                fetch_outmode = self.cur_init.fetchone()[0]
-
-            except:
-                self.cur_init.execute(f"insert into settings (setting, value) values ('diaries-outmode', 'markdown')")
-                self.db_init.commit()
-                fetch_outmode = "markdown"
+        global edited
 
         self.setStatusTip(_('Fun fact: Auto-saves and editing/restoring contents for old diaries does not change backups.'))
 
@@ -491,7 +491,7 @@ class Diaries(QTabWidget):
             return True
         except TypeError:
             if mode == "normal":
-                QMessageBox.critical(self, _('Error'), _('There is no diary in {date}.').format(date = date))
+                QMessageBox.critical(self, _('Error'), _('There is no diary for {date}.').format(date = date))
             return False
 
     def open(self, date):
@@ -527,7 +527,7 @@ class Diaries(QTabWidget):
             self.fetch_restore1 = self.cur_restore1.fetchone()
 
         if self.fetch_restore1[1] == None or self.fetch_restore1[1] == "":
-            QMessageBox.critical(self, _('Error'), _('There is no backup for diary in {date}.').format(date = date))
+            QMessageBox.critical(self, _('Error'), _('There is no backup for diary for {date}.').format(date = date))
             return
         
         if date != today.toString("dd.MM.yyyy"):
@@ -554,9 +554,9 @@ class Diaries(QTabWidget):
             self.fetch_restore3 = self.cur_restore3.fetchone()
 
         if self.fetch_restore1[1] == self.fetch_restore3[0]:
-            QMessageBox.information(self, _('Successful'), _('Diary in {date} restored.').format(date = date))
+            QMessageBox.information(self, _('Successful'), _('Diary for {date} restored.').format(date = date))
         else:
-            QMessageBox.critical(self, _('Error'), _('Failed to restore diary in {date}.').format(date = date))
+            QMessageBox.critical(self, _('Error'), _('Failed to restore diary for {date}.').format(date = date))
 
     def delete_content(self, date):
         if self.control(date) == False:
@@ -579,9 +579,9 @@ class Diaries(QTabWidget):
             self.fetch_delete3 = self.cur_delete3.fetchone()[0]
 
         if self.fetch_delete3 != None:
-            QMessageBox.information(self, _('Successful'), _('Content of diary in {date} deleted.').format(date = date))
+            QMessageBox.information(self, _('Successful'), _('Content of diary for {date} deleted.').format(date = date))
         else:
-            QMessageBox.critical(self, _('Error'), _('Failed to delete content of diary in {date}.').format(date = date))
+            QMessageBox.critical(self, _('Error'), _('Failed to delete content of diary for {date}.').format(date = date))
 
     def delete_diary(self, date):
         if self.control(date) == False:
@@ -593,9 +593,9 @@ class Diaries(QTabWidget):
             self.db_remove1.commit()
 
         if self.control(date, "inverted") == False:
-            QMessageBox.information(self, _('Successful'), _('Diary in {date} deleted.').format(date = date))
+            QMessageBox.information(self, _('Successful'), _('Diary for {date} deleted.').format(date = date))
         else:
-            QMessageBox.critical(self, _('Error'), _('Failed to delete diary in {date}.').format(date = date))
+            QMessageBox.critical(self, _('Error'), _('Failed to delete diary for {date}.').format(date = date))
 
     def delete_all(self):
         try:

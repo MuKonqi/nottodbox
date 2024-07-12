@@ -54,6 +54,27 @@ def db_start():
         notes_db.commit()
 db_start()
 
+with sqlite3.connect(f"{userdata}settings.db", timeout=5.0) as db_init:
+    cur_init = db_init.cursor()
+
+    try:
+        cur_init.execute(f"select value from settings where setting = 'notes-autosave'")
+        fetch_autosave = cur_init.fetchone()[0]
+
+    except:
+        cur_init.execute(f"insert into settings (setting, value) values ('notes-autosave', 'true')")
+        db_init.commit()
+        fetch_autosave = "true"
+        
+    try:
+        cur_init.execute(f"select value from settings where setting = 'notes-outmode'")
+        fetch_outmode = cur_init.fetchone()[0]
+
+    except:
+        cur_init.execute(f"insert into settings (setting, value) values ('notes-outmode', 'markdown')")
+        db_init.commit()
+        fetch_outmode = "markdown"
+
 
 class Note(QWidget):
     def __init__(self, parent, name):
@@ -64,7 +85,7 @@ class Note(QWidget):
         
         self.setLayout(QGridLayout(self))
         
-        self.autosave = QCheckBox(self, text=_('Enable auto-save for this time'))
+        self.autosave = QCheckBox(self, text=_('Enable auto-save for this page'))
         if fetch_autosave == "true":
             self.autosave.setChecked(True)
         try:
@@ -171,7 +192,7 @@ class Note(QWidget):
                     self.cur_save3.execute(self.sql_save3)
                     self.db_save3.commit()
                     
-            Notes.refresh(self)
+            NotesListView.refresh(self)
         
             with sqlite3.connect(f"{userdata}notes.db", timeout=5.0) as self.db_save4:
                 self.cur_save4 = self.db_save4.cursor()
@@ -205,7 +226,7 @@ class Note(QWidget):
                     self.cur_save3.execute(self.sql_save3)
                     self.db_save3.commit()
                     
-                Notes.refresh(self)
+                NotesListView.refresh(self)
             
 
 class Backup(QWidget):
@@ -271,62 +292,85 @@ class Backup(QWidget):
             self.output.setHtml(text)
 
 
+class NotesListView(QListView):
+    def __init__(self, parent, caller = "notes"):
+        super().__init__(parent)
+        
+        global notes_model1, notes_model2
+        
+        self.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
+        self.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+        
+        self.proxy = QSortFilterProxyModel(self)
+        
+        if caller == "notes":  
+            notes_model1 = QStringListModel(self)
+            self.proxy.setSourceModel(notes_model1)
+            
+        elif caller == "home":
+            notes_model2 = QStringListModel(self)
+            self.proxy.setSourceModel(notes_model2)
+        
+        self.setModel(self.proxy)
+
+        if caller == "notes":
+            self.selectionModel().selectionChanged.connect(
+                lambda: Notes.insert(parent, self.proxy.itemData(self.currentIndex())))
+        
+        self.doubleClicked.connect(lambda: Notes.open(parent, self.proxy.itemData(self.currentIndex())[0]))
+        
+        self.refresh()
+        
+    def refresh(self):
+        global notes_model1, notes_model2, notes_list
+        
+        notes_list = []
+        
+        with sqlite3.connect(f"{userdata}notes.db", timeout=5.0) as self.db_refresh:
+            self.cur_refresh = self.db_refresh.cursor()
+            self.cur_refresh.execute("select name from notes")
+            self.fetch_refresh = self.cur_refresh.fetchall()
+        
+        for i in range(0, len(self.fetch_refresh)):
+            notes_list.append(self.fetch_refresh[i][0])
+
+        try:
+            notes_model1.setStringList(notes_list)
+        except NameError:
+            pass
+        
+        try:
+            notes_model2.setStringList(notes_list)
+        except NameError:
+            pass
+
+
 class Notes(QTabWidget):
     def __init__(self, parent):
         super().__init__(parent)
-
-        global notes_model, fetch_autosave, fetch_outmode
-        
-        with sqlite3.connect(f"{userdata}settings.db", timeout=5.0) as self.db_init:
-            self.cur_init = self.db_init.cursor()
-
-            try:
-                self.cur_init.execute(f"select value from settings where setting = 'notes-autosave'")
-                fetch_autosave = self.cur_init.fetchone()[0]
-
-            except:
-                self.cur_init.execute(f"insert into settings (setting, value) values ('notes-autosave', 'true')")
-                self.db_init.commit()
-                fetch_autosave = "true"
-                
-            try:
-                self.cur_init.execute(f"select value from settings where setting = 'notes-outmode'")
-                fetch_outmode = self.cur_init.fetchone()[0]
-
-            except:
-                self.cur_init.execute(f"insert into settings (setting, value) values ('notes-outmode', 'markdown')")
-                self.db_init.commit()
-                fetch_outmode = "markdown"
         
         self.setStatusTip(_('Fun fact: Auto-saves does not change backups.'))
         
         self.home = QWidget(self)
         self.home.setLayout(QGridLayout(self.home))
         
+        self.listview = NotesListView(self)
+        
         self.entry = QLineEdit(self.home)
         self.entry.setPlaceholderText("Type anything for search or a note name others")
         self.entry.textChanged.connect(
-            lambda: self.proxy.setFilterRegularExpression(QRegularExpression
+            lambda: self.listview.proxy.setFilterRegularExpression(QRegularExpression
                                                           (self.entry.text(), QRegularExpression.PatternOption.CaseInsensitiveOption)))
+        
+        self.clear_button = QPushButton(self.home, text=_("Clear"))
+        self.clear_button.setFixedWidth(144)
+        self.clear_button.clicked.connect(lambda: self.entry.setText(""))
         
         self.created = QLabel(self.home, alignment=align_center, 
                               text=_('Created:'))
         self.edited = QLabel(self.home, alignment=align_center, 
                              text=_('Edited:'))
-        
-        self.listview = QListView(self.home)
-        self.listview.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
-        self.listview.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
-        self.listview.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
-        
-        notes_model = QStringListModel(self)
-        self.proxy = QSortFilterProxyModel(self)
-        self.proxy.setSourceModel(notes_model)
-        
-        self.listview.setModel(self.proxy)
-
-        self.listview.selectionModel().selectionChanged.connect(
-            lambda: self.insert(self.proxy.itemData(self.listview.currentIndex())))
 
         self.side = QWidget(self.home)
         self.side.setFixedWidth(144)
@@ -382,7 +426,8 @@ class Notes(QTabWidget):
         self.side.layout().addWidget(self.outmode)
         self.side.layout().addWidget(self.autosave)
         self.home.layout().addWidget(self.side, 1, 2, 2, 1)
-        self.home.layout().addWidget(self.entry, 0, 0, 1, 3)
+        self.home.layout().addWidget(self.entry, 0, 0, 1, 2)
+        self.home.layout().addWidget(self.clear_button, 0, 2, 1, 1)
         self.home.layout().addWidget(self.created, 1, 0, 1, 1)
         self.home.layout().addWidget(self.edited, 1, 1, 1, 1)
         self.home.layout().addWidget(self.listview, 2, 0, 1, 2)
@@ -390,8 +435,6 @@ class Notes(QTabWidget):
         self.addTab(self.home, _('Home'))
         self.setTabsClosable(True)
         self.setMovable(True)
-        
-        self.refresh()
         
         self.tabCloseRequested.connect(self.close)
          
@@ -434,21 +477,6 @@ class Notes(QTabWidget):
             self.cur_outmode = self.db_outmode.cursor()
             self.cur_outmode.execute(f"update settings set value = '{fetch_outmode}' where setting = 'notes-outmode'")
             self.db_outmode.commit()
-    
-    def refresh(self):
-        global notes_model, notes_list
-        
-        notes_list = []
-        
-        with sqlite3.connect(f"{userdata}notes.db", timeout=5.0) as self.db_refresh:
-            self.cur_refresh = self.db_refresh.cursor()
-            self.cur_refresh.execute("select name from notes")
-            self.fetch_refresh = self.cur_refresh.fetchall()
-        
-        for i in range(0, len(self.fetch_refresh)):
-            notes_list.append(self.fetch_refresh[i][0])
-
-        notes_model.setStringList(notes_list)
         
     def insert(self, name):
         if name != {}:
@@ -509,7 +537,7 @@ class Notes(QTabWidget):
                 self.cur_rename1.execute(self.sql_rename1)
                 self.db_rename1.commit()
             
-            self.refresh()
+            NotesListView.refresh(self)
 
             try:
                 with sqlite3.connect(f"{userdata}notes.db", timeout=5.0) as self.db_rename2:
@@ -616,7 +644,7 @@ class Notes(QTabWidget):
             self.cur_remove1.execute(f"delete from notes where name = '{name}'")
             self.db_remove1.commit()
             
-        self.refresh()
+        NotesListView.refresh(self)
         self.entry.setText("")
             
         if self.control(name, "inverted") == False:
@@ -633,7 +661,7 @@ class Notes(QTabWidget):
     
         if not os.path.isfile(f"{userdata}notes.db"):
             db_start()
-            self.refresh()
+            NotesListView.refresh(self)
             self.entry.setText("")
             
             QMessageBox.information(self, _('Successful'), _('All notes deleted.'))

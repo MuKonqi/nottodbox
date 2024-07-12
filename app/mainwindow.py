@@ -47,8 +47,13 @@ class MainWindow(QMainWindow):
         self.widget = QWidget(self)
         self.widget.setLayout(QGridLayout(self.widget))
 
+        self.notes = Notes(self)
+        self.todos = Todos(self)
+        self.diaries = Diaries(self)
+        self.home = Home(self, self.todos, self.notes)
+
         self.tabview = TabWidget(self.widget, 
-                                 [Home(self), Notes(self), Todos(self), Diaries(self)], 
+                                 [self.home, self.notes, self.todos, self.diaries], 
                                  [_("Home"), _("Notes"), _("Todos"), _("Diaries")])
         
         self.statusbar = QStatusBar(self)
@@ -57,19 +62,6 @@ class MainWindow(QMainWindow):
         self.file = self.menuBar().addMenu(_('File'))
         self.file.addAction(_('Quit'), QKeySequence("Ctrl+Q"), lambda: sys.exit(0))
         self.file.addAction(_('New'), QKeySequence("Ctrl+N"), lambda: subprocess.Popen(__file__))
-        
-        self.dash = self.menuBar().addMenu(_('Dash'))
-        self.dash.addAction(_('Dash'), lambda: self.tabview.setCurrentIndex(0))
-        
-        self.notes = self.menuBar().addMenu(_('Notes'))
-        self.notes.addAction(_('Notes'), lambda: self.tabview.setCurrentIndex(1))
-
-        self.documents = self.menuBar().addMenu(_('Documents'))
-        self.documents.addAction(_('Documents'), lambda: self.tabview.setCurrentIndex(2))
-        
-        self.todos = self.menuBar().addMenu(_("Todos"))
-        self.todos.addAction(_("Todos"), lambda: self.tabview.setCurrentIndex(3))
-    
         
         self.setWindowTitle("Nottodbox")
         self.setGeometry(0, 0, 960, 540)
