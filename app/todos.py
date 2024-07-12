@@ -60,11 +60,10 @@ db_start()
 
 class Todolist(QWidget):
     def __init__(self, parent, todolist = "main"):
-        super().__init__()
+        super().__init__(parent)
         
         self.todolist = todolist
         
-        self.setParent(parent)
         self.setLayout(QGridLayout(self))
         
         self.started = QLabel(parent = self, alignment = align_center, 
@@ -157,10 +156,11 @@ class Todolist(QWidget):
             
             try:
                 self.entry.setText(self.fetch_insert[0])
-                self.started.setText(f"{_('Created')}: {self.fetch_insert[1]}")
+                self.started.setText(f"{_('Started')}: {self.fetch_insert[1]}")
                 self.completed.setText(f"{_('Completed')}: {self.fetch_insert[2]}")
             except TypeError:
-                pass
+                self.started.setText(f"{_('Started')}:")
+                self.completed.setText(f"{_('Completed')}:")
         
     def control(self, todo, mode = "normal"):
         try:
@@ -195,7 +195,7 @@ class Todolist(QWidget):
         else:
             QMessageBox.critical(self, _("Error"), _("Failed to mark {todo} in {todolist} as completed.").format(todo = todo, todolist = self.todolist))
     
-    def uncomp(self, todo, date):
+    def uncomp(self, todo):
         if self.control(todo) == False:
             return
         
@@ -433,7 +433,7 @@ class Todos(QTabWidget):
                 self.entry.setText(self.fetch_insert[0])
                 self.created.setText(f"{_('Created')}: {self.fetch_insert[1]}")
             except TypeError:
-                pass
+                self.created.setText(f"{_('Created')}:")
         
     def control(self, todolist, mode = "normal"):
         try:

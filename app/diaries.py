@@ -4,7 +4,8 @@ import getpass
 import os
 import sqlite3
 import datetime
-from PyQt6.QtCore import Qt, QDate
+from PyQt6.QtGui import QPainter, QColor
+from PyQt6.QtCore import Qt, QDate, QRect, QPoint
 from PyQt6.QtWidgets import *
 
 def _(text): return text
@@ -19,8 +20,8 @@ else:
 
 align_center = Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter
 
-username = getpass.getuser()
-userdata = f"/home/{username}/.local/share/nottodbox/"
+userdate = getpass.getuser()
+userdata = f"/home/{userdate}/.local/share/nottodbox/"
 if not os.path.isdir(userdata):
     os.mkdir(userdata)
 
@@ -42,11 +43,10 @@ def db_start():
     with sqlite3.connect(f"{userdata}diaries.db", timeout=5.0) as diaries_db:
         diaries_sql = """
         CREATE TABLE IF NOT EXISTS diaries (
-            name TEXT NOT NULL PRIMARY KEY,
+            date TEXT NOT NULL PRIMARY KEY,
             content TEXT,
             backup TEXT,
-            created TEXT NOT NULL,
-            edited TEXT
+            edited TEXT NOT NULL
         );"""
         diaries_cur = diaries_db.cursor()
         diaries_cur.execute(diaries_sql)
@@ -55,14 +55,13 @@ db_start()
 
 
 class Diary(QWidget):
-    def __init__(self, parent, name, mode):
-        super().__init__()
+    def __init__(self, parent, date, mode):
+        super().__init__(parent)
 
         self.mode = mode
         self.fetch_autosave = fetch_autosave
         self.fetch_outmode = fetch_outmode
 
-        self.setParent(parent)
         self.setLayout(QGridLayout(self))
 
         self.autosave = QCheckBox(parent = self)
@@ -101,13 +100,13 @@ class Diary(QWidget):
             lambda: self.refresh(self.input.toPlainText()))
 
         if self.mode == "today":
-            self.input.textChanged.connect(lambda: self.save(name,
+            self.input.textChanged.connect(lambda: self.save(date,
                                                             self.input.toPlainText(),
                                                             datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
                                                             "auto"))
 
         self.button = QPushButton(parent = self, text = _('Save'))
-        self.button.clicked.connect(lambda: self.save(name,
+        self.button.clicked.connect(lambda: self.save(date,
                                                       self.input.toPlainText(),
                                                       datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")))
 
@@ -120,7 +119,7 @@ class Diary(QWidget):
         with sqlite3.connect(f"{userdata}diaries.db", timeout=5.0) as self.db_open:
             self.cur_open = self.db_open.cursor()
 
-            self.cur_open.execute(f"select content, backup from diaries where name = '{name}'")
+            self.cur_open.execute(f"select content, backup from diaries where date = '{date}'")
 
             try:
                 self.fetch_open = self.cur_open.fetchone()
@@ -163,7 +162,7 @@ class Diary(QWidget):
         elif self.fetch_outmode == "html":
             self.output.setHtml(text)
 
-    def save(self, name, content, date, mode = "manuel"):
+    def save(self, date, content, edited, mode = "manuel"):
         if mode == "manuel":
             if self.mode == "old":
                 self.question_save = QMessageBox.question(self, _("Question"),
@@ -176,64 +175,63 @@ class Diary(QWidget):
             try:
                 with sqlite3.connect(f"{userdata}diaries.db", timeout=5.0) as self.db_save1:
                     self.cur_save1 = self.db_save1.cursor()
-                    self.cur_save1.execute(f"select content from diaries where name = '{name}'")
+                    self.cur_save1.execute(f"select content from diaries where date = '{date}'")
                     self.fetch_save1 = self.cur_save1.fetchone()[0]
                 
                 with sqlite3.connect(f"{userdata}diaries.db", timeout=5.0) as self.db_save2:
                     self.sql_save2 = f"""update diaries set content = '{content}', backup = '{self.fetch_backup}',
-                    edited = '{date}' where name = '{name}'"""
+                    edited = '{edited}' where date = '{date}'"""
                     self.cur_save2 = self.db_save2.cursor()
                     self.cur_save2.execute(self.sql_save2)
                     self.db_save2.commit()
 
             except TypeError:
                 with sqlite3.connect(f"{userdata}diaries.db", timeout=5.0) as self.db_save3:
-                    self.sql_save3 = f"""insert into diaries (name, content, backup, created, edited)
-                    values ('{name}', '{content}', '', '{date}', '{date}')"""
+                    self.sql_save3 = f"""insert into diaries (date, content, backup, edited)
+                    values ('{date}', '{content}', '', '{edited}'')"""
                     self.cur_save3 = self.db_save3.cursor()
                     self.cur_save3.execute(self.sql_save3)
                     self.db_save3.commit()
 
             with sqlite3.connect(f"{userdata}diaries.db", timeout=5.0) as self.db_save4:
                 self.cur_save4 = self.db_save4.cursor()
-                self.cur_save4.execute(f"select content from diaries where name = '{name}'")
+                self.cur_save4.execute(f"select content from diaries where date = '{date}'")
                 self.fetch_save4 = self.cur_save4.fetchone()[0]
 
             if self.fetch_save4 == content:
-                QMessageBox.information(self, _('Successful'), _('Diary in {name} saved.').format(name = name))
+                QMessageBox.information(self, _('Successful'), _('Diary in {date} saved.').format(date = date))
             else:
-                QMessageBox.critical(self, _('Error'), _('Failed to save diary in {name}.').format(name = name))
+                QMessageBox.critical(self, _('Error'), _('Failed to save diary in {date}.').format(date = date))
 
         elif mode == "auto" and self.fetch_autosave == "true":
             try:
                 with sqlite3.connect(f"{userdata}diaries.db", timeout=5.0) as self.db_save1:
                     self.cur_save1 = self.db_save1.cursor()
-                    self.cur_save1.execute(f"select content from diaries where name = '{name}'")
+                    self.cur_save1.execute(f"select content from diaries where date = '{date}'")
                     self.fetch_save1 = self.cur_save1.fetchone()[0]
 
                 with sqlite3.connect(f"{userdata}diaries.db", timeout=1.0) as self.db_save2:
                     self.sql_save2 = f"""update diaries set content = '{content}',
-                    edited = '{date}' where name = '{name}'"""
+                    edited = '{edited}' where date = '{date}'"""
                     self.cur_save2 = self.db_save2.cursor()
                     self.cur_save2.execute(self.sql_save2)
                     self.db_save2.commit()
 
             except TypeError:
                 with sqlite3.connect(f"{userdata}diaries.db", timeout=1.0) as self.db_save3:
-                    self.sql_save3 = f"""insert into diaries (name, content, backup, created, edited)
-                    values ('{name}', '{content}', '', '{date}', '{date}')"""
+                    self.sql_save3 = f"""insert into diaries (date, content, backup, edited)
+                    values ('{date}', '{content}', '', '{edited}')"""
                     self.cur_save3 = self.db_save3.cursor()
                     self.cur_save3.execute(self.sql_save3)
                     self.db_save3.commit()
 
 
 class Backup(QWidget):
-    def __init__(self, parent, name):
-        super().__init__()
+    def __init__(self, parent, date):
+        super().__init__(parent)
 
         self.fetch_outmode = fetch_outmode
 
-        self.setParent(parent)
         self.setLayout(QVBoxLayout(self))
 
         self.outmode = QComboBox(parent = self)
@@ -251,14 +249,18 @@ class Backup(QWidget):
 
         self.output = QTextEdit(parent = self)
         self.output.setReadOnly(True)
+        
+        self.button = QPushButton(parent = self, text = _('Restore content'))
+        self.button.clicked.connect(lambda: Diaries.restore(self, date, "page"))
 
         self.layout().addWidget(self.outmode)
         self.layout().addWidget(self.output)
+        self.layout().addWidget(self.button)
 
         try:
             with sqlite3.connect(f"{userdata}diaries.db", timeout=5.0) as self.db_showb:
                 self.cur_showb = self.db_showb.cursor()
-                self.cur_showb.execute(f"select backup from diaries where name = '{name}'")
+                self.cur_showb.execute(f"select backup from diaries where date = '{date}'")
                 self.fetch_showb = self.cur_showb.fetchone()[0]
                 self.refresh(self.fetch_showb)
         except TypeError:
@@ -285,13 +287,55 @@ class Backup(QWidget):
 
         elif self.fetch_outmode == "html":
             self.output.setHtml(text)
+            
+            
+class Calendar(QCalendarWidget):
+    def __init__(self, parent):
+        super().__init__(parent)
+        
+        self.setMaximumDate(today)
+        self.clicked.connect(self.insert)
+        self.insert(today)
+        
+    def insert(self, date):
+        date = date.toString("dd.MM.yyyy")
+        
+        with sqlite3.connect(f"{userdata}diaries.db", timeout=5.0) as self.db_insert:
+            self.cur_insert = self.db_insert.cursor()
+            self.cur_insert.execute(f"select edited from diaries where date = '{date}'")
+            self.fetch_insert = self.cur_insert.fetchone()
+
+        try:
+            edited.setText(f"{_('Edited')}: {self.fetch_insert[0]}")
+        except TypeError:
+            edited.setText(f"{_('Edited')}:")
+    
+    def paintCell(self, painter: QPainter | None, rect: QRect, date: QDate | datetime.date) -> None:
+        super().paintCell(painter, rect, date)
+    
+        self.list = []
+        
+        with sqlite3.connect(f"{userdata}diaries.db", timeout=5.0) as self.db_refresh:
+            self.cur_refresh = self.db_refresh.cursor()
+            self.cur_refresh.execute("select date from diaries")
+            self.fetch_refresh = self.cur_refresh.fetchall()
+        
+        for i in range(0, len(self.fetch_refresh)):
+            self.list.append(QDate.fromString(self.fetch_refresh[i][0], "dd.MM.yyyy"))
+
+        if date in self.list:
+            painter.setBrush(QColor(55, 98, 150, 255))
+            painter.drawEllipse(rect.topLeft() + QPoint(10, 10), 5, 5)
+            
+        if date >= today:
+            painter.setOpacity(0)
 
 
 class Diaries(QTabWidget):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        global fetch_autosave, fetch_outmode
+        global edited, fetch_autosave, fetch_outmode
 
         with sqlite3.connect(f"{userdata}settings.db", timeout=5.0) as self.db_init:
             self.cur_init = self.db_init.cursor()
@@ -319,21 +363,17 @@ class Diaries(QTabWidget):
         self.home = QWidget(self)
         self.home.setLayout(QGridLayout(self.home))
 
-        self.created = QLabel(parent = self.home, alignment = align_center,
-                              text = _('Created:'))
-        self.edited = QLabel(parent = self.home, alignment = align_center,
+        edited = QLabel(parent = self.home, alignment = align_center,
                              text = _('Edited:'))
 
-        self.calendar = QCalendarWidget(self.home)
-        self.calendar.setMaximumDate(today)
-        self.calendar.clicked.connect(self.insert)
+        self.calendar = Calendar(self)
 
-        self.comeback_button = QPushButton(parent = self.home, text = _('Come back to current day'))
-        self.comeback_button.clicked.connect(self.comeback)
+        self.comeback_button = QPushButton(parent = self.home, text = _('Come back to today'))
+        self.comeback_button.clicked.connect(lambda: self.calendar.setSelectedDate(today))
 
-        self.updateday_button = QPushButton(parent = self.home,
-                                            text = _('Update current day (day is {date} at the moment)').format(date = today.toString("dd.MM.yyyy")))
-        self.updateday_button.clicked.connect(self.updateday)
+        self.refresh_button = QPushButton(parent = self.home,
+                                            text = _('Refresh today variable (it is {date})').format(date = today.toString("dd.MM.yyyy")))
+        self.refresh_button.clicked.connect(self.refresh)
 
         self.side = QWidget(self.home)
         self.side.setFixedWidth(144)
@@ -385,11 +425,10 @@ class Diaries(QTabWidget):
         self.side.layout().addWidget(self.outmode)
         self.side.layout().addWidget(self.autosave)
         self.home.layout().addWidget(self.side, 1, 2, 2, 1)
-        self.home.layout().addWidget(self.created, 0, 0, 1, 1)
-        self.home.layout().addWidget(self.edited, 0, 1, 1, 1)
+        self.home.layout().addWidget(edited, 0, 0, 1, 2)
         self.home.layout().addWidget(self.calendar, 1, 0, 1, 2)
         self.home.layout().addWidget(self.comeback_button, 2, 0, 1, 1)
-        self.home.layout().addWidget(self.updateday_button, 2, 1, 1, 1)
+        self.home.layout().addWidget(self.refresh_button, 2, 1, 1, 1)
 
         self.addTab(self.home, _('Home'))
         self.setTabsClosable(True)
@@ -437,78 +476,61 @@ class Diaries(QTabWidget):
             self.cur_outmode.execute(f"update settings set value = '{fetch_outmode}' where setting = 'diaries-outmode'")
             self.db_outmode.commit()
 
-    def comeback(self):
-        self.calendar.setSelectedDate(today)
-
-    def updateday(self):
+    def refresh(self):
         global today
         today = QDate.currentDate()
 
-        self.updateday_button.setText(_('Update current day (day is {date} at the moment)').format(date = today.toString("dd.MM.yyyy")))
+        self.refresh_button.setText(_('refresh today information (it is {date})').format(date = today.toString("dd.MM.yyyy")))
 
-    def insert(self, name):
-        name = name.toString("dd.MM.yyyy")
-
-        with sqlite3.connect(f"{userdata}diaries.db", timeout=5.0) as self.db_insert:
-            self.cur_insert = self.db_insert.cursor()
-            self.cur_insert.execute(f"select created, edited from diaries where name = '{name[0]}'")
-            self.fetch_insert = self.cur_insert.fetchone()
-
-        try:
-            self.created.setText(f"{_('Created')}: {self.fetch_insert[0]}")
-            self.edited.setText(f"{_('Edited')}: {self.fetch_insert[1]}")
-        except TypeError:
-            pass
-
-    def control(self, name, mode = "normal"):
+    def control(self, date, mode = "normal"):
         try:
             with sqlite3.connect(f"{userdata}diaries.db", timeout=5.0) as self.db_control:
                 self.cur_control = self.db_control.cursor()
-                self.cur_control.execute(f"select * from diaries where name = '{name}'")
+                self.cur_control.execute(f"select * from diaries where date = '{date}'")
                 self.fetch_control = self.cur_control.fetchone()[0]
             return True
         except TypeError:
             if mode == "normal":
-                QMessageBox.critical(self, _('Error'), _('There is no diary in {name}.').format(name = name))
+                QMessageBox.critical(self, _('Error'), _('There is no diary in {date}.').format(date = date))
             return False
 
-    def open(self, name):
-        if name in diaries:
-            self.setCurrentWidget(diaries[name])
+    def open(self, date):
+        if date in diaries:
+            self.setCurrentWidget(diaries[date])
 
         else:
-            if name == today.toString("dd.MM.yyyy"):
-                diaries[name] = Diary(self, name, "today")
-            elif self.control(name) == True:
-                diaries[name] = Diary(self, name, "old")
+            if date == today.toString("dd.MM.yyyy"):
+                diaries[date] = Diary(self, date, "today")
+            elif self.control(date) == True:
+                diaries[date] = Diary(self, date, "old")
             else:
                 return
 
-            self.addTab(diaries[name], name)
-            self.setCurrentWidget(diaries[name])
+            self.addTab(diaries[date], date)
+            self.setCurrentWidget(diaries[date])
 
-    def show_backup(self, name):
-        if self.control(name) == False:
+    def show_backup(self, date):
+        if self.control(date) == False:
             return
 
-        backups[name] = Backup(self, name)
-        self.addTab(backups[name], (name + " " + _("(Backup)")))
-        self.setCurrentWidget(backups[name])
+        backups[date] = Backup(self, date)
+        self.addTab(backups[date], (date + " " + _("(Backup)")))
+        self.setCurrentWidget(backups[date])
 
-    def restore(self, name):
-        if self.control(name) == False:
+    def restore(self, date, caller = "home"):
+        if caller == "home" and self.control(date) == False:
             return
 
-        with sqlite3.connect(f"{userdata}diaries.db", timeout=5.0) as self.db_loadb1:
-            self.cur_loadb1 = self.db_loadb1.cursor()
-            self.cur_loadb1.execute(f"select content, backup from diaries where name = '{name}'")
-            self.fetch_loadb1 = self.cur_loadb1.fetchone()
+        with sqlite3.connect(f"{userdata}diaries.db", timeout=5.0) as self.db_restore1:
+            self.cur_restore1 = self.db_restore1.cursor()
+            self.cur_restore1.execute(f"select content, backup from diaries where date = '{date}'")
+            self.fetch_restore1 = self.cur_restore1.fetchone()
 
-        if self.fetch_loadb1[1] == None or self.fetch_loadb1[1] == "":
-            QMessageBox.critical(self, _('Error'), _('There is no backup for diary in {name}.').format(name = name))
+        if self.fetch_restore1[1] == None or self.fetch_restore1[1] == "":
+            QMessageBox.critical(self, _('Error'), _('There is no backup for diary in {date}.').format(date = date))
             return
         
-        if name != today.toString("dd.MM.yyyy"):
+        if date != today.toString("dd.MM.yyyy"):
             self.question_restore = QMessageBox.question(self, _("Question"),
                                                         _("Diaries are special for that day, restoring content an old diary can take away the meaning of the diary."
                                                         +"\nSo, are you sure you want to restore content?"))
@@ -516,64 +538,64 @@ class Diaries(QTabWidget):
             if self.question_restore != QMessageBox.StandardButton.Yes:
                 return
 
-        with sqlite3.connect(f"{userdata}diaries.db", timeout=5.0) as self.db_loadb2:
-            if name == today.toString("dd.MM.yyyy"):
-                self.sql_loadb2 = f"""update diaries set content = '{self.fetch_loadb1[1]}',
-                backup = '{self.fetch_loadb1[0]}' where name = '{name}'"""
+        with sqlite3.connect(f"{userdata}diaries.db", timeout=5.0) as self.db_restore2:
+            if date == today.toString("dd.MM.yyyy"):
+                self.sql_restore2 = f"""update diaries set content = '{self.fetch_restore1[1]}',
+                backup = '{self.fetch_restore1[0]}' where date = '{date}'"""
             else:
-                self.sql_loadb2 = f"update diaries set content = '{self.fetch_loadb1[1]}' where name = '{name}'"
-            self.cur_loadb2 = self.db_loadb2.cursor()
-            self.cur_loadb2.execute(self.sql_loadb2)
-            self.db_loadb2.commit()
+                self.sql_restore2 = f"update diaries set content = '{self.fetch_restore1[1]}' where date = '{date}'"
+            self.cur_restore2 = self.db_restore2.cursor()
+            self.cur_restore2.execute(self.sql_restore2)
+            self.db_restore2.commit()
 
-        with sqlite3.connect(f"{userdata}diaries.db", timeout=5.0) as self.db_loadb3:
-            self.cur_loadb3 = self.db_loadb3.cursor()
-            self.cur_loadb3.execute(f"select content, backup from diaries where name = '{name}'")
-            self.fetch_loadb3 = self.cur_loadb3.fetchone()
+        with sqlite3.connect(f"{userdata}diaries.db", timeout=5.0) as self.db_restore3:
+            self.cur_restore3 = self.db_restore3.cursor()
+            self.cur_restore3.execute(f"select content, backup from diaries where date = '{date}'")
+            self.fetch_restore3 = self.cur_restore3.fetchone()
 
-        if self.fetch_loadb1[1] == self.fetch_loadb3[0]:
-            QMessageBox.information(self, _('Successful'), _('Diary in {name} restored.').format(name = name))
+        if self.fetch_restore1[1] == self.fetch_restore3[0]:
+            QMessageBox.information(self, _('Successful'), _('Diary in {date} restored.').format(date = date))
         else:
-            QMessageBox.critical(self, _('Error'), _('Failed to restore diary in {name}.').format(name = name))
+            QMessageBox.critical(self, _('Error'), _('Failed to restore diary in {date}.').format(date = date))
 
-    def delete_content(self, name):
-        if self.control(name) == False:
+    def delete_content(self, date):
+        if self.control(date) == False:
             return
 
         with sqlite3.connect(f"{userdata}diaries.db", timeout=5.0) as self.db_delete1:
             self.cur_delete1 = self.db_delete1.cursor()
-            self.cur_delete1.execute(f"select content from diaries where name = '{name}'")
+            self.cur_delete1.execute(f"select content from diaries where date = '{date}'")
             self.fetch_delete1 = self.cur_delete1.fetchone()[0]
 
         with sqlite3.connect(f"{userdata}diaries.db", timeout=5.0) as self.db_delete2:
             self.cur_delete2 = self.db_delete2.cursor()
             self.cur_delete2.execute(
-                f"update diaries set content = '', backup = '{self.fetch_delete1}' where name = '{name}'")
+                f"update diaries set content = '', backup = '{self.fetch_delete1}' where date = '{date}'")
             self.db_delete2.commit()
 
         with sqlite3.connect(f"{userdata}diaries.db", timeout=5.0) as self.db_delete3:
             self.cur_delete3 = self.db_delete3.cursor()
-            self.cur_delete3.execute(f"select content from diaries where name = '{name}'")
+            self.cur_delete3.execute(f"select content from diaries where date = '{date}'")
             self.fetch_delete3 = self.cur_delete3.fetchone()[0]
 
         if self.fetch_delete3 != None:
-            QMessageBox.information(self, _('Successful'), _('Content of diary in {name} deleted.').format(name = name))
+            QMessageBox.information(self, _('Successful'), _('Content of diary in {date} deleted.').format(date = date))
         else:
-            QMessageBox.critical(self, _('Error'), _('Failed to delete content of diary in {name}.').format(name = name))
+            QMessageBox.critical(self, _('Error'), _('Failed to delete content of diary in {date}.').format(date = date))
 
-    def delete_diary(self, name):
-        if self.control(name) == False:
+    def delete_diary(self, date):
+        if self.control(date) == False:
             return
 
         with sqlite3.connect(f"{userdata}diaries.db", timeout=5.0) as self.db_remove1:
             self.cur_remove1 = self.db_remove1.cursor()
-            self.cur_remove1.execute(f"delete from diaries where name = '{name}'")
+            self.cur_remove1.execute(f"delete from diaries where date = '{date}'")
             self.db_remove1.commit()
 
-        if self.control(name, "inverted") == False:
-            QMessageBox.information(self, _('Successful'), _('Diary in {name} deleted.').format(name = name))
+        if self.control(date, "inverted") == False:
+            QMessageBox.information(self, _('Successful'), _('Diary in {date} deleted.').format(date = date))
         else:
-            QMessageBox.critical(self, _('Error'), _('Failed to delete diary in {name}.').format(name = name))
+            QMessageBox.critical(self, _('Error'), _('Failed to delete diary in {date}.').format(date = date))
 
     def delete_all(self):
         try:

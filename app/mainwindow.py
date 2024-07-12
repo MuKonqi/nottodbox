@@ -32,9 +32,7 @@ if not os.path.isdir(userdata):
 
 class TabWidget(QTabWidget):
     def __init__(self, parent, targets: list, names: list):
-        super().__init__()
-        
-        self.setParent(parent)
+        super().__init__(parent)
         
         self.number = -1
         for target in targets:

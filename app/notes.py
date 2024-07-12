@@ -57,12 +57,11 @@ db_start()
 
 class Note(QWidget):
     def __init__(self, parent, name):
-        super().__init__()
+        super().__init__(parent)
         
         self.fetch_autosave = fetch_autosave
         self.fetch_outmode = fetch_outmode
         
-        self.setParent(parent)
         self.setLayout(QGridLayout(self))
         
         self.autosave = QCheckBox(parent = self, text = _('Enable auto-save for this time'))
@@ -172,7 +171,7 @@ class Note(QWidget):
                     self.cur_save3.execute(self.sql_save3)
                     self.db_save3.commit()
                     
-            Notes.refresh(Notes)
+            Notes.refresh(self)
         
             with sqlite3.connect(f"{userdata}notes.db", timeout=5.0) as self.db_save4:
                 self.cur_save4 = self.db_save4.cursor()
@@ -211,11 +210,10 @@ class Note(QWidget):
 
 class Backup(QWidget):
     def __init__(self, parent, name):
-        super().__init__()
+        super().__init__(parent)
         
         self.fetch_outmode = fetch_outmode
         
-        self.setParent(parent)
         self.setLayout(QVBoxLayout(self))
             
         self.outmode = QComboBox(parent = self)
@@ -234,8 +232,12 @@ class Backup(QWidget):
         self.output = QTextEdit(parent = self)
         self.output.setReadOnly(True)
         
+        self.button = QPushButton(parent = self, text = _('Restore content'))
+        self.button.clicked.connect(lambda: Notes.restore(self, name, "page"))
+        
         self.layout().addWidget(self.outmode)
         self.layout().addWidget(self.output)
+        self.layout().addWidget(self.button)
 
         try:
             with sqlite3.connect(f"{userdata}notes.db", timeout=5.0) as self.db_showb:
@@ -460,7 +462,8 @@ class Notes(QTabWidget):
                 self.created.setText(f"{_('Created')}: {self.fetch_insert[1]}")
                 self.edited.setText(f"{_('Edited')}: {self.fetch_insert[2]}")
             except TypeError:
-                pass
+                self.created.setText(f"{_('Created')}:")
+                self.edited.setText(f"{_('Edited')}:")
         
     def control(self, name, mode = "normal"):
         try:
@@ -537,36 +540,36 @@ class Notes(QTabWidget):
         self.addTab(backups[name], (name + " " + _("(Backup)")))
         self.setCurrentWidget(backups[name])
     
-    def restore(self, name):
+    def restore(self, name, caller = "home"):
         if name == "" or name == None:
             QMessageBox.critical(self, _('Error'), _('Note name can not be blank.'))
             return
         
-        if self.control(name) == False:
+        if caller == "home" and self.control(name) == False:
             return
         
-        with sqlite3.connect(f"{userdata}notes.db", timeout=5.0) as self.db_loadb1:
-            self.cur_loadb1 = self.db_loadb1.cursor()
-            self.cur_loadb1.execute(f"select content, backup from notes where name = '{name}'")
-            self.fetch_loadb1 = self.cur_loadb1.fetchone()
+        with sqlite3.connect(f"{userdata}notes.db", timeout=5.0) as self.db_restore1:
+            self.cur_restore1 = self.db_restore1.cursor()
+            self.cur_restore1.execute(f"select content, backup from notes where name = '{name}'")
+            self.fetch_restore1 = self.cur_restore1.fetchone()
             
-        if self.fetch_loadb1[1] == None or self.fetch_loadb1[1] == "":
+        if self.fetch_restore1[1] == None or self.fetch_restore1[1] == "":
             QMessageBox.critical(self, _('Error'), _('There is no backup for {name} note.').format(name = name))
             return
                         
-        with sqlite3.connect(f"{userdata}notes.db", timeout=5.0) as self.db_loadb2:
-            self.sql_loadb2 = f"""update notes set content = '{self.fetch_loadb1[1]}', 
-            backup = '{self.fetch_loadb1[0]}' where name = '{name}'"""
-            self.cur_loadb2 = self.db_loadb2.cursor()
-            self.cur_loadb2.execute(self.sql_loadb2)
-            self.db_loadb2.commit()
+        with sqlite3.connect(f"{userdata}notes.db", timeout=5.0) as self.db_restore2:
+            self.sql_restore2 = f"""update notes set content = '{self.fetch_restore1[1]}', 
+            backup = '{self.fetch_restore1[0]}' where name = '{name}'"""
+            self.cur_restore2 = self.db_restore2.cursor()
+            self.cur_restore2.execute(self.sql_restore2)
+            self.db_restore2.commit()
             
-        with sqlite3.connect(f"{userdata}notes.db", timeout=5.0) as self.db_loadb3:
-            self.cur_loadb3 = self.db_loadb3.cursor()
-            self.cur_loadb3.execute(f"select content, backup from notes where name = '{name}'")
-            self.fetch_loadb3 = self.cur_loadb3.fetchone()
+        with sqlite3.connect(f"{userdata}notes.db", timeout=5.0) as self.db_restore3:
+            self.cur_restore3 = self.db_restore3.cursor()
+            self.cur_restore3.execute(f"select content, backup from notes where name = '{name}'")
+            self.fetch_restore3 = self.cur_restore3.fetchone()
             
-        if self.fetch_loadb1[1] == self.fetch_loadb3[0]:
+        if self.fetch_restore1[1] == self.fetch_restore3[0]:
             QMessageBox.information(self, _('Successful'), _('{name} note restored.').format(name = name))
         else:
             QMessageBox.critical(self, _('Error'), _('Failed to restore {name} note.').format(name = name))
