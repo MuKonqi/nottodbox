@@ -64,7 +64,7 @@ class Note(QWidget):
         
         self.setLayout(QGridLayout(self))
         
-        self.autosave = QCheckBox(parent = self, text = _('Enable auto-save for this time'))
+        self.autosave = QCheckBox(self, text=_('Enable auto-save for this time'))
         if fetch_autosave == "true":
             self.autosave.setChecked(True)
         try:
@@ -72,9 +72,9 @@ class Note(QWidget):
         except:
             self.autosave.stateChanged.connect(self.set_autosave)
         
-        self.input = QTextEdit(parent = self)
+        self.input = QTextEdit(self)
         
-        self.outmode = QComboBox(parent = self)
+        self.outmode = QComboBox(self)
         self.outmode.addItems([_("Out mode for this page: Plain text"), 
                                _("Out mode for this page: Markdown"), 
                                _("Out mode for this page: HTML")])
@@ -87,7 +87,7 @@ class Note(QWidget):
             self.outmode.setCurrentIndex(2)
         self.outmode.currentIndexChanged.connect(self.set_outmode)
         
-        self.output = QTextEdit(parent = self)
+        self.output = QTextEdit(self)
         self.output.setReadOnly(True)
         
         self.input.textChanged.connect(
@@ -97,7 +97,7 @@ class Note(QWidget):
                                                          datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
                                                          "auto"))
         
-        self.button = QPushButton(parent = self, text = _('Save'))
+        self.button = QPushButton(self, text=_('Save'))
         self.button.clicked.connect(lambda: self.save(name, 
                                                       self.input.toPlainText(), 
                                                       datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")))
@@ -216,7 +216,7 @@ class Backup(QWidget):
         
         self.setLayout(QVBoxLayout(self))
             
-        self.outmode = QComboBox(parent = self)
+        self.outmode = QComboBox(self)
         self.outmode.addItems([_("Out mode for this page: Plain text"), 
                                _("Out mode for this page: Markdown"), 
                                _("Out mode for this page: HTML")])
@@ -229,10 +229,10 @@ class Backup(QWidget):
             self.outmode.setCurrentIndex(2)
         self.outmode.currentIndexChanged.connect(self.set_outmode)
         
-        self.output = QTextEdit(parent = self)
+        self.output = QTextEdit(self)
         self.output.setReadOnly(True)
         
-        self.button = QPushButton(parent = self, text = _('Restore content'))
+        self.button = QPushButton(self, text=_('Restore content'))
         self.button.clicked.connect(lambda: Notes.restore(self, name, "page"))
         
         self.layout().addWidget(self.outmode)
@@ -272,8 +272,8 @@ class Backup(QWidget):
 
 
 class Notes(QTabWidget):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, parent):
+        super().__init__(parent)
 
         global notes_model, fetch_autosave, fetch_outmode
         
@@ -309,10 +309,10 @@ class Notes(QTabWidget):
             lambda: self.proxy.setFilterRegularExpression(QRegularExpression
                                                           (self.entry.text(), QRegularExpression.PatternOption.CaseInsensitiveOption)))
         
-        self.created = QLabel(parent = self.home, alignment = align_center, 
-                              text = _('Created:'))
-        self.edited = QLabel(parent = self.home, alignment = align_center, 
-                             text = _('Edited:'))
+        self.created = QLabel(self.home, alignment=align_center, 
+                              text=_('Created:'))
+        self.edited = QLabel(self.home, alignment=align_center, 
+                             text=_('Edited:'))
         
         self.listview = QListView(self.home)
         self.listview.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
@@ -332,28 +332,28 @@ class Notes(QTabWidget):
         self.side.setFixedWidth(144)
         self.side.setLayout(QVBoxLayout(self.side))
         
-        self.open_button = QPushButton(parent = self.side, text = _('Open/create note'))
+        self.open_button = QPushButton(self.side, text=_('Open/create note'))
         self.open_button.clicked.connect(lambda: self.open(self.entry.text()))
         
-        self.rename_button = QPushButton(parent = self.side, text = _('Rename note'))
+        self.rename_button = QPushButton(self.side, text=_('Rename note'))
         self.rename_button.clicked.connect(lambda: self.rename(self.entry.text()))
 
-        self.show_backup_button = QPushButton(parent = self.side, text = _('Show backup'))
+        self.show_backup_button = QPushButton(self.side, text=_('Show backup'))
         self.show_backup_button.clicked.connect(lambda: self.show_backup(self.entry.text()))
 
-        self.restore_button = QPushButton(parent = self.side, text = _('Restore content'))
+        self.restore_button = QPushButton(self.side, text=_('Restore content'))
         self.restore_button.clicked.connect(lambda: self.restore(self.entry.text()))
         
-        self.delete_content_button = QPushButton(parent = self.side, text = _('Delete content'))
+        self.delete_content_button = QPushButton(self.side, text=_('Delete content'))
         self.delete_content_button.clicked.connect(lambda: self.delete_content(self.entry.text()))
         
-        self.delete_note_button = QPushButton(parent = self.side, text = _('Delete note'))
+        self.delete_note_button = QPushButton(self.side, text=_('Delete note'))
         self.delete_note_button.clicked.connect(lambda: self.delete_note(self.entry.text()))
         
-        self.delete_all_button = QPushButton(parent = self.side, text = _('Delete all notes'))
+        self.delete_all_button = QPushButton(self.side, text=_('Delete all notes'))
         self.delete_all_button.clicked.connect(self.delete_all)
         
-        self.outmode = QComboBox(parent = self)
+        self.outmode = QComboBox(self)
         self.outmode.addItems([_("Out: Plain text"), _("Out: Markdown"), _("Out: HTML")])
         self.outmode.setEditable(False)
         if fetch_outmode == "plain-text":
@@ -364,7 +364,7 @@ class Notes(QTabWidget):
             self.outmode.setCurrentIndex(2)
         self.outmode.currentIndexChanged.connect(self.set_outmode)        
         
-        self.autosave = QCheckBox(parent = self, text = _('Enable auto-save'))
+        self.autosave = QCheckBox(self, text=_('Enable auto-save'))
         if fetch_autosave == "true":
             self.autosave.setChecked(True)
         try:

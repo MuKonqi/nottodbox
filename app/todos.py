@@ -66,10 +66,10 @@ class Todolist(QWidget):
         
         self.setLayout(QGridLayout(self))
         
-        self.started = QLabel(parent = self, alignment = align_center, 
-                              text = _('Started:'))
-        self.completed = QLabel(parent = self, alignment = align_center, 
-                                text = _("Completed:"))
+        self.started = QLabel(self, alignment=align_center, 
+                              text=_('Started:'))
+        self.completed = QLabel(self, alignment=align_center, 
+                                text=_("Completed:"))
         
         self.listview = QListView(self)
         self.listview.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
@@ -85,31 +85,30 @@ class Todolist(QWidget):
         self.listview.selectionModel().selectionChanged.connect(
             lambda: self.insert(self.proxy.itemData(self.listview.currentIndex())))
         
-        self.entry = QLineEdit(parent = self)
+        self.entry = QLineEdit(self)
         self.entry.setPlaceholderText(_("Type anything/a todo"))
         self.entry.textChanged.connect(
             lambda: self.proxy.setFilterRegularExpression(QRegularExpression
                                                           (self.entry.text(), QRegularExpression.PatternOption.CaseInsensitiveOption)))
         
-        self.comp_button = QPushButton(parent = self, text = _("Mark as completed"))
+        self.comp_button = QPushButton(self, text=_("Mark as completed"))
         self.comp_button.clicked.connect(lambda: self.comp(self.entry.text(), 
                                                            datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")))
         
-        self.uncomp_button = QPushButton(parent = self, text = _("Mark as uncompleted"))
-        self.uncomp_button.clicked.connect(lambda: self.uncomp(self.entry.text(), 
-                                                               datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")))
+        self.uncomp_button = QPushButton(self, text=_("Mark as uncompleted"))
+        self.uncomp_button.clicked.connect(lambda: self.uncomp(self.entry.text()))
         
-        self.add_button = QPushButton(parent = self, text = _("Add"))
+        self.add_button = QPushButton(self, text=_("Add"))
         self.add_button.clicked.connect(lambda: self.add(self.entry.text(),
                                                          datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")))
         
-        self.edit_button = QPushButton(parent = self, text = _("Edit"))
+        self.edit_button = QPushButton(self, text=_("Edit"))
         self.edit_button.clicked.connect(lambda: self.edit(self.entry.text()))
         
-        self.delete_button = QPushButton(parent = self, text = _("Delete"))
+        self.delete_button = QPushButton(self, text=_("Delete"))
         self.delete_button.clicked.connect(lambda: self.delete(self.entry.text()))
         
-        self.delete_all_button = QPushButton(parent = self, text = _("Delete All"))
+        self.delete_all_button = QPushButton(self, text=_("Delete All"))
         self.delete_all_button.clicked.connect(self.delete_all)
         
         self.layout().addWidget(self.started, 0, 0, 1, 1)
@@ -332,8 +331,8 @@ class Todolist(QWidget):
             QMessageBox.critical(self, _('Error'), _('Failed to delete all todos in {todolist}.').format(todolist = self.todolist))
 
 class Todos(QTabWidget):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, parent):
+        super().__init__(parent)
         
         self.setStatusTip("Tips: For search, just type in entries.")
         
@@ -344,8 +343,8 @@ class Todos(QTabWidget):
         self.side.setFixedWidth(288)
         self.side.setLayout(QGridLayout(self.side))
         
-        self.created = QLabel(parent = self.side, alignment = align_center, 
-                              text = _('Created:'))
+        self.created = QLabel(self.side, alignment=align_center, 
+                              text=_('Created:'))
         
         self.listview = QListView(self.side)
         self.listview.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
@@ -361,26 +360,26 @@ class Todos(QTabWidget):
         self.listview.selectionModel().selectionChanged.connect(
             lambda: self.insert(self.proxy.itemData(self.listview.currentIndex())))
         
-        self.entry = QLineEdit(parent = self.side)
+        self.entry = QLineEdit(self.side)
         self.entry.setPlaceholderText(_('Type anything/a list name'))
         self.entry.textChanged.connect(
             lambda: self.proxy.setFilterRegularExpression(QRegularExpression
                                                           (self.entry.text(), QRegularExpression.PatternOption.CaseInsensitiveOption)))
         
-        self.open_button = QPushButton(parent = self.side, text = _("Open"))
+        self.open_button = QPushButton(self.side, text=_("Open"))
         self.open_button.clicked.connect(lambda: self.open(self.entry.text()))
         
-        self.add_button = QPushButton(parent = self.side, text = _("Add"))
+        self.add_button = QPushButton(self.side, text=_("Add"))
         self.add_button.clicked.connect(lambda: self.add(self.entry.text(),
                                                          datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")))
         
-        self.rename_button = QPushButton(parent = self.side, text = _("Rename"))
+        self.rename_button = QPushButton(self.side, text=_("Rename"))
         self.rename_button.clicked.connect(lambda: self.rename(self.entry.text()))
         
-        self.delete_button = QPushButton(parent = self.side, text = _("Delete"))
+        self.delete_button = QPushButton(self.side, text=_("Delete"))
         self.delete_button.clicked.connect(lambda: self.delete(self.entry.text()))
         
-        self.delete_all_button = QPushButton(parent = self.side, text = _("Delete All"))
+        self.delete_all_button = QPushButton(self.side, text=_("Delete All"))
         self.delete_all_button.clicked.connect(self.delete_all)
 
         self.home.layout().addWidget(Todolist(self, "main"))

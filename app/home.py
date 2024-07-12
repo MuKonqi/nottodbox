@@ -25,8 +25,8 @@ if not os.path.isdir(userdata):
 
 
 class Home(QLabel):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, parent):
+        super().__init__(parent)
         
         self.setAlignment(align_center)
         self.setText("This page planned for making.\nYou can look other pages at the moment.")

@@ -64,7 +64,7 @@ class Diary(QWidget):
 
         self.setLayout(QGridLayout(self))
 
-        self.autosave = QCheckBox(parent = self)
+        self.autosave = QCheckBox(self)
         if self.mode == "today":
             self.autosave.setText(_('Enable auto-save for this time'))
             if fetch_autosave == "true":
@@ -78,9 +78,9 @@ class Diary(QWidget):
             self.autosave.setText(_("Auto-saves disabled for old diaries"))
             self.autosave.setDisabled(True)
 
-        self.input = QTextEdit(parent = self)
+        self.input = QTextEdit(self)
 
-        self.outmode = QComboBox(parent = self)
+        self.outmode = QComboBox(self)
         self.outmode.addItems([_("Out mode for this page: Plain text"),
                                _("Out mode for this page: Markdown"),
                                _("Out mode for this page: HTML")])
@@ -93,7 +93,7 @@ class Diary(QWidget):
             self.outmode.setCurrentIndex(2)
         self.outmode.currentIndexChanged.connect(self.set_outmode)
 
-        self.output = QTextEdit(parent = self)
+        self.output = QTextEdit(self)
         self.output.setReadOnly(True)
 
         self.input.textChanged.connect(
@@ -105,7 +105,7 @@ class Diary(QWidget):
                                                             datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
                                                             "auto"))
 
-        self.button = QPushButton(parent = self, text = _('Save'))
+        self.button = QPushButton(self, text=_('Save'))
         self.button.clicked.connect(lambda: self.save(date,
                                                       self.input.toPlainText(),
                                                       datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")))
@@ -234,7 +234,7 @@ class Backup(QWidget):
 
         self.setLayout(QVBoxLayout(self))
 
-        self.outmode = QComboBox(parent = self)
+        self.outmode = QComboBox(self)
         self.outmode.addItems([_("Out mode for this page: Plain text"),
                                _("Out mode for this page: Markdown"),
                                _("Out mode for this page: HTML")])
@@ -247,10 +247,10 @@ class Backup(QWidget):
             self.outmode.setCurrentIndex(2)
         self.outmode.currentIndexChanged.connect(self.set_outmode)
 
-        self.output = QTextEdit(parent = self)
+        self.output = QTextEdit(self)
         self.output.setReadOnly(True)
         
-        self.button = QPushButton(parent = self, text = _('Restore content'))
+        self.button = QPushButton(self, text=_('Restore content'))
         self.button.clicked.connect(lambda: Diaries.restore(self, date, "page"))
 
         self.layout().addWidget(self.outmode)
@@ -332,8 +332,8 @@ class Calendar(QCalendarWidget):
 
 
 class Diaries(QTabWidget):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, parent):
+        super().__init__(parent)
 
         global edited, fetch_autosave, fetch_outmode
 
@@ -363,41 +363,41 @@ class Diaries(QTabWidget):
         self.home = QWidget(self)
         self.home.setLayout(QGridLayout(self.home))
 
-        edited = QLabel(parent = self.home, alignment = align_center,
-                             text = _('Edited:'))
+        edited = QLabel(self.home, alignment=align_center,
+                             text=_('Edited:'))
 
         self.calendar = Calendar(self)
 
-        self.comeback_button = QPushButton(parent = self.home, text = _('Come back to today'))
+        self.comeback_button = QPushButton(self.home, text=_('Come back to today'))
         self.comeback_button.clicked.connect(lambda: self.calendar.setSelectedDate(today))
 
-        self.refresh_button = QPushButton(parent = self.home,
-                                            text = _('Refresh today variable (it is {date})').format(date = today.toString("dd.MM.yyyy")))
+        self.refresh_button = QPushButton(self.home,
+                                            text=_('Refresh today variable (it is {date})').format(date = today.toString("dd.MM.yyyy")))
         self.refresh_button.clicked.connect(self.refresh)
 
         self.side = QWidget(self.home)
         self.side.setFixedWidth(144)
         self.side.setLayout(QVBoxLayout(self.side))
 
-        self.open_button = QPushButton(parent = self.side, text = _('Open/create diary'))
+        self.open_button = QPushButton(self.side, text=_('Open/create diary'))
         self.open_button.clicked.connect(lambda: self.open(self.calendar.selectedDate().toString("dd.MM.yyyy")))
 
-        self.show_backup_button = QPushButton(parent = self.side, text = _('Show backup'))
+        self.show_backup_button = QPushButton(self.side, text=_('Show backup'))
         self.show_backup_button.clicked.connect(lambda: self.show_backup(self.calendar.selectedDate().toString("dd.MM.yyyy")))
 
-        self.restore_button = QPushButton(parent = self.side, text = _('Restore content'))
+        self.restore_button = QPushButton(self.side, text=_('Restore content'))
         self.restore_button.clicked.connect(lambda: self.restore(self.calendar.selectedDate().toString("dd.MM.yyyy")))
 
-        self.delete_content_button = QPushButton(parent = self.side, text = _('Delete content'))
+        self.delete_content_button = QPushButton(self.side, text=_('Delete content'))
         self.delete_content_button.clicked.connect(lambda: self.delete_content(self.calendar.selectedDate().toString("dd.MM.yyyy")))
 
-        self.delete_diary_button = QPushButton(parent = self.side, text = _('Delete diary'))
+        self.delete_diary_button = QPushButton(self.side, text=_('Delete diary'))
         self.delete_diary_button.clicked.connect(lambda: self.delete_diary(self.calendar.selectedDate().toString("dd.MM.yyyy")))
 
-        self.delete_all_button = QPushButton(parent = self.side, text = _('Delete all diaries'))
+        self.delete_all_button = QPushButton(self.side, text=_('Delete all diaries'))
         self.delete_all_button.clicked.connect(self.delete_all)
 
-        self.outmode = QComboBox(parent = self)
+        self.outmode = QComboBox(self)
         self.outmode.addItems([_("Out: Plain text"), _("Out: Markdown"), _("Out: HTML")])
         self.outmode.setEditable(False)
         if fetch_outmode == "plain-text":
@@ -408,7 +408,7 @@ class Diaries(QTabWidget):
             self.outmode.setCurrentIndex(2)
         self.outmode.currentIndexChanged.connect(self.set_outmode)
 
-        self.autosave = QCheckBox(parent = self, text = _('Enable auto-save'))
+        self.autosave = QCheckBox(self, text=_('Enable auto-save'))
         if fetch_autosave == "true":
             self.autosave.setChecked(True)
         try:

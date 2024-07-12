@@ -48,7 +48,7 @@ class MainWindow(QMainWindow):
         self.widget.setLayout(QGridLayout(self.widget))
 
         self.tabview = TabWidget(self.widget, 
-                                 [Home(parent = self), Notes(parent = self), Todos(parent = self), Diaries(parent = self)], 
+                                 [Home(self), Notes(self), Todos(self), Diaries(self)], 
                                  [_("Home"), _("Notes"), _("Todos"), _("Diaries")])
         
         self.statusbar = QStatusBar(self)
