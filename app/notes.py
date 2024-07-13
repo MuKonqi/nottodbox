@@ -77,7 +77,7 @@ with sqlite3.connect(f"{userdata}settings.db", timeout=5.0) as db_init:
 
 
 class Note(QWidget):
-    def __init__(self, parent, name):
+    def __init__(self, parent: QTabWidget | QWidget, name: str):
         super().__init__(parent)
         
         self.fetch_autosave = fetch_autosave
@@ -140,14 +140,14 @@ class Note(QWidget):
             except TypeError:
                 self.fetch_open = ""
     
-    def set_autosave(self, signal):
+    def set_autosave(self, signal: Qt.CheckState | int):
         if signal == Qt.CheckState.Unchecked or signal == 0:
             self.fetch_autosave = "false"
 
         elif signal == Qt.CheckState.Checked or signal == 2:
             self.fetch_autosave = "true"
             
-    def set_outmode(self, index):
+    def set_outmode(self, index: int):
         if index == 0:
             self.fetch_outmode = "plain-text"
         
@@ -159,7 +159,7 @@ class Note(QWidget):
             
         self.refresh(self.input.toPlainText())
             
-    def refresh(self, text):
+    def refresh(self, text: str):
         if self.fetch_outmode == "plain-text":
             self.output.setPlainText(text)
         
@@ -169,7 +169,7 @@ class Note(QWidget):
         elif self.fetch_outmode == "html":
             self.output.setHtml(text)
         
-    def save(self, name, content, date, mode = "manuel"):      
+    def save(self, name: str, content: str, edited: str, mode: str = "manuel"):      
         if mode == "manuel":          
             try:   
                 with sqlite3.connect(f"{userdata}notes.db", timeout=5.0) as self.db_save1:
@@ -179,7 +179,7 @@ class Note(QWidget):
                 
                 with sqlite3.connect(f"{userdata}notes.db", timeout=5.0) as self.db_save2:
                     self.sql_save2 = f"""update notes set content = '{content}', backup = '{self.fetch_open}',
-                    edited = '{date}' where name = '{name}'"""
+                    edited = '{edited}' where name = '{name}'"""
                     self.cur_save2 = self.db_save2.cursor()
                     self.cur_save2.execute(self.sql_save2)
                     self.db_save2.commit()
@@ -187,7 +187,7 @@ class Note(QWidget):
             except TypeError:
                 with sqlite3.connect(f"{userdata}notes.db", timeout=5.0) as self.db_save3:
                     self.sql_save3 = f"""insert into notes (name, content, backup, created, edited) 
-                    values ('{name}', '{content}', '', '{date}', '{date}')"""
+                    values ('{name}', '{content}', '', '{edited}', '{edited}')"""
                     self.cur_save3 = self.db_save3.cursor()
                     self.cur_save3.execute(self.sql_save3)
                     self.db_save3.commit()
@@ -213,7 +213,7 @@ class Note(QWidget):
                 
                 with sqlite3.connect(f"{userdata}notes.db", timeout=1.0) as self.db_save2:
                     self.sql_save2 = f"""update notes set content = '{content}',
-                    edited = '{date}' where name = '{name}'"""
+                    edited = '{edited}' where name = '{name}'"""
                     self.cur_save2 = self.db_save2.cursor()
                     self.cur_save2.execute(self.sql_save2)
                     self.db_save2.commit()
@@ -221,7 +221,7 @@ class Note(QWidget):
             except TypeError:    
                 with sqlite3.connect(f"{userdata}notes.db", timeout=1.0) as self.db_save3:
                     self.sql_save3 = f"""insert into notes (name, content, backup, created, edited) 
-                    values ('{name}', '{content}', '', '{date}', '{date}')"""
+                    values ('{name}', '{content}', '', '{edited}', '{edited}')"""
                     self.cur_save3 = self.db_save3.cursor()
                     self.cur_save3.execute(self.sql_save3)
                     self.db_save3.commit()
@@ -230,7 +230,7 @@ class Note(QWidget):
             
 
 class Backup(QWidget):
-    def __init__(self, parent, name):
+    def __init__(self, parent: QTabWidget | QWidget, name: str):
         super().__init__(parent)
         
         self.fetch_outmode = fetch_outmode
@@ -269,7 +269,7 @@ class Backup(QWidget):
         except TypeError:
             pass
 
-    def set_outmode(self, index):
+    def set_outmode(self, index: int):
         if index == 0:
             self.fetch_outmode = "plain-text"
         
@@ -281,7 +281,7 @@ class Backup(QWidget):
             
         self.refresh(self.fetch_showb)
             
-    def refresh(self, text):
+    def refresh(self, text: str):
         if self.fetch_outmode == "plain-text":
             self.output.setPlainText(text)
         
@@ -293,10 +293,12 @@ class Backup(QWidget):
 
 
 class NotesListView(QListView):
-    def __init__(self, parent, caller = "notes"):
+    def __init__(self, parent: QTabWidget | QWidget, caller: str = "notes"):
         super().__init__(parent)
         
         global notes_model1, notes_model2
+        
+        self._caller = caller
         
         self.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
@@ -335,19 +337,21 @@ class NotesListView(QListView):
         for i in range(0, len(self.fetch_refresh)):
             notes_list.append(self.fetch_refresh[i][0])
 
-        try:
-            notes_model1.setStringList(notes_list)
-        except NameError:
-            pass
+        if self._caller == "notes":
+            try:
+                notes_model1.setStringList(notes_list)
+            except NameError:
+                pass
         
-        try:
-            notes_model2.setStringList(notes_list)
-        except NameError:
-            pass
+        elif self._caller == "home":
+            try:
+                notes_model2.setStringList(notes_list)
+            except NameError:
+                pass
 
 
 class Notes(QTabWidget):
-    def __init__(self, parent):
+    def __init__(self, parent: QMainWindow | QWidget):
         super().__init__(parent)
         
         self.setStatusTip(_('Fun fact: Auto-saves does not change backups.'))
@@ -438,7 +442,7 @@ class Notes(QTabWidget):
         
         self.tabCloseRequested.connect(self.close)
          
-    def close(self, index):
+    def close(self, index: int):
         if index != self.indexOf(self.home):
             try:
                 del notes[self.tabText(index).replace("&", "")]
@@ -447,7 +451,7 @@ class Notes(QTabWidget):
             finally:
                 self.removeTab(index)
     
-    def set_autosave(self, signal):
+    def set_autosave(self, signal: Qt.CheckState | int):
         global fetch_autosave
         
         if signal == Qt.CheckState.Unchecked or signal == 0:
@@ -461,7 +465,7 @@ class Notes(QTabWidget):
             self.cur_autosave.execute(f"update settings set value = '{fetch_autosave}' where setting = 'notes-autosave'")
             self.db_autosave.commit()
                 
-    def set_outmode(self, index):
+    def set_outmode(self, index: int):
         global fetch_outmode
         
         if index == 0:
@@ -478,7 +482,7 @@ class Notes(QTabWidget):
             self.cur_outmode.execute(f"update settings set value = '{fetch_outmode}' where setting = 'notes-outmode'")
             self.db_outmode.commit()
         
-    def insert(self, name):
+    def insert(self, name: str):
         if name != {}:
             with sqlite3.connect(f"{userdata}notes.db", timeout=5.0) as self.db_insert:
                 self.cur_insert = self.db_insert.cursor()
@@ -493,7 +497,7 @@ class Notes(QTabWidget):
                 self.created.setText(f"{_('Created')}:")
                 self.edited.setText(f"{_('Edited')}:")
         
-    def control(self, name, mode = "normal"):
+    def control(self, name: str, mode: str = "normal"):
         try:
             with sqlite3.connect(f"{userdata}notes.db", timeout=5.0) as self.db_control:
                 self.cur_control = self.db_control.cursor()
@@ -505,7 +509,7 @@ class Notes(QTabWidget):
                 QMessageBox.critical(self, _('Error'), _('There is no note called {name}.').format(name = name))
             return False
         
-    def open(self, name):
+    def open(self, name: str):
         if name == "" or name == None:
             QMessageBox.critical(self, _('Error'), _('Note name can not be blank.'))
             return        
@@ -518,7 +522,7 @@ class Notes(QTabWidget):
             self.addTab(notes[name], name)
             self.setCurrentWidget(notes[name])
     
-    def rename(self, name):
+    def rename(self, name: str):
         if name == "" or name == None:
             QMessageBox.critical(self, _('Error'), _('Note name can not be blank.'))
             return        
@@ -556,7 +560,7 @@ class Notes(QTabWidget):
         else:
             QMessageBox.critical(self, _('Error'), _('Failed to rename {name} note.').format(name = name))
     
-    def show_backup(self, name):
+    def show_backup(self, name: str):
         if name == "" or name == None:
             QMessageBox.critical(self, _('Error'), _('Note name can not be blank.'))
             return
@@ -568,7 +572,7 @@ class Notes(QTabWidget):
         self.addTab(backups[name], (name + " " + _("(Backup)")))
         self.setCurrentWidget(backups[name])
     
-    def restore(self, name, caller = "home"):
+    def restore(self, name: str, caller: str = "home"):
         if name == "" or name == None:
             QMessageBox.critical(self, _('Error'), _('Note name can not be blank.'))
             return
@@ -602,7 +606,7 @@ class Notes(QTabWidget):
         else:
             QMessageBox.critical(self, _('Error'), _('Failed to restore {name} note.').format(name = name))
             
-    def delete_content(self, name):
+    def delete_content(self, name: str):
         if name == "" or name == None:
             QMessageBox.critical(self, _('Error'), _('Note name can not be blank.'))
             return        
@@ -631,7 +635,7 @@ class Notes(QTabWidget):
         else:
             QMessageBox.critical(self, _('Error'), _('Failed to delete content of {name} note.').format(name = name))
                        
-    def delete_note(self, name):
+    def delete_note(self, name: str):
         if name == "" or name == None:
             QMessageBox.critical(self, _('Error'), _('Note name can not be blank.'))
             return

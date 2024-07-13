@@ -4,7 +4,7 @@ import getpass
 import os
 import sqlite3
 import datetime
-from PyQt6.QtGui import QPainter, QColor
+from PyQt6.QtGui import QMouseEvent, QPainter, QColor
 from PyQt6.QtCore import Qt, QDate, QRect, QPoint
 from PyQt6.QtWidgets import *
 
@@ -76,17 +76,17 @@ with sqlite3.connect(f"{userdata}settings.db", timeout=5.0) as db_init:
 
 
 class Diary(QWidget):
-    def __init__(self, parent, date, mode):
+    def __init__(self, parent: QTabWidget | QWidget, date: str, mode: str):
         super().__init__(parent)
 
-        self.mode = mode
+        self._mode = mode
         self.fetch_autosave = fetch_autosave
         self.fetch_outmode = fetch_outmode
 
         self.setLayout(QGridLayout(self))
 
         self.autosave = QCheckBox(self)
-        if self.mode == "today":
+        if self._mode == "today":
             self.autosave.setText(_('Enable auto-save for this page'))
             if fetch_autosave == "true":
                 self.autosave.setChecked(True)
@@ -120,7 +120,7 @@ class Diary(QWidget):
         self.input.textChanged.connect(
             lambda: self.refresh(self.input.toPlainText()))
 
-        if self.mode == "today":
+        if self._mode == "today":
             self.input.textChanged.connect(lambda: self.save(date,
                                                             self.input.toPlainText(),
                                                             datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
@@ -145,7 +145,7 @@ class Diary(QWidget):
             try:
                 self.fetch_open = self.cur_open.fetchone()
                 self.fetch_content = self.fetch_open[0]
-                if self.mode == "today":
+                if self._mode == "today":
                     self.fetch_backup = self.fetch_content
                 else:
                     self.fetch_backup = self.fetch_open[1]
@@ -154,14 +154,14 @@ class Diary(QWidget):
             except TypeError:
                 self.fetch_backup = ""
 
-    def set_autosave(self, signal):
+    def set_autosave(self, signal: Qt.CheckState | int):
         if signal == Qt.CheckState.Unchecked or signal == 0:
             self.fetch_autosave = "false"
 
         elif signal == Qt.CheckState.Checked or signal == 2:
             self.fetch_autosave = "true"
 
-    def set_outmode(self, index):
+    def set_outmode(self, index: int):
         if index == 0:
             self.fetch_outmode = "plain-text"
 
@@ -173,7 +173,7 @@ class Diary(QWidget):
 
         self.refresh(self.input.toPlainText())
 
-    def refresh(self, text):
+    def refresh(self, text: str):
         if self.fetch_outmode == "plain-text":
             self.output.setPlainText(text)
 
@@ -183,9 +183,9 @@ class Diary(QWidget):
         elif self.fetch_outmode == "html":
             self.output.setHtml(text)
 
-    def save(self, date, content, edited, mode = "manuel"):
+    def save(self, date: str, content: str, edited: str, mode: str = "manuel"):
         if mode == "manuel":
-            if self.mode == "old":
+            if self._mode == "old":
                 self.question_save = QMessageBox.question(self, _("Question"),
                                                           _("Diaries are special for that day, editing an old diary can take away the meaning of the diary."
                                                             +"\nSo, are you sure you want to save it?"))
@@ -248,7 +248,7 @@ class Diary(QWidget):
 
 
 class Backup(QWidget):
-    def __init__(self, parent, date):
+    def __init__(self, parent: QTabWidget | QWidget, date: str):
         super().__init__(parent)
 
         self.fetch_outmode = fetch_outmode
@@ -287,7 +287,7 @@ class Backup(QWidget):
         except TypeError:
             pass
 
-    def set_outmode(self, index):
+    def set_outmode(self, index: int):
         if index == 0:
             self.fetch_outmode = "plain-text"
 
@@ -299,7 +299,7 @@ class Backup(QWidget):
 
         self.refresh(self.fetch_showb)
 
-    def refresh(self, text):
+    def refresh(self, text: str):
         if self.fetch_outmode == "plain-text":
             self.output.setPlainText(text)
 
@@ -311,27 +311,16 @@ class Backup(QWidget):
             
             
 class Calendar(QCalendarWidget):
-    def __init__(self, parent):
+    def __init__(self, parent: QTabWidget | QWidget):
         super().__init__(parent)
         
+        self._parent = parent
+        
         self.setMaximumDate(today)
-        self.clicked.connect(self.insert)
-        self.insert(today)
-        
-    def insert(self, date):
-        date = date.toString("dd.MM.yyyy")
-        
-        with sqlite3.connect(f"{userdata}diaries.db", timeout=5.0) as self.db_insert:
-            self.cur_insert = self.db_insert.cursor()
-            self.cur_insert.execute(f"select edited from diaries where date = '{date}'")
-            self.fetch_insert = self.cur_insert.fetchone()
-
-        try:
-            edited.setText(f"{_('Edited')}: {self.fetch_insert[0]}")
-        except TypeError:
-            edited.setText(f"{_('Edited')}:")
+        self.clicked.connect(lambda: Diaries.insert(parent, self.selectedDate()))
+        Diaries.insert(parent, self.selectedDate())
     
-    def paintCell(self, painter: QPainter | None, rect: QRect, date: QDate | datetime.date) -> None:
+    def paintCell(self, painter: QPainter | None, rect: QRect, date: QDate | datetime.date):
         super().paintCell(painter, rect, date)
     
         self.list = []
@@ -350,20 +339,22 @@ class Calendar(QCalendarWidget):
             
         if date >= today:
             painter.setOpacity(0)
+    
+    def mouseDoubleClickEvent(self, a0: QMouseEvent | None):
+        super().mouseDoubleClickEvent(a0)
+        Diaries.open(self._parent, self.selectedDate().toString("dd.MM.yyyy"))
 
 
 class Diaries(QTabWidget):
-    def __init__(self, parent):
+    def __init__(self, parent: QMainWindow | QWidget):
         super().__init__(parent)
-
-        global edited
 
         self.setStatusTip(_('Fun fact: Auto-saves and editing/restoring contents for old diaries does not change backups.'))
 
         self.home = QWidget(self)
         self.home.setLayout(QGridLayout(self.home))
 
-        edited = QLabel(self.home, alignment=align_center,
+        self.edited = QLabel(self.home, alignment=align_center,
                              text=_('Edited:'))
 
         self.calendar = Calendar(self)
@@ -425,7 +416,7 @@ class Diaries(QTabWidget):
         self.side.layout().addWidget(self.outmode)
         self.side.layout().addWidget(self.autosave)
         self.home.layout().addWidget(self.side, 1, 2, 2, 1)
-        self.home.layout().addWidget(edited, 0, 0, 1, 2)
+        self.home.layout().addWidget(self.edited, 0, 0, 1, 2)
         self.home.layout().addWidget(self.calendar, 1, 0, 1, 2)
         self.home.layout().addWidget(self.comeback_button, 2, 0, 1, 1)
         self.home.layout().addWidget(self.refresh_button, 2, 1, 1, 1)
@@ -436,7 +427,7 @@ class Diaries(QTabWidget):
 
         self.tabCloseRequested.connect(self.close)
 
-    def close(self, index):
+    def close(self, index: int):
         if index != self.indexOf(self.home):
             try:
                 del diaries[self.tabText(index).replace("&", "")]
@@ -445,7 +436,7 @@ class Diaries(QTabWidget):
             finally:
                 self.removeTab(index)
 
-    def set_autosave(self, signal):
+    def set_autosave(self, signal: Qt.CheckState | int):
         global fetch_autosave
 
         if signal == Qt.CheckState.Unchecked or signal == 0:
@@ -459,7 +450,7 @@ class Diaries(QTabWidget):
             self.cur_autosave.execute(f"update settings set value = '{fetch_autosave}' where setting = 'diaries-autosave'")
             self.db_autosave.commit()
 
-    def set_outmode(self, index):
+    def set_outmode(self, index: int):
         global fetch_outmode
 
         if index == 0:
@@ -481,8 +472,21 @@ class Diaries(QTabWidget):
         today = QDate.currentDate()
 
         self.refresh_button.setText(_('refresh today information (it is {date})').format(date = today.toString("dd.MM.yyyy")))
+        
+    def insert(self, date: QDate):
+        date = date.toString("dd.MM.yyyy")
+        
+        with sqlite3.connect(f"{userdata}diaries.db", timeout=5.0) as self.db_insert:
+            self.cur_insert = self.db_insert.cursor()
+            self.cur_insert.execute(f"select edited from diaries where date = '{date}'")
+            self.fetch_insert = self.cur_insert.fetchone()
 
-    def control(self, date, mode = "normal"):
+        try:
+            self.edited.setText(f"{_('Edited')}: {self.fetch_insert[0]}")
+        except TypeError:
+            self.edited.setText(f"{_('Edited')}:")
+
+    def control(self, date: str, mode: str = "normal"):
         try:
             with sqlite3.connect(f"{userdata}diaries.db", timeout=5.0) as self.db_control:
                 self.cur_control = self.db_control.cursor()
@@ -494,7 +498,7 @@ class Diaries(QTabWidget):
                 QMessageBox.critical(self, _('Error'), _('There is no diary for {date}.').format(date = date))
             return False
 
-    def open(self, date):
+    def open(self, date: str):
         if date in diaries:
             self.setCurrentWidget(diaries[date])
 
@@ -509,7 +513,7 @@ class Diaries(QTabWidget):
             self.addTab(diaries[date], date)
             self.setCurrentWidget(diaries[date])
 
-    def show_backup(self, date):
+    def show_backup(self, date: str):
         if self.control(date) == False:
             return
 
@@ -517,7 +521,7 @@ class Diaries(QTabWidget):
         self.addTab(backups[date], (date + " " + _("(Backup)")))
         self.setCurrentWidget(backups[date])
 
-    def restore(self, date, caller = "home"):
+    def restore(self, date: str, caller: str = "home"):
         if caller == "home" and self.control(date) == False:
             return
 
@@ -558,9 +562,17 @@ class Diaries(QTabWidget):
         else:
             QMessageBox.critical(self, _('Error'), _('Failed to restore diary for {date}.').format(date = date))
 
-    def delete_content(self, date):
+    def delete_content(self, date: str):
         if self.control(date) == False:
             return
+        
+        if date != today.toString("dd.MM.yyyy"):
+            self.question_restore = QMessageBox.question(self, _("Question"),
+                                                        _("Diaries are special for that day, restoring content an old diary can take away the meaning of the diary."
+                                                        +"\nSo, are you sure you want to restore content?"))
+
+            if self.question_restore != QMessageBox.StandardButton.Yes:
+                return
 
         with sqlite3.connect(f"{userdata}diaries.db", timeout=5.0) as self.db_delete1:
             self.cur_delete1 = self.db_delete1.cursor()
@@ -569,8 +581,11 @@ class Diaries(QTabWidget):
 
         with sqlite3.connect(f"{userdata}diaries.db", timeout=5.0) as self.db_delete2:
             self.cur_delete2 = self.db_delete2.cursor()
-            self.cur_delete2.execute(
-                f"update diaries set content = '', backup = '{self.fetch_delete1}' where date = '{date}'")
+            if date == today.toString("dd.MM.yyyy"):
+                self.cur_delete2.execute(
+                    f"update diaries set content = '', backup = '{self.fetch_delete1}' where date = '{date}'")
+            else:
+                self.cur_delete2.execute(f"update diaries set content = '' where date = '{date}'")
             self.db_delete2.commit()
 
         with sqlite3.connect(f"{userdata}diaries.db", timeout=5.0) as self.db_delete3:
@@ -583,7 +598,7 @@ class Diaries(QTabWidget):
         else:
             QMessageBox.critical(self, _('Error'), _('Failed to delete content of diary for {date}.').format(date = date))
 
-    def delete_diary(self, date):
+    def delete_diary(self, date: str):
         if self.control(date) == False:
             return
 

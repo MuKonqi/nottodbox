@@ -31,7 +31,7 @@ if not os.path.isdir(userdata):
 
 
 class TabWidget(QTabWidget):
-    def __init__(self, parent, targets: list, names: list):
+    def __init__(self, parent: QTabWidget | QWidget, targets: list, names: list):
         super().__init__(parent)
         
         self.number = -1

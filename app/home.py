@@ -5,7 +5,7 @@ import os
 import sqlite3
 from diaries import Diary
 from notes import NotesListView
-from todos import TodolistListView
+from todos import TodolistListView, TodosListView
 from PyQt6.QtCore import Qt, QDate, QStringListModel, QSortFilterProxyModel, QRegularExpression
 from PyQt6.QtWidgets import *
 
@@ -28,8 +28,9 @@ if not os.path.isdir(userdata):
     
 today = QDate.currentDate()
 
+
 class Widget(QWidget):
-    def __init__(self, parent, todos, notes):
+    def __init__(self, parent: QMainWindow | QWidget, todos: QTabWidget | QWidget, notes: QTabWidget | QWidget):
         super().__init__(parent)
         
         self.setLayout(QGridLayout(self))
@@ -43,10 +44,16 @@ class Widget(QWidget):
         
         self.diary = Diary(self, today.toString("dd.MM.yyyy"), "today")
         
-        self.label_todolist = QLabel(self, alignment=align_center, 
+        self.label_maintodos = QLabel(self, alignment=align_center, 
                                   text=_("List of Your Main Todos"))
         
-        self.todolist = TodolistListView(todos, "main", "home")
+        self.maintodos = TodolistListView(todos, "main", "home")
+        
+        self.label_todolist = QLabel(self, alignment=align_center, 
+                                  text=_("List of Your Todolists"))
+        
+        self.todolist = TodosListView(todos, "home")
+        self.todolist.doubleClicked.connect(lambda: parent.tabview.setCurrentWidget(parent.todos))
         
         self.label_notes = QLabel(self, alignment=align_center, 
                                   text=_("List of Your Notes"))
@@ -57,14 +64,16 @@ class Widget(QWidget):
         self.layout().addWidget(self.welcome, 0, 0, 1, 2)
         self.layout().addWidget(self.label_diary, 1, 0, 1, 2)
         self.layout().addWidget(self.diary, 2, 0, 1, 2)
-        self.layout().addWidget(self.label_todolist, 3, 0, 1, 1)
-        self.layout().addWidget(self.todolist, 4, 0, 1, 1)
+        self.layout().addWidget(self.label_maintodos, 3, 0, 1, 1)
+        self.layout().addWidget(self.maintodos, 4, 0, 1, 1)
+        self.layout().addWidget(self.label_todolist, 3, 1, 1, 1)
+        self.layout().addWidget(self.todolist, 4, 1, 1, 1)
         self.layout().addWidget(self.label_notes, 5, 0, 1, 2)
         self.layout().addWidget(self.notes, 6, 0, 1, 2)
 
 
 class Home(QScrollArea):
-    def __init__(self, parent, todos, notes):
+    def __init__(self, parent: QMainWindow | QWidget, todos: QTabWidget | QWidget, notes: QTabWidget | QWidget):
         super().__init__(parent)
         
         self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
@@ -75,5 +84,11 @@ class Home(QScrollArea):
     
        
 if __name__ == "__main__":    
-    sys.stderr.write('[2] Error: "home" module do not support working individual')
-    sys.exit(2)
+    from mainwindow import MainWindow
+    
+    application = QApplication(sys.argv)
+
+    window = MainWindow()
+    window.show()
+
+    application.exec()
