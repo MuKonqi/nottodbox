@@ -1,3 +1,24 @@
+#!/usr/bin/env python3
+
+# Copyright (C) 2024 MuKonqi (Muhammed S.)
+
+# Nottodbox is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# Nottodbox is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with Nottodbox.  If not, see <https://www.gnu.org/licenses/>.
+
+
+"""The main window module of Nottodbox. All modules should start this."""
+
+
 import sys
 import locale
 import getpass
@@ -32,17 +53,43 @@ if not os.path.isdir(userdata):
 
 
 class TabWidget(QTabWidget):
-    def __init__(self, parent: QTabWidget | QWidget, targets: list, names: list):
+    """Main tab widget.
+    
+    Methods:
+        __init__: Display a tab widget then add tabs.
+    """ 
+     
+    def __init__(self, parent: QMainWindow, targets: list, names: list):
+        """Display a tab widget then add tabs.
+
+        Args:
+            parent (QMainWindow): Parent of tabwidget.
+            targets (list): Widgets of tabs to add.
+            names (list): Names of tabs to add.
+            
+        Attributes:
+            number (int) = For range
+        """
+        
         super().__init__(parent)
         
         self.number = -1
         for target in targets:
             self.number += 1
             self.addTab(target, _(names[self.number]))
-        
 
 class MainWindow(QMainWindow):
+    """Main window.
+    
+    Methods:
+        __init__: Display a main window.
+        restoreDockWidget: Restore dock widget (sidebar)
+        closeEvent: Close main window (if there are open pages ask question)
+    """
+    
     def __init__(self):
+        """Display a main window."""
+        
         super().__init__()
         
         self.widget = QWidget(self)
@@ -86,10 +133,22 @@ class MainWindow(QMainWindow):
         self.widget.layout().addWidget(self.tabview)
 
     def restoreDockWidget(self):
+        """Restore dock widget (sidebar)"""
+        
         self.dock.show()
         self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.dock)
 
     def closeEvent(self, a0: QCloseEvent | None):
+        """Close main window (if there are open pages ask question)
+
+        Args:
+            a0 (QCloseEvent | None): Qt close event
+
+        Returns:
+            super().closeEvent(a0): Close window
+            None: Do not close window
+        """
+        
         if self.dock.widget().model().stringList() == []:
             return super().closeEvent(a0)
         

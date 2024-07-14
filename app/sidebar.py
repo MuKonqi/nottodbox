@@ -1,3 +1,21 @@
+#!/usr/bin/env python3
+
+# Copyright (C) 2024 MuKonqi (Muhammed S.)
+
+# Nottodbox is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# Nottodbox is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with Nottodbox.  If not, see <https://www.gnu.org/licenses/>.
+
+
 import sys
 import locale
 import getpass
@@ -22,13 +40,20 @@ userdata = f"/home/{username}/.local/share/nottodbox/"
 if not os.path.isdir(userdata):
     os.mkdir(userdata)
 
+
 class Sidebar(QListView):
-    def __init__(
-        self, 
-        parent: QMainWindow | QWidget, 
-        notes: QTabWidget | QWidget, 
-        todos: QTabWidget | QWidget,
-        diaries: QTabWidget | QWidget):
+    """List for open pages"""
+    
+    def __init__(self, parent: QMainWindow, notes: QTabWidget, todos: QTabWidget, diaries: QTabWidget):
+        """Display a list for open pages
+
+        Args:
+            parent (QMainWindow): Parent of this widget (main window)
+            notes (QTabWidget): Notes widget of parent
+            todos (QTabWidget): Todos widget of parent
+            diaries (QTabWidget): Diaries widget of parent
+        """
+        
         super().__init__(parent)
         
         global sidebar_parent, sidebar_model, sidebar_notes, sidebar_todos, sidebar_diaries, sidebar_items
@@ -50,6 +75,12 @@ class Sidebar(QListView):
         self.doubleClicked.connect(lambda: self.go(sidebar_model.itemData(self.currentIndex())[0]))
         
     def go(self, key: str):
+        """Go directly to the selected page.
+
+        Args:
+            key (str): Type and name of selected page.
+        """
+        
         if sidebar_items[key] == sidebar_notes:
             length = len(_("Note"))
             
@@ -60,7 +91,7 @@ class Sidebar(QListView):
                 sidebar_notes.setCurrentWidget(sidebar_notes.notes[key[(length + 2):]])
                 
         elif sidebar_items[key] == sidebar_todos:
-            length = len(_("Todolist"))
+            length = len(_("Todo list"))
             
             sidebar_todos.setCurrentWidget(sidebar_todos.todolists[key[(length + 2):]])
 
@@ -75,7 +106,14 @@ class Sidebar(QListView):
         
         sidebar_parent.tabview.setCurrentWidget(sidebar_items[key])
         
-    def add(text: str, target: QTabWidget | QWidget):
+    def add(text: str, target: QTabWidget):
+        """Add the open page to list.
+
+        Args:
+            text (str): Name of page.
+            target (QTabWidget): Parent widget of page.
+        """
+        
         stringlist = sidebar_model.stringList()
 
         if target == sidebar_notes:
@@ -83,8 +121,8 @@ class Sidebar(QListView):
             sidebar_items[_("Note: {name}").format(name = text)] = target
             
         elif target == sidebar_todos:
-            stringlist.append(_("Todolist: {todolist}").format(todolist = text))
-            sidebar_items[_("Todolist: {todolist} todolist").format(todolist = text)] = target
+            stringlist.append(_("Todo list: {todolist}").format(todolist = text))
+            sidebar_items[_("Todo list: {todolist}").format(todolist = text)] = target
             
         elif target == sidebar_diaries:
             stringlist.append(_("Diary for: {date}").format(date = text))
@@ -92,7 +130,14 @@ class Sidebar(QListView):
         
         sidebar_model.setStringList(stringlist)
     
-    def remove(text: str, target: QTabWidget | QWidget):
+    def remove(text: str, target: QTabWidget):
+        """Remove the open (after calling this should be closed) page from list.
+
+        Args:
+            text (str): Name of page.
+            target (QTabWidget): Parent widget of page.
+        """
+        
         stringlist = sidebar_model.stringList()
 
         if target == sidebar_notes:
@@ -103,8 +148,8 @@ class Sidebar(QListView):
                 pass
             
         elif target == sidebar_todos:
-            stringlist.remove(_("Todolist: {todolist}").format(todolist = text))
-            del sidebar_items[_("Todolist: {todolist} todolist").format(todolist = text)]
+            stringlist.remove(_("Todo list: {todolist}").format(todolist = text))
+            del sidebar_items[_("Todo list: {todolist}").format(todolist = text)]
             
         elif target == sidebar_diaries:
             stringlist.remove(_("Diary for: {date}").format(date = text))
@@ -116,7 +161,7 @@ class Sidebar(QListView):
         sidebar_model.setStringList(stringlist)
 
        
-if __name__ == "__main__":    
+if __name__ == "__main__":
     from mainwindow import MainWindow
     
     application = QApplication(sys.argv)

@@ -1,3 +1,21 @@
+#!/usr/bin/env python3
+
+# Copyright (C) 2024 MuKonqi (Muhammed S.)
+
+# Nottodbox is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# Nottodbox is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with Nottodbox.  If not, see <https://www.gnu.org/licenses/>.
+
+
 import sys
 import locale
 import getpass
@@ -29,7 +47,19 @@ today = QDate.currentDate()
 
 
 class Widget(QWidget):
-    def __init__(self, parent: QMainWindow | QWidget, todos: QTabWidget | QWidget, notes: QTabWidget | QWidget):
+    def __init__(self, parent: QMainWindow, todos: QTabWidget, notes: QTabWidget):
+        """Display a widget for shortcut for them:
+            - Keeping diary for today
+            - Marking as completed/uncompleted todos in main todo list
+            - Listing all todo lists except main
+            - Listing all notes
+
+        Args:
+            parent (QMainWindow): Parent of this widget (main window)
+            todos (QTabWidget): Todos widget of parent
+            notes (QTabWidget): Notes widget of parent
+        """
+        
         super().__init__(parent)
         
         self.setLayout(QGridLayout(self))
@@ -72,7 +102,15 @@ class Widget(QWidget):
 
 
 class Home(QScrollArea):
-    def __init__(self, parent: QMainWindow | QWidget, todos: QTabWidget | QWidget, notes: QTabWidget | QWidget):
+    def __init__(self, parent: QMainWindow, todos: QTabWidget, notes: QTabWidget):
+        """Display a scrollable area for "Widget" class
+
+        Args:
+            parent (QMainWindow): Parent of this widget (main window).
+            todos (QTabWidget): Todos widget of parent.
+            notes (QTabWidget): Notes widget of parent.
+        """        
+        
         super().__init__(parent)
         
         self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)

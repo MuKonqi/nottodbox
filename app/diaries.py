@@ -1,3 +1,21 @@
+#!/usr/bin/env python3
+
+# Copyright (C) 2024 MuKonqi (Muhammed S.)
+
+# Nottodbox is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# Nottodbox is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with Nottodbox.  If not, see <https://www.gnu.org/licenses/>.
+
+
 import sys
 import locale
 import getpass
@@ -30,54 +48,55 @@ if not os.path.isdir(userdata):
 today = QDate.currentDate()
 
 
-def db_start():
-    with sqlite3.connect(f"{userdata}settings.db", timeout=5.0) as settings_db:
-        settings_sql = """
-        CREATE TABLE IF NOT EXISTS settings (
-            setting TEXT NOT NULL PRIMARY KEY,
-            value TEXT NOT NULL
-        );"""
-        settings_cur = settings_db.cursor()
-        settings_cur.execute(settings_sql)
-        settings_db.commit()
+with sqlite3.connect(f"{userdata}settings.db", timeout=5.0) as db_settings:
+    cur_settings = db_settings.cursor()
+    
+    sql_settings = """
+    CREATE TABLE IF NOT EXISTS settings (
+        setting TEXT NOT NULL PRIMARY KEY,
+        value TEXT NOT NULL
+    );"""
+    cur_settings.execute(sql_settings)
+    
+    db_settings.commit()
 
-    with sqlite3.connect(f"{userdata}diaries.db", timeout=5.0) as diaries_db:
-        diaries_sql = """
+    try:
+        cur_settings.execute(f"select value from settings where setting = 'diaries-autosave'")
+        fetch_autosave = cur_settings.fetchone()[0]
+
+    except:
+        cur_settings.execute(f"insert into settings (setting, value) values ('diaries-autosave', 'true')")
+        db_settings.commit()
+        fetch_autosave = "true"
+
+    try:
+        cur_settings.execute(f"select value from settings where setting = 'diaries-outmode'")
+        fetch_outmode = cur_settings.fetchone()[0]
+
+    except:
+        cur_settings.execute(f"insert into settings (setting, value) values ('diaries-outmode', 'markdown')")
+        db_settings.commit()
+        fetch_outmode = "markdown"
+        
+
+def create_db():
+    with sqlite3.connect(f"{userdata}diaries.db", timeout=5.0) as db_diaries:
+        sql_diaries = """
         CREATE TABLE IF NOT EXISTS diaries (
             date TEXT NOT NULL PRIMARY KEY,
             content TEXT,
             backup TEXT,
             edited TEXT NOT NULL
         );"""
-        diaries_cur = diaries_db.cursor()
-        diaries_cur.execute(diaries_sql)
-        diaries_db.commit()
-db_start()
+        cur_diaries = db_diaries.cursor()
+        cur_diaries.execute(sql_diaries)
+        db_diaries.commit()
 
-with sqlite3.connect(f"{userdata}settings.db", timeout=5.0) as db_init:
-    cur_init = db_init.cursor()
-
-    try:
-        cur_init.execute(f"select value from settings where setting = 'diaries-autosave'")
-        fetch_autosave = cur_init.fetchone()[0]
-
-    except:
-        cur_init.execute(f"insert into settings (setting, value) values ('diaries-autosave', 'true')")
-        db_init.commit()
-        fetch_autosave = "true"
-
-    try:
-        cur_init.execute(f"select value from settings where setting = 'diaries-outmode'")
-        fetch_outmode = cur_init.fetchone()[0]
-
-    except:
-        cur_init.execute(f"insert into settings (setting, value) values ('diaries-outmode', 'markdown')")
-        db_init.commit()
-        fetch_outmode = "markdown"
+create_db()
 
 
 class Diary(QWidget):
-    def __init__(self, parent: QTabWidget | QWidget, date: str, mode: str):
+    def __init__(self, parent: QTabWidget, date: str, mode: str):
         super().__init__(parent)
 
         self._mode = mode
@@ -253,7 +272,7 @@ class Diary(QWidget):
 
 
 class Backup(QWidget):
-    def __init__(self, parent: QTabWidget | QWidget, date: str):
+    def __init__(self, parent: QTabWidget, date: str):
         super().__init__(parent)
 
         self.fetch_outmode = fetch_outmode
@@ -318,7 +337,7 @@ class Backup(QWidget):
             
             
 class Calendar(QCalendarWidget):
-    def __init__(self, parent: QTabWidget | QWidget):
+    def __init__(self, parent: QTabWidget):
         super().__init__(parent)
         
         self._parent = parent
@@ -354,7 +373,7 @@ class Calendar(QCalendarWidget):
 
 
 class Diaries(QTabWidget):
-    def __init__(self, parent: QMainWindow | QWidget):
+    def __init__(self, parent: QMainWindow):
         super().__init__(parent)
         
         self.diaries = {}
@@ -639,7 +658,7 @@ class Diaries(QTabWidget):
             return
 
         if not os.path.isfile(f"{userdata}diaries.db"):
-            db_start()
+            create_db()
 
             QMessageBox.information(self, _('Successful'), _('All diaries deleted.'))
         else:

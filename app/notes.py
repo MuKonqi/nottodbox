@@ -1,3 +1,21 @@
+#!/usr/bin/env python3
+
+# Copyright (C) 2024 MuKonqi (Muhammed S.)
+
+# Nottodbox is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# Nottodbox is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with Nottodbox.  If not, see <https://www.gnu.org/licenses/>.
+
+
 import sys
 import locale
 import getpass
@@ -27,19 +45,40 @@ if not os.path.isdir(userdata):
     os.mkdir(userdata)
 
 
-def db_start():
-    with sqlite3.connect(f"{userdata}settings.db", timeout=5.0) as settings_db:
-        settings_sql = """
-        CREATE TABLE IF NOT EXISTS settings (
-            setting TEXT NOT NULL PRIMARY KEY,
-            value TEXT NOT NULL
-        );"""
-        settings_cur = settings_db.cursor()
-        settings_cur.execute(settings_sql)
-        settings_db.commit()
+with sqlite3.connect(f"{userdata}settings.db", timeout=5.0) as db_settings:
+    cur_settings = db_settings.cursor()
+    
+    sql_settings = """
+    CREATE TABLE IF NOT EXISTS settings (
+        setting TEXT NOT NULL PRIMARY KEY,
+        value TEXT NOT NULL
+    );"""
+    cur_settings.execute(sql_settings)
+    
+    db_settings.commit()
 
-    with sqlite3.connect(f"{userdata}notes.db", timeout=5.0) as notes_db:
-        notes_sql = """
+    try:
+        cur_settings.execute(f"select value from settings where setting = 'notes-autosave'")
+        fetch_autosave = cur_settings.fetchone()[0]
+
+    except:
+        cur_settings.execute(f"insert into settings (setting, value) values ('notes-autosave', 'true')")
+        db_settings.commit()
+        fetch_autosave = "true"
+
+    try:
+        cur_settings.execute(f"select value from settings where setting = 'notes-outmode'")
+        fetch_outmode = cur_settings.fetchone()[0]
+
+    except:
+        cur_settings.execute(f"insert into settings (setting, value) values ('notes-outmode', 'markdown')")
+        db_settings.commit()
+        fetch_outmode = "markdown"
+        
+
+def create_db():
+    with sqlite3.connect(f"{userdata}notes.db", timeout=5.0) as db_notes:
+        sql_notes = """
         CREATE TABLE IF NOT EXISTS notes (
             name TEXT NOT NULL PRIMARY KEY,
             content TEXT,
@@ -47,35 +86,15 @@ def db_start():
             created TEXT NOT NULL,
             edited TEXT
         );"""
-        notes_cur = notes_db.cursor()
-        notes_cur.execute(notes_sql)
-        notes_db.commit()
-db_start()
+        cur_notes = db_notes.cursor()
+        cur_notes.execute(sql_notes)
+        db_notes.commit()
 
-with sqlite3.connect(f"{userdata}settings.db", timeout=5.0) as db_init:
-    cur_init = db_init.cursor()
-
-    try:
-        cur_init.execute(f"select value from settings where setting = 'notes-autosave'")
-        fetch_autosave = cur_init.fetchone()[0]
-
-    except:
-        cur_init.execute(f"insert into settings (setting, value) values ('notes-autosave', 'true')")
-        db_init.commit()
-        fetch_autosave = "true"
-        
-    try:
-        cur_init.execute(f"select value from settings where setting = 'notes-outmode'")
-        fetch_outmode = cur_init.fetchone()[0]
-
-    except:
-        cur_init.execute(f"insert into settings (setting, value) values ('notes-outmode', 'markdown')")
-        db_init.commit()
-        fetch_outmode = "markdown"
+create_db()
 
 
 class Note(QWidget):
-    def __init__(self, parent: QTabWidget | QWidget, name: str):
+    def __init__(self, parent: QTabWidget, name: str):
         super().__init__(parent)
         
         self._parent = parent
@@ -231,7 +250,7 @@ class Note(QWidget):
             
 
 class Backup(QWidget):
-    def __init__(self, parent: QTabWidget | QWidget, name: str):
+    def __init__(self, parent: QTabWidget, name: str):
         super().__init__(parent)
         
         self.fetch_outmode = fetch_outmode
@@ -295,7 +314,7 @@ class Backup(QWidget):
 
 
 class NotesListView(QListView):
-    def __init__(self, parent: QTabWidget | QWidget, caller: str = "notes"):
+    def __init__(self, parent: QTabWidget, caller: str = "notes"):
         super().__init__(parent)
         
         global notes_model1, notes_model2
@@ -350,7 +369,7 @@ class NotesListView(QListView):
 
 
 class Notes(QTabWidget):
-    def __init__(self, parent: QMainWindow | QWidget):
+    def __init__(self, parent: QMainWindow):
         super().__init__(parent)
         
         self.notes =  {}
@@ -669,7 +688,7 @@ class Notes(QTabWidget):
             return
     
         if not os.path.isfile(f"{userdata}notes.db"):
-            db_start()
+            create_db()
             NotesListView.refresh(self.listview)
             self.entry.setText("")
             

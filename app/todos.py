@@ -1,3 +1,21 @@
+#!/usr/bin/env python3
+
+# Copyright (C) 2024 MuKonqi (Muhammed S.)
+
+# Nottodbox is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# Nottodbox is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with Nottodbox.  If not, see <https://www.gnu.org/licenses/>.
+
+
 import sys
 import locale
 import getpass
@@ -31,24 +49,31 @@ todolist_model1 = {}
 todolist_model2 = {}
 
 
-def db_start():
-    with sqlite3.connect(f"{userdata}settings.db", timeout=5.0) as settings_db:
-        settings_sql = """
-        CREATE TABLE IF NOT EXISTS settings (
-            setting TEXT NOT NULL PRIMARY KEY,
-            value TEXT NOT NULL
-        );"""
-        settings_cur = settings_db.cursor()
-        settings_cur.execute(settings_sql)
-        settings_db.commit()
+with sqlite3.connect(f"{userdata}settings.db", timeout=5.0) as db_settings:
+    cur_settings = db_settings.cursor()
+    
+    sql_settings = """
+    CREATE TABLE IF NOT EXISTS settings (
+        setting TEXT NOT NULL PRIMARY KEY,
+        value TEXT NOT NULL
+    );"""
+    cur_settings.execute(sql_settings)
+    
+    db_settings.commit()
         
-    with sqlite3.connect(f"{userdata}todos.db", timeout=5.0) as todos_db:
-        todos_cur = todos_db.cursor()
+
+def create_db():    
+    with sqlite3.connect(f"{userdata}todos.db", timeout=5.0) as db_todos:
+        cur_todos = db_todos.cursor()
+        
         todos_sql1 = """
         CREATE TABLE IF NOT EXISTS todos (
             name TEXT NOT NULL PRIMARY KEY,
             created TEXT NOT NULL
         );"""
+        cur_todos.execute(todos_sql1)
+        db_todos.commit()
+        
         todos_sql2 = """
         CREATE TABLE IF NOT EXISTS main (
             todo TEXT NOT NULL PRIMARY KEY,
@@ -56,13 +81,14 @@ def db_start():
             started TEXT NOT NULL,
             completed TEXT
         );"""
-        todos_cur.execute(todos_sql1)
-        todos_cur.execute(todos_sql2)
-        todos_db.commit()
-db_start()
+        cur_todos.execute(todos_sql2)
+        db_todos.commit()
+
+create_db()
+
 
 class TodolistListView(QListView):
-    def __init__(self, parent: QTabWidget | QWidget, todolist: str, caller: str = "todolist"):
+    def __init__(self, parent: QTabWidget, todolist: str, caller: str = "todolist"):
         super().__init__(parent)
         
         global todolist_model1, todolist_model2
@@ -173,7 +199,7 @@ class TodolistListView(QListView):
 
 
 class Todolist(QWidget):
-    def __init__(self, parent: QTabWidget | QWidget, todolist: str = "main"):
+    def __init__(self, parent: QTabWidget, todolist: str = "main"):
         super().__init__(parent)
         
         self._todolist = todolist
@@ -449,7 +475,7 @@ class Todolist(QWidget):
 
 
 class TodosListView(QListView):
-    def __init__(self, parent: QTabWidget | QWidget, caller: str = "todos"):
+    def __init__(self, parent: QTabWidget, caller: str = "todos"):
         super().__init__(parent)
         
         global todos_model1, todos_model2
@@ -504,7 +530,7 @@ class TodosListView(QListView):
 
 
 class Todos(QTabWidget):
-    def __init__(self, parent: QMainWindow | QWidget):
+    def __init__(self, parent: QMainWindow):
         super().__init__(parent)
         
         self.todolists = {}
@@ -723,7 +749,7 @@ class Todos(QTabWidget):
                 self.fetch_delete2 = self.cur_delete2.fetchall()
                     
                 if todolist not in self.fetch_delete2:
-                    db_start()
+                    create_db()
                     QMessageBox.information(self, _('Successful'), _('{todolist} list deleted.').format(todolist = todolist))
             
             else:
@@ -756,7 +782,7 @@ class Todos(QTabWidget):
                     self.cur_delete_all3.fetchall()
 
                 except sqlite3.OperationalError:
-                    db_start()
+                    create_db()
                     TodosListView.refresh(self.listview)
                     
                     QMessageBox.information(self, _('Successful'), _('All todolists deleted.'))
