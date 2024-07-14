@@ -92,12 +92,14 @@ class MainWindow(QMainWindow):
     def closeEvent(self, a0: QCloseEvent | None):
         if self.dock.widget().model().stringList() == []:
             return super().closeEvent(a0)
-
+        
         else:
             self.question = QMessageBox.question(self, _("Warning"), _("Some pages are still open.\nAre you sure to exit?"))
             
             if self.question == QMessageBox.StandardButton.Yes:
                 return super().closeEvent(a0)
+            else:
+                a0.ignore()
 
         
 if __name__ == "__main__":
