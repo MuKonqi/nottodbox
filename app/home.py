@@ -2,10 +2,9 @@ import sys
 import locale
 import getpass
 import os
-import sqlite3
-from diaries import Diary
 from notes import NotesListView
 from todos import TodolistListView, TodosListView
+from diaries import Diary
 from PyQt6.QtCore import Qt, QDate, QStringListModel, QSortFilterProxyModel, QRegularExpression
 from PyQt6.QtWidgets import *
 

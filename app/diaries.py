@@ -4,9 +4,11 @@ import getpass
 import os
 import sqlite3
 import datetime
+from sidebar import Sidebar
 from PyQt6.QtGui import QMouseEvent, QPainter, QColor
 from PyQt6.QtCore import Qt, QDate, QRect, QPoint
 from PyQt6.QtWidgets import *
+
 
 def _(text): return text
 if "tr" in locale.getlocale()[0][0:]:
@@ -25,9 +27,8 @@ userdata = f"/home/{userdate}/.local/share/nottodbox/"
 if not os.path.isdir(userdata):
     os.mkdir(userdata)
 
-diaries = {}
-backups = {}
 today = QDate.currentDate()
+
 
 def db_start():
     with sqlite3.connect(f"{userdata}settings.db", timeout=5.0) as settings_db:
@@ -83,11 +84,15 @@ class Diary(QWidget):
         self.fetch_autosave = fetch_autosave
         self.fetch_outmode = fetch_outmode
 
+        if date == today.toString("dd.MM.yyyy"):
+            self.setStatusTip(_("Auto-saves do not change backups."))
+        else:
+            self.setStatusTip(_("Resaving old diaries do not change backups."))
         self.setLayout(QGridLayout(self))
 
         self.autosave = QCheckBox(self)
         if self._mode == "today":
-            self.autosave.setText(_('Enable auto-save for this page'))
+            self.autosave.setText(_('Enable auto-save for this time'))
             if fetch_autosave == "true":
                 self.autosave.setChecked(True)
             try:
@@ -102,9 +107,9 @@ class Diary(QWidget):
         self.input = QTextEdit(self)
 
         self.outmode = QComboBox(self)
-        self.outmode.addItems([_("Out mode for this page: Plain text"),
-                               _("Out mode for this page: Markdown"),
-                               _("Out mode for this page: HTML")])
+        self.outmode.addItems([_("Out mode for this time: Plain text"),
+                               _("Out mode for this time: Markdown"),
+                               _("Out mode for this time: HTML")])
         self.outmode.setEditable(False)
         if self.fetch_outmode == "plain-text":
             self.outmode.setCurrentIndex(0)
@@ -254,11 +259,13 @@ class Backup(QWidget):
         self.fetch_outmode = fetch_outmode
 
         self.setLayout(QVBoxLayout(self))
+        if date != today.toString("dd.MM.yyyy"):
+            self.setStatusTip(_("Restoring contents for old diaries do not change backups."))
 
         self.outmode = QComboBox(self)
-        self.outmode.addItems([_("Out mode for this page: Plain text"),
-                               _("Out mode for this page: Markdown"),
-                               _("Out mode for this page: HTML")])
+        self.outmode.addItems([_("Out mode for this time: Plain text"),
+                               _("Out mode for this time: Markdown"),
+                               _("Out mode for this time: HTML")])
         self.outmode.setEditable(False)
         if self.fetch_outmode == "plain-text":
             self.outmode.setCurrentIndex(0)
@@ -317,7 +324,8 @@ class Calendar(QCalendarWidget):
         self._parent = parent
         
         self.setMaximumDate(today)
-        self.clicked.connect(lambda: Diaries.insert(parent, self.selectedDate()))
+        self.setStatusTip(_("Double-click on top to opening a diary."))
+        self.clicked.connect(lambda: Diaries.insert(self._parent, self.selectedDate()))
         Diaries.insert(parent, self.selectedDate())
     
     def paintCell(self, painter: QPainter | None, rect: QRect, date: QDate | datetime.date):
@@ -348,8 +356,9 @@ class Calendar(QCalendarWidget):
 class Diaries(QTabWidget):
     def __init__(self, parent: QMainWindow | QWidget):
         super().__init__(parent)
-
-        self.setStatusTip(_('Fun fact: Auto-saves and editing/restoring contents for old diaries does not change backups.'))
+        
+        self.diaries = {}
+        self.backups = {}
 
         self.home = QWidget(self)
         self.home.setLayout(QGridLayout(self.home))
@@ -402,6 +411,7 @@ class Diaries(QTabWidget):
         self.autosave = QCheckBox(self, text=_('Enable auto-save'))
         if fetch_autosave == "true":
             self.autosave.setChecked(True)
+        self.autosave.setStatusTip(_("Auto-saves do not change backups."))
         try:
             self.autosave.checkStateChanged.connect(self.set_autosave)
         except:
@@ -429,8 +439,9 @@ class Diaries(QTabWidget):
 
     def close(self, index: int):
         if index != self.indexOf(self.home):
+            Sidebar.remove(self.tabText(index).replace("&", ""), self)
             try:
-                del diaries[self.tabText(index).replace("&", "")]
+                del self.diaries[self.tabText(index).replace("&", "")]
             except KeyError:
                 pass
             finally:
@@ -499,27 +510,29 @@ class Diaries(QTabWidget):
             return False
 
     def open(self, date: str):
-        if date in diaries:
-            self.setCurrentWidget(diaries[date])
+        if date in self.diaries:
+            self.setCurrentWidget(self.diaries[date])
 
         else:
             if date == today.toString("dd.MM.yyyy"):
-                diaries[date] = Diary(self, date, "today")
+                self.diaries[date] = Diary(self, date, "today")
             elif self.control(date) == True:
-                diaries[date] = Diary(self, date, "old")
+                self.diaries[date] = Diary(self, date, "old")
             else:
                 return
 
-            self.addTab(diaries[date], date)
-            self.setCurrentWidget(diaries[date])
+            Sidebar.add(date, self)
+            self.addTab(self.diaries[date], date)
+            self.setCurrentWidget(self.diaries[date])
 
     def show_backup(self, date: str):
         if self.control(date) == False:
             return
 
-        backups[date] = Backup(self, date)
-        self.addTab(backups[date], (date + " " + _("(Backup)")))
-        self.setCurrentWidget(backups[date])
+        Sidebar.add(date + " " + _("(Backup)"), self)
+        self.backups[date] = Backup(self, date)
+        self.addTab(self.backups[date], (date + " " + _("(Backup)")))
+        self.setCurrentWidget(self.backups[date])
 
     def restore(self, date: str, caller: str = "home"):
         if caller == "home" and self.control(date) == False:
@@ -574,6 +587,15 @@ class Diaries(QTabWidget):
             if self.question_restore != QMessageBox.StandardButton.Yes:
                 return
 
+
+        if date != today.toString("dd.MM.yyyy"):
+            self.question_restore = QMessageBox.question(self, _("Question"),
+                                                        _("Diaries are special for that day, restoring content an old diary can take away the meaning of the diary."
+                                                        +"\nSo, are you sure you want to restore content?"))
+
+            if self.question_restore != QMessageBox.StandardButton.Yes:
+                return
+
         with sqlite3.connect(f"{userdata}diaries.db", timeout=5.0) as self.db_delete1:
             self.cur_delete1 = self.db_delete1.cursor()
             self.cur_delete1.execute(f"select content from diaries where date = '{date}'")
@@ -581,11 +603,8 @@ class Diaries(QTabWidget):
 
         with sqlite3.connect(f"{userdata}diaries.db", timeout=5.0) as self.db_delete2:
             self.cur_delete2 = self.db_delete2.cursor()
-            if date == today.toString("dd.MM.yyyy"):
-                self.cur_delete2.execute(
-                    f"update diaries set content = '', backup = '{self.fetch_delete1}' where date = '{date}'")
-            else:
-                self.cur_delete2.execute(f"update diaries set content = '' where date = '{date}'")
+            self.cur_delete2.execute(
+                f"update diaries set content = '', backup = '{self.fetch_delete1}' where date = '{date}'")
             self.db_delete2.commit()
 
         with sqlite3.connect(f"{userdata}diaries.db", timeout=5.0) as self.db_delete3:
@@ -628,19 +647,13 @@ class Diaries(QTabWidget):
 
 
 if __name__ == "__main__":
+    from mainwindow import MainWindow
+    
     application = QApplication(sys.argv)
 
-    window = QMainWindow()
-    window.setStatusBar(QStatusBar(window))
-    window.setStatusTip(_('Copyright (C) 2024 MuKonqi (Muhammed S.), licensed under GPLv3 or later'))
-    window.setGeometry(0, 0, 960, 540)
-    window.setWindowTitle("Nottodbox: Diaries")
-
-    widget = QWidget(parent = window)
-    widget.setLayout(QGridLayout(widget))
-    widget.layout().addWidget(Diaries(parent = widget))
-
-    window.setCentralWidget(widget)
+    window = MainWindow()
     window.show()
+    
+    window.tabview.setCurrentIndex(3)
 
     application.exec()

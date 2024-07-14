@@ -4,6 +4,7 @@ import getpass
 import os
 import sqlite3
 import datetime
+from sidebar import Sidebar
 from PyQt6.QtCore import Qt, QStringListModel, QSortFilterProxyModel, QRegularExpression
 from PyQt6.QtWidgets import *
 
@@ -24,9 +25,6 @@ username = getpass.getuser()
 userdata = f"/home/{username}/.local/share/nottodbox/"
 if not os.path.isdir(userdata):
     os.mkdir(userdata)
-
-notes =  {}
-backups = {}
 
 
 def db_start():
@@ -80,12 +78,15 @@ class Note(QWidget):
     def __init__(self, parent: QTabWidget | QWidget, name: str):
         super().__init__(parent)
         
+        self._parent = parent
+        
         self.fetch_autosave = fetch_autosave
         self.fetch_outmode = fetch_outmode
         
         self.setLayout(QGridLayout(self))
+        self.setStatusTip(_("Auto-saves do not change backups."))
         
-        self.autosave = QCheckBox(self, text=_('Enable auto-save for this page'))
+        self.autosave = QCheckBox(self, text=_('Enable auto-save for this time'))
         if fetch_autosave == "true":
             self.autosave.setChecked(True)
         try:
@@ -96,9 +97,9 @@ class Note(QWidget):
         self.input = QTextEdit(self)
         
         self.outmode = QComboBox(self)
-        self.outmode.addItems([_("Out mode for this page: Plain text"), 
-                               _("Out mode for this page: Markdown"), 
-                               _("Out mode for this page: HTML")])
+        self.outmode.addItems([_("Out mode for this time: Plain text"), 
+                               _("Out mode for this time: Markdown"), 
+                               _("Out mode for this time: HTML")])
         self.outmode.setEditable(False)
         if self.fetch_outmode == "plain-text":
             self.outmode.setCurrentIndex(0)
@@ -192,7 +193,7 @@ class Note(QWidget):
                     self.cur_save3.execute(self.sql_save3)
                     self.db_save3.commit()
                     
-            NotesListView.refresh(self)
+            NotesListView.refresh(self._parent.listview)
         
             with sqlite3.connect(f"{userdata}notes.db", timeout=5.0) as self.db_save4:
                 self.cur_save4 = self.db_save4.cursor()
@@ -226,7 +227,7 @@ class Note(QWidget):
                     self.cur_save3.execute(self.sql_save3)
                     self.db_save3.commit()
                     
-                NotesListView.refresh(self)
+                NotesListView.refresh(self._parent.listview)
             
 
 class Backup(QWidget):
@@ -236,11 +237,12 @@ class Backup(QWidget):
         self.fetch_outmode = fetch_outmode
         
         self.setLayout(QVBoxLayout(self))
+        self.setStatusTip(_("Auto-saves do not change backups."))
             
         self.outmode = QComboBox(self)
-        self.outmode.addItems([_("Out mode for this page: Plain text"), 
-                               _("Out mode for this page: Markdown"), 
-                               _("Out mode for this page: HTML")])
+        self.outmode.addItems([_("Out mode for this time: Plain text"), 
+                               _("Out mode for this time: Markdown"), 
+                               _("Out mode for this time: HTML")])
         self.outmode.setEditable(False)
         if self.fetch_outmode == "plain-text":
             self.outmode.setCurrentIndex(0)
@@ -298,11 +300,10 @@ class NotesListView(QListView):
         
         global notes_model1, notes_model2
         
-        self._caller = caller
-        
         self.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
         self.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+        self.setStatusTip("Double-click to opening a note.")
         
         self.proxy = QSortFilterProxyModel(self)
         
@@ -325,7 +326,7 @@ class NotesListView(QListView):
         self.refresh()
         
     def refresh(self):
-        global notes_model1, notes_model2, notes_list
+        global notes_list
         
         notes_list = []
         
@@ -337,24 +338,23 @@ class NotesListView(QListView):
         for i in range(0, len(self.fetch_refresh)):
             notes_list.append(self.fetch_refresh[i][0])
 
-        if self._caller == "notes":
-            try:
-                notes_model1.setStringList(notes_list)
-            except NameError:
-                pass
-        
-        elif self._caller == "home":
-            try:
-                notes_model2.setStringList(notes_list)
-            except NameError:
-                pass
+        try:
+            notes_model1.setStringList(notes_list)
+        except NameError:
+            pass
+    
+        try:
+            notes_model2.setStringList(notes_list)
+        except NameError:
+            pass
 
 
 class Notes(QTabWidget):
     def __init__(self, parent: QMainWindow | QWidget):
         super().__init__(parent)
         
-        self.setStatusTip(_('Fun fact: Auto-saves does not change backups.'))
+        self.notes =  {}
+        self.backups = {}
         
         self.home = QWidget(self)
         self.home.setLayout(QGridLayout(self.home))
@@ -362,7 +362,8 @@ class Notes(QTabWidget):
         self.listview = NotesListView(self)
         
         self.entry = QLineEdit(self.home)
-        self.entry.setPlaceholderText("Type anything for search or a note name others")
+        self.entry.setPlaceholderText("Type a note name")
+        self.entry.setStatusTip("Typing in entry also searches in list.")
         self.entry.textChanged.connect(
             lambda: self.listview.proxy.setFilterRegularExpression(QRegularExpression
                                                           (self.entry.text(), QRegularExpression.PatternOption.CaseInsensitiveOption)))
@@ -415,6 +416,7 @@ class Notes(QTabWidget):
         self.autosave = QCheckBox(self, text=_('Enable auto-save'))
         if fetch_autosave == "true":
             self.autosave.setChecked(True)
+        self.autosave.setStatusTip(_("Auto-saves do not change backups."))
         try:
             self.autosave.checkStateChanged.connect(self.set_autosave)
         except:
@@ -444,8 +446,9 @@ class Notes(QTabWidget):
          
     def close(self, index: int):
         if index != self.indexOf(self.home):
+            Sidebar.remove(self.tabText(index).replace("&", ""), self)
             try:
-                del notes[self.tabText(index).replace("&", "")]
+                del self.notes[self.tabText(index).replace("&", "")]
             except KeyError:
                 pass
             finally:
@@ -512,15 +515,16 @@ class Notes(QTabWidget):
     def open(self, name: str):
         if name == "" or name == None:
             QMessageBox.critical(self, _('Error'), _('Note name can not be blank.'))
-            return        
+            return
         
-        if name in notes:
-            self.setCurrentWidget(notes[name])
+        if name in self.notes:
+            self.setCurrentWidget(self.notes[name])
             
         else:
-            notes[name] = Note(self, name)
-            self.addTab(notes[name], name)
-            self.setCurrentWidget(notes[name])
+            Sidebar.add(name, self)
+            self.notes[name] = Note(self, name)
+            self.addTab(self.notes[name], name)
+            self.setCurrentWidget(self.notes[name])
     
     def rename(self, name: str):
         if name == "" or name == None:
@@ -541,7 +545,7 @@ class Notes(QTabWidget):
                 self.cur_rename1.execute(self.sql_rename1)
                 self.db_rename1.commit()
             
-            NotesListView.refresh(self)
+            NotesListView.refresh(self.listview)
 
             try:
                 with sqlite3.connect(f"{userdata}notes.db", timeout=5.0) as self.db_rename2:
@@ -568,9 +572,10 @@ class Notes(QTabWidget):
         if self.control(name) == False:
             return
         
-        backups[name] = Backup(self, name)
-        self.addTab(backups[name], (name + " " + _("(Backup)")))
-        self.setCurrentWidget(backups[name])
+        Sidebar.add(name + " " + _("(Backup)"), self)
+        self.backups[name] = Backup(self, name)
+        self.addTab(self.backups[name], (name + " " + _("(Backup)")))
+        self.setCurrentWidget(self.backups[name])
     
     def restore(self, name: str, caller: str = "home"):
         if name == "" or name == None:
@@ -648,7 +653,7 @@ class Notes(QTabWidget):
             self.cur_remove1.execute(f"delete from notes where name = '{name}'")
             self.db_remove1.commit()
             
-        NotesListView.refresh(self)
+        NotesListView.refresh(self.listview)
         self.entry.setText("")
             
         if self.control(name, "inverted") == False:
@@ -665,7 +670,7 @@ class Notes(QTabWidget):
     
         if not os.path.isfile(f"{userdata}notes.db"):
             db_start()
-            NotesListView.refresh(self)
+            NotesListView.refresh(self.listview)
             self.entry.setText("")
             
             QMessageBox.information(self, _('Successful'), _('All notes deleted.'))
@@ -674,19 +679,13 @@ class Notes(QTabWidget):
             
             
 if __name__ == "__main__":
+    from mainwindow import MainWindow
+    
     application = QApplication(sys.argv)
 
-    window = QMainWindow()
-    window.setStatusBar(QStatusBar(window))
-    window.setStatusTip(_('Copyright (C) 2024 MuKonqi (Muhammed S.), licensed under GPLv3 or later'))
-    window.setGeometry(0, 0, 960, 540)
-    window.setWindowTitle("Nottodbox: Notes")
-    
-    widget = QWidget(parent = window)
-    widget.setLayout(QGridLayout(widget))
-    widget.layout().addWidget(Notes(parent = widget))
-    
-    window.setCentralWidget(widget)
+    window = MainWindow()
     window.show()
+    
+    window.tabview.setCurrentIndex(1)
 
     application.exec()

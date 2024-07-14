@@ -4,6 +4,7 @@ import getpass
 import os
 import sqlite3
 import datetime
+from sidebar import Sidebar
 from PyQt6.QtCore import Qt, QStringListModel, QSortFilterProxyModel, QRegularExpression
 from PyQt6.QtWidgets import *
 
@@ -25,7 +26,9 @@ userdata = f"/home/{username}/.local/share/nottodbox/"
 if not os.path.isdir(userdata):
     os.mkdir(userdata)
 
-todolists = {}
+todolist_list = {}
+todolist_model1 = {}
+todolist_model2 = {}
 
 
 def db_start():
@@ -39,23 +42,23 @@ def db_start():
         settings_cur.execute(settings_sql)
         settings_db.commit()
         
-    with sqlite3.connect(f"{userdata}todos.db", timeout=5.0) as db:
-        sql1 = """
+    with sqlite3.connect(f"{userdata}todos.db", timeout=5.0) as todos_db:
+        todos_cur = todos_db.cursor()
+        todos_sql1 = """
         CREATE TABLE IF NOT EXISTS todos (
             name TEXT NOT NULL PRIMARY KEY,
             created TEXT NOT NULL
         );"""
-        sql2 = """
+        todos_sql2 = """
         CREATE TABLE IF NOT EXISTS main (
             todo TEXT NOT NULL PRIMARY KEY,
             status TEXT NOT NULL,
             started TEXT NOT NULL,
             completed TEXT
         );"""
-        cur = db.cursor()
-        cur.execute(sql1)
-        cur.execute(sql2)
-        db.commit()
+        todos_cur.execute(todos_sql1)
+        todos_cur.execute(todos_sql2)
+        todos_db.commit()
 db_start()
 
 class TodolistListView(QListView):
@@ -64,22 +67,20 @@ class TodolistListView(QListView):
         
         global todolist_model1, todolist_model2
         
-        self._caller = caller
+        self.proxy = QSortFilterProxyModel(self)
+        
+        if caller == "todolist":  
+            todolist_model1[todolist] = QStringListModel(self)
+            self.proxy.setSourceModel(todolist_model1[todolist])
+            
+        elif caller == "home":
+            todolist_model2[todolist] = QStringListModel(self)
+            self.proxy.setSourceModel(todolist_model2[todolist])
         
         self.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
         self.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
-        
-        self.proxy = QSortFilterProxyModel(self)
-        
-        if caller == "todolist":  
-            todolist_model1 = QStringListModel(self)
-            self.proxy.setSourceModel(todolist_model1)
-            
-        elif caller == "home":
-            todolist_model2 = QStringListModel(self)
-            self.proxy.setSourceModel(todolist_model2)
-        
+        self.setStatusTip(_("Double-click to marking a todo as completed/uncompleted."))
         self.setModel(self.proxy)
         
         if caller == "todolist":
@@ -91,9 +92,9 @@ class TodolistListView(QListView):
         self.refresh(todolist)
         
     def refresh(self, todolist: str):
-        global todolist_model1, todolist_model2, todolist_list
+        global todolist_list
         
-        todolist_list = []
+        todolist_list[todolist] = []
         
         with sqlite3.connect(f"{userdata}todos.db", timeout=5.0) as self.db_refresh:
             self.cur_refresh = self.db_refresh.cursor()
@@ -102,22 +103,21 @@ class TodolistListView(QListView):
         
         for i in range(0, len(self.fetch_refresh)):
             if self.fetch_refresh[i][1] == "completed":
-                todolist_list.append(f"[+] {self.fetch_refresh[i][0]}")
+                todolist_list[todolist].append(f"[+] {self.fetch_refresh[i][0]}")
                 
             elif self.fetch_refresh[i][1] == "uncompleted":
-                todolist_list.append(f"[-] {self.fetch_refresh[i][0]}")
+                todolist_list[todolist].append(f"[-] {self.fetch_refresh[i][0]}")
             
-        if self._caller == "todolist":
-            try:
-                todolist_model1.setStringList(todolist_list)
-            except NameError:
-                pass
+        try:
+            todolist_model1[todolist].setStringList(todolist_list[todolist])
+        except KeyError:
+            pass
+    
         
-        elif self._caller == "home":
-            try:
-                todolist_model2.setStringList(todolist_list)
-            except NameError:
-                pass
+        try:
+            todolist_model2[todolist].setStringList(todolist_list[todolist])
+        except KeyError:
+            pass
         
     def mark(self, todolist: str, todo: str):
         if todo[0].startswith("[-]") == True:
@@ -179,6 +179,7 @@ class Todolist(QWidget):
         self._todolist = todolist
         
         self.setLayout(QGridLayout(self))
+        self.setStatusTip(_("Double-click on list to marking a todo as completed/uncompleted."))
         
         self.started = QLabel(self, alignment=align_center, 
                               text=_('Started:'))
@@ -188,7 +189,8 @@ class Todolist(QWidget):
         self.listview = TodolistListView(self, self._todolist)
         
         self.entry = QLineEdit(self)
-        self.entry.setPlaceholderText(_("Type anything/a todo"))
+        self.entry.setPlaceholderText(_('Type a todo'))
+        self.entry.setStatusTip("Typing in entry also searches in list.")
         self.entry.textChanged.connect(
             lambda: self.listview.proxy.setFilterRegularExpression(QRegularExpression
                                                           (self.entry.text(), QRegularExpression.PatternOption.CaseInsensitiveOption)))
@@ -226,6 +228,9 @@ class Todolist(QWidget):
         
     def insert(self, todo: str):
         if todo != {}:
+            if Todos.control(self, self._todolist) == False:
+                return
+            
             if todo[0].startswith("[-]") == True:
                 todo = todo[0].replace("[-] ", "")
             elif todo[0].startswith("[+]") == True:
@@ -245,6 +250,9 @@ class Todolist(QWidget):
                 self.completed.setText(f"{_('Completed')}:")
         
     def control(self, todo: str, mode: str = "normal"):
+        if Todos.control(self, self._todolist) == False:
+            return
+        
         try:
             with sqlite3.connect(f"{userdata}todos.db", timeout=5.0) as self.db_control:
                 self.cur_control = self.db_control.cursor()
@@ -257,7 +265,14 @@ class Todolist(QWidget):
             return False
     
     def comp(self, todo: str, completed: str):
+        if todo == "" or todo == None:
+            QMessageBox.critical(self, _('Error'), _('Todo can not be blank.'))
+            return        
+        
         if self.control(todo) == False:
+            return
+        
+        if Todos.control(self, self._todolist) == False:
             return
         
         with sqlite3.connect(f"{userdata}todos.db", timeout=5.0) as self.db_comp1:
@@ -270,7 +285,7 @@ class Todolist(QWidget):
             self.cur_comp2.execute(f"select status from {self._todolist} where todo = '{todo}'")
             self.fetch_comp2 = self.cur_comp2.fetchone()[0]
         
-        TodolistListView.refresh(self, self._todolist)
+        TodolistListView.refresh(self.listview, self._todolist)
         
         if self.fetch_comp2 == "completed":
             QMessageBox.information(self, _("Successful"), _("{todo} in {todolist} marked as completed.").format(todo = todo, todolist = self._todolist))
@@ -278,7 +293,14 @@ class Todolist(QWidget):
             QMessageBox.critical(self, _("Error"), _("Failed to mark {todo} in {todolist} as completed.").format(todo = todo, todolist = self._todolist))
     
     def uncomp(self, todo: str):
+        if todo == "" or todo == None:
+            QMessageBox.critical(self, _('Error'), _('Todo can not be blank.'))
+            return        
+        
         if self.control(todo) == False:
+            return
+        
+        if Todos.control(self, self._todolist) == False:
             return
         
         with sqlite3.connect(f"{userdata}todos.db", timeout=5.0) as self.db_uncomp1:
@@ -291,7 +313,7 @@ class Todolist(QWidget):
             self.cur_uncomp2.execute(f"select status from {self._todolist} where todo = '{todo}'")
             self.fetch_uncomp2 = self.cur_uncomp2.fetchone()[0]
             
-        TodolistListView.refresh(self, self._todolist)
+        TodolistListView.refresh(self.listview, self._todolist)
         
         if self.fetch_uncomp2 == "uncompleted":
             QMessageBox.information(self, _("Successful"), _("{todo} in {todolist} marked as uncompleted.").format(todo = todo, todolist = self._todolist))
@@ -302,6 +324,9 @@ class Todolist(QWidget):
         if todo == "" or todo == None:
             QMessageBox.critical(self, _('Error'), _('Todo can not be blank.'))
             return           
+        
+        if Todos.control(self, self._todolist) == False:
+            return
         
         try:
             with sqlite3.connect(f"{userdata}todos.db", timeout=5.0) as self.db_add1:
@@ -314,7 +339,7 @@ class Todolist(QWidget):
             QMessageBox.critical(self, _('Error'), _('{todo} todo already added to {todolist}.').format(todo = todo, todolist = self._todolist))
             return
                 
-        TodolistListView.refresh(self, self._todolist)
+        TodolistListView.refresh(self.listview, self._todolist)
     
         with sqlite3.connect(f"{userdata}todos.db", timeout=5.0) as self.db_add2:
             self.cur_add2 = self.db_add2.cursor()
@@ -336,6 +361,9 @@ class Todolist(QWidget):
         if self.control(todo) == False:
             return
         
+        if Todos.control(self, self._todolist) == False:
+            return
+        
         self.newtodo, self.topwindow = QInputDialog.getText(self, 
                                                              _("Edit {todo} todo in {todolist}").format(todo = todo, todolist = self._todolist), 
                                                              _("Please enter a todo for {todo} in {todolist} below.").format(todo = todo, todolist = self._todolist))
@@ -347,7 +375,7 @@ class Todolist(QWidget):
                 self.cur_edit1.execute(self.sql_edit1)
                 self.db_edit1.commit()
             
-            TodolistListView.refresh(self, self._todolist)
+            TodolistListView.refresh(self.listview, self._todolist)
             self.entry.setText(self.newtodo)
 
             try:
@@ -376,12 +404,15 @@ class Todolist(QWidget):
         if self.control(todo) == False:
             return
         
+        if Todos.control(self, self._todolist) == False:
+            return
+        
         with sqlite3.connect(f"{userdata}todos.db", timeout=5.0) as self.db_remove1:
             self.cur_remove1 = self.db_remove1.cursor()
             self.cur_remove1.execute(f"delete from {self._todolist} where todo = '{todo}'")
             self.db_remove1.commit()
             
-        TodolistListView.refresh(self, self._todolist)
+        TodolistListView.refresh(self.listview, self._todolist)
         self.entry.setText("")
             
         if self.control(todo, "inverted") == False:
@@ -390,6 +421,9 @@ class Todolist(QWidget):
             QMessageBox.critical(self, _('Error'), _('Failed to delete {todo} todo in {todolist}.').format(todo = todo, todolist = self._todolist))
     
     def delete_all(self):
+        if Todos.control(self, self._todolist) == False:
+            return
+        
         with sqlite3.connect(f"{userdata}todos.db") as self.db_delete_all1:
             self.cur_delete_all1 = self.db_delete_all1.cursor()
             self.cur_delete_all1.execute(f"select todo from {self._todolist}")
@@ -406,7 +440,7 @@ class Todolist(QWidget):
             self.cur_delete_all3.execute(f"select * from {self._todolist}")
             self.fetch_delete_all3 = self.cur_delete_all3.fetchall()
         
-        TodolistListView.refresh(self, self._todolist)
+        TodolistListView.refresh(self.listview, self._todolist)
         
         if self.fetch_delete_all3 == []:
             QMessageBox.information(self, _('Successful'), _('All todos in {todolist} deleted.').format(todolist = self._todolist))
@@ -420,11 +454,10 @@ class TodosListView(QListView):
         
         global todos_model1, todos_model2
         
-        self._caller = caller
-        
         self.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
         self.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+        self.setStatusTip(_("Double-click to opening a todolist."))
         
         self.proxy = QSortFilterProxyModel(self)
         
@@ -447,7 +480,7 @@ class TodosListView(QListView):
         self.refresh()
         
     def refresh(self):
-        global todos_model1, todos_model2, todos_list
+        global todos_list
         
         todos_list = []
         
@@ -459,24 +492,22 @@ class TodosListView(QListView):
         for i in range(0, len(self.fetch_refresh)):
             todos_list.append(self.fetch_refresh[i][0])
 
-        if self._caller == "todos":
-            try:
-                todos_model1.setStringList(todos_list)
-            except NameError:
-                pass
-        
-        elif self._caller == "home":
-            try:
-                todos_model2.setStringList(todos_list)
-            except NameError:
-                pass
+        try:
+            todos_model1.setStringList(todos_list)
+        except NameError:
+            pass
+    
+        try:
+            todos_model2.setStringList(todos_list)
+        except NameError:
+            pass
 
 
 class Todos(QTabWidget):
     def __init__(self, parent: QMainWindow | QWidget):
         super().__init__(parent)
         
-        self.setStatusTip("Tips: For search, just type in entries.")
+        self.todolists = {}
         
         self.home = QWidget(self)
         self.home.setLayout(QHBoxLayout(self.home))
@@ -484,6 +515,7 @@ class Todos(QTabWidget):
         self.side = QWidget(self.home)
         self.side.setFixedWidth(288)
         self.side.setLayout(QGridLayout(self.side))
+        self.side.setStatusTip(_("Double-click on list to opening a todolist."))
         
         self.created = QLabel(self.side, alignment=align_center, 
                               text=_('Created:'))
@@ -491,7 +523,8 @@ class Todos(QTabWidget):
         self.listview = TodosListView(self)
         
         self.entry = QLineEdit(self.side)
-        self.entry.setPlaceholderText(_('Type anything/a list name'))
+        self.entry.setPlaceholderText(_('Type a todolist name'))
+        self.entry.setStatusTip("Typing in entry also searches in list.")
         self.entry.textChanged.connect(
             lambda: self.listview.proxy.setFilterRegularExpression(QRegularExpression
                                                           (self.entry.text(), QRegularExpression.PatternOption.CaseInsensitiveOption)))
@@ -531,8 +564,9 @@ class Todos(QTabWidget):
          
     def close(self, index: int):
         if index != self.indexOf(self.home):
+            Sidebar.remove(self.tabText(index).replace("&", ""), self)
             try:
-                del todolists[self.tabText(index).replace("&", "")]
+                del self.todolists[self.tabText(index).replace("&", "")]
             finally:
                 self.removeTab(index)
     
@@ -559,6 +593,8 @@ class Todos(QTabWidget):
             if mode == "normal":
                 QMessageBox.critical(self, _('Error'), _('There is no todo list called {todolist}.').format(todolist = todolist))
             return False
+        finally:
+            self.cur_control.close()
     
     def open(self, todolist: str):
         if todolist == "main" or todolist == "" or todolist == None:
@@ -568,13 +604,14 @@ class Todos(QTabWidget):
         if self.control(todolist) == False:
             return
         
-        if todolist in todolists:
-            self.setCurrentWidget(todolists[todolist])
+        if todolist in self.todolists:
+            self.setCurrentWidget(self.todolists[todolist])
             
         else:
-            todolists[todolist] = Todolist(self, todolist)
-            self.addTab(todolists[todolist], todolist)
-            self.setCurrentWidget(todolists[todolist])
+            Sidebar.add(todolist, self)
+            self.todolists[todolist] = Todolist(self, todolist)
+            self.addTab(self.todolists[todolist], todolist)
+            self.setCurrentWidget(self.todolists[todolist])
     
     def add(self, todolist: str, created: str):
         if todolist == "main" or todolist == "" or todolist == None:
@@ -599,7 +636,7 @@ class Todos(QTabWidget):
             QMessageBox.critical(self, _('Error'), _('{todolist} list already exist.').format(todolist = todolist))
             return
         
-        TodosListView.refresh(self)
+        TodosListView.refresh(self.listview)
         
         try:
             with sqlite3.connect(f"{userdata}todos.db", timeout=5) as self.db_add2:
@@ -636,7 +673,7 @@ class Todos(QTabWidget):
             self.cur_rename1.execute(f"update todos set name = '{self.newname}' where name = '{todolist}'")
             self.db_rename1.commit()
         
-        TodosListView.refresh(self)
+        TodosListView.refresh(self.listview)
         
         try:
             with sqlite3.connect(f"{userdata}todos.db", timeout=5) as self.db_rename2:
@@ -671,7 +708,7 @@ class Todos(QTabWidget):
             self.cur_delete1.execute(f"delete from todos where name = '{todolist}'")
             self.db_delete1.commit()
         
-        TodosListView.refresh(self)
+        TodosListView.refresh(self.listview)
         self.entry.setText("")
         
         with sqlite3.connect(f"{userdata}todos.db", timeout=5) as self.db_delete2:
@@ -720,7 +757,7 @@ class Todos(QTabWidget):
 
                 except sqlite3.OperationalError:
                     db_start()
-                    TodosListView.refresh(self)
+                    TodosListView.refresh(self.listview)
                     
                     QMessageBox.information(self, _('Successful'), _('All todolists deleted.'))
 
@@ -729,19 +766,13 @@ class Todos(QTabWidget):
     
     
 if __name__ == "__main__":
+    from mainwindow import MainWindow
+    
     application = QApplication(sys.argv)
 
-    window = QMainWindow()
-    window.setStatusBar(QStatusBar(window))
-    window.setStatusTip(_('Copyright (C) 2024 MuKonqi (Muhammed S.), licensed under GPLv3 or later'))
-    window.setGeometry(0, 0, 960, 540)
-    window.setWindowTitle("Nottodbox: Todos")
-    
-    widget = QWidget(parent = window)
-    widget.setLayout(QVBoxLayout(widget))
-    widget.layout().addWidget(Todos(parent = widget))
-    
-    window.setCentralWidget(widget)
+    window = MainWindow()
     window.show()
+    
+    window.tabview.setCurrentIndex(2)
 
     application.exec()

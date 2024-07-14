@@ -3,11 +3,12 @@ import locale
 import getpass
 import os
 import subprocess
+from sidebar import Sidebar
 from home import Home
 from notes import Notes
 from todos import Todos
 from diaries import Diaries
-from PyQt6.QtGui import QKeySequence
+from PyQt6.QtGui import QCloseEvent, QKeySequence
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import *
 
@@ -56,18 +57,48 @@ class MainWindow(QMainWindow):
                                  [self.home, self.notes, self.todos, self.diaries], 
                                  [_("Home"), _("Notes"), _("Todos"), _("Diaries")])
         
-        self.statusbar = QStatusBar(self)
-        self.setStatusTip(_('Copyright (C) 2024 MuKonqi (Muhammed S.), licensed under GPLv3 or later'))
+        self.dock = QDockWidget(self)
+        self.dock.setTitleBarWidget(QLabel(self.dock, alignment=align_center, text=_("List of Opened Pages")))
+        self.dock.titleBarWidget().setStyleSheet("QLabel{margin: 10px 0px;}")
+        self.dock.setFixedWidth(144)
+        self.dock.setStyleSheet("QDockWidget{margin: 0px;}")
+        self.dock.setFeatures(QDockWidget.DockWidgetFeature.DockWidgetClosable |
+                              QDockWidget.DockWidgetFeature.DockWidgetFloatable |
+                              QDockWidget.DockWidgetFeature.DockWidgetMovable)
+        self.dock.setWidget(Sidebar(self, self.notes, self.todos, self.diaries))
         
-        self.file = self.menuBar().addMenu(_('File'))
-        self.file.addAction(_('Quit'), QKeySequence("Ctrl+Q"), lambda: sys.exit(0))
-        self.file.addAction(_('New'), QKeySequence("Ctrl+N"), lambda: subprocess.Popen(__file__))
+        self.statusbar = QStatusBar(self)
+        
+        self.menu_file = self.menuBar().addMenu(_('File'))
+        self.menu_file.addAction(_('Quit'), QKeySequence("Ctrl+Q"), lambda: sys.exit(0))
+        self.menu_file.addAction(_('New'), QKeySequence("Ctrl+N"), lambda: subprocess.Popen(__file__))
+        
+        self.menu_sidebar = self.menuBar().addMenu(_('Sidebar'))
+        self.menu_sidebar.addAction(_('Show'), self.restoreDockWidget)
+        self.menu_sidebar.addAction(_('Close'), lambda: self.removeDockWidget(self.dock))
         
         self.setWindowTitle("Nottodbox")
         self.setGeometry(0, 0, 960, 540)
         self.setCentralWidget(self.widget)
         self.setStatusBar(self.statusbar)
+        self.setStatusTip(_('Copyright (C) 2024 MuKonqi (Muhammed S.), licensed under GPLv3 or later'))
+        self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.dock)
         self.widget.layout().addWidget(self.tabview)
+
+    def restoreDockWidget(self):
+        self.dock.show()
+        self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.dock)
+
+    def closeEvent(self, a0: QCloseEvent | None):
+        if self.dock.widget().model().stringList() == []:
+            return super().closeEvent(a0)
+
+        else:
+            self.question = QMessageBox.question(self, _("Warning"), _("Some pages are still open.\nAre you sure to exit?"))
+            
+            if self.question == QMessageBox.StandardButton.Yes:
+                return super().closeEvent(a0)
+
         
 if __name__ == "__main__":
     application = QApplication(sys.argv)
