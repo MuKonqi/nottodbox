@@ -47,19 +47,6 @@ if not os.path.isdir(userdata):
 todolist_list = {}
 todolist_model1 = {}
 todolist_model2 = {}
-
-
-with sqlite3.connect(f"{userdata}settings.db", timeout=5.0) as db_settings:
-    cur_settings = db_settings.cursor()
-    
-    sql_settings = """
-    CREATE TABLE IF NOT EXISTS settings (
-        setting TEXT NOT NULL PRIMARY KEY,
-        value TEXT NOT NULL
-    );"""
-    cur_settings.execute(sql_settings)
-    
-    db_settings.commit()
         
 
 def create_db():    

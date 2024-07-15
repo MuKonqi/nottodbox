@@ -16,7 +16,20 @@
 # along with Nottodbox.  If not, see <https://www.gnu.org/licenses/>.
 
 
-import sys
+if __name__ == "__main__":
+    import sys
+    from mainwindow import MainWindow
+    from PyQt6.QtWidgets import QApplication
+    
+    application = QApplication(sys.argv)
+
+    window = MainWindow()
+    window.show()
+    window.tabview.setCurrentIndex(1)
+
+    sys.exit(application.exec())
+
+
 import locale
 import getpass
 import os
@@ -24,6 +37,7 @@ import sqlite3
 import datetime
 from sidebar import Sidebar
 from PyQt6.QtCore import Qt, QStringListModel, QSortFilterProxyModel, QRegularExpression
+from PyQt6.QtGui import QCloseEvent
 from PyQt6.QtWidgets import *
 
 
@@ -45,40 +59,119 @@ if not os.path.isdir(userdata):
     os.mkdir(userdata)
 
 
-with sqlite3.connect(f"{userdata}settings.db", timeout=5.0) as db_settings:
-    cur_settings = db_settings.cursor()
+class SettingsDB:
+    """The settings database pool."""
     
-    sql_settings = """
-    CREATE TABLE IF NOT EXISTS settings (
-        setting TEXT NOT NULL PRIMARY KEY,
-        value TEXT NOT NULL
-    );"""
-    cur_settings.execute(sql_settings)
-    
-    db_settings.commit()
-
-    try:
-        cur_settings.execute(f"select value from settings where setting = 'notes-autosave'")
-        fetch_autosave = cur_settings.fetchone()[0]
-
-    except:
-        cur_settings.execute(f"insert into settings (setting, value) values ('notes-autosave', 'true')")
-        db_settings.commit()
-        fetch_autosave = "true"
-
-    try:
-        cur_settings.execute(f"select value from settings where setting = 'notes-outmode'")
-        fetch_outmode = cur_settings.fetchone()[0]
-
-    except:
-        cur_settings.execute(f"insert into settings (setting, value) values ('notes-outmode', 'markdown')")
-        db_settings.commit()
-        fetch_outmode = "markdown"
+    def __init__(self) -> None:
+        """Connect database and then set cursor."""
         
+        self.db = sqlite3.connect(f"{userdata}settings.db")
+        self.cur = self.db.cursor()
+    
+    def getSettings(self) -> tuple:
+        """
+        Get required settings. If not any string, create them with default value."""
+        
+        try:
+            self.cur.execute(f"select value from settings where setting = 'notes-autosave'")
+            self.get_autosave = self.cur.fetchone()[0]
 
-def create_db():
-    with sqlite3.connect(f"{userdata}notes.db", timeout=5.0) as db_notes:
-        sql_notes = """
+        except:
+            self.cur.execute(f"insert into settings (setting, value) values ('notes-autosave', 'true')")
+            self.db.commit()
+            self.get_autosave = "true"
+        
+        try:
+            self.cur.execute(f"select value from settings where setting = 'notes-format'")
+            self.get_format = self.cur.fetchone()[0]
+
+        except:
+            self.cur.execute(f"insert into settings (setting, value) values ('notes-format', 'markdown')")
+            self.db.commit()
+            self.get_format = "markdown"
+    
+        return self.get_autosave, self.get_format
+    
+    def setAutoSave(self, signal: Qt.CheckState | int) -> bool:
+        """
+        Set auto-save setting for global.
+
+        Args:
+            signal (Qt.CheckState | int): QCheckBox's signal.
+
+        Returns:
+            bool: True if successful, False if unsuccesful
+        """
+        
+        global get_autosave
+        
+        if signal == Qt.CheckState.Unchecked or signal == 0:
+            get_autosave = "false"
+
+        elif signal == Qt.CheckState.Checked or signal == 2:
+            get_autosave = "true"
+            
+        self.cur.execute(f"update settings set value = '{get_autosave}' where setting = 'notes-autosave'")
+        self.db.commit()
+        
+        call = self.getSettings()
+        
+        if call[0] == get_autosave:
+            return True
+        elif call[0] == get_autosave:
+            return False
+                
+    def setFormat(self, index: int) -> bool:
+        """
+        Set format setting for global.
+
+        Args:
+            index (int): Selected index in QComboBox.
+
+        Returns:
+            bool: True if successful, False if unsuccesful
+        """
+        
+        global get_format
+        
+        if index == 0:
+            get_format = "plain-text"
+        
+        elif index == 1:
+            get_format = "markdown"
+        
+        elif index == 2:
+            get_format = "html"
+
+        self.cur.execute(f"update settings set value = '{get_format}' where setting = 'notes-format'")
+        self.db.commit()
+        
+        call = self.getSettings()
+        
+        if call[1] == get_format:
+            return True
+        elif call[1] == get_format:
+            return False
+    
+
+settingsdb = SettingsDB()
+get_autosave, get_format = settingsdb.getSettings()
+
+
+class NotesDB:
+    """The notes database pool."""
+    
+    def __init__(self) -> None:
+        """
+        Connect database and then set cursor.
+        If "notes" table not exists, create it.
+        """
+        
+        self.db = sqlite3.connect(f"{userdata}notes.db")
+        self.cur = self.db.cursor()
+        self.widgets = {}
+    
+        sql = """
         CREATE TABLE IF NOT EXISTS notes (
             name TEXT NOT NULL PRIMARY KEY,
             content TEXT,
@@ -86,198 +179,390 @@ def create_db():
             created TEXT NOT NULL,
             edited TEXT
         );"""
-        cur_notes = db_notes.cursor()
-        cur_notes.execute(sql_notes)
-        db_notes.commit()
+        
+        self.cur.execute(sql)
+        self.db.commit()
+        
+    def checkIfItExist(self, name: str) -> bool:
+        """
+        Check name's exist.
 
-create_db()
+        Args:
+            name (str): Note name
+
+        Returns:
+            bool: True if such a note exists, if not False
+        """
+        
+        self.cur.execute(f"select * from notes where name = '{name}'")
+        
+        try:
+            self.cur.fetchone()[0]
+            return True
+        
+        except TypeError:
+            return False
+        
+    def deleteAll(self) -> bool:
+        pass
+    
+    def deleteContent(self) -> bool:
+        pass
+    
+    def deleteOne(self) -> bool:
+        pass
+    
+    def getBackup(self) -> tuple:
+        pass
+
+    def getContent(self, name: str) -> str:
+        """
+        Get content of a note.
+
+        Args:
+            name (str): Note name.
+
+        Returns:
+            str: Content.
+        """
+        
+        self.cur.execute(f"select content from notes where name = '{name}'")
+        try:
+            fetch = self.cur.fetchone()[0]
+        except TypeError:
+            fetch = ""
+        return fetch
+        
+    def getInformations(self, name: str) -> tuple:
+        """
+        Get creation and edit dates.
+
+        Args:
+            name (str): Note name
+
+        Returns:
+            tuple: Returns creation and edit dates
+        """
+        
+        self.cur.execute(f"select created, edited from notes where name = '{name}'")
+        return self.cur.fetchone()
+        
+    def getNames(self) -> list:
+        """Get all notes' names.
+
+        Returns:
+            list: List of all notes' names.
+        """
+        
+        self.cur.execute("select name from notes")
+        return self.cur.fetchall()
+    
+    def renameNote(self, name: str, newname: str) -> bool:
+        """
+        Rename a note.
+
+        Args:
+            name (str): Old name
+            newname (str): New name
+
+        Returns:
+            bool: True if successful, False if unsuccesful
+        """
+        
+        self.cur.execute(f"update notes set name = '{newname}' where name = '{name}'")
+        self.db.commit()
+
+        try:
+            self.cur.execute(f"select * from notes where name = '{newname}'")
+            self.cur.fetchone()[0]
+            return True
+            
+        except TypeError:
+            return False
+    
+    def restoreContent(self, name: str) -> tuple:
+        """
+        Restore content of note.
+        
+        Args:
+            name (str): Note name
+            
+        Returns:
+            tuple: Status and True if successful, False if unsuccesful
+        """
+        
+        self.cur.execute(f"select content, backup from notes where name = '{name}'")
+        fetch_before = self.cur.fetchone()
+        
+        if fetch_before[1] == None or fetch_before[1] == "":
+            return "no-backup", False
+        
+        sql = f"""update notes set content = '{fetch_before[1]}', 
+        backup = '{fetch_before[0]}' where name = '{name}'"""
+        self.cur.execute(sql)
+        self.db.commit()
+        
+        self.cur.execute(f"select content, backup from notes where name = '{name}'")
+        fetch_after = self.cur.fetchone()
+        
+        if fetch_before[1] == fetch_after[0] and fetch_before[0] == fetch_after[1]:
+            return "successful", True
+        else:
+            return "failed", False
+
+    def saveOne(self, name: str, content: str, edited: str, autosave: bool, widget: QTextEdit) -> bool:        
+        """Save a note.
+        If there is such a note, create it.
+        
+        Args:
+            name (str): Note name
+            content (str): Content of note
+            edited (str): Creating/editing date
+            autosave (bool): True if the caller is "auto-save", false if it is not
+            widget (QTextEdit): Input widget
+            
+        Returns:
+            bool: True if successful, False if unsuccesful
+        """
+        
+        self.cur.execute(f"select content from notes where name = '{name}'")
+        
+        try:
+            old_content = self.cur.fetchone()[0]
+            
+            if autosave == False:
+                sql = f"""update notes set content = '{content}', backup = '{old_content}',
+                edited = '{edited}' where name = '{name}'"""
+                        
+            elif autosave == True:
+                sql = f"""update notes set content = '{content}',
+                edited = '{edited}' where name = '{name}'"""
+            
+            self.cur.execute(sql)
+            self.db.commit()
+            
+        except TypeError:
+            sql = f"""insert into notes (name, content, backup, created, edited) 
+                    values ('{name}', '{content}', '', '{edited}', '{edited}')"""
+            self.cur.execute(sql)
+            self.db.commit()
+                        
+        self.cur.execute(f"select content, edited from notes where name = '{name}'")
+        control = self.cur.fetchone()
+
+        if control[0] == content and control[1] == edited: 
+            self.widgets[name] = widget
+                       
+            return True
+
+        else:
+            return False
+    
+    def saveAll(self) -> bool:
+        """Save all notes.
+        If there is such a note, create it.
+
+        Returns:
+            bool: True if successful, False if unsuccesful
+        """
+        
+        successful = True
+        calls = {}
+        
+        for name in self.widgets:
+            calls[name] = self.saveOne(name, self.widgets[name].toPlainText(), 
+                                       datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"), 
+                                       False)
+            
+            if calls[name] == False:
+                successful = False
+                
+        return successful
+
+
+notesdb = NotesDB()
 
 
 class Note(QWidget):
+    """A page for notes."""
+    
     def __init__(self, parent: QTabWidget, name: str):
+        """Init and then set page.
+        
+        Args:
+            parent (QTabWidget): "Notes" tab widget in main window
+            name (str): Note name
+        """
+        
         super().__init__(parent)
         
-        self._parent = parent
-        
-        self.fetch_autosave = fetch_autosave
-        self.fetch_outmode = fetch_outmode
+        self.content = notesdb.getContent(name)
+        self.parent_ = parent
+        self.name = name
+        self.get_autosave = get_autosave
+        self.get_format = get_format
+        self.closable = True
         
         self.setLayout(QGridLayout(self))
         self.setStatusTip(_("Auto-saves do not change backups."))
         
         self.autosave = QCheckBox(self, text=_('Enable auto-save for this time'))
-        if fetch_autosave == "true":
+        if get_autosave == "true":
             self.autosave.setChecked(True)
         try:
-            self.autosave.checkStateChanged.connect(self.set_autosave)
+            self.autosave.checkStateChanged.connect(self.setAutoSave)
         except:
-            self.autosave.stateChanged.connect(self.set_autosave)
+            self.autosave.stateChanged.connect(self.setAutoSave)
         
         self.input = QTextEdit(self)
+        self.input.setPlainText(self.content)
+        self.input.textChanged.connect(
+            lambda: self.updateOutput(self.input.toPlainText()))
+        self.input.textChanged.connect(lambda: self.saveNote(True))
         
-        self.outmode = QComboBox(self)
-        self.outmode.addItems([_("Out mode for this time: Plain text"), 
-                               _("Out mode for this time: Markdown"), 
-                               _("Out mode for this time: HTML")])
-        self.outmode.setEditable(False)
-        if self.fetch_outmode == "plain-text":
-            self.outmode.setCurrentIndex(0)
-        elif self.fetch_outmode == "markdown":
-            self.outmode.setCurrentIndex(1)
-        elif self.fetch_outmode == "html":
-            self.outmode.setCurrentIndex(2)
-        self.outmode.currentIndexChanged.connect(self.set_outmode)
+        self.format = QComboBox(self)
+        self.format.addItems([_("Format for this time: Plain text"), 
+                               _("Format for this time: Markdown"), 
+                               _("Format for this time: HTML")])
+        self.format.setEditable(False)
+        if self.get_format == "plain-text":
+            self.format.setCurrentIndex(0)
+        elif self.get_format == "markdown":
+            self.format.setCurrentIndex(1)
+        elif self.get_format == "html":
+            self.format.setCurrentIndex(2)
+        self.format.currentIndexChanged.connect(self.setFormat)
         
         self.output = QTextEdit(self)
         self.output.setReadOnly(True)
-        
-        self.input.textChanged.connect(
-            lambda: self.refresh(self.input.toPlainText()))
-        self.input.textChanged.connect(lambda: self.save(name, 
-                                                         self.input.toPlainText(),
-                                                         datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
-                                                         "auto"))
+        self.updateOutput(self.content)
         
         self.button = QPushButton(self, text=_('Save'))
-        self.button.clicked.connect(lambda: self.save(name, 
-                                                      self.input.toPlainText(), 
-                                                      datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")))
+        self.button.clicked.connect(self.saveNote)
         
         self.layout().addWidget(self.autosave, 0, 0, 1, 1)
         self.layout().addWidget(self.input, 1, 0, 1, 1)
-        self.layout().addWidget(self.outmode, 0, 1, 1, 1)
+        self.layout().addWidget(self.format, 0, 1, 1, 1)
         self.layout().addWidget(self.output, 1, 1, 1, 1)
         self.layout().addWidget(self.button, 2, 0, 1, 2)
-            
-        with sqlite3.connect(f"{userdata}notes.db", timeout=5.0) as self.db_open:
-            self.cur_open = self.db_open.cursor()
-            self.cur_open.execute(f"select content from notes where name = '{name}'")
-            
-            try:
-                self.fetch_open = self.cur_open.fetchone()[0]
-                self.input.setPlainText(self.fetch_open)
-                self.refresh(self.fetch_open)
-            except TypeError:
-                self.fetch_open = ""
-    
-    def set_autosave(self, signal: Qt.CheckState | int):
+        
+    def saveNote(self, autosave: bool = False) -> None:
+        """Save a note with NotesDB's saveOne function.
+
+        Args:
+            autosave (bool, optional): _description_. Defaults to False.
+        """
+        
+        self.closable = False
+        
+        if autosave == False or autosave == True and self.get_autosave == "true":
+            call = notesdb.saveOne(self.name,
+                                   self.input.toPlainText(),
+                                   datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"), 
+                                   autosave,
+                                   self.input)
+
+            if call == True:
+                self.closable = True
+                
+                if autosave == False:
+                    QMessageBox.information(self, _("Successful"), _("Note {name} saved.").format(name = self.name))
+                
+            elif call == False:
+                QMessageBox.critical(self, _("Error"), _("Failed to save {name} note.").format(name = self.name))
+                
+    def setAutoSave(self, signal: Qt.CheckState | int) -> None:
+        """Set auto-save setting for only this page.
+
+        Args:
+            signal (Qt.CheckState | int): QCheckBox's signal.
+
+        Returns:
+            bool: True if successful, False if unsuccesful
+        """
+        
         if signal == Qt.CheckState.Unchecked or signal == 0:
-            self.fetch_autosave = "false"
+            self.get_autosave = "false"
 
         elif signal == Qt.CheckState.Checked or signal == 2:
-            self.fetch_autosave = "true"
-            
-    def set_outmode(self, index: int):
+            self.get_autosave = "true"
+
+    def setFormat(self, index: int) -> None:
+        """Set format setting for only this page.
+
+        Args:
+            index (int): Selected index in QComboBox.
+
+        Returns:
+            bool: True if successful, False if unsuccesful
+        """
+        
         if index == 0:
-            self.fetch_outmode = "plain-text"
+            self.get_format = "plain-text"
         
         elif index == 1:
-            self.fetch_outmode = "markdown"
+            self.get_format = "markdown"
         
         elif index == 2:
-            self.fetch_outmode = "html"
+            self.get_format = "html"
             
-        self.refresh(self.input.toPlainText())
+        self.updateOutput(self.input.toPlainText())
             
-    def refresh(self, text: str):
-        if self.fetch_outmode == "plain-text":
+    def updateOutput(self, text: str) -> None:
+        """Update output when input's text changed or format changed.
+
+        Args:
+            text (str): Content
+        """
+        
+        if self.get_format == "plain-text":
             self.output.setPlainText(text)
         
-        elif self.fetch_outmode == "markdown":
+        elif self.get_format == "markdown":
             self.output.setMarkdown(text)
         
-        elif self.fetch_outmode == "html":
+        elif self.get_format == "html":
             self.output.setHtml(text)
-        
-    def save(self, name: str, content: str, edited: str, mode: str = "manuel"):      
-        if mode == "manuel":          
-            try:   
-                with sqlite3.connect(f"{userdata}notes.db", timeout=5.0) as self.db_save1:
-                    self.cur_save1 = self.db_save1.cursor()
-                    self.cur_save1.execute(f"select content from notes where name = '{name}'")
-                    self.fetch_save1 = self.cur_save1.fetchone()[0]
-                
-                with sqlite3.connect(f"{userdata}notes.db", timeout=5.0) as self.db_save2:
-                    self.sql_save2 = f"""update notes set content = '{content}', backup = '{self.fetch_open}',
-                    edited = '{edited}' where name = '{name}'"""
-                    self.cur_save2 = self.db_save2.cursor()
-                    self.cur_save2.execute(self.sql_save2)
-                    self.db_save2.commit()
-
-            except TypeError:
-                with sqlite3.connect(f"{userdata}notes.db", timeout=5.0) as self.db_save3:
-                    self.sql_save3 = f"""insert into notes (name, content, backup, created, edited) 
-                    values ('{name}', '{content}', '', '{edited}', '{edited}')"""
-                    self.cur_save3 = self.db_save3.cursor()
-                    self.cur_save3.execute(self.sql_save3)
-                    self.db_save3.commit()
-                    
-            NotesListView.refresh(self._parent.listview)
-        
-            with sqlite3.connect(f"{userdata}notes.db", timeout=5.0) as self.db_save4:
-                self.cur_save4 = self.db_save4.cursor()
-                self.cur_save4.execute(f"select content from notes where name = '{name}'")
-                self.fetch_save4 = self.cur_save4.fetchone()[0]
-
-            if self.fetch_save4 == content:
-                QMessageBox.information(self, _('Successful'), _('{name} note saved.').format(name = name))
-            else:
-                QMessageBox.critical(self, _('Error'), _('Failed to save {name} note.').format(name = name))
-
-        elif mode == "auto" and self.fetch_autosave == "true":
-            try:
-                with sqlite3.connect(f"{userdata}notes.db", timeout=5.0) as self.db_save1:
-                    self.cur_save1 = self.db_save1.cursor()
-                    self.cur_save1.execute(f"select content from notes where name = '{name}'")
-                    self.fetch_save1 = self.cur_save1.fetchone()[0]
-                
-                with sqlite3.connect(f"{userdata}notes.db", timeout=1.0) as self.db_save2:
-                    self.sql_save2 = f"""update notes set content = '{content}',
-                    edited = '{edited}' where name = '{name}'"""
-                    self.cur_save2 = self.db_save2.cursor()
-                    self.cur_save2.execute(self.sql_save2)
-                    self.db_save2.commit()
-            
-            except TypeError:    
-                with sqlite3.connect(f"{userdata}notes.db", timeout=1.0) as self.db_save3:
-                    self.sql_save3 = f"""insert into notes (name, content, backup, created, edited) 
-                    values ('{name}', '{content}', '', '{edited}', '{edited}')"""
-                    self.cur_save3 = self.db_save3.cursor()
-                    self.cur_save3.execute(self.sql_save3)
-                    self.db_save3.commit()
-                    
-                NotesListView.refresh(self._parent.listview)
             
 
 class Backup(QWidget):
+    """A page for notes' backups."""
+    
     def __init__(self, parent: QTabWidget, name: str):
+        """Init and then set page.
+        
+        Args:
+            parent (QTabWidget): "Notes" tab widget in main window
+            name (str): Note name
+        """        
+        
         super().__init__(parent)
         
-        self.fetch_outmode = fetch_outmode
+        self.get_format = get_format
         
         self.setLayout(QVBoxLayout(self))
         self.setStatusTip(_("Auto-saves do not change backups."))
             
-        self.outmode = QComboBox(self)
-        self.outmode.addItems([_("Out mode for this time: Plain text"), 
-                               _("Out mode for this time: Markdown"), 
-                               _("Out mode for this time: HTML")])
-        self.outmode.setEditable(False)
-        if self.fetch_outmode == "plain-text":
-            self.outmode.setCurrentIndex(0)
-        elif self.fetch_outmode == "markdown":
-            self.outmode.setCurrentIndex(1)
-        elif self.fetch_outmode == "html":
-            self.outmode.setCurrentIndex(2)
-        self.outmode.currentIndexChanged.connect(self.set_outmode)
+        self.format = QComboBox(self)
+        self.format.addItems([_("Format for this time: Plain text"), 
+                               _("Format for this time: Markdown"), 
+                               _("Format for this time: HTML")])
+        self.format.setEditable(False)
+        if self.get_format == "plain-text":
+            self.format.setCurrentIndex(0)
+        elif self.get_format == "markdown":
+            self.format.setCurrentIndex(1)
+        elif self.get_format == "html":
+            self.format.setCurrentIndex(2)
+        self.format.currentIndexChanged.connect(self.setFormat)
         
         self.output = QTextEdit(self)
         self.output.setReadOnly(True)
         
         self.button = QPushButton(self, text=_('Restore content'))
-        self.button.clicked.connect(lambda: Notes.restore(self, name, "page"))
+        self.button.clicked.connect(lambda: Notes.restoreContent(parent, name))
         
-        self.layout().addWidget(self.outmode)
+        self.layout().addWidget(self.format)
         self.layout().addWidget(self.output)
         self.layout().addWidget(self.button)
 
@@ -286,43 +571,62 @@ class Backup(QWidget):
                 self.cur_showb = self.db_showb.cursor()
                 self.cur_showb.execute(f"select backup from notes where name = '{name}'")
                 self.fetch_showb = self.cur_showb.fetchone()[0]
-                self.refresh(self.fetch_showb)
+                self.updateOutput(self.fetch_showb)
         except TypeError:
             pass
 
-    def set_outmode(self, index: int):
+    def setFormat(self, index: int):
+        """Set format setting for only this page.
+
+        Args:
+            index (int): Selected index in QComboBox.
+
+        Returns:
+            bool: True if successful, False if unsuccesful
+        """
+        
         if index == 0:
-            self.fetch_outmode = "plain-text"
+            self.get_format = "plain-text"
         
         elif index == 1:
-            self.fetch_outmode = "markdown"
+            self.get_format = "markdown"
         
         elif index == 2:
-            self.fetch_outmode = "html"
+            self.get_format = "html"
             
-        self.refresh(self.fetch_showb)
+        self.updateOutput(self.fetch_showb)
             
-    def refresh(self, text: str):
-        if self.fetch_outmode == "plain-text":
+    def updateOutput(self, text: str):
+        """Update output when input's text changed or format changed.
+
+        Args:
+            text (str): Content
+        """
+        
+        if self.get_format == "plain-text":
             self.output.setPlainText(text)
         
-        elif self.fetch_outmode == "markdown":
+        elif self.get_format == "markdown":
             self.output.setMarkdown(text)
         
-        elif self.fetch_outmode == "html":
+        elif self.get_format == "html":
             self.output.setHtml(text)
 
 
 class NotesListView(QListView):
+    """A list for showing notes' names."""
+    
     def __init__(self, parent: QTabWidget, caller: str = "notes"):
+        """Init and then set properties.
+
+        Args:
+            parent (QTabWidget): "Notes" tab widget in main window
+            caller (str, optional): For some special properties. Defaults to "notes".
+        """
+        
         super().__init__(parent)
         
         global notes_model1, notes_model2
-        
-        self.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
-        self.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
-        self.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
-        self.setStatusTip("Double-click to opening a note.")
         
         self.proxy = QSortFilterProxyModel(self)
         
@@ -334,42 +638,50 @@ class NotesListView(QListView):
             notes_model2 = QStringListModel(self)
             self.proxy.setSourceModel(notes_model2)
         
+        self.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
+        self.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+        self.setStatusTip("Double-click to opening a note.")
         self.setModel(self.proxy)
 
         if caller == "notes":
             self.selectionModel().selectionChanged.connect(
-                lambda: Notes.insert(parent, self.proxy.itemData(self.currentIndex())))
+                lambda: Notes.insertInformations(parent, self.proxy.itemData(self.currentIndex())[0]))
         
-        self.doubleClicked.connect(lambda: Notes.open(parent, self.proxy.itemData(self.currentIndex())[0]))
+        self.doubleClicked.connect(lambda: Notes.openCreate(parent, self.proxy.itemData(self.currentIndex())[0]))
         
-        self.refresh()
+        self.insertNames()
         
-    def refresh(self):
-        global notes_list
+    def insertNames(self):
+        """Insert notes' names with NotesDB's getNames function."""
         
-        notes_list = []
+        call = notesdb.getNames()
+        names = []
         
-        with sqlite3.connect(f"{userdata}notes.db", timeout=5.0) as self.db_refresh:
-            self.cur_refresh = self.db_refresh.cursor()
-            self.cur_refresh.execute("select name from notes")
-            self.fetch_refresh = self.cur_refresh.fetchall()
-        
-        for i in range(0, len(self.fetch_refresh)):
-            notes_list.append(self.fetch_refresh[i][0])
+        for name in call:
+            names.append(name[0])
 
         try:
-            notes_model1.setStringList(notes_list)
+            notes_model1.setStringList(names)
         except NameError:
             pass
     
         try:
-            notes_model2.setStringList(notes_list)
+            notes_model2.setStringList(names)
         except NameError:
             pass
 
 
 class Notes(QTabWidget):
+    """The "Notes" tab widget class."""
+    
     def __init__(self, parent: QMainWindow):
+        """Init and then set.
+
+        Args:
+            parent (QMainWindow): Main window.
+        """
+        
         super().__init__(parent)
         
         self.notes =  {}
@@ -401,13 +713,13 @@ class Notes(QTabWidget):
         self.side.setLayout(QVBoxLayout(self.side))
         
         self.open_button = QPushButton(self.side, text=_('Open/create note'))
-        self.open_button.clicked.connect(lambda: self.open(self.entry.text()))
+        self.open_button.clicked.connect(lambda: self.openCreate(self.entry.text()))
         
         self.rename_button = QPushButton(self.side, text=_('Rename note'))
-        self.rename_button.clicked.connect(lambda: self.rename(self.entry.text()))
+        self.rename_button.clicked.connect(lambda: self.renameNote(self.entry.text()))
 
         self.show_backup_button = QPushButton(self.side, text=_('Show backup'))
-        self.show_backup_button.clicked.connect(lambda: self.show_backup(self.entry.text()))
+        self.show_backup_button.clicked.connect(lambda: self.showBackup(self.entry.text()))
 
         self.restore_button = QPushButton(self.side, text=_('Restore content'))
         self.restore_button.clicked.connect(lambda: self.restore(self.entry.text()))
@@ -421,25 +733,25 @@ class Notes(QTabWidget):
         self.delete_all_button = QPushButton(self.side, text=_('Delete all notes'))
         self.delete_all_button.clicked.connect(self.delete_all)
         
-        self.outmode = QComboBox(self)
-        self.outmode.addItems([_("Out: Plain text"), _("Out: Markdown"), _("Out: HTML")])
-        self.outmode.setEditable(False)
-        if fetch_outmode == "plain-text":
-            self.outmode.setCurrentIndex(0)
-        elif fetch_outmode == "markdown":
-            self.outmode.setCurrentIndex(1)
-        elif fetch_outmode == "html":
-            self.outmode.setCurrentIndex(2)
-        self.outmode.currentIndexChanged.connect(self.set_outmode)        
+        self.format = QComboBox(self)
+        self.format.addItems([_("Format: Plain text"), _("Format: Markdown"), _("Format: HTML")])
+        self.format.setEditable(False)
+        if get_format == "plain-text":
+            self.format.setCurrentIndex(0)
+        elif get_format == "markdown":
+            self.format.setCurrentIndex(1)
+        elif get_format == "html":
+            self.format.setCurrentIndex(2)
+        self.format.currentIndexChanged.connect(self.setFormat)        
         
         self.autosave = QCheckBox(self, text=_('Enable auto-save'))
-        if fetch_autosave == "true":
+        if get_autosave == "true":
             self.autosave.setChecked(True)
         self.autosave.setStatusTip(_("Auto-saves do not change backups."))
         try:
-            self.autosave.checkStateChanged.connect(self.set_autosave)
+            self.autosave.checkStateChanged.connect(self.setAutoSave)
         except:
-            self.autosave.stateChanged.connect(self.set_autosave)
+            self.autosave.stateChanged.connect(self.setAutoSave)
         
         self.side.layout().addWidget(self.open_button)
         self.side.layout().addWidget(self.rename_button)
@@ -448,7 +760,7 @@ class Notes(QTabWidget):
         self.side.layout().addWidget(self.delete_content_button)
         self.side.layout().addWidget(self.delete_note_button)
         self.side.layout().addWidget(self.delete_all_button)
-        self.side.layout().addWidget(self.outmode)
+        self.side.layout().addWidget(self.format)
         self.side.layout().addWidget(self.autosave)
         self.home.layout().addWidget(self.side, 1, 2, 2, 1)
         self.home.layout().addWidget(self.entry, 0, 0, 1, 2)
@@ -461,77 +773,96 @@ class Notes(QTabWidget):
         self.setTabsClosable(True)
         self.setMovable(True)
         
-        self.tabCloseRequested.connect(self.close)
+        self.tabCloseRequested.connect(self.closeTab)
          
-    def close(self, index: int):
-        if index != self.indexOf(self.home):
-            Sidebar.remove(self.tabText(index).replace("&", ""), self)
+    def closeTab(self, index: int) -> bool:
+        """Close tab.
+
+        Args:
+            index (int): Index of tab
+
+        Returns:
+            bool: If cancelled False, if not True
+        """
+        
+        if index != self.indexOf(self.home):           
             try:
+                if self.notes[self.tabText(index).replace("&", "")].closable == False:
+                    self.question = QMessageBox.question(self, 
+                                                        _("Warning"),
+                                                        _("{name} note not saved.\nDo you want to closing after saving it or directly closing or cancel?")
+                                                        .format(name = self.tabText(index).replace("&", "")),
+                                                        QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.Save | QMessageBox.StandardButton.Cancel,
+                                                        QMessageBox.StandardButton.Save)
+                    
+                    if self.question == QMessageBox.StandardButton.Save:
+                        call = notesdb.saveOne(self.tabText(index).replace("&", ""),
+                                               self.notes[self.tabText(index).replace("&", "")].input.toPlainText(),
+                                               datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"), 
+                                               False,
+                                               self.notes[self.tabText(index).replace("&", "")].input)
+                        
+                        self.listview.insertNames()
+                        
+                        if call == True:
+                            self.closable = True
+                            
+                        elif call == False:
+                            QMessageBox.critical(self, _("Error"), _("Failed to save {name} note.").format(name = self.tabText(index).replace("&", "")))
+                    
+                    elif self.question != QMessageBox.StandardButton.Yes:
+                        return None
+                
                 del self.notes[self.tabText(index).replace("&", "")]
+                
             except KeyError:
                 pass
-            finally:
-                self.removeTab(index)
-    
-    def set_autosave(self, signal: Qt.CheckState | int):
-        global fetch_autosave
+            
+            Sidebar.remove(self.tabText(index).replace("&", ""), self)
+            self.removeTab(index)
+            
+            return True
         
-        if signal == Qt.CheckState.Unchecked or signal == 0:
-            fetch_autosave = "false"
+    def insertInformations(self, name: str):
+        """Insert name and creation, edit dates.
 
-        elif signal == Qt.CheckState.Checked or signal == 2:
-            fetch_autosave = "true"
-            
-        with sqlite3.connect(f"{userdata}settings.db", timeout=5.0) as self.db_autosave:
-            self.cur_autosave = self.db_autosave.cursor()
-            self.cur_autosave.execute(f"update settings set value = '{fetch_autosave}' where setting = 'notes-autosave'")
-            self.db_autosave.commit()
-                
-    def set_outmode(self, index: int):
-        global fetch_outmode
+        Args:
+            name (str): Note name.
+        """
         
-        if index == 0:
-            fetch_outmode = "plain-text"
-        
-        elif index == 1:
-            fetch_outmode = "markdown"
-        
-        elif index == 2:
-            fetch_outmode = "html"
-            
-        with sqlite3.connect(f"{userdata}settings.db", timeout=5.0) as self.db_outmode:
-            self.cur_outmode = self.db_outmode.cursor()
-            self.cur_outmode.execute(f"update settings set value = '{fetch_outmode}' where setting = 'notes-outmode'")
-            self.db_outmode.commit()
-        
-    def insert(self, name: str):
-        if name != {}:
-            with sqlite3.connect(f"{userdata}notes.db", timeout=5.0) as self.db_insert:
-                self.cur_insert = self.db_insert.cursor()
-                self.cur_insert.execute(f"select name, created, edited from notes where name = '{name[0]}'")
-                self.fetch_insert = self.cur_insert.fetchone()
+        if name != "":
+            call = notesdb.getInformations(name)
             
             try:
-                self.entry.setText(self.fetch_insert[0])
-                self.created.setText(f"{_('Created')}: {self.fetch_insert[1]}")
-                self.edited.setText(f"{_('Edited')}: {self.fetch_insert[2]}")
+                self.entry.setText(name)
+                self.created.setText(f"{_('Created')}: {call[0]}")
+                self.edited.setText(f"{_('Edited')}: {call[1]}")
             except TypeError:
                 self.created.setText(f"{_('Created')}:")
                 self.edited.setText(f"{_('Edited')}:")
         
-    def control(self, name: str, mode: str = "normal"):
-        try:
-            with sqlite3.connect(f"{userdata}notes.db", timeout=5.0) as self.db_control:
-                self.cur_control = self.db_control.cursor()
-                self.cur_control.execute(f"select * from notes where name = '{name}'")
-                self.fetch_control = self.cur_control.fetchone()[0]
-            return True
-        except TypeError:
-            if mode == "normal":
-                QMessageBox.critical(self, _('Error'), _('There is no note called {name}.').format(name = name))
-            return False
+    def checkIfItExist(self, name: str, mode: str = "normal"):
+        """Check name's exist.
+
+        Args:
+            name (str): Note name.
+            mode (str, optional): Inverted mode for deleting etc. Defaults to "normal".
+        """
         
-    def open(self, name: str):
+        call = notesdb.checkIfItExist(name)
+        
+        if call == False and mode == "normal":
+            QMessageBox.critical(self, _("Error"), _("There is no note called {name}.").format(name = name))
+        
+        return call
+        
+    def openCreate(self, name: str):
+        """Open or create a note.
+
+        Args:
+            name (str): Note name
+        """
+        
         if name == "" or name == None:
             QMessageBox.critical(self, _('Error'), _('Note name can not be blank.'))
             return
@@ -545,97 +876,83 @@ class Notes(QTabWidget):
             self.addTab(self.notes[name], name)
             self.setCurrentWidget(self.notes[name])
     
-    def rename(self, name: str):
+    def renameNote(self, name: str):
+        """Rename note with NotesDB's rename function.
+
+        Args:
+            name (str): Note name
+        """
+        
         if name == "" or name == None:
             QMessageBox.critical(self, _('Error'), _('Note name can not be blank.'))
             return        
         
-        if self.control(name) == False:
+        if self.checkIfItExist(name) == False:
             return
         
-        self.newname, self.topwindow = QInputDialog.getText(self, 
+        newname, topwindow = QInputDialog.getText(self, 
                                                              _("Rename {name} Note").format(name = name), 
                                                              _("Please enter a new name for {name} below.").format(name = name))
         
-        if self.newname != "" and self.newname != None and self.topwindow == True:
-            with sqlite3.connect(f"{userdata}notes.db", timeout=5.0) as self.db_rename1:
-                self.sql_rename1 = f"update notes set name = '{self.newname}' where name = '{name}'"
-                self.cur_rename1 = self.db_rename1.cursor()
-                self.cur_rename1.execute(self.sql_rename1)
-                self.db_rename1.commit()
+        if newname != "" and newname != None and topwindow == True:
+            call = notesdb.renameNote(name, newname)
+            self.listview.insertNames()
             
-            NotesListView.refresh(self.listview)
+            if call == True:
+                self.entry.setText(newname)
+                
+                QMessageBox.information(self, _('Successful'), _('{name} note renamed as {newname}.').format(name = name, newname = newname))
 
-            try:
-                with sqlite3.connect(f"{userdata}notes.db", timeout=5.0) as self.db_rename2:
-                    self.cur_rename2 = self.db_rename2.cursor()
-                    self.cur_rename2.execute(f"select * from notes where name = '{self.newname}'")
-                    self.fetch_rename2 = self.cur_rename2.fetchone()[0]
-                    
-                self.entry.setText(self.newname)    
-                
-                QMessageBox.information(self, _('Successful'), 
-                                        _('{name} note renamed as {newname}.').format(name = name, newname = self.newname))
-                
-            except TypeError:
+            elif call == False:
                 QMessageBox.critical(self, _('Error'), _('Failed to rename {name} note.').format(name = name))
-                
+
         else:
             QMessageBox.critical(self, _('Error'), _('Failed to rename {name} note.').format(name = name))
+            
+    def restoreContent(self, name: str):
+        """Restore content of note with NotesDB's rename function.
+
+        Args:
+            name (str): Note name
+        """
+        
+        if name == "" or name == None:
+            QMessageBox.critical(self, _('Error'), _('Note name can not be blank.'))
+            return
+        
+        if self.checkIfItExist(name) == False:
+            return
+        
+        status, call = notesdb.restoreContent(name)
+        
+        if status == "successful" and call == True:
+            QMessageBox.information(self, _("Successful"), _("Backup of {name} note restored.").format(name = name))
+        
+        elif status == "no-backup" and call == False:
+            QMessageBox.critical(self, _("Error"), _("There is no backup for {name} note.").format(name = name))
+            
+        elif status == "failed" and call == False:
+            QMessageBox.critical(self, _("Error"), _("Failed to restore backup of {name} note.").format(name = name))
     
-    def show_backup(self, name: str):
+    def showBackup(self, name: str):
         if name == "" or name == None:
             QMessageBox.critical(self, _('Error'), _('Note name can not be blank.'))
             return
 
-        if self.control(name) == False:
+        if self.checkIfItExist(name) == False:
             return
         
         Sidebar.add(name + " " + _("(Backup)"), self)
         self.backups[name] = Backup(self, name)
         self.addTab(self.backups[name], (name + " " + _("(Backup)")))
         self.setCurrentWidget(self.backups[name])
-    
-    def restore(self, name: str, caller: str = "home"):
-        if name == "" or name == None:
-            QMessageBox.critical(self, _('Error'), _('Note name can not be blank.'))
-            return
-        
-        if caller == "home" and self.control(name) == False:
-            return
-        
-        with sqlite3.connect(f"{userdata}notes.db", timeout=5.0) as self.db_restore1:
-            self.cur_restore1 = self.db_restore1.cursor()
-            self.cur_restore1.execute(f"select content, backup from notes where name = '{name}'")
-            self.fetch_restore1 = self.cur_restore1.fetchone()
-            
-        if self.fetch_restore1[1] == None or self.fetch_restore1[1] == "":
-            QMessageBox.critical(self, _('Error'), _('There is no backup for {name} note.').format(name = name))
-            return
-                        
-        with sqlite3.connect(f"{userdata}notes.db", timeout=5.0) as self.db_restore2:
-            self.sql_restore2 = f"""update notes set content = '{self.fetch_restore1[1]}', 
-            backup = '{self.fetch_restore1[0]}' where name = '{name}'"""
-            self.cur_restore2 = self.db_restore2.cursor()
-            self.cur_restore2.execute(self.sql_restore2)
-            self.db_restore2.commit()
-            
-        with sqlite3.connect(f"{userdata}notes.db", timeout=5.0) as self.db_restore3:
-            self.cur_restore3 = self.db_restore3.cursor()
-            self.cur_restore3.execute(f"select content, backup from notes where name = '{name}'")
-            self.fetch_restore3 = self.cur_restore3.fetchone()
-            
-        if self.fetch_restore1[1] == self.fetch_restore3[0]:
-            QMessageBox.information(self, _('Successful'), _('{name} note restored.').format(name = name))
-        else:
-            QMessageBox.critical(self, _('Error'), _('Failed to restore {name} note.').format(name = name))
             
     def delete_content(self, name: str):
         if name == "" or name == None:
             QMessageBox.critical(self, _('Error'), _('Note name can not be blank.'))
             return        
         
-        if self.control(name) == False:
+        if self.checkIfItExist(name) == False:
             return
         
         with sqlite3.connect(f"{userdata}notes.db", timeout=5.0) as self.db_delete1:
@@ -664,7 +981,7 @@ class Notes(QTabWidget):
             QMessageBox.critical(self, _('Error'), _('Note name can not be blank.'))
             return
         
-        if self.control(name) == False:
+        if self.checkIfItExist(name) == False:
             return
         
         with sqlite3.connect(f"{userdata}notes.db", timeout=5.0) as self.db_remove1:
@@ -672,10 +989,10 @@ class Notes(QTabWidget):
             self.cur_remove1.execute(f"delete from notes where name = '{name}'")
             self.db_remove1.commit()
             
-        NotesListView.refresh(self.listview)
+        self.listview.insertNames(self.listview)
         self.entry.setText("")
             
-        if self.control(name, "inverted") == False:
+        if self.checkIfItExist(name, "inverted") == False:
             QMessageBox.information(self, _('Successful'), _('{name} note deleted.').format(name = name))
         else:
             QMessageBox.critical(self, _('Error'), _('Failed to delete {name} note.').format(name = name))
@@ -688,23 +1005,61 @@ class Notes(QTabWidget):
             return
     
         if not os.path.isfile(f"{userdata}notes.db"):
-            create_db()
-            NotesListView.refresh(self.listview)
+            # create_db()
+            self.listview.insertNames(self.listview)
             self.entry.setText("")
             
             QMessageBox.information(self, _('Successful'), _('All notes deleted.'))
         else:
             QMessageBox.critical(self, _('Error'), _('Failed to delete all notes.'))
             
+    def setAutoSave(self, signal: Qt.CheckState | int) -> None:
+        """
+        Set auto-save setting for global with SettingsDB's setAutoSave function.
+
+        Args:
+            signal (Qt.CheckState | int): QCheckBox's signal.
+
+        Returns:
+            bool: True if successful, False if unsuccesful
+        """
+        
+        global get_autosave
+        
+        if signal == Qt.CheckState.Unchecked or signal == 0:
+            get_autosave = "false"
+
+        elif signal == Qt.CheckState.Checked or signal == 2:
+            get_autosave = "true"
             
-if __name__ == "__main__":
-    from mainwindow import MainWindow
-    
-    application = QApplication(sys.argv)
+        call = settingsdb.setAutoSave(signal)
+        
+        if call == False:
+            QMessageBox.critical(self, _("Erorr"), _("Failed to set auto-save setting."))
+                
+    def setFormat(self, index: int) -> None:
+        """
+        Set format setting for global with SettingsDB's setFormat function.
 
-    window = MainWindow()
-    window.show()
-    
-    window.tabview.setCurrentIndex(1)
+        Args:
+            index (int): Selected index in QComboBox.
 
-    application.exec()
+        Returns:
+            bool: True if successful, False if unsuccesful
+        """
+        
+        global get_format
+        
+        if index == 0:
+            get_format = "plain-text"
+        
+        elif index == 1:
+            get_format = "markdown"
+        
+        elif index == 2:
+            get_format = "html"
+            
+        call = settingsdb.setFormat(index)
+        
+        if call == False:
+            QMessageBox.critical(self, _("Erorr"), _("Failed to set format setting."))

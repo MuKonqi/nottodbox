@@ -24,11 +24,7 @@ import locale
 import getpass
 import os
 import subprocess
-from sidebar import Sidebar
-from home import Home
-from notes import Notes
-from todos import Todos
-from diaries import Diaries
+import sqlite3
 from PyQt6.QtGui import QCloseEvent, QKeySequence
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import *
@@ -50,6 +46,26 @@ username = getpass.getuser()
 userdata = f"/home/{username}/.local/share/nottodbox/"
 if not os.path.isdir(userdata):
     os.mkdir(userdata)
+    
+
+with sqlite3.connect(f"{userdata}settings.db", timeout=5.0) as db_settings:
+    cur_settings = db_settings.cursor()
+    
+    sql_settings = """
+    CREATE TABLE IF NOT EXISTS settings (
+        setting TEXT NOT NULL PRIMARY KEY,
+        value TEXT NOT NULL
+    );"""
+    cur_settings.execute(sql_settings)
+    
+    db_settings.commit()
+    
+
+from sidebar import Sidebar
+from home import Home
+from notes import Notes
+from todos import Todos
+from diaries import Diaries
 
 
 class TabWidget(QTabWidget):
@@ -77,6 +93,7 @@ class TabWidget(QTabWidget):
         for target in targets:
             self.number += 1
             self.addTab(target, _(names[self.number]))
+
 
 class MainWindow(QMainWindow):
     """Main window.
