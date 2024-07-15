@@ -162,15 +162,19 @@ class NotesDB:
     """The notes database pool."""
     
     def __init__(self) -> None:
-        """
-        Connect database and then set cursor.
-        If "notes" table not exists, create it.
-        """
+        """Connect database and then set cursor."""
         
         self.db = sqlite3.connect(f"{userdata}notes.db")
         self.cur = self.db.cursor()
         self.widgets = {}
-    
+
+    def createTable(self) -> bool:
+        """If "notes" table not exists, create it.
+
+        Returns:
+            bool: True if successful, False if unsuccesful
+        """
+        
         sql = """
         CREATE TABLE IF NOT EXISTS notes (
             name TEXT NOT NULL PRIMARY KEY,
@@ -183,6 +187,13 @@ class NotesDB:
         self.cur.execute(sql)
         self.db.commit()
         
+        try:
+            self.cur.execute("select from notes")
+            return True
+        
+        except sqlite3.OperationalError:
+            return False
+    
     def checkIfItExist(self, name: str) -> bool:
         """
         Check name's exist.
@@ -381,7 +392,7 @@ class NotesDB:
 
 
 notesdb = NotesDB()
-
+create_table = notesdb.createTable()
 
 class Note(QWidget):
     """A page for notes."""
