@@ -16,8 +16,22 @@
 # along with Nottodbox.  If not, see <https://www.gnu.org/licenses/>.
 
 
-import sys
+if __name__ == "__main__":
+    import sys
+    from mainwindow import MainWindow
+    from PyQt6.QtWidgets import QApplication
+    
+    application = QApplication(sys.argv)
+
+    window = MainWindow()
+    window.show()
+    window.tabview.setCurrentIndex(2)
+
+    sys.exit(application.exec())
+
+
 import locale
+import gettext
 import getpass
 import os
 import sqlite3
@@ -27,15 +41,15 @@ from PyQt6.QtCore import Qt, QStringListModel, QSortFilterProxyModel, QRegularEx
 from PyQt6.QtWidgets import *
 
 
-def _(text): return text
-if "tr" in locale.getlocale()[0][0:]:
+if locale.getlocale()[0].startswith("tr"):
     language = "tr"
-    # translations = gettext.translation("nottodbox", "po", languages=["tr"])
+    translations = gettext.translation("nottodbox", "po", languages=["tr"], fallback=True)
 else:
     language = "en"
-    # translations = gettext.translation("nottodbox", "po", languages=["en"])
-# translations.install()
-# _ = translations.gettext
+    translations = gettext.translation("nottodbox", "po", languages=["en"], fallback=True)
+translations.install()
+
+_ = translations.gettext
 
 align_center = Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter
 
@@ -133,9 +147,9 @@ class TodolistListView(QListView):
             pass
         
     def mark(self, todolist: str, todo: str):
-        if todo[0].startswith("[-]") == True:
+        if todo[0].startswith("[-]"):
             todo = todo[0].replace("[-] ", "")
-        elif todo[0].startswith("[+]") == True:
+        elif todo[0].startswith("[+]"):
             todo = todo[0].replace("[+] ", "")
                 
         with sqlite3.connect(f"{userdata}todos.db", timeout=5.0) as self.db_mark:
@@ -244,9 +258,9 @@ class Todolist(QWidget):
             if Todos.control(self, self._todolist) == False:
                 return
             
-            if todo[0].startswith("[-]") == True:
+            if todo[0].startswith("[-]"):
                 todo = todo[0].replace("[-] ", "")
-            elif todo[0].startswith("[+]") == True:
+            elif todo[0].startswith("[+]"):
                 todo = todo[0].replace("[+] ", "")
             
             with sqlite3.connect(f"{userdata}todos.db", timeout=5.0) as self.db_insert:

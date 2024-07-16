@@ -31,25 +31,25 @@ if __name__ == "__main__":
 
 
 import locale
+import gettext
 import getpass
 import os
 import sqlite3
 import datetime
 from sidebar import Sidebar
 from PyQt6.QtCore import Qt, QStringListModel, QSortFilterProxyModel, QRegularExpression
-from PyQt6.QtGui import QCloseEvent
 from PyQt6.QtWidgets import *
 
 
-def _(text): return text
-if "tr" in locale.getlocale()[0][0:]:
+if locale.getlocale()[0].startswith("tr"):
     language = "tr"
-    # translations = gettext.translation("nottodbox", "po", languages=["tr"])
+    translations = gettext.translation("nottodbox", "po", languages=["tr"], fallback=True)
 else:
     language = "en"
-    # translations = gettext.translation("nottodbox", "po", languages=["en"])
-# translations.install()
-# _ = translations.gettext
+    translations = gettext.translation("nottodbox", "po", languages=["en"], fallback=True)
+translations.install()
+
+_ = translations.gettext
 
 align_center = Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter
 
@@ -167,7 +167,42 @@ class NotesDB:
         self.db = sqlite3.connect(f"{userdata}notes.db")
         self.cur = self.db.cursor()
         self.widgets = {}
+    
+    def checkIfTheNoteExists(self, name: str) -> bool:
+        """
+        Check if the note exists.
 
+        Args:
+            name (str): Note name
+
+        Returns:
+            bool: True if the note exists, if not False
+        """
+        
+        self.cur.execute(f"select * from notes where name = '{name}'")
+        
+        try:
+            self.cur.fetchone()[0]
+            return True
+        
+        except TypeError:
+            return False
+        
+    def checkIfTheTableExists(self) -> bool:
+        """
+        Check if the table exists.
+
+        Returns:
+            bool: True if the table exists, if not False
+        """
+        
+        try:
+            self.cur.execute("select * from notes")
+            return True
+        
+        except sqlite3.OperationalError:
+            return False
+        
     def createTable(self) -> bool:
         """If "notes" table not exists, create it.
 
@@ -187,40 +222,15 @@ class NotesDB:
         self.cur.execute(sql)
         self.db.commit()
         
-        try:
-            self.cur.execute("select from notes")
-            return True
-        
-        except sqlite3.OperationalError:
-            return False
-    
-    def checkIfItExist(self, name: str) -> bool:
-        """
-        Check name's exist.
-
-        Args:
-            name (str): Note name
-
-        Returns:
-            bool: True if such a note exists, if not False
-        """
-        
-        self.cur.execute(f"select * from notes where name = '{name}'")
-        
-        try:
-            self.cur.fetchone()[0]
-            return True
-        
-        except TypeError:
-            return False
-        
-    def deleteAll(self) -> bool:
-        pass
+        return self.checkIfTheTableExists()
     
     def deleteContent(self) -> bool:
         pass
     
     def deleteOne(self) -> bool:
+        pass
+    
+    def dropTable(self) -> bool:
         pass
     
     def getBackup(self) -> tuple:
@@ -370,7 +380,8 @@ class NotesDB:
             return False
     
     def saveAll(self) -> bool:
-        """Save all notes.
+        """
+        Save all notes.
         If there is such a note, create it.
 
         Returns:
@@ -392,7 +403,13 @@ class NotesDB:
 
 
 notesdb = NotesDB()
+
 create_table = notesdb.createTable()
+if create_table == True:
+    table = True
+elif create_table == False:
+    table = False
+
 
 class Note(QWidget):
     """A page for notes."""
@@ -852,15 +869,15 @@ class Notes(QTabWidget):
                 self.created.setText(f"{_('Created')}:")
                 self.edited.setText(f"{_('Edited')}:")
         
-    def checkIfItExist(self, name: str, mode: str = "normal"):
-        """Check name's exist.
+    def checkIfTheNoteExists(self, name: str, mode: str = "normal"):
+        """Check if the note exists.
 
         Args:
             name (str): Note name.
             mode (str, optional): Inverted mode for deleting etc. Defaults to "normal".
         """
         
-        call = notesdb.checkIfItExist(name)
+        call = notesdb.checkIfTheNoteExists(name)
         
         if call == False and mode == "normal":
             QMessageBox.critical(self, _("Error"), _("There is no note called {name}.").format(name = name))
@@ -898,7 +915,7 @@ class Notes(QTabWidget):
             QMessageBox.critical(self, _('Error'), _('Note name can not be blank.'))
             return        
         
-        if self.checkIfItExist(name) == False:
+        if self.checkIfTheNoteExists(name) == False:
             return
         
         newname, topwindow = QInputDialog.getText(self, 
@@ -931,7 +948,7 @@ class Notes(QTabWidget):
             QMessageBox.critical(self, _('Error'), _('Note name can not be blank.'))
             return
         
-        if self.checkIfItExist(name) == False:
+        if self.checkIfTheNoteExists(name) == False:
             return
         
         status, call = notesdb.restoreContent(name)
@@ -950,7 +967,7 @@ class Notes(QTabWidget):
             QMessageBox.critical(self, _('Error'), _('Note name can not be blank.'))
             return
 
-        if self.checkIfItExist(name) == False:
+        if self.checkIfTheNoteExists(name) == False:
             return
         
         Sidebar.add(name + " " + _("(Backup)"), self)
@@ -963,7 +980,7 @@ class Notes(QTabWidget):
             QMessageBox.critical(self, _('Error'), _('Note name can not be blank.'))
             return        
         
-        if self.checkIfItExist(name) == False:
+        if self.checkIfTheNoteExists(name) == False:
             return
         
         with sqlite3.connect(f"{userdata}notes.db", timeout=5.0) as self.db_delete1:
@@ -992,7 +1009,7 @@ class Notes(QTabWidget):
             QMessageBox.critical(self, _('Error'), _('Note name can not be blank.'))
             return
         
-        if self.checkIfItExist(name) == False:
+        if self.checkIfTheNoteExists(name) == False:
             return
         
         with sqlite3.connect(f"{userdata}notes.db", timeout=5.0) as self.db_remove1:
@@ -1003,7 +1020,7 @@ class Notes(QTabWidget):
         self.listview.insertNames(self.listview)
         self.entry.setText("")
             
-        if self.checkIfItExist(name, "inverted") == False:
+        if self.checkIfTheNoteExists(name, "inverted") == False:
             QMessageBox.information(self, _('Successful'), _('{name} note deleted.').format(name = name))
         else:
             QMessageBox.critical(self, _('Error'), _('Failed to delete {name} note.').format(name = name))

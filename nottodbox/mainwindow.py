@@ -16,11 +16,9 @@
 # along with Nottodbox.  If not, see <https://www.gnu.org/licenses/>.
 
 
-"""The main window module of Nottodbox. All modules should start this."""
-
-
 import sys
 import locale
+import gettext
 import getpass
 import os
 import subprocess
@@ -30,15 +28,15 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import *
 
 
-def _(text): return text
-if "tr" in locale.getlocale()[0][0:]:
+if locale.getlocale()[0].startswith("tr"):
     language = "tr"
-    # translations = gettext.translation("nottodbox", "po", languages=["tr"])
+    translations = gettext.translation("nottodbox", "po", languages=["tr"], fallback=True)
 else:
     language = "en"
-    # translations = gettext.translation("nottodbox", "po", languages=["en"])
-# translations.install()
-# _ = translations.gettext
+    translations = gettext.translation("nottodbox", "po", languages=["en"], fallback=True)
+translations.install()
+
+_ = translations.gettext
 
 align_center = Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter
 

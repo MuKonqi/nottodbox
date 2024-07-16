@@ -16,22 +16,38 @@
 # along with Nottodbox.  If not, see <https://www.gnu.org/licenses/>.
 
 
-import sys
+if __name__ == "__main__":
+    import sys
+    from mainwindow import MainWindow
+    from PyQt6.QtWidgets import QApplication
+    
+    application = QApplication(sys.argv)
+
+    window = MainWindow()
+    window.show()
+    window.tabview.setCurrentIndex(0)
+
+    sys.exit(application.exec())
+
+
 import locale
+import gettext
 import getpass
 import os
 from PyQt6.QtCore import Qt, QStringListModel
 from PyQt6.QtWidgets import *
 
-def _(text): return text
-if "tr" in locale.getlocale()[0][0:]:
+
+if locale.getlocale()[0].startswith("tr"):
     language = "tr"
-    # translations = gettext.translation("nottodbox", "po", languages=["tr"])
+    translations = gettext.translation("nottodbox", "po", languages=["tr"], fallback=True)
 else:
     language = "en"
-    # translations = gettext.translation("nottodbox", "po", languages=["en"])
-# translations.install()
-# _ = translations.gettext
+    translations = gettext.translation("nottodbox", "po", languages=["en"], fallback=True)
+translations.install()
+
+_ = translations.gettext
+
 
 align_center = Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter
 

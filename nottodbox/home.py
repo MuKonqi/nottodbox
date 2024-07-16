@@ -16,25 +16,40 @@
 # along with Nottodbox.  If not, see <https://www.gnu.org/licenses/>.
 
 
-import sys
+if __name__ == "__main__":
+    import sys
+    from mainwindow import MainWindow
+    from PyQt6.QtWidgets import QApplication
+    
+    application = QApplication(sys.argv)
+
+    window = MainWindow()
+    window.show()
+    window.tabview.setCurrentIndex(0)
+
+    sys.exit(application.exec())
+
+
 import locale
+import gettext
 import getpass
 import os
 from notes import NotesListView
 from todos import TodolistListView, TodosListView
 from diaries import Diary
-from PyQt6.QtCore import Qt, QDate, QStringListModel, QSortFilterProxyModel, QRegularExpression
+from PyQt6.QtCore import Qt, QDate
 from PyQt6.QtWidgets import *
 
-def _(text): return text
-if "tr" in locale.getlocale()[0][0:]:
+
+if locale.getlocale()[0].startswith("tr"):
     language = "tr"
-    # translations = gettext.translation("nottodbox", "po", languages=["tr"])
+    translations = gettext.translation("nottodbox", "po", languages=["tr"], fallback=True)
 else:
     language = "en"
-    # translations = gettext.translation("nottodbox", "po", languages=["en"])
-# translations.install()
-# _ = translations.gettext
+    translations = gettext.translation("nottodbox", "po", languages=["en"], fallback=True)
+translations.install()
+
+_ = translations.gettext
 
 align_center = Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter
 
@@ -118,14 +133,3 @@ class Home(QScrollArea):
         self.setWidgetResizable(True)
         self.setAlignment(align_center)
         self.setWidget(Widget(parent, todos, notes))
-    
-       
-if __name__ == "__main__":    
-    from mainwindow import MainWindow
-    
-    application = QApplication(sys.argv)
-
-    window = MainWindow()
-    window.show()
-
-    application.exec()
