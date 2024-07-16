@@ -549,7 +549,7 @@ class Diaries(QTabWidget):
         else:
             if date == today.toString("dd.MM.yyyy"):
                 self.diaries[date] = Diary(self, date, "today")
-            elif self.control(date) == True:
+            elif self.control(date):
                 self.diaries[date] = Diary(self, date, "old")
             else:
                 return

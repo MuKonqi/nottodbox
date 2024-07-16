@@ -375,7 +375,7 @@ class Todolist(QWidget):
 
         self.if_add = self.fetch_add2[0] == todo and self.fetch_add2[1] == "uncompleted"
         
-        if self.if_add == True and self.fetch_add2[2] == started:
+        if self.if_add and self.fetch_add2[2] == started:
             QMessageBox.information(self, _('Successful'), _('{todo} added to {todolist}.').format(todo = todo, todolist = self._todolist))
         else:
             QMessageBox.critical(self, _('Error'), _('Failed to add {todo} to {todolist}.').format(todo = todo, todolist = self._todolist))
@@ -395,7 +395,7 @@ class Todolist(QWidget):
                                                              _("Edit {todo} todo in {todolist}").format(todo = todo, todolist = self._todolist), 
                                                              _("Please enter a todo for {todo} in {todolist} below.").format(todo = todo, todolist = self._todolist))
         
-        if self.newtodo != "" and self.newtodo != None and self.topwindow == True:
+        if self.newtodo != "" and self.newtodo != None and self.topwindow:
             with sqlite3.connect(f"{userdata}todos.db", timeout=5.0) as self.db_edit1:
                 self.sql_edit1 = f"update {self._todolist} set todo = '{self.newtodo}' where todo = '{todo}'"
                 self.cur_edit1 = self.db_edit1.cursor()

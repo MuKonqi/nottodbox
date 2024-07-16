@@ -33,7 +33,6 @@ if __name__ == "__main__":
 import locale
 import gettext
 import getpass
-import os
 import sqlite3
 import datetime
 from sidebar import Sidebar
@@ -55,8 +54,6 @@ align_center = Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter
 
 username = getpass.getuser()
 userdata = f"/home/{username}/.local/share/nottodbox/"
-if not os.path.isdir(userdata):
-    os.mkdir(userdata)
 
 
 class SettingsDB:
@@ -69,8 +66,7 @@ class SettingsDB:
         self.cur = self.db.cursor()
     
     def getSettings(self) -> tuple:
-        """
-        Get required settings. If not any string, create them with default value."""
+        """Get required settings. If not any string, create them with default value."""
         
         try:
             self.cur.execute(f"select value from settings where setting = 'notes-autosave'")
@@ -204,7 +200,8 @@ class NotesDB:
             return False
         
     def createTable(self) -> bool:
-        """If "notes" table not exists, create it.
+        """
+        If the notes table not exists, create it.
 
         Returns:
             bool: True if successful, False if unsuccesful
@@ -224,17 +221,65 @@ class NotesDB:
         
         return self.checkIfTheTableExists()
     
-    def deleteContent(self) -> bool:
-        pass
+    def deleteContent(self, name: str) -> bool:
+        """Delete content of a note.
+
+        Args:
+            name (str): Note name
+
+        Returns:
+            bool: True if successful, False if unsuccessful
+        """
+        
+        fetch_before = self.getContent(name)
+            
+        self.cur.execute(f"update notes set content = '', backup = '{fetch_before}' where name = '{name}'")
+        self.db.commit()
+        
+        fetch_after = self.getContent(name)
+        
+        if fetch_after == "" or fetch_after == None:
+            return True
+        else:
+            return False
     
-    def deleteOne(self) -> bool:
-        pass
+    def deleteOne(self, name) -> bool:
+        """Delete a note.
+
+        Args:
+            name (str): Note name
+
+        Returns:
+            bool: True if successful, False if unsuccessful
+        """
+        
+        self.cur.execute(f"delete from notes where name = '{name}'")
+        self.db.commit()
+        
+        call = self.checkIfTheNoteExists(name)
+        
+        if call:
+            return False
+        else:
+            return True
     
-    def dropTable(self) -> bool:
-        pass
-    
-    def getBackup(self) -> tuple:
-        pass
+    def getBackup(self, name: str) -> str:
+        """
+        Get backup of a note.
+
+        Args:
+            name (str): Note name.
+
+        Returns:
+            str: Content.
+        """
+        
+        self.cur.execute(f"select backup from notes where name = '{name}'")
+        try:
+            fetch = self.cur.fetchone()[0]
+        except TypeError:
+            fetch = ""
+        return fetch
 
     def getContent(self, name: str) -> str:
         """
@@ -300,6 +345,23 @@ class NotesDB:
             
         except TypeError:
             return False
+        
+    def recreateTable(self) -> bool:
+        """Recreates the notes table.
+
+        Returns:
+            bool: True if successful, False if unsuccessful
+        """
+        
+        self.cur.execute(f"DROP TABLE IF EXISTS notes")
+        self.db.commit()
+        
+        call = self.checkIfTheTableExists()
+        
+        if call:
+            return False
+        else:
+            return self.createTable()
     
     def restoreContent(self, name: str) -> tuple:
         """
@@ -330,55 +392,7 @@ class NotesDB:
             return "successful", True
         else:
             return "failed", False
-
-    def saveOne(self, name: str, content: str, edited: str, autosave: bool, widget: QTextEdit) -> bool:        
-        """Save a note.
-        If there is such a note, create it.
         
-        Args:
-            name (str): Note name
-            content (str): Content of note
-            edited (str): Creating/editing date
-            autosave (bool): True if the caller is "auto-save", false if it is not
-            widget (QTextEdit): Input widget
-            
-        Returns:
-            bool: True if successful, False if unsuccesful
-        """
-        
-        self.cur.execute(f"select content from notes where name = '{name}'")
-        
-        try:
-            old_content = self.cur.fetchone()[0]
-            
-            if autosave == False:
-                sql = f"""update notes set content = '{content}', backup = '{old_content}',
-                edited = '{edited}' where name = '{name}'"""
-                        
-            elif autosave == True:
-                sql = f"""update notes set content = '{content}',
-                edited = '{edited}' where name = '{name}'"""
-            
-            self.cur.execute(sql)
-            self.db.commit()
-            
-        except TypeError:
-            sql = f"""insert into notes (name, content, backup, created, edited) 
-                    values ('{name}', '{content}', '', '{edited}', '{edited}')"""
-            self.cur.execute(sql)
-            self.db.commit()
-                        
-        self.cur.execute(f"select content, edited from notes where name = '{name}'")
-        control = self.cur.fetchone()
-
-        if control[0] == content and control[1] == edited: 
-            self.widgets[name] = widget
-                       
-            return True
-
-        else:
-            return False
-    
     def saveAll(self) -> bool:
         """
         Save all notes.
@@ -401,13 +415,61 @@ class NotesDB:
                 
         return successful
 
+    def saveOne(self, name: str, content: str, edited: str, autosave: bool, widget: QTextEdit) -> bool:        
+        """Save a note.
+        If there is such a note, create it.
+        
+        Args:
+            name (str): Note name
+            content (str): Content of note
+            edited (str): Creating/editing date
+            autosave (bool): True if the caller is "auto-save", false if it is not
+            widget (QTextEdit): Input widget
+            
+        Returns:
+            bool: True if successful, False if unsuccesful
+        """
+        
+        self.cur.execute(f"select content from notes where name = '{name}'")
+        
+        try:
+            old_content = self.cur.fetchone()[0]
+            
+            if autosave:
+                sql = f"""update notes set content = '{content}',
+                edited = '{edited}' where name = '{name}'"""
+                        
+            else:
+                sql = f"""update notes set content = '{content}', backup = '{old_content}',
+                edited = '{edited}' where name = '{name}'"""
+            
+            self.cur.execute(sql)
+            self.db.commit()
+            
+        except TypeError:
+            sql = f"""insert into notes (name, content, backup, created, edited) 
+                    values ('{name}', '{content}', '', '{edited}', '{edited}')"""
+            self.cur.execute(sql)
+            self.db.commit()
+                        
+        self.cur.execute(f"select content, edited from notes where name = '{name}'")
+        control = self.cur.fetchone()
+
+        if control[0] == content and control[1] == edited: 
+            self.widgets[name] = widget
+                       
+            return True
+
+        else:
+            return False
+
 
 notesdb = NotesDB()
 
 create_table = notesdb.createTable()
-if create_table == True:
+if create_table:
     table = True
-elif create_table == False:
+else:
     table = False
 
 
@@ -483,20 +545,22 @@ class Note(QWidget):
         
         self.closable = False
         
-        if autosave == False or autosave == True and self.get_autosave == "true":
+        if autosave or not autosave and self.get_autosave == "true":
             call = notesdb.saveOne(self.name,
                                    self.input.toPlainText(),
                                    datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"), 
                                    autosave,
                                    self.input)
+            
+            self.parent_.listview.insertNames()
 
-            if call == True:
+            if call:
                 self.closable = True
                 
                 if autosave == False:
                     QMessageBox.information(self, _("Successful"), _("Note {name} saved.").format(name = self.name))
                 
-            elif call == False:
+            else:
                 QMessageBox.critical(self, _("Error"), _("Failed to save {name} note.").format(name = self.name))
                 
     def setAutoSave(self, signal: Qt.CheckState | int) -> None:
@@ -566,6 +630,8 @@ class Backup(QWidget):
         
         super().__init__(parent)
         
+        self.backup = notesdb.getBackup(name)
+        
         self.get_format = get_format
         
         self.setLayout(QVBoxLayout(self))
@@ -586,6 +652,7 @@ class Backup(QWidget):
         
         self.output = QTextEdit(self)
         self.output.setReadOnly(True)
+        self.updateOutput(self.backup)
         
         self.button = QPushButton(self, text=_('Restore content'))
         self.button.clicked.connect(lambda: Notes.restoreContent(parent, name))
@@ -593,15 +660,6 @@ class Backup(QWidget):
         self.layout().addWidget(self.format)
         self.layout().addWidget(self.output)
         self.layout().addWidget(self.button)
-
-        try:
-            with sqlite3.connect(f"{userdata}notes.db", timeout=5.0) as self.db_showb:
-                self.cur_showb = self.db_showb.cursor()
-                self.cur_showb.execute(f"select backup from notes where name = '{name}'")
-                self.fetch_showb = self.cur_showb.fetchone()[0]
-                self.updateOutput(self.fetch_showb)
-        except TypeError:
-            pass
 
     def setFormat(self, index: int):
         """Set format setting for only this page.
@@ -622,10 +680,10 @@ class Backup(QWidget):
         elif index == 2:
             self.get_format = "html"
             
-        self.updateOutput(self.fetch_showb)
+        self.updateOutput(self.backup)
             
     def updateOutput(self, text: str):
-        """Update output when input's text changed or format changed.
+        """Update output when format changed.
 
         Args:
             text (str): Content
@@ -753,13 +811,13 @@ class Notes(QTabWidget):
         self.restore_button.clicked.connect(lambda: self.restore(self.entry.text()))
         
         self.delete_content_button = QPushButton(self.side, text=_('Delete content'))
-        self.delete_content_button.clicked.connect(lambda: self.delete_content(self.entry.text()))
+        self.delete_content_button.clicked.connect(lambda: self.deleteContent(self.entry.text()))
         
         self.delete_note_button = QPushButton(self.side, text=_('Delete note'))
-        self.delete_note_button.clicked.connect(lambda: self.delete_note(self.entry.text()))
+        self.delete_note_button.clicked.connect(lambda: self.deleteNote(self.entry.text()))
         
         self.delete_all_button = QPushButton(self.side, text=_('Delete all notes'))
-        self.delete_all_button.clicked.connect(self.delete_all)
+        self.delete_all_button.clicked.connect(self.deleteAll)
         
         self.format = QComboBox(self)
         self.format.addItems([_("Format: Plain text"), _("Format: Markdown"), _("Format: HTML")])
@@ -802,6 +860,21 @@ class Notes(QTabWidget):
         self.setMovable(True)
         
         self.tabCloseRequested.connect(self.closeTab)
+        
+    def checkIfTheNoteExists(self, name: str, mode: str = "normal"):
+        """Check if the note exists.
+
+        Args:
+            name (str): Note name.
+            mode (str, optional): Inverted mode for deleting etc. Defaults to "normal".
+        """
+        
+        call = notesdb.checkIfTheNoteExists(name)
+        
+        if call == False and mode == "normal":
+            QMessageBox.critical(self, _("Error"), _("There is no note called {name}.").format(name = name))
+        
+        return call
          
     def closeTab(self, index: int) -> bool:
         """Close tab.
@@ -832,10 +905,9 @@ class Notes(QTabWidget):
                         
                         self.listview.insertNames()
                         
-                        if call == True:
+                        if call:
                             self.closable = True
-                            
-                        elif call == False:
+                        else:
                             QMessageBox.critical(self, _("Error"), _("Failed to save {name} note.").format(name = self.tabText(index).replace("&", "")))
                     
                     elif self.question != QMessageBox.StandardButton.Yes:
@@ -851,6 +923,66 @@ class Notes(QTabWidget):
             
             return True
         
+    def deleteAll(self):
+        """Delete all notes."""
+        
+        call = notesdb.recreateTable()
+        
+        self.listview.insertNames()
+        self.insertInformations("")
+    
+        if call:
+            QMessageBox.information(self, _('Successful'), _('All notes deleted.'))
+        else:
+            QMessageBox.critical(self, _('Error'), _('Failed to delete all notes.'))
+        
+    def deleteContent(self, name: str):
+        """
+        Delete content of note with NotesDB's deleteContent function.
+
+        Args:
+            name (str): Note name
+        """
+        
+        if name == "" or name == None:
+            QMessageBox.critical(self, _('Error'), _('Note name can not be blank.'))
+            return        
+        
+        if self.checkIfTheNoteExists(name) == False:
+            return
+        
+        call = notesdb.deleteContent(name)
+    
+        if call:
+            QMessageBox.information(self, _('Successful'), _('Content of {name} note deleted.').format(name = name))
+        else:
+            QMessageBox.critical(self, _('Error'), _('Failed to delete content of {name} note.').format(name = name))
+                       
+    def deleteNote(self, name: str):
+        """
+        Delete note of note with NotesDB's deleteOne function.
+
+        Args:
+            name (str): Note name
+        """
+        
+        if name == "" or name == None:
+            QMessageBox.critical(self, _('Error'), _('Note name can not be blank.'))
+            return
+        
+        if self.checkIfTheNoteExists(name) == False:
+            return
+        
+        call = notesdb.deleteOne(name)
+        
+        self.listview.insertNames()
+        self.insertInformations("")
+            
+        if call:
+            QMessageBox.information(self, _('Successful'), _('{name} note deleted.').format(name = name))
+        else:
+            QMessageBox.critical(self, _('Error'), _('Failed to delete {name} note.').format(name = name))
+        
     def insertInformations(self, name: str):
         """Insert name and creation, edit dates.
 
@@ -860,29 +992,17 @@ class Notes(QTabWidget):
         
         if name != "":
             call = notesdb.getInformations(name)
+        else:
+            call = None
             
-            try:
-                self.entry.setText(name)
-                self.created.setText(f"{_('Created')}: {call[0]}")
-                self.edited.setText(f"{_('Edited')}: {call[1]}")
-            except TypeError:
-                self.created.setText(f"{_('Created')}:")
-                self.edited.setText(f"{_('Edited')}:")
-        
-    def checkIfTheNoteExists(self, name: str, mode: str = "normal"):
-        """Check if the note exists.
-
-        Args:
-            name (str): Note name.
-            mode (str, optional): Inverted mode for deleting etc. Defaults to "normal".
-        """
-        
-        call = notesdb.checkIfTheNoteExists(name)
-        
-        if call == False and mode == "normal":
-            QMessageBox.critical(self, _("Error"), _("There is no note called {name}.").format(name = name))
-        
-        return call
+        try:
+            self.entry.setText(name)
+            self.created.setText(f"{_('Created')}: {call[0]}")
+            self.edited.setText(f"{_('Edited')}: {call[1]}")
+        except TypeError:
+            self.entry.setText("")
+            self.created.setText(f"{_('Created')}:")
+            self.edited.setText(f"{_('Edited')}:")
         
     def openCreate(self, name: str):
         """Open or create a note.
@@ -922,18 +1042,16 @@ class Notes(QTabWidget):
                                                              _("Rename {name} Note").format(name = name), 
                                                              _("Please enter a new name for {name} below.").format(name = name))
         
-        if newname != "" and newname != None and topwindow == True:
+        if newname != "" and newname != None and topwindow:
             call = notesdb.renameNote(name, newname)
             self.listview.insertNames()
             
-            if call == True:
+            if call:
                 self.entry.setText(newname)
                 
                 QMessageBox.information(self, _('Successful'), _('{name} note renamed as {newname}.').format(name = name, newname = newname))
-
-            elif call == False:
+            else:
                 QMessageBox.critical(self, _('Error'), _('Failed to rename {name} note.').format(name = name))
-
         else:
             QMessageBox.critical(self, _('Error'), _('Failed to rename {name} note.').format(name = name))
             
@@ -953,93 +1071,14 @@ class Notes(QTabWidget):
         
         status, call = notesdb.restoreContent(name)
         
-        if status == "successful" and call == True:
+        if status == "successful" and call:
             QMessageBox.information(self, _("Successful"), _("Backup of {name} note restored.").format(name = name))
         
-        elif status == "no-backup" and call == False:
+        elif status == "no-backup" and not call:
             QMessageBox.critical(self, _("Error"), _("There is no backup for {name} note.").format(name = name))
             
-        elif status == "failed" and call == False:
+        elif status == "failed" and not call:
             QMessageBox.critical(self, _("Error"), _("Failed to restore backup of {name} note.").format(name = name))
-    
-    def showBackup(self, name: str):
-        if name == "" or name == None:
-            QMessageBox.critical(self, _('Error'), _('Note name can not be blank.'))
-            return
-
-        if self.checkIfTheNoteExists(name) == False:
-            return
-        
-        Sidebar.add(name + " " + _("(Backup)"), self)
-        self.backups[name] = Backup(self, name)
-        self.addTab(self.backups[name], (name + " " + _("(Backup)")))
-        self.setCurrentWidget(self.backups[name])
-            
-    def delete_content(self, name: str):
-        if name == "" or name == None:
-            QMessageBox.critical(self, _('Error'), _('Note name can not be blank.'))
-            return        
-        
-        if self.checkIfTheNoteExists(name) == False:
-            return
-        
-        with sqlite3.connect(f"{userdata}notes.db", timeout=5.0) as self.db_delete1:
-            self.cur_delete1 = self.db_delete1.cursor()
-            self.cur_delete1.execute(f"select content from notes where name = '{name}'")
-            self.fetch_delete1 = self.cur_delete1.fetchone()[0]
-        
-        with sqlite3.connect(f"{userdata}notes.db", timeout=5.0) as self.db_delete2:
-            self.cur_delete2 = self.db_delete2.cursor()
-            self.cur_delete2.execute(
-                f"update notes set content = '', backup = '{self.fetch_delete1}' where name = '{name}'")
-            self.db_delete2.commit()
-        
-        with sqlite3.connect(f"{userdata}notes.db", timeout=5.0) as self.db_delete3:
-            self.cur_delete3 = self.db_delete3.cursor()
-            self.cur_delete3.execute(f"select content from notes where name = '{name}'")
-            self.fetch_delete3 = self.cur_delete3.fetchone()[0]
-    
-        if self.fetch_delete3 != None:
-            QMessageBox.information(self, _('Successful'), _('Content of {name} note deleted.').format(name = name))
-        else:
-            QMessageBox.critical(self, _('Error'), _('Failed to delete content of {name} note.').format(name = name))
-                       
-    def delete_note(self, name: str):
-        if name == "" or name == None:
-            QMessageBox.critical(self, _('Error'), _('Note name can not be blank.'))
-            return
-        
-        if self.checkIfTheNoteExists(name) == False:
-            return
-        
-        with sqlite3.connect(f"{userdata}notes.db", timeout=5.0) as self.db_remove1:
-            self.cur_remove1 = self.db_remove1.cursor()
-            self.cur_remove1.execute(f"delete from notes where name = '{name}'")
-            self.db_remove1.commit()
-            
-        self.listview.insertNames(self.listview)
-        self.entry.setText("")
-            
-        if self.checkIfTheNoteExists(name, "inverted") == False:
-            QMessageBox.information(self, _('Successful'), _('{name} note deleted.').format(name = name))
-        else:
-            QMessageBox.critical(self, _('Error'), _('Failed to delete {name} note.').format(name = name))
-            
-    def delete_all(self):
-        try:
-            os.remove(f"{userdata}notes.db")
-        except:
-            QMessageBox.critical(self, _('Error'), _('Failed to delete all notes.'))
-            return
-    
-        if not os.path.isfile(f"{userdata}notes.db"):
-            # create_db()
-            self.listview.insertNames(self.listview)
-            self.entry.setText("")
-            
-            QMessageBox.information(self, _('Successful'), _('All notes deleted.'))
-        else:
-            QMessageBox.critical(self, _('Error'), _('Failed to delete all notes.'))
             
     def setAutoSave(self, signal: Qt.CheckState | int) -> None:
         """
@@ -1091,3 +1130,16 @@ class Notes(QTabWidget):
         
         if call == False:
             QMessageBox.critical(self, _("Erorr"), _("Failed to set format setting."))
+            
+    def showBackup(self, name: str):
+        if name == "" or name == None:
+            QMessageBox.critical(self, _('Error'), _('Note name can not be blank.'))
+            return
+
+        if self.checkIfTheNoteExists(name) == False:
+            return
+        
+        Sidebar.add(name + " " + _("(Backup)"), self)
+        self.backups[name] = Backup(self, name)
+        self.addTab(self.backups[name], (name + " " + _("(Backup)")))
+        self.setCurrentWidget(self.backups[name])
