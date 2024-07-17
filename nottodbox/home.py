@@ -36,7 +36,7 @@ import getpass
 import os
 from notes import NotesListView
 from todos import TodolistListView, TodosListView
-from diaries import Diary
+from diaries import Diary, diariesdb
 from PyQt6.QtCore import Qt, QDate
 from PyQt6.QtWidgets import *
 
@@ -63,7 +63,8 @@ today = QDate.currentDate()
 
 class Widget(QWidget):
     def __init__(self, parent: QMainWindow, todos: QTabWidget, notes: QTabWidget):
-        """Display a widget for shortcut for them:
+        """
+        Display a widget for shortcut for them:
             - Keeping diary for today
             - Marking as completed/uncompleted todos in main todo list
             - Listing all todo lists except main
@@ -86,7 +87,7 @@ class Widget(QWidget):
         self.label_diary = QLabel(self, alignment=align_center,
                                   text=_("Your Diary for {date}").format(date = today.toString("dd.MM.yyyy")))
         
-        self.diary = Diary(self, today.toString("dd.MM.yyyy"), "today")
+        self.diary = Diary(self, today.toString("dd.MM.yyyy"), diariesdb)
         
         self.label_maintodos = QLabel(self, alignment=align_center, 
                                   text=_("List of Your Main Todos"))
@@ -118,12 +119,13 @@ class Widget(QWidget):
 
 class Home(QScrollArea):
     def __init__(self, parent: QMainWindow, todos: QTabWidget, notes: QTabWidget):
-        """Display a scrollable area for "Widget" class
+        """
+        Display a scrollable area for "Widget" class.
 
         Args:
-            parent (QMainWindow): Parent of this widget (main window).
-            todos (QTabWidget): Todos widget of parent.
-            notes (QTabWidget): Notes widget of parent.
+            parent (QMainWindow): Parent of this widget (main window)
+            todos (QTabWidget): Todos widget of parent
+            notes (QTabWidget): Notes widget of parent
         """        
         
         super().__init__(parent)

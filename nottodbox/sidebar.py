@@ -58,10 +58,11 @@ if not os.path.isdir(userdata):
 
 
 class Sidebar(QListView):
-    """List for open pages"""
+    """List for open pages."""
     
     def __init__(self, parent: QMainWindow, notes: QTabWidget, todos: QTabWidget, diaries: QTabWidget):
-        """Display a list for open pages
+        """
+        Display a list for open pages.
 
         Args:
             parent (QMainWindow): Parent of this widget (main window)
@@ -91,10 +92,11 @@ class Sidebar(QListView):
         self.doubleClicked.connect(lambda: self.go(sidebar_model.itemData(self.currentIndex())[0]))
         
     def go(self, key: str):
-        """Go directly to the selected page.
+        """
+        Go directly to the selected page.
 
         Args:
-            key (str): Type and name of selected page.
+            key (str): Type and name of selected page
         """
         
         if sidebar_items[key] == sidebar_notes:
@@ -123,11 +125,12 @@ class Sidebar(QListView):
         sidebar_parent.tabview.setCurrentWidget(sidebar_items[key])
         
     def add(text: str, target: QTabWidget):
-        """Add the open page to list.
+        """
+        Add the open page to list.
 
         Args:
-            text (str): Name of page.
-            target (QTabWidget): Parent widget of page.
+            text (str): Name of page
+            target (QTabWidget): Parent widget of page
         """
         
         stringlist = sidebar_model.stringList()
@@ -147,11 +150,12 @@ class Sidebar(QListView):
         sidebar_model.setStringList(stringlist)
     
     def remove(text: str, target: QTabWidget):
-        """Remove the open (after calling this should be closed) page from list.
+        """
+        Remove the open (after calling this should be closed) page from list.
 
         Args:
-            text (str): Name of page.
-            target (QTabWidget): Parent widget of page.
+            text (str): Name of page
+            target (QTabWidget): Parent widget of page
         """
         
         stringlist = sidebar_model.stringList()

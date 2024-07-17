@@ -363,12 +363,13 @@ class NotesDB:
         else:
             return self.createTable()
     
-    def restoreContent(self, name: str) -> tuple:
+    def restoreContent(self, name: str, edited: str) -> tuple:
         """
         Restore content of note.
         
         Args:
             name (str): Note name
+            edited (str): Editing date
             
         Returns:
             tuple: Status and True if successful, False if unsuccesful
@@ -381,7 +382,7 @@ class NotesDB:
             return "no-backup", False
         
         sql = f"""update notes set content = '{fetch_before[1]}', 
-        backup = '{fetch_before[0]}' where name = '{name}'"""
+        backup = '{fetch_before[0]}', edited = '{edited}' where name = '{name}'"""
         self.cur.execute(sql)
         self.db.commit()
         
@@ -476,7 +477,7 @@ else:
 class Note(QWidget):
     """A page for notes."""
     
-    def __init__(self, parent: QTabWidget, name: str):
+    def __init__(self, parent: QTabWidget, name: str) -> None:
         """Init and then set page.
         
         Args:
@@ -486,9 +487,9 @@ class Note(QWidget):
         
         super().__init__(parent)
         
-        self.content = notesdb.getContent(name)
         self.parent_ = parent
         self.name = name
+        self.content = notesdb.getContent(name)
         self.get_autosave = get_autosave
         self.get_format = get_format
         self.closable = True
@@ -545,7 +546,7 @@ class Note(QWidget):
         
         self.closable = False
         
-        if autosave or not autosave and self.get_autosave == "true":
+        if not autosave or (autosave and self.get_autosave == "true"):
             call = notesdb.saveOne(self.name,
                                    self.input.toPlainText(),
                                    datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"), 
@@ -557,7 +558,7 @@ class Note(QWidget):
             if call:
                 self.closable = True
                 
-                if autosave == False:
+                if not autosave:
                     QMessageBox.information(self, _("Successful"), _("Note {name} saved.").format(name = self.name))
                 
             else:
@@ -568,9 +569,6 @@ class Note(QWidget):
 
         Args:
             signal (Qt.CheckState | int): QCheckBox's signal.
-
-        Returns:
-            bool: True if successful, False if unsuccesful
         """
         
         if signal == Qt.CheckState.Unchecked or signal == 0:
@@ -584,9 +582,6 @@ class Note(QWidget):
 
         Args:
             index (int): Selected index in QComboBox.
-
-        Returns:
-            bool: True if successful, False if unsuccesful
         """
         
         if index == 0:
@@ -620,7 +615,7 @@ class Note(QWidget):
 class Backup(QWidget):
     """A page for notes' backups."""
     
-    def __init__(self, parent: QTabWidget, name: str):
+    def __init__(self, parent: QTabWidget, name: str) -> None:
         """Init and then set page.
         
         Args:
@@ -661,14 +656,11 @@ class Backup(QWidget):
         self.layout().addWidget(self.output)
         self.layout().addWidget(self.button)
 
-    def setFormat(self, index: int):
+    def setFormat(self, index: int) -> None:
         """Set format setting for only this page.
 
         Args:
             index (int): Selected index in QComboBox.
-
-        Returns:
-            bool: True if successful, False if unsuccesful
         """
         
         if index == 0:
@@ -682,7 +674,7 @@ class Backup(QWidget):
             
         self.updateOutput(self.backup)
             
-    def updateOutput(self, text: str):
+    def updateOutput(self, text: str) -> None:
         """Update output when format changed.
 
         Args:
@@ -702,7 +694,7 @@ class Backup(QWidget):
 class NotesListView(QListView):
     """A list for showing notes' names."""
     
-    def __init__(self, parent: QTabWidget, caller: str = "notes"):
+    def __init__(self, parent: QTabWidget, caller: str = "notes") -> None:
         """Init and then set properties.
 
         Args:
@@ -738,7 +730,7 @@ class NotesListView(QListView):
         
         self.insertNames()
         
-    def insertNames(self):
+    def insertNames(self) -> None:
         """Insert notes' names with NotesDB's getNames function."""
         
         call = notesdb.getNames()
@@ -761,7 +753,7 @@ class NotesListView(QListView):
 class Notes(QTabWidget):
     """The "Notes" tab widget class."""
     
-    def __init__(self, parent: QMainWindow):
+    def __init__(self, parent: QMainWindow) -> None:
         """Init and then set.
 
         Args:
@@ -808,7 +800,7 @@ class Notes(QTabWidget):
         self.show_backup_button.clicked.connect(lambda: self.showBackup(self.entry.text()))
 
         self.restore_button = QPushButton(self.side, text=_('Restore content'))
-        self.restore_button.clicked.connect(lambda: self.restore(self.entry.text()))
+        self.restore_button.clicked.connect(lambda: self.restoreContent(self.entry.text()))
         
         self.delete_content_button = QPushButton(self.side, text=_('Delete content'))
         self.delete_content_button.clicked.connect(lambda: self.deleteContent(self.entry.text()))
@@ -861,8 +853,9 @@ class Notes(QTabWidget):
         
         self.tabCloseRequested.connect(self.closeTab)
         
-    def checkIfTheNoteExists(self, name: str, mode: str = "normal"):
-        """Check if the note exists.
+    def checkIfTheNoteExists(self, name: str, mode: str = "normal") -> None:
+        """
+        Check if the note exists.
 
         Args:
             name (str): Note name.
@@ -876,14 +869,12 @@ class Notes(QTabWidget):
         
         return call
          
-    def closeTab(self, index: int) -> bool:
-        """Close tab.
+    def closeTab(self, index: int) -> None:
+        """
+        Close tab.
 
         Args:
             index (int): Index of tab
-
-        Returns:
-            bool: If cancelled False, if not True
         """
         
         if index != self.indexOf(self.home):           
@@ -911,7 +902,7 @@ class Notes(QTabWidget):
                             QMessageBox.critical(self, _("Error"), _("Failed to save {name} note.").format(name = self.tabText(index).replace("&", "")))
                     
                     elif self.question != QMessageBox.StandardButton.Yes:
-                        return None
+                        return
                 
                 del self.notes[self.tabText(index).replace("&", "")]
                 
@@ -920,10 +911,8 @@ class Notes(QTabWidget):
             
             Sidebar.remove(self.tabText(index).replace("&", ""), self)
             self.removeTab(index)
-            
-            return True
         
-    def deleteAll(self):
+    def deleteAll(self) -> None:
         """Delete all notes."""
         
         call = notesdb.recreateTable()
@@ -936,7 +925,7 @@ class Notes(QTabWidget):
         else:
             QMessageBox.critical(self, _('Error'), _('Failed to delete all notes.'))
         
-    def deleteContent(self, name: str):
+    def deleteContent(self, name: str) -> None:
         """
         Delete content of note with NotesDB's deleteContent function.
 
@@ -958,7 +947,7 @@ class Notes(QTabWidget):
         else:
             QMessageBox.critical(self, _('Error'), _('Failed to delete content of {name} note.').format(name = name))
                        
-    def deleteNote(self, name: str):
+    def deleteNote(self, name: str) -> None:
         """
         Delete note of note with NotesDB's deleteOne function.
 
@@ -983,7 +972,7 @@ class Notes(QTabWidget):
         else:
             QMessageBox.critical(self, _('Error'), _('Failed to delete {name} note.').format(name = name))
         
-    def insertInformations(self, name: str):
+    def insertInformations(self, name: str) -> None:
         """Insert name and creation, edit dates.
 
         Args:
@@ -1004,7 +993,7 @@ class Notes(QTabWidget):
             self.created.setText(f"{_('Created')}:")
             self.edited.setText(f"{_('Edited')}:")
         
-    def openCreate(self, name: str):
+    def openCreate(self, name: str) -> None:
         """Open or create a note.
 
         Args:
@@ -1024,7 +1013,7 @@ class Notes(QTabWidget):
             self.addTab(self.notes[name], name)
             self.setCurrentWidget(self.notes[name])
     
-    def renameNote(self, name: str):
+    def renameNote(self, name: str) -> None:
         """Rename note with NotesDB's rename function.
 
         Args:
@@ -1055,7 +1044,7 @@ class Notes(QTabWidget):
         else:
             QMessageBox.critical(self, _('Error'), _('Failed to rename {name} note.').format(name = name))
             
-    def restoreContent(self, name: str):
+    def restoreContent(self, name: str) -> None:
         """Restore content of note with NotesDB's rename function.
 
         Args:
@@ -1069,7 +1058,8 @@ class Notes(QTabWidget):
         if self.checkIfTheNoteExists(name) == False:
             return
         
-        status, call = notesdb.restoreContent(name)
+        status, call = notesdb.restoreContent(name,
+                                              datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"))
         
         if status == "successful" and call:
             QMessageBox.information(self, _("Successful"), _("Backup of {name} note restored.").format(name = name))
@@ -1086,9 +1076,6 @@ class Notes(QTabWidget):
 
         Args:
             signal (Qt.CheckState | int): QCheckBox's signal.
-
-        Returns:
-            bool: True if successful, False if unsuccesful
         """
         
         global get_autosave
@@ -1110,9 +1097,6 @@ class Notes(QTabWidget):
 
         Args:
             index (int): Selected index in QComboBox.
-
-        Returns:
-            bool: True if successful, False if unsuccesful
         """
         
         global get_format
@@ -1131,7 +1115,14 @@ class Notes(QTabWidget):
         if call == False:
             QMessageBox.critical(self, _("Erorr"), _("Failed to set format setting."))
             
-    def showBackup(self, name: str):
+    def showBackup(self, name: str) -> None:
+        """
+        Show backup of a note.
+
+        Args:
+            name (str): Note name
+        """
+        
         if name == "" or name == None:
             QMessageBox.critical(self, _('Error'), _('Note name can not be blank.'))
             return
