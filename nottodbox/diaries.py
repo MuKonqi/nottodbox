@@ -35,7 +35,7 @@ import gettext
 import getpass
 import sqlite3
 import datetime
-from sidebar import Sidebar
+from sidebar import SidebarListView
 from PyQt6.QtGui import QMouseEvent, QPainter, QColor
 from PyQt6.QtCore import Qt, QDate, QRect, QPoint
 from PyQt6.QtWidgets import *
@@ -51,6 +51,7 @@ translations.install()
 
 _ = translations.gettext
 
+diaries = {}
 today = QDate.currentDate()
 align_center = Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter
 
@@ -437,8 +438,10 @@ class DiariesDB:
         successful = True
         calls = {}
         
-        for date in self.widgets:
-            calls[date] = self.saveOne(date, self.widgets[date].toPlainText(), 
+        for date in diaries:
+            calls[date] = self.saveOne(date,
+                                       diaries[date].input.toPlainText(), 
+                                       diaries[date].content,
                                        datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"), 
                                        False)
             
@@ -447,8 +450,9 @@ class DiariesDB:
                 
         return successful
 
-    def saveOne(self, date: str, content: str, backup: str, edited: str, autosave: bool, widget: QTextEdit) -> bool:        
-        """Save a diary.
+    def saveOne(self, date: str, content: str, backup: str, edited: str, autosave: bool) -> bool:        
+        """
+        Save a diary.
         If there is such a diary, create it.
         
         Args:
@@ -457,7 +461,6 @@ class DiariesDB:
             backup (str): Backup of diary
             edited (str): Creating/editing date
             autosave (bool): True if the caller is "auto-save", false if it is not
-            widget (QTextEdit): Input widget
             
         Returns:
             bool: True if successful, False if unsuccesful
@@ -498,11 +501,8 @@ class DiariesDB:
         self.cur.execute(f"select content, edited from diaries where date = '{date}'")
         control = self.cur.fetchone()
 
-        if control[0] == content and control[1] == edited: 
-            self.widgets[date] = widget
-                       
+        if control[0] == content and control[1] == edited:             
             return True
-
         else:
             return False
 
@@ -516,7 +516,7 @@ else:
     table = False
 
 
-class Diary(QWidget):
+class DiariesDiary(QWidget):
     """A page for diaries."""
     
     def __init__(self, parent: QTabWidget, date: str, database: DiariesDB) -> None:
@@ -611,8 +611,7 @@ class Diary(QWidget):
                                          self.input.toPlainText(),
                                          self.content,
                                          datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"), 
-                                         autosave,
-                                         self.input)
+                                         autosave)
 
             if call:
                 self.closable = True
@@ -671,7 +670,7 @@ class Diary(QWidget):
             self.output.setHtml(text)
             
 
-class Backup(QWidget):
+class DiariesBackup(QWidget):
     """A page for diaries' backups."""
     
     def __init__(self, parent: QTabWidget, date: str) -> None:
@@ -709,7 +708,7 @@ class Backup(QWidget):
         self.updateOutput(self.backup)
         
         self.button = QPushButton(self, text=_('Restore content'))
-        self.button.clicked.connect(lambda: Diaries.restoreContent(parent, date))
+        self.button.clicked.connect(lambda: DiariesTabWidget.restoreContent(parent, date))
         
         self.layout().addWidget(self.format)
         self.layout().addWidget(self.output)
@@ -750,7 +749,7 @@ class Backup(QWidget):
             self.output.setHtml(text)
 
 
-class DiariesCalenderWidget(QCalendarWidget):
+class DiariesCalendarWidget(QCalendarWidget):
     """The calendar widget."""
     
     def __init__(self, parent: QTabWidget):
@@ -767,9 +766,9 @@ class DiariesCalenderWidget(QCalendarWidget):
         self.setMaximumDate(today)
         self.setStatusTip(_("Double-click on top to opening a diary."))
         self.clicked.connect(
-            lambda: Diaries.insertInformations(self.parent_, self.selectedDate().toString("dd.MM.yyyy")))
+            lambda: DiariesTabWidget.insertInformations(self.parent_, self.selectedDate().toString("dd.MM.yyyy")))
 
-        Diaries.insertInformations(self.parent_, self.selectedDate().toString("dd.MM.yyyy"))
+        DiariesTabWidget.insertInformations(self.parent_, self.selectedDate().toString("dd.MM.yyyy"))
     
     def paintCell(self, painter: QPainter | None, rect: QRect, date: QDate | datetime.date) -> None:
         """Override of QCalendarWidget's paintCell function.
@@ -803,10 +802,10 @@ class DiariesCalenderWidget(QCalendarWidget):
         """
         
         super().mouseDoubleClickEvent(a0)
-        Diaries.openCreate(self.parent_, self.selectedDate().toString("dd.MM.yyyy"))
+        DiariesTabWidget.openCreate(self.parent_, self.selectedDate().toString("dd.MM.yyyy"))
 
 
-class Diaries(QTabWidget):
+class DiariesTabWidget(QTabWidget):
     """The "Diaries" tab widget class."""
     
     def __init__(self, parent: QMainWindow) -> None:
@@ -818,7 +817,6 @@ class Diaries(QTabWidget):
         
         super().__init__(parent)
 
-        self.diaries =  {}
         self.backups = {}
         
         self.home = QWidget(self)
@@ -827,7 +825,7 @@ class Diaries(QTabWidget):
         self.edited = QLabel(self.home, alignment=align_center, 
                              text=_('Edited:'))
         
-        self.calendar = DiariesCalenderWidget(self)
+        self.calendar = DiariesCalendarWidget(self)
         
         self.comeback_button = QPushButton(self.home, text=_('Come back to today'))
         self.comeback_button.clicked.connect(lambda: self.calendar.setSelectedDate(today))
@@ -930,7 +928,7 @@ class Diaries(QTabWidget):
         
         if index != self.indexOf(self.home):           
             try:
-                if self.diaries[self.tabText(index).replace("&", "")].closable == False:
+                if diaries[self.tabText(index).replace("&", "")].closable == False:
                     self.question = QMessageBox.question(self, 
                                                         _("Warning"),
                                                         _("{date} diary not saved.\nDo you want to closing after saving it or directly closing or cancel?")
@@ -940,11 +938,10 @@ class Diaries(QTabWidget):
                     
                     if self.question == QMessageBox.StandardButton.Save:
                         call = diariesdb.saveOne(self.tabText(index).replace("&", ""),
-                                                 self.diaries[self.tabText(index).replace("&", "")].input.toPlainText(),
-                                                 self.diaries[self.tabText(index).replace("&", "")].content,
+                                                 diaries[self.tabText(index).replace("&", "")].input.toPlainText(),
+                                                 diaries[self.tabText(index).replace("&", "")].content,
                                                  datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"), 
-                                                 False,
-                                                 self.diaries[self.tabText(index).replace("&", "")].input)
+                                                 False)
                         
                         if call:
                             self.closable = True
@@ -954,12 +951,12 @@ class Diaries(QTabWidget):
                     elif self.question != QMessageBox.StandardButton.Yes:
                         return
                 
-                del self.diaries[self.tabText(index).replace("&", "")]
+                del diaries[self.tabText(index).replace("&", "")]
                 
             except KeyError:
                 pass
             
-            Sidebar.remove(self.tabText(index).replace("&", ""), self)
+            SidebarListView.remove(self.tabText(index).replace("&", ""), self)
             self.removeTab(index)
         
     def deleteAll(self) -> None:
@@ -1049,14 +1046,21 @@ class Diaries(QTabWidget):
             QMessageBox.critical(self, _('Error'), _('Diary date can not be blank.'))
             return
         
-        if date in self.diaries:
-            self.setCurrentWidget(self.diaries[date])
+        call = diariesdb.getContent(date)
+
+        if (QDate().fromString(date, "dd.MM.yyyy") != today and 
+            call == "" or call == None):
+                QMessageBox.critical(self, _("Error"), _("You can not create a diary for past."))
+                return
+        
+        if date in diaries:
+            self.setCurrentWidget(diaries[date])
             
         else:
-            Sidebar.add(date, self)
-            self.diaries[date] = Diary(self, date, diariesdb)
-            self.addTab(self.diaries[date], date)
-            self.setCurrentWidget(self.diaries[date])
+            SidebarListView.add(date, self)
+            diaries[date] = DiariesDiary(self, date, diariesdb)
+            self.addTab(diaries[date], date)
+            self.setCurrentWidget(diaries[date])
             
     def restoreContent(self, date: str) -> None:
         """Restore content of diary with DiariesDB's rename function.
@@ -1153,8 +1157,8 @@ class Diaries(QTabWidget):
         if self.checkIfTheDiaryExists(date) == False:
             return
         
-        Sidebar.add(date + " " + _("(Backup)"), self)
-        self.backups[date] = Backup(self, date)
+        SidebarListView.add(date + " " + _("(Backup)"), self)
+        self.backups[date] = DiariesBackup(self, date)
         self.addTab(self.backups[date], (date + " " + _("(Backup)")))
         self.setCurrentWidget(self.backups[date])
         

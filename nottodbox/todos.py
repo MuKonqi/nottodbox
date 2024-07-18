@@ -36,7 +36,7 @@ import getpass
 import os
 import sqlite3
 import datetime
-from sidebar import Sidebar
+from sidebar import SidebarListView
 from PyQt6.QtCore import Qt, QStringListModel, QSortFilterProxyModel, QRegularExpression
 from PyQt6.QtWidgets import *
 
@@ -591,7 +591,7 @@ class Todos(QTabWidget):
          
     def close(self, index: int):
         if index != self.indexOf(self.home):
-            Sidebar.remove(self.tabText(index).replace("&", ""), self)
+            SidebarListView.remove(self.tabText(index).replace("&", ""), self)
             try:
                 del self.todolists[self.tabText(index).replace("&", "")]
             finally:
@@ -635,7 +635,7 @@ class Todos(QTabWidget):
             self.setCurrentWidget(self.todolists[todolist])
             
         else:
-            Sidebar.add(todolist, self)
+            SidebarListView.add(todolist, self)
             self.todolists[todolist] = Todolist(self, todolist)
             self.addTab(self.todolists[todolist], todolist)
             self.setCurrentWidget(self.todolists[todolist])

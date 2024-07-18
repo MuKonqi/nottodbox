@@ -59,11 +59,11 @@ with sqlite3.connect(f"{userdata}settings.db", timeout=5.0) as db_settings:
     db_settings.commit()
     
 
-from sidebar import Sidebar
-from home import Home
-from notes import Notes
+from sidebar import SidebarListView
+from home import HomeScrollableArea
+from notes import NotesTabWidget
 from todos import Todos
-from diaries import Diaries
+from diaries import DiariesTabWidget
 
 
 class TabWidget(QTabWidget):
@@ -110,10 +110,10 @@ class MainWindow(QMainWindow):
         self.widget = QWidget(self)
         self.widget.setLayout(QGridLayout(self.widget))
 
-        self.notes = Notes(self)
+        self.notes = NotesTabWidget(self)
         self.todos = Todos(self)
-        self.diaries = Diaries(self)
-        self.home = Home(self, self.todos, self.notes)
+        self.diaries = DiariesTabWidget(self)
+        self.home = HomeScrollableArea(self, self.todos, self.notes)
 
         self.tabview = TabWidget(self.widget, 
                                  [self.home, self.notes, self.todos, self.diaries], 
@@ -127,7 +127,7 @@ class MainWindow(QMainWindow):
         self.dock.setFeatures(QDockWidget.DockWidgetFeature.DockWidgetClosable |
                               QDockWidget.DockWidgetFeature.DockWidgetFloatable |
                               QDockWidget.DockWidgetFeature.DockWidgetMovable)
-        self.dock.setWidget(Sidebar(self, self.notes, self.todos, self.diaries))
+        self.dock.setWidget(SidebarListView(self, self.notes, self.todos, self.diaries))
         
         self.statusbar = QStatusBar(self)
         

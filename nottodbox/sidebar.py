@@ -57,7 +57,7 @@ if not os.path.isdir(userdata):
     os.mkdir(userdata)
 
 
-class Sidebar(QListView):
+class SidebarListView(QListView):
     """List for open pages."""
     
     def __init__(self, parent: QMainWindow, notes: QTabWidget, todos: QTabWidget, diaries: QTabWidget):
@@ -179,14 +179,3 @@ class Sidebar(QListView):
                 pass
         
         sidebar_model.setStringList(stringlist)
-
-       
-if __name__ == "__main__":
-    from mainwindow import MainWindow
-    
-    application = QApplication(sys.argv)
-
-    window = MainWindow()
-    window.show()
-
-    application.exec()

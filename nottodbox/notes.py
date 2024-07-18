@@ -35,7 +35,7 @@ import gettext
 import getpass
 import sqlite3
 import datetime
-from sidebar import Sidebar
+from sidebar import SidebarListView
 from PyQt6.QtCore import Qt, QStringListModel, QSortFilterProxyModel, QRegularExpression
 from PyQt6.QtWidgets import *
 
@@ -50,6 +50,7 @@ translations.install()
 
 _ = translations.gettext
 
+notes = {}
 align_center = Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter
 
 username = getpass.getuser()
@@ -162,7 +163,6 @@ class NotesDB:
         
         self.db = sqlite3.connect(f"{userdata}notes.db")
         self.cur = self.db.cursor()
-        self.widgets = {}
     
     def checkIfTheNoteExists(self, name: str) -> bool:
         """
@@ -407,8 +407,10 @@ class NotesDB:
         successful = True
         calls = {}
         
-        for name in self.widgets:
-            calls[name] = self.saveOne(name, self.widgets[name].toPlainText(), 
+        for name in notes:
+            calls[name] = self.saveOne(name,
+                                       notes[name].input.toPlainText(), 
+                                       notes[name].content,
                                        datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"), 
                                        False)
             
@@ -417,8 +419,9 @@ class NotesDB:
                 
         return successful
 
-    def saveOne(self, name: str, content: str, backup: str, edited: str, autosave: bool, widget: QTextEdit) -> bool:        
-        """Save a note.
+    def saveOne(self, name: str, content: str, backup: str, edited: str, autosave: bool) -> bool:        
+        """
+        Save a note.
         If there is such a note, create it.
         
         Args:
@@ -427,7 +430,6 @@ class NotesDB:
             backup (str): Backup of diary
             edited (str): Creating/editing date
             autosave (bool): True if the caller is "auto-save", false if it is not
-            widget (QTextEdit): Input widget
             
         Returns:
             bool: True if successful, False if unsuccesful
@@ -456,11 +458,8 @@ class NotesDB:
         self.cur.execute(f"select content, edited from notes where name = '{name}'")
         control = self.cur.fetchone()
 
-        if control[0] == content and control[1] == edited: 
-            self.widgets[name] = widget
-                       
+        if control[0] == content and control[1] == edited:            
             return True
-
         else:
             return False
 
@@ -474,7 +473,7 @@ else:
     table = False
 
 
-class Note(QWidget):
+class NotesNote(QWidget):
     """A page for notes."""
     
     def __init__(self, parent: QTabWidget, name: str) -> None:
@@ -551,8 +550,7 @@ class Note(QWidget):
                                    self.input.toPlainText(),
                                    self.content,
                                    datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"), 
-                                   autosave,
-                                   self.input)
+                                   autosave)
             
             self.parent_.listview.insertNames()
 
@@ -613,7 +611,7 @@ class Note(QWidget):
             self.output.setHtml(text)
             
 
-class Backup(QWidget):
+class NotesBackup(QWidget):
     """A page for notes' backups."""
     
     def __init__(self, parent: QTabWidget, name: str) -> None:
@@ -651,7 +649,7 @@ class Backup(QWidget):
         self.updateOutput(self.backup)
         
         self.button = QPushButton(self, text=_('Restore content'))
-        self.button.clicked.connect(lambda: Notes.restoreContent(parent, name))
+        self.button.clicked.connect(lambda: NotesTabWidget.restoreContent(parent, name))
         
         self.layout().addWidget(self.format)
         self.layout().addWidget(self.output)
@@ -725,9 +723,9 @@ class NotesListView(QListView):
 
         if caller == "notes":
             self.selectionModel().selectionChanged.connect(
-                lambda: Notes.insertInformations(parent, self.proxy.itemData(self.currentIndex())[0]))
+                lambda: NotesTabWidget.insertInformations(parent, self.proxy.itemData(self.currentIndex())[0]))
         
-        self.doubleClicked.connect(lambda: Notes.openCreate(parent, self.proxy.itemData(self.currentIndex())[0]))
+        self.doubleClicked.connect(lambda: NotesTabWidget.openCreate(parent, self.proxy.itemData(self.currentIndex())[0]))
         
         self.insertNames()
         
@@ -751,7 +749,7 @@ class NotesListView(QListView):
             pass
 
 
-class Notes(QTabWidget):
+class NotesTabWidget(QTabWidget):
     """The "Notes" tab widget class."""
     
     def __init__(self, parent: QMainWindow) -> None:
@@ -763,7 +761,6 @@ class Notes(QTabWidget):
         
         super().__init__(parent)
         
-        self.notes =  {}
         self.backups = {}
         
         self.home = QWidget(self)
@@ -880,7 +877,7 @@ class Notes(QTabWidget):
         
         if index != self.indexOf(self.home):           
             try:
-                if self.notes[self.tabText(index).replace("&", "")].closable == False:
+                if notes[self.tabText(index).replace("&", "")].closable == False:
                     self.question = QMessageBox.question(self, 
                                                         _("Warning"),
                                                         _("{name} note not saved.\nDo you want to closing after saving it or directly closing or cancel?")
@@ -890,11 +887,10 @@ class Notes(QTabWidget):
                     
                     if self.question == QMessageBox.StandardButton.Save:
                         call = notesdb.saveOne(self.tabText(index).replace("&", ""),
-                                               self.notes[self.tabText(index).replace("&", "")].input.toPlainText(),
-                                               self.notes[self.tabText(index).replace("&", "")].content,
+                                               notes[self.tabText(index).replace("&", "")].input.toPlainText(),
+                                               notes[self.tabText(index).replace("&", "")].content,
                                                datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"), 
-                                               False,
-                                               self.notes[self.tabText(index).replace("&", "")].input)
+                                               False)
                         
                         self.listview.insertNames()
                         
@@ -906,12 +902,12 @@ class Notes(QTabWidget):
                     elif self.question != QMessageBox.StandardButton.Yes:
                         return
                 
-                del self.notes[self.tabText(index).replace("&", "")]
+                del notes[self.tabText(index).replace("&", "")]
                 
             except KeyError:
                 pass
             
-            Sidebar.remove(self.tabText(index).replace("&", ""), self)
+            SidebarListView.remove(self.tabText(index).replace("&", ""), self)
             self.removeTab(index)
         
     def deleteAll(self) -> None:
@@ -1007,14 +1003,14 @@ class Notes(QTabWidget):
             QMessageBox.critical(self, _('Error'), _('Note name can not be blank.'))
             return
         
-        if name in self.notes:
-            self.setCurrentWidget(self.notes[name])
+        if name in notes:
+            self.setCurrentWidget(notes[name])
             
         else:
-            Sidebar.add(name, self)
-            self.notes[name] = Note(self, name)
-            self.addTab(self.notes[name], name)
-            self.setCurrentWidget(self.notes[name])
+            SidebarListView.add(name, self)
+            notes[name] = NotesNote(self, name)
+            self.addTab(notes[name], name)
+            self.setCurrentWidget(notes[name])
     
     def renameNote(self, name: str) -> None:
         """Rename note with NotesDB's rename function.
@@ -1133,7 +1129,7 @@ class Notes(QTabWidget):
         if self.checkIfTheNoteExists(name) == False:
             return
         
-        Sidebar.add(name + " " + _("(Backup)"), self)
-        self.backups[name] = Backup(self, name)
+        SidebarListView.add(name + " " + _("(Backup)"), self)
+        self.backups[name] = NotesBackup(self, name)
         self.addTab(self.backups[name], (name + " " + _("(Backup)")))
         self.setCurrentWidget(self.backups[name])

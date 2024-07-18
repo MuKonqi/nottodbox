@@ -36,7 +36,7 @@ import getpass
 import os
 from notes import NotesListView
 from todos import TodolistListView, TodosListView
-from diaries import Diary, diariesdb
+from diaries import DiariesDiary, diariesdb
 from PyQt6.QtCore import Qt, QDate
 from PyQt6.QtWidgets import *
 
@@ -61,7 +61,7 @@ if not os.path.isdir(userdata):
 today = QDate.currentDate()
 
 
-class Widget(QWidget):
+class HomeWidget(QWidget):
     def __init__(self, parent: QMainWindow, todos: QTabWidget, notes: QTabWidget):
         """
         Display a widget for shortcut for them:
@@ -87,7 +87,7 @@ class Widget(QWidget):
         self.label_diary = QLabel(self, alignment=align_center,
                                   text=_("Your Diary for {date}").format(date = today.toString("dd.MM.yyyy")))
         
-        self.diary = Diary(self, today.toString("dd.MM.yyyy"), diariesdb)
+        self.diary = DiariesDiary(self, today.toString("dd.MM.yyyy"), diariesdb)
         
         self.label_maintodos = QLabel(self, alignment=align_center, 
                                   text=_("List of Your Main Todos"))
@@ -117,7 +117,7 @@ class Widget(QWidget):
         self.layout().addWidget(self.notes, 6, 0, 1, 2)
 
 
-class Home(QScrollArea):
+class HomeScrollableArea(QScrollArea):
     def __init__(self, parent: QMainWindow, todos: QTabWidget, notes: QTabWidget):
         """
         Display a scrollable area for "Widget" class.
@@ -134,4 +134,4 @@ class Home(QScrollArea):
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
         self.setWidgetResizable(True)
         self.setAlignment(align_center)
-        self.setWidget(Widget(parent, todos, notes))
+        self.setWidget(HomeWidget(parent, todos, notes))
