@@ -221,11 +221,12 @@ class NotesDB:
         
         return self.checkIfTheTableExists()
     
-    def deleteContent(self, name: str) -> bool:
+    def deleteContent(self, name: str, edited: str) -> bool:
         """Delete content of a note.
 
         Args:
             name (str): Note name
+            edited (str): Editing date
 
         Returns:
             bool: True if successful, False if unsuccessful
@@ -416,13 +417,14 @@ class NotesDB:
                 
         return successful
 
-    def saveOne(self, name: str, content: str, edited: str, autosave: bool, widget: QTextEdit) -> bool:        
+    def saveOne(self, name: str, content: str, backup: str, edited: str, autosave: bool, widget: QTextEdit) -> bool:        
         """Save a note.
         If there is such a note, create it.
         
         Args:
             name (str): Note name
             content (str): Content of note
+            backup (str): Backup of diary
             edited (str): Creating/editing date
             autosave (bool): True if the caller is "auto-save", false if it is not
             widget (QTextEdit): Input widget
@@ -431,23 +433,21 @@ class NotesDB:
             bool: True if successful, False if unsuccesful
         """
         
-        self.cur.execute(f"select content from notes where name = '{name}'")
+        check = self.checkIfTheNoteExists(name)
         
-        try:
-            old_content = self.cur.fetchone()[0]
-            
+        if check:
             if autosave:
                 sql = f"""update notes set content = '{content}',
                 edited = '{edited}' where name = '{name}'"""
                         
             else:
-                sql = f"""update notes set content = '{content}', backup = '{old_content}',
+                sql = f"""update notes set content = '{content}', backup = '{backup}',
                 edited = '{edited}' where name = '{name}'"""
             
             self.cur.execute(sql)
             self.db.commit()
             
-        except TypeError:
+        else:
             sql = f"""insert into notes (name, content, backup, created, edited) 
                     values ('{name}', '{content}', '', '{edited}', '{edited}')"""
             self.cur.execute(sql)
@@ -549,6 +549,7 @@ class Note(QWidget):
         if not autosave or (autosave and self.get_autosave == "true"):
             call = notesdb.saveOne(self.name,
                                    self.input.toPlainText(),
+                                   self.content,
                                    datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"), 
                                    autosave,
                                    self.input)
@@ -890,6 +891,7 @@ class Notes(QTabWidget):
                     if self.question == QMessageBox.StandardButton.Save:
                         call = notesdb.saveOne(self.tabText(index).replace("&", ""),
                                                self.notes[self.tabText(index).replace("&", "")].input.toPlainText(),
+                                               self.notes[self.tabText(index).replace("&", "")].content,
                                                datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"), 
                                                False,
                                                self.notes[self.tabText(index).replace("&", "")].input)
@@ -940,7 +942,8 @@ class Notes(QTabWidget):
         if self.checkIfTheNoteExists(name) == False:
             return
         
-        call = notesdb.deleteContent(name)
+        call = notesdb.deleteContent(name,
+                                     datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"))
     
         if call:
             QMessageBox.information(self, _('Successful'), _('Content of {name} note deleted.').format(name = name))
