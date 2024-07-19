@@ -25,7 +25,7 @@ if __name__ == "__main__":
 
     window = MainWindow()
     window.show()
-    window.tabview.setCurrentIndex(1)
+    window.tabwidget.setCurrentIndex(1)
 
     sys.exit(application.exec())
 
@@ -705,13 +705,15 @@ class NotesListView(QListView):
         
         global notes_model1, notes_model2
         
+        self.parent_ = parent
+        self.caller = caller
         self.proxy = QSortFilterProxyModel(self)
         
-        if caller == "notes":  
+        if self.caller == "notes":  
             notes_model1 = QStringListModel(self)
             self.proxy.setSourceModel(notes_model1)
             
-        elif caller == "home":
+        elif self.caller == "home":
             notes_model2 = QStringListModel(self)
             self.proxy.setSourceModel(notes_model2)
         
@@ -721,23 +723,48 @@ class NotesListView(QListView):
         self.setStatusTip("Double-click to opening a note.")
         self.setModel(self.proxy)
 
-        if caller == "notes":
+        if self.caller == "notes":
             self.selectionModel().selectionChanged.connect(
-                lambda: NotesTabWidget.insertInformations(parent, self.proxy.itemData(self.currentIndex())[0]))
+                lambda: NotesTabWidget.insertInformations(parent, self.getItemText()))
         
-        self.doubleClicked.connect(lambda: NotesTabWidget.openCreate(parent, self.proxy.itemData(self.currentIndex())[0]))
+        self.doubleClicked.connect(lambda: NotesTabWidget.openCreate(parent, self.getItemText()))
         
         self.insertNames()
+        
+    def getItemText(self) -> str:
+        """Get and then return item text
+
+        Returns:
+            str: Item text
+        """
+        
+        try:
+            return self.proxy.itemData(self.currentIndex())[0]
+        except KeyError:
+            return ""
         
     def insertNames(self) -> None:
         """Insert notes' names with NotesDB's getNames function."""
         
+        global menu_notes
+        
         call = notesdb.getNames()
         names = []
         
-        for name in call:
-            names.append(name[0])
+        if self.caller == "notes":
+            if not "menu_notes" in globals():
+                menu_notes = notes_parent.menuBar().addMenu(_("Notes"))
+            
+            menu_notes.clear()
+            
+            for name in call:
+                names.append(name[0])
+                menu_notes.addAction(name[0], lambda name = name: NotesTabWidget.openCreate(self.parent_, name[0]))
 
+        elif self.caller == "home":
+            for name in call:
+                names.append(name[0])
+    
         try:
             notes_model1.setStringList(names)
         except NameError:
@@ -747,6 +774,19 @@ class NotesListView(QListView):
             notes_model2.setStringList(names)
         except NameError:
             pass
+        
+    def setFilter(self, text: str) -> None:
+        """Set filter in proxy
+
+        Args:
+            text (str): Filtering text
+        """
+        
+        self.proxy.beginResetModel()
+        self.proxy.setFilterRegularExpression(
+            QRegularExpression(text, QRegularExpression.PatternOption.CaseInsensitiveOption))
+        self.proxy.endResetModel()
+
 
 
 class NotesTabWidget(QTabWidget):
@@ -756,11 +796,14 @@ class NotesTabWidget(QTabWidget):
         """Init and then set.
 
         Args:
-            parent (QMainWindow): Main window.
+            parent (QMainWindow): Main window
         """
         
         super().__init__(parent)
         
+        global notes_parent
+        
+        notes_parent = parent
         self.backups = {}
         
         self.home = QWidget(self)
@@ -771,9 +814,7 @@ class NotesTabWidget(QTabWidget):
         self.entry = QLineEdit(self.home)
         self.entry.setPlaceholderText("Type a note name")
         self.entry.setStatusTip("Typing in entry also searches in list.")
-        self.entry.textChanged.connect(
-            lambda: self.listview.proxy.setFilterRegularExpression(QRegularExpression
-                                                          (self.entry.text(), QRegularExpression.PatternOption.CaseInsensitiveOption)))
+        self.entry.textChanged.connect(self.listview.setFilter)
         
         self.clear_button = QPushButton(self.home, text=_("Clear"))
         self.clear_button.setFixedWidth(144)
@@ -877,13 +918,13 @@ class NotesTabWidget(QTabWidget):
         
         if index != self.indexOf(self.home):           
             try:
-                if notes[self.tabText(index).replace("&", "")].closable == False:
+                if not notes[self.tabText(index).replace("&", "")].closable:
                     self.question = QMessageBox.question(self, 
-                                                        _("Warning"),
-                                                        _("{name} note not saved.\nDo you want to closing after saving it or directly closing or cancel?")
-                                                        .format(name = self.tabText(index).replace("&", "")),
-                                                        QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.Save | QMessageBox.StandardButton.Cancel,
-                                                        QMessageBox.StandardButton.Save)
+                                                         _("Warning"),
+                                                         _("{name} note not saved.\nDo you want to directly closing or closing after saving it or cancel?")
+                                                         .format(name = self.tabText(index).replace("&", "")),
+                                                         QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.Save | QMessageBox.StandardButton.Cancel,
+                                                         QMessageBox.StandardButton.Save)
                     
                     if self.question == QMessageBox.StandardButton.Save:
                         call = notesdb.saveOne(self.tabText(index).replace("&", ""),
@@ -998,6 +1039,8 @@ class NotesTabWidget(QTabWidget):
         Args:
             name (str): Note name
         """
+        
+        notes_parent.tabwidget.setCurrentIndex(1)
         
         if name == "" or name == None:
             QMessageBox.critical(self, _('Error'), _('Note name can not be blank.'))

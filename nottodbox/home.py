@@ -25,7 +25,7 @@ if __name__ == "__main__":
 
     window = MainWindow()
     window.show()
-    window.tabview.setCurrentIndex(0)
+    window.tabwidget.setCurrentIndex(0)
 
     sys.exit(application.exec())
 
@@ -78,6 +78,8 @@ class HomeWidget(QWidget):
         
         super().__init__(parent)
         
+        global todays_diary
+        
         self.setLayout(QGridLayout(self))
         
         self.welcome = QLabel(self, alignment=align_center,
@@ -87,7 +89,7 @@ class HomeWidget(QWidget):
         self.label_diary = QLabel(self, alignment=align_center,
                                   text=_("Your Diary for {date}").format(date = today.toString("dd.MM.yyyy")))
         
-        self.diary = DiariesDiary(self, today.toString("dd.MM.yyyy"), diariesdb)
+        todays_diary = DiariesDiary(self, today.toString("dd.MM.yyyy"), diariesdb)
         
         self.label_maintodos = QLabel(self, alignment=align_center, 
                                   text=_("List of Your Main Todos"))
@@ -98,17 +100,17 @@ class HomeWidget(QWidget):
                                   text=_("List of Your Todolists"))
         
         self.todolist = TodosListView(todos, "home")
-        self.todolist.doubleClicked.connect(lambda: parent.tabview.setCurrentWidget(parent.todos))
+        self.todolist.doubleClicked.connect(lambda: parent.tabwidget.setCurrentWidget(parent.todos))
         
         self.label_notes = QLabel(self, alignment=align_center, 
                                   text=_("List of Your Notes"))
         
         self.notes = NotesListView(notes, "home")
-        self.notes.doubleClicked.connect(lambda: parent.tabview.setCurrentWidget(parent.notes))
+        self.notes.doubleClicked.connect(lambda: parent.tabwidget.setCurrentWidget(parent.notes))
         
         self.layout().addWidget(self.welcome, 0, 0, 1, 2)
         self.layout().addWidget(self.label_diary, 1, 0, 1, 2)
-        self.layout().addWidget(self.diary, 2, 0, 1, 2)
+        self.layout().addWidget(todays_diary, 2, 0, 1, 2)
         self.layout().addWidget(self.label_maintodos, 3, 0, 1, 1)
         self.layout().addWidget(self.maintodos, 4, 0, 1, 1)
         self.layout().addWidget(self.label_todolist, 3, 1, 1, 1)

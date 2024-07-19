@@ -25,7 +25,7 @@ if __name__ == "__main__":
 
     window = MainWindow()
     window.show()
-    window.tabview.setCurrentIndex(2)
+    window.tabwidget.setCurrentIndex(2)
 
     sys.exit(application.exec())
 
@@ -800,6 +800,6 @@ if __name__ == "__main__":
     window = MainWindow()
     window.show()
     
-    window.tabview.setCurrentIndex(2)
+    window.tabwidget.setCurrentIndex(2)
 
     application.exec()

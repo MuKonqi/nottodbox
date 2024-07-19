@@ -60,37 +60,10 @@ with sqlite3.connect(f"{userdata}settings.db", timeout=5.0) as db_settings:
     
 
 from sidebar import SidebarListView
-from home import HomeScrollableArea
-from notes import NotesTabWidget
+from home import HomeScrollableArea, todays_diary
+from notes import NotesTabWidget, notesdb, notes
 from todos import Todos
-from diaries import DiariesTabWidget
-
-
-class TabWidget(QTabWidget):
-    """Main tab widget.
-    
-    Methods:
-        __init__: Display a tab widget then add tabs.
-    """ 
-     
-    def __init__(self, parent: QMainWindow, targets: list, names: list):
-        """Display a tab widget then add tabs.
-
-        Args:
-            parent (QMainWindow): Parent of tabwidget.
-            targets (list): Widgets of tabs to add.
-            names (list): Names of tabs to add.
-            
-        Attributes:
-            number (int) = For range
-        """
-        
-        super().__init__(parent)
-        
-        self.number = -1
-        for target in targets:
-            self.number += 1
-            self.addTab(target, _(names[self.number]))
+from diaries import DiariesTabWidget, diariesdb, diaries
 
 
 class MainWindow(QMainWindow):
@@ -108,16 +81,33 @@ class MainWindow(QMainWindow):
         super().__init__()
         
         self.widget = QWidget(self)
-        self.widget.setLayout(QGridLayout(self.widget))
+        self.widget.setLayout(QVBoxLayout(self.widget))
+        
+        self.tabwidget = QTabWidget(self)
+        
+        self.widget.layout().addWidget(self.tabwidget)
+        
+        self.setWindowTitle("Nottodbox")
+        self.setGeometry(0, 0, 960, 540)
+        self.setCentralWidget(self.widget)
+        
+        self.menu_file = self.menuBar().addMenu(_('File'))
+        self.menu_file.addAction(_('Quit'), QKeySequence("Ctrl+Q"), lambda: sys.exit(0))
+        self.menu_file.addAction(_('New'), QKeySequence("Ctrl+N"), lambda: subprocess.Popen(__file__))
+        
+        self.menu_sidebar = self.menuBar().addMenu(_('Sidebar'))
+        self.menu_sidebar.addAction(_('Show'), self.restoreDockWidget)
+        self.menu_sidebar.addAction(_('Close'), lambda: self.removeDockWidget(self.dock))
 
         self.notes = NotesTabWidget(self)
         self.todos = Todos(self)
         self.diaries = DiariesTabWidget(self)
         self.home = HomeScrollableArea(self, self.todos, self.notes)
 
-        self.tabview = TabWidget(self.widget, 
-                                 [self.home, self.notes, self.todos, self.diaries], 
-                                 [_("Home"), _("Notes"), _("Todos"), _("Diaries")])
+        self.tabwidget.addTab(self.home, _("Home"))
+        self.tabwidget.addTab(self.notes, _("Notes"))
+        self.tabwidget.addTab(self.todos, _("Todos"))
+        self.tabwidget.addTab(self.diaries, _("Diaries"))
         
         self.dock = QDockWidget(self)
         self.dock.setTitleBarWidget(QLabel(self.dock, alignment=align_center, text=_("List of Opened Pages")))
@@ -131,21 +121,9 @@ class MainWindow(QMainWindow):
         
         self.statusbar = QStatusBar(self)
         
-        self.menu_file = self.menuBar().addMenu(_('File'))
-        self.menu_file.addAction(_('Quit'), QKeySequence("Ctrl+Q"), lambda: sys.exit(0))
-        self.menu_file.addAction(_('New'), QKeySequence("Ctrl+N"), lambda: subprocess.Popen(__file__))
-        
-        self.menu_sidebar = self.menuBar().addMenu(_('Sidebar'))
-        self.menu_sidebar.addAction(_('Show'), self.restoreDockWidget)
-        self.menu_sidebar.addAction(_('Close'), lambda: self.removeDockWidget(self.dock))
-        
-        self.setWindowTitle("Nottodbox")
-        self.setGeometry(0, 0, 960, 540)
-        self.setCentralWidget(self.widget)
+        self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.dock)
         self.setStatusBar(self.statusbar)
         self.setStatusTip(_('Copyright (C) 2024 MuKonqi (Muhammed S.), licensed under GPLv3 or later'))
-        self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.dock)
-        self.widget.layout().addWidget(self.tabview)
 
     def restoreDockWidget(self):
         """Restore dock widget (sidebar)"""
@@ -154,27 +132,96 @@ class MainWindow(QMainWindow):
         self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.dock)
 
     def closeEvent(self, a0: QCloseEvent | None):
-        """Close main window (if there are open pages ask question)
+        """Close main window (if there are unsaved pages ask question)
 
         Args:
             a0 (QCloseEvent | None): Qt close event
 
         Returns:
             super().closeEvent(a0): Close window
-            None: Do not close window
         """
         
-        if self.dock.widget().model().stringList() == []:
+        stringlist = self.dock.widget().model().stringList()
+        
+        is_there_are_unsaved_notes = False
+        is_there_are_unsaved_diaries = False
+        
+        for page in stringlist:
+            if page.startswith(_("Note")):
+                length = len(_("Note"))
+                if not is_there_are_unsaved_notes and not notes[page[(length + 2):]].closable:
+                    is_there_are_unsaved_notes = True
+                    
+                    insert_for_question = _("notes")
+                
+            elif page.startswith(_("Diary")):
+                length = len(_("Diary for"))
+                if not is_there_are_unsaved_diaries and not diaries[page[(length + 2):]].closable:
+                    is_there_are_unsaved_diaries = True
+                    
+                    try:
+                        insert_for_question += _(" and diaries")
+                    except UnboundLocalError:
+                        insert_for_question = _("diaries")
+                        
+        # if not todays_diary.closable:
+        #     if not _("diaries") in insert_for_question:
+        #         try:
+        #             insert_for_question += _(" and diaries")
+        #         except UnboundLocalError:
+        #             insert_for_question = _("diaries")
+        # going to sleeping... Zzz...
+
+        if (self.dock.widget().model().stringList() == [] or
+            (not is_there_are_unsaved_notes and not is_there_are_unsaved_diaries)):
+
             return super().closeEvent(a0)
         
         else:
-            self.question = QMessageBox.question(self, _("Warning"), _("Some pages are still open.\nAre you sure to exit?"))
+            self.question = QMessageBox.question(self,
+                                                 _("Warning"),
+                                                 _("Some {opens} are not saved.\n"
+                                                   + "Do you want to directly closing or closing after saving them or cancel?")
+                                                 .format(opens = insert_for_question),
+                                                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.SaveAll | QMessageBox.StandardButton.Cancel,
+                                                 QMessageBox.StandardButton.SaveAll)
             
             if self.question == QMessageBox.StandardButton.Yes:
                 return super().closeEvent(a0)
+
+            elif self.question == QMessageBox.StandardButton.SaveAll:                
+                if is_there_are_unsaved_notes:
+                    call_notes_save_all = notesdb.saveAll()
+                
+                if is_there_are_unsaved_diaries:
+                    call_diaries_save_all = diariesdb.saveAll()
+                
+                if is_there_are_unsaved_notes and is_there_are_unsaved_diaries:
+                    if call_notes_save_all and call_diaries_save_all:
+                        QMessageBox.information(self, _("Successful"), _("All open notes and open diaries saved."))
+                    elif call_notes_save_all and not call_diaries_save_all:
+                        QMessageBox.warning(self, _("Warning"), _("All open notes saved but failed to save all open diaries."))
+                    elif not call_notes_save_all and call_diaries_save_all:
+                        QMessageBox.warning(self, _("Warning"), _("All open diaries saved but failed to save all open notes."))
+                    elif not call_notes_save_all and not call_diaries_save_all:
+                        QMessageBox.critical(self, _("Error"), _("Failed to save all open notes and open diaries."))
+                    
+                elif is_there_are_unsaved_notes: 
+                    if call_notes_save_all:
+                        QMessageBox.information(self, _("Successful"), _("All open notes saved."))
+                    elif not call_notes_save_all:
+                        QMessageBox.critical(self, _("Error"), _("Failed to save all open notes."))
+                
+                elif is_there_are_unsaved_diaries:
+                    if call_diaries_save_all:
+                        QMessageBox.information(self, _("Successful"), _("All open diaries saved."))
+                    elif not call_diaries_save_all:
+                        QMessageBox.critical(self, _("Error"), _("Failed to save all open diaries."))
+                        
+                return super().closeEvent(a0)
+            
             else:
                 a0.ignore()
-
         
 if __name__ == "__main__":
     application = QApplication(sys.argv)

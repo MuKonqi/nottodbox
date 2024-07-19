@@ -25,7 +25,7 @@ if __name__ == "__main__":
 
     window = MainWindow()
     window.show()
-    window.tabview.setCurrentIndex(0)
+    window.tabwidget.setCurrentIndex(0)
 
     sys.exit(application.exec())
 
@@ -122,7 +122,7 @@ class SidebarListView(QListView):
             else:
                 sidebar_diaries.setCurrentWidget(sidebar_diaries.diaries[key[(length + 2):]])
         
-        sidebar_parent.tabview.setCurrentWidget(sidebar_items[key])
+        sidebar_parent.tabwidget.setCurrentWidget(sidebar_items[key])
         
     def add(text: str, target: QTabWidget):
         """

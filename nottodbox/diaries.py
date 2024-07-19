@@ -25,7 +25,7 @@ if __name__ == "__main__":
 
     window = MainWindow()
     window.show()
-    window.tabview.setCurrentIndex(3)
+    window.tabwidget.setCurrentIndex(3)
 
     sys.exit(application.exec())
 
@@ -784,8 +784,13 @@ class DiariesCalendarWidget(QCalendarWidget):
         call = diariesdb.getNames()
         dates = []
         
+        if not hasattr(self, "menu"):
+            self.menu = diaries_parent.menuBar().addMenu(_("Diaries"))
+        self.menu.clear()
+        
         for name in call:
             dates.append(QDate.fromString(name[0], "dd.MM.yyyy"))
+            self.menu.addAction(name[0], lambda name = name: DiariesTabWidget.openCreate(self.parent_, name[0]))
 
         if date in dates:
             painter.setBrush(QColor(55, 98, 150, 255))
@@ -816,7 +821,10 @@ class DiariesTabWidget(QTabWidget):
         """
         
         super().__init__(parent)
-
+        
+        global diaries_parent
+        
+        diaries_parent = parent
         self.backups = {}
         
         self.home = QWidget(self)
@@ -928,13 +936,13 @@ class DiariesTabWidget(QTabWidget):
         
         if index != self.indexOf(self.home):           
             try:
-                if diaries[self.tabText(index).replace("&", "")].closable == False:
+                if not diaries[self.tabText(index).replace("&", "")].closable:
                     self.question = QMessageBox.question(self, 
-                                                        _("Warning"),
-                                                        _("{date} diary not saved.\nDo you want to closing after saving it or directly closing or cancel?")
-                                                        .format(date = self.tabText(index).replace("&", "")),
-                                                        QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.Save | QMessageBox.StandardButton.Cancel,
-                                                        QMessageBox.StandardButton.Save)
+                                                         _("Warning"),
+                                                         _("{date} diary not saved.\nDo you want to directly closing or closing after saving it or cancel?")
+                                                         .format(date = self.tabText(index).replace("&", "")),
+                                                         QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.Save | QMessageBox.StandardButton.Cancel,
+                                                         QMessageBox.StandardButton.Save)
                     
                     if self.question == QMessageBox.StandardButton.Save:
                         call = diariesdb.saveOne(self.tabText(index).replace("&", ""),
@@ -1046,12 +1054,13 @@ class DiariesTabWidget(QTabWidget):
             QMessageBox.critical(self, _('Error'), _('Diary date can not be blank.'))
             return
         
-        call = diariesdb.getContent(date)
+        call = diariesdb.checkIfTheDiaryExists(date)
 
-        if (QDate().fromString(date, "dd.MM.yyyy") != today and 
-            call == "" or call == None):
-                QMessageBox.critical(self, _("Error"), _("You can not create a diary for past."))
-                return
+        if QDate().fromString(date, "dd.MM.yyyy") != today and not call:
+            QMessageBox.critical(self, _("Error"), _("You can not create a diary for past."))
+            return
+        
+        diaries_parent.tabwidget.setCurrentIndex(3)
         
         if date in diaries:
             self.setCurrentWidget(diaries[date])
