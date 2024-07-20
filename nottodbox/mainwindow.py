@@ -23,6 +23,7 @@ import getpass
 import os
 import subprocess
 import sqlite3
+import datetime
 from PyQt6.QtGui import QCloseEvent, QKeySequence
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import *
@@ -60,10 +61,10 @@ with sqlite3.connect(f"{userdata}settings.db", timeout=5.0) as db_settings:
     
 
 from sidebar import SidebarListView
-from home import HomeScrollableArea, todays_diary
+from home import HomeScrollableArea, HomeWidget
 from notes import NotesTabWidget, notesdb, notes
 from todos import Todos
-from diaries import DiariesTabWidget, diariesdb, diaries
+from diaries import DiariesTabWidget, today, diariesdb, diaries
 
 
 class MainWindow(QMainWindow):
@@ -143,38 +144,40 @@ class MainWindow(QMainWindow):
         
         stringlist = self.dock.widget().model().stringList()
         
-        is_there_are_unsaved_notes = False
-        is_there_are_unsaved_diaries = False
+        are_there_unsaved_notes = False
+        are_there_unsaved_diaries = False
+        is_main_diary_unsaved = False
         
         for page in stringlist:
             if page.startswith(_("Note")):
                 length = len(_("Note"))
-                if not is_there_are_unsaved_notes and not notes[page[(length + 2):]].closable:
-                    is_there_are_unsaved_notes = True
+                if not are_there_unsaved_notes and not notes[page[(length + 2):]].closable:
+                    are_there_unsaved_notes = True
                     
                     insert_for_question = _("notes")
                 
             elif page.startswith(_("Diary")):
                 length = len(_("Diary for"))
-                if not is_there_are_unsaved_diaries and not diaries[page[(length + 2):]].closable:
-                    is_there_are_unsaved_diaries = True
+                if not are_there_unsaved_diaries and not diaries[page[(length + 2):]].closable:
+                    are_there_unsaved_diaries = True
                     
                     try:
                         insert_for_question += _(" and diaries")
                     except UnboundLocalError:
                         insert_for_question = _("diaries")
                         
-        # if not todays_diary.closable:
-        #     if not _("diaries") in insert_for_question:
-        #         try:
-        #             insert_for_question += _(" and diaries")
-        #         except UnboundLocalError:
-        #             insert_for_question = _("diaries")
-        # going to sleeping... Zzz...
+        if not self.home.widget().diary.closable:
+            try:
+                if not _("diaries") in insert_for_question:
+                    insert_for_question += _(" and diaries")
+            except UnboundLocalError:
+                    insert_for_question = _("diaries")
+            finally:
+                is_main_diary_unsaved = True
 
-        if (self.dock.widget().model().stringList() == [] or
-            (not is_there_are_unsaved_notes and not is_there_are_unsaved_diaries)):
-
+        if (self.dock.widget().model().stringList() == [] and
+            (not are_there_unsaved_notes and not are_there_unsaved_diaries and not is_main_diary_unsaved)):
+            
             return super().closeEvent(a0)
         
         else:
@@ -190,13 +193,20 @@ class MainWindow(QMainWindow):
                 return super().closeEvent(a0)
 
             elif self.question == QMessageBox.StandardButton.SaveAll:                
-                if is_there_are_unsaved_notes:
+                if are_there_unsaved_notes:
                     call_notes_save_all = notesdb.saveAll()
                 
-                if is_there_are_unsaved_diaries:
+                if are_there_unsaved_diaries:
                     call_diaries_save_all = diariesdb.saveAll()
+                    
+                if is_main_diary_unsaved:
+                    call_diary_save_one = diariesdb.saveOne(today.toString("dd.MM.yyyy"),
+                                                            self.home.widget().diary.input.toPlainText(),
+                                                            self.home.widget().diary.content,
+                                                            datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
+                                                            False)
                 
-                if is_there_are_unsaved_notes and is_there_are_unsaved_diaries:
+                if are_there_unsaved_notes and are_there_unsaved_diaries:
                     if call_notes_save_all and call_diaries_save_all:
                         QMessageBox.information(self, _("Successful"), _("All open notes and open diaries saved."))
                     elif call_notes_save_all and not call_diaries_save_all:
@@ -206,17 +216,23 @@ class MainWindow(QMainWindow):
                     elif not call_notes_save_all and not call_diaries_save_all:
                         QMessageBox.critical(self, _("Error"), _("Failed to save all open notes and open diaries."))
                     
-                elif is_there_are_unsaved_notes: 
+                elif are_there_unsaved_notes: 
                     if call_notes_save_all:
                         QMessageBox.information(self, _("Successful"), _("All open notes saved."))
                     elif not call_notes_save_all:
                         QMessageBox.critical(self, _("Error"), _("Failed to save all open notes."))
                 
-                elif is_there_are_unsaved_diaries:
+                elif are_there_unsaved_diaries:
                     if call_diaries_save_all:
                         QMessageBox.information(self, _("Successful"), _("All open diaries saved."))
                     elif not call_diaries_save_all:
                         QMessageBox.critical(self, _("Error"), _("Failed to save all open diaries."))
+                        
+                elif is_main_diary_unsaved:
+                    if call_diary_save_one:
+                        QMessageBox.information(self, _("Successful"), _("Diary for {date} saved.").format(date = today.toString("dd.MM.yyyy")))
+                    elif not call_diary_save_one:
+                        QMessageBox.critical(self, _("Error"), _("Failed to save diary for {date}.").format(date = today.toString("dd.MM.yyyy")))
                         
                 return super().closeEvent(a0)
             

@@ -78,8 +78,6 @@ class HomeWidget(QWidget):
         
         super().__init__(parent)
         
-        global todays_diary
-        
         self.setLayout(QGridLayout(self))
         
         self.welcome = QLabel(self, alignment=align_center,
@@ -89,7 +87,7 @@ class HomeWidget(QWidget):
         self.label_diary = QLabel(self, alignment=align_center,
                                   text=_("Your Diary for {date}").format(date = today.toString("dd.MM.yyyy")))
         
-        todays_diary = DiariesDiary(self, today.toString("dd.MM.yyyy"), diariesdb)
+        self.diary = DiariesDiary(self, today.toString("dd.MM.yyyy"), diariesdb)
         
         self.label_maintodos = QLabel(self, alignment=align_center, 
                                   text=_("List of Your Main Todos"))
@@ -110,7 +108,7 @@ class HomeWidget(QWidget):
         
         self.layout().addWidget(self.welcome, 0, 0, 1, 2)
         self.layout().addWidget(self.label_diary, 1, 0, 1, 2)
-        self.layout().addWidget(todays_diary, 2, 0, 1, 2)
+        self.layout().addWidget(self.diary, 2, 0, 1, 2)
         self.layout().addWidget(self.label_maintodos, 3, 0, 1, 1)
         self.layout().addWidget(self.maintodos, 4, 0, 1, 1)
         self.layout().addWidget(self.label_todolist, 3, 1, 1, 1)
