@@ -36,7 +36,7 @@ import getpass
 import sqlite3
 import datetime
 from sidebar import SidebarListView
-from PyQt6.QtCore import Qt, QStringListModel, QSortFilterProxyModel, QRegularExpression
+from PyQt6.QtCore import Qt, QStringListModel, QSortFilterProxyModel
 from PyQt6.QtWidgets import *
 
 
@@ -473,322 +473,6 @@ else:
     table = False
 
 
-class NotesNote(QWidget):
-    """A page for notes."""
-    
-    def __init__(self, parent: QTabWidget, name: str) -> None:
-        """Init and then set page.
-        
-        Args:
-            parent (QTabWidget): "Notes" tab widget in main window
-            name (str): Note name
-        """
-        
-        super().__init__(parent)
-        
-        self.parent_ = parent
-        self.name = name
-        self.content = notesdb.getContent(name)
-        self.get_autosave = get_autosave
-        self.get_format = get_format
-        self.closable = True
-        
-        self.setLayout(QGridLayout(self))
-        self.setStatusTip(_("Auto-saves do not change backups."))
-        
-        self.autosave = QCheckBox(self, text=_('Enable auto-save for this time'))
-        if get_autosave == "true":
-            self.autosave.setChecked(True)
-        try:
-            self.autosave.checkStateChanged.connect(self.setAutoSave)
-        except:
-            self.autosave.stateChanged.connect(self.setAutoSave)
-        
-        self.input = QTextEdit(self)
-        self.input.setPlainText(self.content)
-        self.input.textChanged.connect(
-            lambda: self.updateOutput(self.input.toPlainText()))
-        self.input.textChanged.connect(lambda: self.saveNote(True))
-        
-        self.format = QComboBox(self)
-        self.format.addItems([_("Format for this time: Plain text"), 
-                               _("Format for this time: Markdown"), 
-                               _("Format for this time: HTML")])
-        self.format.setEditable(False)
-        if self.get_format == "plain-text":
-            self.format.setCurrentIndex(0)
-        elif self.get_format == "markdown":
-            self.format.setCurrentIndex(1)
-        elif self.get_format == "html":
-            self.format.setCurrentIndex(2)
-        self.format.currentIndexChanged.connect(self.setFormat)
-        
-        self.output = QTextEdit(self)
-        self.output.setReadOnly(True)
-        self.updateOutput(self.content)
-        
-        self.button = QPushButton(self, text=_('Save'))
-        self.button.clicked.connect(self.saveNote)
-        
-        self.layout().addWidget(self.autosave, 0, 0, 1, 1)
-        self.layout().addWidget(self.input, 1, 0, 1, 1)
-        self.layout().addWidget(self.format, 0, 1, 1, 1)
-        self.layout().addWidget(self.output, 1, 1, 1, 1)
-        self.layout().addWidget(self.button, 2, 0, 1, 2)
-        
-    def saveNote(self, autosave: bool = False) -> None:
-        """Save a note with NotesDB's saveOne function.
-
-        Args:
-            autosave (bool, optional): _description_. Defaults to False.
-        """
-        
-        self.closable = False
-        
-        if not autosave or (autosave and self.get_autosave == "true"):
-            call = notesdb.saveOne(self.name,
-                                   self.input.toPlainText(),
-                                   self.content,
-                                   datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"), 
-                                   autosave)
-            
-            self.parent_.listview.insertNames()
-
-            if call:
-                self.closable = True
-                
-                if not autosave:
-                    QMessageBox.information(self, _("Successful"), _("Note {name} saved.").format(name = self.name))
-                
-            else:
-                QMessageBox.critical(self, _("Error"), _("Failed to save {name} note.").format(name = self.name))
-                
-    def setAutoSave(self, signal: Qt.CheckState | int) -> None:
-        """Set auto-save setting for only this page.
-
-        Args:
-            signal (Qt.CheckState | int): QCheckBox's signal.
-        """
-        
-        if signal == Qt.CheckState.Unchecked or signal == 0:
-            self.get_autosave = "false"
-
-        elif signal == Qt.CheckState.Checked or signal == 2:
-            self.get_autosave = "true"
-
-    def setFormat(self, index: int) -> None:
-        """Set format setting for only this page.
-
-        Args:
-            index (int): Selected index in QComboBox.
-        """
-        
-        if index == 0:
-            self.get_format = "plain-text"
-        
-        elif index == 1:
-            self.get_format = "markdown"
-        
-        elif index == 2:
-            self.get_format = "html"
-            
-        self.updateOutput(self.input.toPlainText())
-            
-    def updateOutput(self, text: str) -> None:
-        """Update output when input's text changed or format changed.
-
-        Args:
-            text (str): Content
-        """
-        
-        if self.get_format == "plain-text":
-            self.output.setPlainText(text)
-        
-        elif self.get_format == "markdown":
-            self.output.setMarkdown(text)
-        
-        elif self.get_format == "html":
-            self.output.setHtml(text)
-            
-
-class NotesBackup(QWidget):
-    """A page for notes' backups."""
-    
-    def __init__(self, parent: QTabWidget, name: str) -> None:
-        """Init and then set page.
-        
-        Args:
-            parent (QTabWidget): "Notes" tab widget in main window
-            name (str): Note name
-        """        
-        
-        super().__init__(parent)
-        
-        self.backup = notesdb.getBackup(name)
-        
-        self.get_format = get_format
-        
-        self.setLayout(QVBoxLayout(self))
-        self.setStatusTip(_("Auto-saves do not change backups."))
-            
-        self.format = QComboBox(self)
-        self.format.addItems([_("Format for this time: Plain text"), 
-                               _("Format for this time: Markdown"), 
-                               _("Format for this time: HTML")])
-        self.format.setEditable(False)
-        if self.get_format == "plain-text":
-            self.format.setCurrentIndex(0)
-        elif self.get_format == "markdown":
-            self.format.setCurrentIndex(1)
-        elif self.get_format == "html":
-            self.format.setCurrentIndex(2)
-        self.format.currentIndexChanged.connect(self.setFormat)
-        
-        self.output = QTextEdit(self)
-        self.output.setReadOnly(True)
-        self.updateOutput(self.backup)
-        
-        self.button = QPushButton(self, text=_('Restore content'))
-        self.button.clicked.connect(lambda: NotesTabWidget.restoreContent(parent, name))
-        
-        self.layout().addWidget(self.format)
-        self.layout().addWidget(self.output)
-        self.layout().addWidget(self.button)
-
-    def setFormat(self, index: int) -> None:
-        """Set format setting for only this page.
-
-        Args:
-            index (int): Selected index in QComboBox.
-        """
-        
-        if index == 0:
-            self.get_format = "plain-text"
-        
-        elif index == 1:
-            self.get_format = "markdown"
-        
-        elif index == 2:
-            self.get_format = "html"
-            
-        self.updateOutput(self.backup)
-            
-    def updateOutput(self, text: str) -> None:
-        """Update output when format changed.
-
-        Args:
-            text (str): Content
-        """
-        
-        if self.get_format == "plain-text":
-            self.output.setPlainText(text)
-        
-        elif self.get_format == "markdown":
-            self.output.setMarkdown(text)
-        
-        elif self.get_format == "html":
-            self.output.setHtml(text)
-
-
-class NotesListView(QListView):
-    """A list for showing notes' names."""
-    
-    def __init__(self, parent: QTabWidget, caller: str = "notes") -> None:
-        """Init and then set properties.
-
-        Args:
-            parent (QTabWidget): "Notes" tab widget in main window
-            caller (str, optional): For some special properties. Defaults to "notes".
-        """
-        
-        super().__init__(parent)
-        
-        global notes_model1, notes_model2
-        
-        self.parent_ = parent
-        self.caller = caller
-        self.proxy = QSortFilterProxyModel(self)
-        
-        if self.caller == "notes":  
-            notes_model1 = QStringListModel(self)
-            self.proxy.setSourceModel(notes_model1)
-            
-        elif self.caller == "home":
-            notes_model2 = QStringListModel(self)
-            self.proxy.setSourceModel(notes_model2)
-        
-        self.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
-        self.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
-        self.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
-        self.setStatusTip("Double-click to opening a note.")
-        self.setModel(self.proxy)
-
-        if self.caller == "notes":
-            self.selectionModel().selectionChanged.connect(
-                lambda: NotesTabWidget.insertInformations(parent, self.getItemText()))
-        
-        self.doubleClicked.connect(lambda: NotesTabWidget.openCreate(parent, self.getItemText()))
-        
-        self.insertNames()
-        
-    def getItemText(self) -> str:
-        """Get and then return item text
-
-        Returns:
-            str: Item text
-        """
-        
-        try:
-            return self.proxy.itemData(self.currentIndex())[0]
-        except KeyError:
-            return ""
-        
-    def insertNames(self) -> None:
-        """Insert notes' names with NotesDB's getNames function."""
-        
-        global menu_notes
-        
-        call = notesdb.getNames()
-        names = []
-        
-        if self.caller == "notes":
-            if not "menu_notes" in globals():
-                menu_notes = notes_parent.menuBar().addMenu(_("Notes"))
-            
-            menu_notes.clear()
-            
-            for name in call:
-                names.append(name[0])
-                menu_notes.addAction(name[0], lambda name = name: NotesTabWidget.openCreate(self.parent_, name[0]))
-
-        elif self.caller == "home":
-            for name in call:
-                names.append(name[0])
-    
-        try:
-            notes_model1.setStringList(names)
-        except NameError:
-            pass
-    
-        try:
-            notes_model2.setStringList(names)
-        except NameError:
-            pass
-        
-    def setFilter(self, text: str) -> None:
-        """Set filter in proxy
-
-        Args:
-            text (str): Filtering text
-        """
-        
-        self.proxy.beginResetModel()
-        self.proxy.setFilterRegularExpression(
-            QRegularExpression(text, QRegularExpression.PatternOption.CaseInsensitiveOption))
-        self.proxy.endResetModel()
-
-
-
 class NotesTabWidget(QTabWidget):
     """The "Notes" tab widget class."""
     
@@ -818,7 +502,7 @@ class NotesTabWidget(QTabWidget):
         
         self.clear_button = QPushButton(self.home, text=_("Clear"))
         self.clear_button.setFixedWidth(144)
-        self.clear_button.clicked.connect(lambda: self.entry.setText(""))
+        self.clear_button.clicked.connect(lambda: self.insertInformations(""))
         
         self.created = QLabel(self.home, alignment=align_center, 
                               text=_('Created:'))
@@ -1176,3 +860,320 @@ class NotesTabWidget(QTabWidget):
         self.backups[name] = NotesBackup(self, name)
         self.addTab(self.backups[name], (name + " " + _("(Backup)")))
         self.setCurrentWidget(self.backups[name])
+        
+
+class NotesNote(QWidget):
+    """A page for notes."""
+    
+    def __init__(self, parent: NotesTabWidget, name: str) -> None:
+        """Init and then set page.
+        
+        Args:
+            parent (NotesTabWidget): "Notes" tab widget in main window
+            name (str): Note name
+        """
+        
+        super().__init__(parent)
+        
+        self.parent_ = parent
+        self.name = name
+        self.content = notesdb.getContent(name)
+        self.get_autosave = get_autosave
+        self.get_format = get_format
+        self.closable = True
+        
+        self.setLayout(QGridLayout(self))
+        self.setStatusTip(_("Auto-saves do not change backups."))
+        
+        self.autosave = QCheckBox(self, text=_('Enable auto-save for this time'))
+        if get_autosave == "true":
+            self.autosave.setChecked(True)
+        try:
+            self.autosave.checkStateChanged.connect(self.setAutoSave)
+        except:
+            self.autosave.stateChanged.connect(self.setAutoSave)
+        
+        self.input = QTextEdit(self)
+        self.input.setPlainText(self.content)
+        self.input.textChanged.connect(
+            lambda: self.updateOutput(self.input.toPlainText()))
+        self.input.textChanged.connect(lambda: self.saveNote(True))
+        
+        self.format = QComboBox(self)
+        self.format.addItems([_("Format for this time: Plain text"), 
+                               _("Format for this time: Markdown"), 
+                               _("Format for this time: HTML")])
+        self.format.setEditable(False)
+        if self.get_format == "plain-text":
+            self.format.setCurrentIndex(0)
+        elif self.get_format == "markdown":
+            self.format.setCurrentIndex(1)
+        elif self.get_format == "html":
+            self.format.setCurrentIndex(2)
+        self.format.currentIndexChanged.connect(self.setFormat)
+        
+        self.output = QTextEdit(self)
+        self.output.setReadOnly(True)
+        self.updateOutput(self.content)
+        
+        self.button = QPushButton(self, text=_('Save'))
+        self.button.clicked.connect(self.saveNote)
+        
+        self.layout().addWidget(self.autosave, 0, 0, 1, 1)
+        self.layout().addWidget(self.input, 1, 0, 1, 1)
+        self.layout().addWidget(self.format, 0, 1, 1, 1)
+        self.layout().addWidget(self.output, 1, 1, 1, 1)
+        self.layout().addWidget(self.button, 2, 0, 1, 2)
+        
+    def saveNote(self, autosave: bool = False) -> None:
+        """Save a note with NotesDB's saveOne function.
+
+        Args:
+            autosave (bool, optional): _description_. Defaults to False.
+        """
+        
+        self.closable = False
+        
+        if not autosave or (autosave and self.get_autosave == "true"):
+            call = notesdb.saveOne(self.name,
+                                   self.input.toPlainText(),
+                                   self.content,
+                                   datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"), 
+                                   autosave)
+            
+            self.parent_.listview.insertNames()
+
+            if call:
+                self.closable = True
+                
+                if not autosave:
+                    QMessageBox.information(self, _("Successful"), _("Note {name} saved.").format(name = self.name))
+                
+            else:
+                QMessageBox.critical(self, _("Error"), _("Failed to save {name} note.").format(name = self.name))
+                
+    def setAutoSave(self, signal: Qt.CheckState | int) -> None:
+        """Set auto-save setting for only this page.
+
+        Args:
+            signal (Qt.CheckState | int): QCheckBox's signal.
+        """
+        
+        if signal == Qt.CheckState.Unchecked or signal == 0:
+            self.get_autosave = "false"
+
+        elif signal == Qt.CheckState.Checked or signal == 2:
+            self.get_autosave = "true"
+
+    def setFormat(self, index: int) -> None:
+        """Set format setting for only this page.
+
+        Args:
+            index (int): Selected index in QComboBox.
+        """
+        
+        if index == 0:
+            self.get_format = "plain-text"
+        
+        elif index == 1:
+            self.get_format = "markdown"
+        
+        elif index == 2:
+            self.get_format = "html"
+            
+        self.updateOutput(self.input.toPlainText())
+            
+    def updateOutput(self, text: str) -> None:
+        """Update output when input's text changed or format changed.
+
+        Args:
+            text (str): Content
+        """
+        
+        if self.get_format == "plain-text":
+            self.output.setPlainText(text)
+        
+        elif self.get_format == "markdown":
+            self.output.setMarkdown(text)
+        
+        elif self.get_format == "html":
+            self.output.setHtml(text)
+            
+
+class NotesBackup(QWidget):
+    """A page for notes' backups."""
+    
+    def __init__(self, parent: NotesTabWidget, name: str) -> None:
+        """Init and then set page.
+        
+        Args:
+            parent (NotesTabWidget): "Notes" tab widget in main window
+            name (str): Note name
+        """        
+        
+        super().__init__(parent)
+        
+        self.backup = notesdb.getBackup(name)
+        
+        self.get_format = get_format
+        
+        self.setLayout(QVBoxLayout(self))
+        self.setStatusTip(_("Auto-saves do not change backups."))
+            
+        self.format = QComboBox(self)
+        self.format.addItems([_("Format for this time: Plain text"), 
+                               _("Format for this time: Markdown"), 
+                               _("Format for this time: HTML")])
+        self.format.setEditable(False)
+        if self.get_format == "plain-text":
+            self.format.setCurrentIndex(0)
+        elif self.get_format == "markdown":
+            self.format.setCurrentIndex(1)
+        elif self.get_format == "html":
+            self.format.setCurrentIndex(2)
+        self.format.currentIndexChanged.connect(self.setFormat)
+        
+        self.output = QTextEdit(self)
+        self.output.setReadOnly(True)
+        self.updateOutput(self.backup)
+        
+        self.button = QPushButton(self, text=_('Restore content'))
+        self.button.clicked.connect(lambda: parent.restoreContent(name))
+        
+        self.layout().addWidget(self.format)
+        self.layout().addWidget(self.output)
+        self.layout().addWidget(self.button)
+
+    def setFormat(self, index: int) -> None:
+        """Set format setting for only this page.
+
+        Args:
+            index (int): Selected index in QComboBox.
+        """
+        
+        if index == 0:
+            self.get_format = "plain-text"
+        
+        elif index == 1:
+            self.get_format = "markdown"
+        
+        elif index == 2:
+            self.get_format = "html"
+            
+        self.updateOutput(self.backup)
+            
+    def updateOutput(self, text: str) -> None:
+        """Update output when format changed.
+
+        Args:
+            text (str): Content
+        """
+        
+        if self.get_format == "plain-text":
+            self.output.setPlainText(text)
+        
+        elif self.get_format == "markdown":
+            self.output.setMarkdown(text)
+        
+        elif self.get_format == "html":
+            self.output.setHtml(text)
+
+
+class NotesListView(QListView):
+    """A list for showing notes' names."""
+    
+    def __init__(self, parent: NotesTabWidget, caller: str = "notes") -> None:
+        """Init and then set properties.
+
+        Args:
+            parent (NotesTabWidget): "Notes" tab widget in main window
+            caller (str, optional): For some special properties. Defaults to "notes".
+        """
+        
+        super().__init__(parent)
+        
+        global notes_model1, notes_model2
+        
+        self.parent_ = parent
+        self.caller = caller
+
+        self.proxy = QSortFilterProxyModel(self)
+        self.proxy.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
+        
+        if self.caller == "notes":  
+            notes_model1 = QStringListModel(self)
+            self.proxy.setSourceModel(notes_model1)
+            
+        elif self.caller == "home":
+            notes_model2 = QStringListModel(self)
+            self.proxy.setSourceModel(notes_model2)
+        
+        self.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
+        self.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+        self.setStatusTip("Double-click to opening a note.")
+        self.setModel(self.proxy)
+
+        if self.caller == "notes":
+            self.selectionModel().selectionChanged.connect(
+                lambda: self.parent_.insertInformations(self.getItemText()))
+        
+        self.doubleClicked.connect(lambda: self.parent_.openCreate(self.getItemText()))
+        
+        self.insertNames()
+        
+    def getItemText(self) -> str:
+        """
+        Get and then return item text
+
+        Returns:
+            str: Item text
+        """
+        
+        try:
+            return self.proxy.itemData(self.currentIndex())[0]
+        except KeyError:
+            return ""
+        
+    def insertNames(self) -> None:
+        """Insert notes' names with NotesDB's getNames function."""
+        
+        global menu_notes
+        
+        call = notesdb.getNames()
+        names = []
+        
+        if self.caller == "notes":
+            if not "menu_notes" in globals():
+                menu_notes = notes_parent.menuBar().addMenu(_("Notes"))
+            
+            menu_notes.clear()
+            
+            for name in call:
+                names.append(name[0])
+                menu_notes.addAction(name[0], lambda name = name: self.parent_.openCreate(name[0]))
+
+        elif self.caller == "home":
+            for name in call:
+                names.append(name[0])
+    
+        try:
+            notes_model1.setStringList(names)
+        except NameError:
+            pass
+    
+        try:
+            notes_model2.setStringList(names)
+        except NameError:
+            pass
+        
+    def setFilter(self, text: str) -> None:
+        """Set filter in proxy
+
+        Args:
+            text (str): Filtering text
+        """
+        
+        self.proxy.beginResetModel()
+        self.proxy.setFilterFixedString(text)
+        self.proxy.endResetModel()

@@ -84,6 +84,7 @@ class SidebarListView(QListView):
         
         sidebar_model = QStringListModel(self)
         
+        self.setStatusTip(_("Double-click to going to selected open page."))
         self.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
         self.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)

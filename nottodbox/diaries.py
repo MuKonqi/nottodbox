@@ -421,7 +421,7 @@ class DiariesDB:
         self.cur.execute(f"select content, backup from diaries where date = '{date}'")
         fetch_after = self.cur.fetchone()
         
-        if fetch_before[1] == fetch_after[0] and fetch_before[0] == fetch_after[1]:
+        if fetch_before[1] == fetch_after[0]:
             return "successful", True
         else:
             return "failed", False
@@ -514,300 +514,6 @@ if create_table:
     table = True
 else:
     table = False
-
-
-class DiariesDiary(QWidget):
-    """A page for diaries."""
-    
-    def __init__(self, parent: QTabWidget, date: str, database: DiariesDB) -> None:
-        """Init and then set page.
-        
-        Args:
-            parent (QTabWidget): "Diaries" tab widget in main window
-            date (str): Diary date
-            database (DiariesDB): Database class
-        """
-        
-        super().__init__(parent)
-        
-        self.parent_ = parent
-        self.date = date
-        self.database = database
-        self.content = self.database.getContent(date)
-        self.get_autosave = get_autosave
-        self.get_format = get_format
-        self.closable = True
-        
-        self.setLayout(QGridLayout(self))
-        self.setStatusTip(_("Auto-saves do not change backups."))
-        
-        self.autosave = QCheckBox(self, text=_('Enable auto-save for this time'))
-        if QDate().fromString(self.date, "dd.MM.yyyy") == today:
-            self.autosave.setText(_('Enable auto-save for this time'))
-            if get_autosave == "true":
-                self.autosave.setChecked(True)
-            try:
-                self.autosave.checkStateChanged.connect(self.setAutoSave)
-            except:
-                self.autosave.stateChanged.connect(self.setAutoSave)
-        else:
-            self.autosave.setText(_("Auto-saves disabled for old diaries"))
-            self.autosave.setDisabled(True)
-            
-            self.get_autosave = "false"
-        
-        self.input = QTextEdit(self)
-        self.input.setPlainText(self.content)
-        self.input.textChanged.connect(
-            lambda: self.updateOutput(self.input.toPlainText()))
-        self.input.textChanged.connect(lambda: self.saveDiary(True))
-        
-        self.format = QComboBox(self)
-        self.format.addItems([_("Format for this time: Plain text"), 
-                               _("Format for this time: Markdown"), 
-                               _("Format for this time: HTML")])
-        self.format.setEditable(False)
-        if self.get_format == "plain-text":
-            self.format.setCurrentIndex(0)
-        elif self.get_format == "markdown":
-            self.format.setCurrentIndex(1)
-        elif self.get_format == "html":
-            self.format.setCurrentIndex(2)
-        self.format.currentIndexChanged.connect(self.setFormat)
-        
-        self.output = QTextEdit(self)
-        self.output.setReadOnly(True)
-        self.updateOutput(self.content)
-        
-        self.button = QPushButton(self, text=_('Save'))
-        self.button.clicked.connect(self.saveDiary)
-        
-        self.layout().addWidget(self.autosave, 0, 0, 1, 1)
-        self.layout().addWidget(self.input, 1, 0, 1, 1)
-        self.layout().addWidget(self.format, 0, 1, 1, 1)
-        self.layout().addWidget(self.output, 1, 1, 1, 1)
-        self.layout().addWidget(self.button, 2, 0, 1, 2)
-        
-    def saveDiary(self, autosave: bool = False) -> None:
-        """Save a diary with DiariesDB's saveOne function.
-
-        Args:
-            autosave (bool, optional): _description_. Defaults to False.
-        """
-        
-        self.closable = False
-        
-        if not autosave or (autosave and self.get_autosave == "true"):
-            if QDate.fromString(self.date, "dd.MM.yyyy") != today:
-                question = QMessageBox.question(self, 
-                                                _("Question"),
-                                                _("Diaries are special for that day, editing an old diary can take away the meaning of the diary."
-                                                +"\nSo, are you sure you want to save it?"))
-
-                if question != QMessageBox.StandardButton.Yes:
-                    return
-            
-            call = self.database.saveOne(self.date,
-                                         self.input.toPlainText(),
-                                         self.content,
-                                         datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"), 
-                                         autosave)
-
-            if call:
-                self.closable = True
-                
-                if not autosave:
-                    QMessageBox.information(self, _("Successful"), _("Diary {date} saved.").format(date = self.date))
-                
-            else:
-                QMessageBox.critical(self, _("Error"), _("Failed to save {date} diary.").format(date = self.date))
-                
-    def setAutoSave(self, signal: Qt.CheckState | int) -> None:
-        """Set auto-save setting for only this page.
-
-        Args:
-            signal (Qt.CheckState | int): QCheckBox's signal.
-        """
-        
-        if signal == Qt.CheckState.Unchecked or signal == 0:
-            self.get_autosave = "false"
-
-        elif signal == Qt.CheckState.Checked or signal == 2:
-            self.get_autosave = "true"
-
-    def setFormat(self, index: int) -> None:
-        """Set format setting for only this page.
-
-        Args:
-            index (int): Selected index in QComboBox.
-        """
-        
-        if index == 0:
-            self.get_format = "plain-text"
-        
-        elif index == 1:
-            self.get_format = "markdown"
-        
-        elif index == 2:
-            self.get_format = "html"
-            
-        self.updateOutput(self.input.toPlainText())
-            
-    def updateOutput(self, text: str) -> None:
-        """Update output when input's text changed or format changed.
-
-        Args:
-            text (str): Content
-        """
-        
-        if self.get_format == "plain-text":
-            self.output.setPlainText(text)
-        
-        elif self.get_format == "markdown":
-            self.output.setMarkdown(text)
-        
-        elif self.get_format == "html":
-            self.output.setHtml(text)
-            
-
-class DiariesBackup(QWidget):
-    """A page for diaries' backups."""
-    
-    def __init__(self, parent: QTabWidget, date: str) -> None:
-        """Init and then set page.
-        
-        Args:
-            parent (QTabWidget): "Diaries" tab widget in main window
-            date (str): Diary date
-        """        
-        
-        super().__init__(parent)
-        
-        self.backup = diariesdb.getBackup(date)
-        
-        self.get_format = get_format
-        
-        self.setLayout(QVBoxLayout(self))
-        self.setStatusTip(_("Auto-saves do not change backups."))
-            
-        self.format = QComboBox(self)
-        self.format.addItems([_("Format for this time: Plain text"), 
-                               _("Format for this time: Markdown"), 
-                               _("Format for this time: HTML")])
-        self.format.setEditable(False)
-        if self.get_format == "plain-text":
-            self.format.setCurrentIndex(0)
-        elif self.get_format == "markdown":
-            self.format.setCurrentIndex(1)
-        elif self.get_format == "html":
-            self.format.setCurrentIndex(2)
-        self.format.currentIndexChanged.connect(self.setFormat)
-        
-        self.output = QTextEdit(self)
-        self.output.setReadOnly(True)
-        self.updateOutput(self.backup)
-        
-        self.button = QPushButton(self, text=_('Restore content'))
-        self.button.clicked.connect(lambda: DiariesTabWidget.restoreContent(parent, date))
-        
-        self.layout().addWidget(self.format)
-        self.layout().addWidget(self.output)
-        self.layout().addWidget(self.button)
-
-    def setFormat(self, index: int) -> None:
-        """Set format setting for only this page.
-
-        Args:
-            index (int): Selected index in QComboBox.
-        """
-        
-        if index == 0:
-            self.get_format = "plain-text"
-        
-        elif index == 1:
-            self.get_format = "markdown"
-        
-        elif index == 2:
-            self.get_format = "html"
-            
-        self.updateOutput(self.backup)
-            
-    def updateOutput(self, text: str) -> None:
-        """Update output when format changed.
-
-        Args:
-            text (str): Content
-        """
-        
-        if self.get_format == "plain-text":
-            self.output.setPlainText(text)
-        
-        elif self.get_format == "markdown":
-            self.output.setMarkdown(text)
-        
-        elif self.get_format == "html":
-            self.output.setHtml(text)
-
-
-class DiariesCalendarWidget(QCalendarWidget):
-    """The calendar widget."""
-    
-    def __init__(self, parent: QTabWidget):
-        """Init and set calendar widget.
-
-        Args:
-            parent (QTabWidget): "Diaries" tab widget in main window
-        """
-        
-        super().__init__(parent)
-        
-        self.parent_ = parent
-        
-        self.setMaximumDate(today)
-        self.setStatusTip(_("Double-click on top to opening a diary."))
-        self.clicked.connect(
-            lambda: DiariesTabWidget.insertInformations(self.parent_, self.selectedDate().toString("dd.MM.yyyy")))
-
-        DiariesTabWidget.insertInformations(self.parent_, self.selectedDate().toString("dd.MM.yyyy"))
-    
-    def paintCell(self, painter: QPainter | None, rect: QRect, date: QDate | datetime.date) -> None:
-        """Override of QCalendarWidget's paintCell function.
-
-        Args:
-            painter (QPainter | None): Painter
-            rect (QRect): Rect
-            date (QDate | datetime.date): Date
-        """
-        
-        super().paintCell(painter, rect, date)
-        
-        call = diariesdb.getNames()
-        dates = []
-        
-        if not hasattr(self, "menu"):
-            self.menu = diaries_parent.menuBar().addMenu(_("Diaries"))
-        self.menu.clear()
-        
-        for name in call:
-            dates.append(QDate.fromString(name[0], "dd.MM.yyyy"))
-            self.menu.addAction(name[0], lambda name = name: DiariesTabWidget.openCreate(self.parent_, name[0]))
-
-        if date in dates:
-            painter.setBrush(QColor(55, 98, 150, 255))
-            painter.drawEllipse(rect.topLeft() + QPoint(10, 10), 5, 5)
-            
-        if date >= today:
-            painter.setOpacity(0)
-    
-    def mouseDoubleClickEvent(self, a0: QMouseEvent | None) -> None:
-        """Override of QCalendarWidget's mouseDoubleClickEvent function.
-
-        Args:
-            a0 (QMouseEvent | None): Mouse event
-        """
-        
-        super().mouseDoubleClickEvent(a0)
-        DiariesTabWidget.openCreate(self.parent_, self.selectedDate().toString("dd.MM.yyyy"))
 
 
 class DiariesTabWidget(QTabWidget):
@@ -1179,3 +885,296 @@ class DiariesTabWidget(QTabWidget):
         today = QDate.currentDate()
         
         self.update_button.setText(_('Update today variable (it is {date})').format(date = today.toString("dd.MM.yyyy")))
+
+
+class DiariesDiary(QWidget):
+    """A page for diaries."""
+    def __init__(self, parent: DiariesTabWidget | QWidget, date: str, database: DiariesDB) -> None:
+        """Init and then set page.
+        
+        Args:
+            parent (DiariesTabWidget | QWidget): "Diaries" tab widget in main window or home page
+            date (str): Diary date
+            database (DiariesDB): Database class
+        """
+        
+        super().__init__(parent)
+        
+        self.parent_ = parent
+        self.date = date
+        self.database = database
+        self.content = self.database.getContent(date)
+        self.get_autosave = get_autosave
+        self.get_format = get_format
+        self.closable = True
+        
+        self.setLayout(QGridLayout(self))
+        self.setStatusTip(_("Auto-saves do not change backups."))
+        
+        self.autosave = QCheckBox(self, text=_('Enable auto-save for this time'))
+        if QDate().fromString(self.date, "dd.MM.yyyy") == today:
+            self.autosave.setText(_('Enable auto-save for this time'))
+            if get_autosave == "true":
+                self.autosave.setChecked(True)
+            try:
+                self.autosave.checkStateChanged.connect(self.setAutoSave)
+            except:
+                self.autosave.stateChanged.connect(self.setAutoSave)
+        else:
+            self.autosave.setText(_("Auto-saves disabled for old diaries"))
+            self.autosave.setDisabled(True)
+            
+            self.get_autosave = "false"
+        
+        self.input = QTextEdit(self)
+        self.input.setPlainText(self.content)
+        self.input.textChanged.connect(
+            lambda: self.updateOutput(self.input.toPlainText()))
+        self.input.textChanged.connect(lambda: self.saveDiary(True))
+        
+        self.format = QComboBox(self)
+        self.format.addItems([_("Format for this time: Plain text"), 
+                               _("Format for this time: Markdown"), 
+                               _("Format for this time: HTML")])
+        self.format.setEditable(False)
+        if self.get_format == "plain-text":
+            self.format.setCurrentIndex(0)
+        elif self.get_format == "markdown":
+            self.format.setCurrentIndex(1)
+        elif self.get_format == "html":
+            self.format.setCurrentIndex(2)
+        self.format.currentIndexChanged.connect(self.setFormat)
+        
+        self.output = QTextEdit(self)
+        self.output.setReadOnly(True)
+        self.updateOutput(self.content)
+        
+        self.button = QPushButton(self, text=_('Save'))
+        self.button.clicked.connect(self.saveDiary)
+        
+        self.layout().addWidget(self.autosave, 0, 0, 1, 1)
+        self.layout().addWidget(self.input, 1, 0, 1, 1)
+        self.layout().addWidget(self.format, 0, 1, 1, 1)
+        self.layout().addWidget(self.output, 1, 1, 1, 1)
+        self.layout().addWidget(self.button, 2, 0, 1, 2)
+        
+    def saveDiary(self, autosave: bool = False) -> None:
+        """Save a diary with DiariesDB's saveOne function.
+
+        Args:
+            autosave (bool, optional): _description_. Defaults to False.
+        """
+        
+        self.closable = False
+        
+        if not autosave or (autosave and self.get_autosave == "true"):
+            if QDate.fromString(self.date, "dd.MM.yyyy") != today:
+                question = QMessageBox.question(self, 
+                                                _("Question"),
+                                                _("Diaries are special for that day, editing an old diary can take away the meaning of the diary."
+                                                +"\nSo, are you sure you want to save it?"))
+
+                if question != QMessageBox.StandardButton.Yes:
+                    return
+            
+            call = self.database.saveOne(self.date,
+                                         self.input.toPlainText(),
+                                         self.content,
+                                         datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"), 
+                                         autosave)
+
+            if call:
+                self.closable = True
+                
+                if not autosave:
+                    QMessageBox.information(self, _("Successful"), _("Diary {date} saved.").format(date = self.date))
+                
+            else:
+                QMessageBox.critical(self, _("Error"), _("Failed to save {date} diary.").format(date = self.date))
+                
+    def setAutoSave(self, signal: Qt.CheckState | int) -> None:
+        """Set auto-save setting for only this page.
+
+        Args:
+            signal (Qt.CheckState | int): QCheckBox's signal.
+        """
+        
+        if signal == Qt.CheckState.Unchecked or signal == 0:
+            self.get_autosave = "false"
+
+        elif signal == Qt.CheckState.Checked or signal == 2:
+            self.get_autosave = "true"
+
+    def setFormat(self, index: int) -> None:
+        """Set format setting for only this page.
+
+        Args:
+            index (int): Selected index in QComboBox.
+        """
+        
+        if index == 0:
+            self.get_format = "plain-text"
+        
+        elif index == 1:
+            self.get_format = "markdown"
+        
+        elif index == 2:
+            self.get_format = "html"
+            
+        self.updateOutput(self.input.toPlainText())
+            
+    def updateOutput(self, text: str) -> None:
+        """Update output when input's text changed or format changed.
+
+        Args:
+            text (str): Content
+        """
+        
+        if self.get_format == "plain-text":
+            self.output.setPlainText(text)
+        
+        elif self.get_format == "markdown":
+            self.output.setMarkdown(text)
+        
+        elif self.get_format == "html":
+            self.output.setHtml(text)
+            
+
+class DiariesBackup(QWidget):
+    """A page for diaries' backups."""
+    
+    def __init__(self, parent: DiariesTabWidget, date: str) -> None:
+        """Init and then set page.
+        
+        Args:
+            parent (DiariesTabWidget): "Diaries" tab widget in main window
+            date (str): Diary date
+        """        
+        
+        super().__init__(parent)
+        
+        self.backup = diariesdb.getBackup(date)
+        
+        self.get_format = get_format
+        
+        self.setLayout(QVBoxLayout(self))
+        self.setStatusTip(_("Auto-saves do not change backups."))
+            
+        self.format = QComboBox(self)
+        self.format.addItems([_("Format for this time: Plain text"), 
+                               _("Format for this time: Markdown"), 
+                               _("Format for this time: HTML")])
+        self.format.setEditable(False)
+        if self.get_format == "plain-text":
+            self.format.setCurrentIndex(0)
+        elif self.get_format == "markdown":
+            self.format.setCurrentIndex(1)
+        elif self.get_format == "html":
+            self.format.setCurrentIndex(2)
+        self.format.currentIndexChanged.connect(self.setFormat)
+        
+        self.output = QTextEdit(self)
+        self.output.setReadOnly(True)
+        self.updateOutput(self.backup)
+        
+        self.button = QPushButton(self, text=_('Restore content'))
+        self.button.clicked.connect(lambda: parent.restoreContent(date))
+        
+        self.layout().addWidget(self.format)
+        self.layout().addWidget(self.output)
+        self.layout().addWidget(self.button)
+
+    def setFormat(self, index: int) -> None:
+        """Set format setting for only this page.
+
+        Args:
+            index (int): Selected index in QComboBox.
+        """
+        
+        if index == 0:
+            self.get_format = "plain-text"
+        
+        elif index == 1:
+            self.get_format = "markdown"
+        
+        elif index == 2:
+            self.get_format = "html"
+            
+        self.updateOutput(self.backup)
+            
+    def updateOutput(self, text: str) -> None:
+        """Update output when format changed.
+
+        Args:
+            text (str): Content
+        """
+        
+        if self.get_format == "plain-text":
+            self.output.setPlainText(text)
+        
+        elif self.get_format == "markdown":
+            self.output.setMarkdown(text)
+        
+        elif self.get_format == "html":
+            self.output.setHtml(text)
+
+
+class DiariesCalendarWidget(QCalendarWidget):
+    """The calendar widget."""
+    
+    def __init__(self, parent: DiariesTabWidget):
+        """Init and set calendar widget.
+
+        Args:
+            parent (DiariesTabWidget): "Diaries" tab widget in main window
+        """
+        
+        super().__init__(parent)
+        
+        self.parent_ = parent
+        
+        self.setMaximumDate(today)
+        self.setStatusTip(_("Double-click on top to opening a diary."))
+        self.clicked.connect(
+            lambda: self.parent_.insertInformations(self.selectedDate().toString("dd.MM.yyyy")))
+
+        self.parent_.insertInformations(self.selectedDate().toString("dd.MM.yyyy"))
+    
+    def paintCell(self, painter: QPainter | None, rect: QRect, date: QDate | datetime.date) -> None:
+        """Override of QCalendarWidget's paintCell function.
+
+        Args:
+            painter (QPainter | None): Painter
+            rect (QRect): Rect
+            date (QDate | datetime.date): Date
+        """
+        
+        super().paintCell(painter, rect, date)
+        
+        call = diariesdb.getNames()
+        dates = []
+        
+        if not hasattr(self, "menu"):
+            self.menu = diaries_parent.menuBar().addMenu(_("Diaries"))
+        self.menu.clear()
+        
+        for name in call:
+            dates.append(QDate.fromString(name[0], "dd.MM.yyyy"))
+            self.menu.addAction(name[0], lambda name = name: self.parent_.openCreate(name[0]))
+
+        if date in dates:
+            painter.setBrush(QColor(55, 98, 150, 255))
+            painter.drawEllipse(rect.topLeft() + QPoint(10, 10), 5, 5)
+            
+        if date >= today:
+            painter.setOpacity(0)
+    
+    def mouseDoubleClickEvent(self, a0: QMouseEvent | None) -> None:
+        """Override of QCalendarWidget's mouseDoubleClickEvent function.
+
+        Args:
+            a0 (QMouseEvent | None): Mouse event
+        """
+        
+        super().mouseDoubleClickEvent(a0)
+        self.parent_.openCreate(self.selectedDate().toString("dd.MM.yyyy"))

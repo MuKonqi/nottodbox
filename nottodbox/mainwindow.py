@@ -68,13 +68,7 @@ from diaries import DiariesTabWidget, today, diariesdb, diaries
 
 
 class MainWindow(QMainWindow):
-    """Main window.
-    
-    Methods:
-        __init__: Display a main window.
-        restoreDockWidget: Restore dock widget (sidebar)
-        closeEvent: Close main window (if there are open pages ask question)
-    """
+    """Main window."""
     
     def __init__(self):
         """Display a main window."""
@@ -91,10 +85,6 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Nottodbox")
         self.setGeometry(0, 0, 960, 540)
         self.setCentralWidget(self.widget)
-        
-        self.menu_file = self.menuBar().addMenu(_('File'))
-        self.menu_file.addAction(_('Quit'), QKeySequence("Ctrl+Q"), lambda: sys.exit(0))
-        self.menu_file.addAction(_('New'), QKeySequence("Ctrl+N"), lambda: subprocess.Popen(__file__))
         
         self.menu_sidebar = self.menuBar().addMenu(_('Sidebar'))
         self.menu_sidebar.addAction(_('Show'), self.restoreDockWidget)
@@ -149,14 +139,14 @@ class MainWindow(QMainWindow):
         is_main_diary_unsaved = False
         
         for page in stringlist:
-            if page.startswith(_("Note")):
+            if page.startswith(_("Note")) and not page.endswith(_(" (Backup)")):
                 length = len(_("Note"))
                 if not are_there_unsaved_notes and not notes[page[(length + 2):]].closable:
                     are_there_unsaved_notes = True
                     
                     insert_for_question = _("notes")
                 
-            elif page.startswith(_("Diary")):
+            elif page.startswith(_("Diary")) and not page.endswith(_(" (Backup)")):
                 length = len(_("Diary for"))
                 if not are_there_unsaved_diaries and not diaries[page[(length + 2):]].closable:
                     are_there_unsaved_diaries = True
@@ -175,8 +165,8 @@ class MainWindow(QMainWindow):
             finally:
                 is_main_diary_unsaved = True
 
-        if (self.dock.widget().model().stringList() == [] and
-            (not are_there_unsaved_notes and not are_there_unsaved_diaries and not is_main_diary_unsaved)):
+        if (self.dock.widget().model().stringList() == [] or
+            (not are_there_unsaved_notes or not are_there_unsaved_diaries or not is_main_diary_unsaved)):
             
             return super().closeEvent(a0)
         
