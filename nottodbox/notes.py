@@ -505,33 +505,33 @@ class NotesTabWidget(QTabWidget):
         self.clear_button.clicked.connect(lambda: self.insertInformations(""))
         
         self.created = QLabel(self.home, alignment=align_center, 
-                              text=_('Created:'))
+                              text=_("Created: "))
         self.edited = QLabel(self.home, alignment=align_center, 
-                             text=_('Edited:'))
+                             text=_("Edited: "))
 
         self.side = QWidget(self.home)
         self.side.setFixedWidth(144)
         self.side.setLayout(QVBoxLayout(self.side))
         
-        self.open_button = QPushButton(self.side, text=_('Open/create note'))
+        self.open_button = QPushButton(self.side, text=_("Open/create note"))
         self.open_button.clicked.connect(lambda: self.openCreate(self.entry.text()))
         
-        self.rename_button = QPushButton(self.side, text=_('Rename note'))
+        self.rename_button = QPushButton(self.side, text=_("Rename note"))
         self.rename_button.clicked.connect(lambda: self.renameNote(self.entry.text()))
 
-        self.show_backup_button = QPushButton(self.side, text=_('Show backup'))
+        self.show_backup_button = QPushButton(self.side, text=_("Show backup"))
         self.show_backup_button.clicked.connect(lambda: self.showBackup(self.entry.text()))
 
-        self.restore_button = QPushButton(self.side, text=_('Restore content'))
+        self.restore_button = QPushButton(self.side, text=_("Restore content"))
         self.restore_button.clicked.connect(lambda: self.restoreContent(self.entry.text()))
         
-        self.delete_content_button = QPushButton(self.side, text=_('Delete content'))
+        self.delete_content_button = QPushButton(self.side, text=_("Delete content"))
         self.delete_content_button.clicked.connect(lambda: self.deleteContent(self.entry.text()))
         
-        self.delete_note_button = QPushButton(self.side, text=_('Delete note'))
+        self.delete_note_button = QPushButton(self.side, text=_("Delete note"))
         self.delete_note_button.clicked.connect(lambda: self.deleteNote(self.entry.text()))
         
-        self.delete_all_button = QPushButton(self.side, text=_('Delete all notes'))
+        self.delete_all_button = QPushButton(self.side, text=_("Delete all notes"))
         self.delete_all_button.clicked.connect(self.deleteAll)
         
         self.format = QComboBox(self)
@@ -545,7 +545,7 @@ class NotesTabWidget(QTabWidget):
             self.format.setCurrentIndex(2)
         self.format.currentIndexChanged.connect(self.setFormat)        
         
-        self.autosave = QCheckBox(self, text=_('Enable auto-save'))
+        self.autosave = QCheckBox(self, text=_("Enable auto-save"))
         if get_autosave == "true":
             self.autosave.setChecked(True)
         self.autosave.setStatusTip(_("Auto-saves do not change backups."))
@@ -570,7 +570,7 @@ class NotesTabWidget(QTabWidget):
         self.home.layout().addWidget(self.edited, 1, 1, 1, 1)
         self.home.layout().addWidget(self.listview, 2, 0, 1, 2)
         
-        self.addTab(self.home, _('Home'))
+        self.addTab(self.home, _("Home"))
         self.setTabsClosable(True)
         self.setMovable(True)
         
@@ -644,9 +644,9 @@ class NotesTabWidget(QTabWidget):
         self.insertInformations("")
     
         if call:
-            QMessageBox.information(self, _('Successful'), _('All notes deleted.'))
+            QMessageBox.information(self, _("Successful"), _("All notes deleted."))
         else:
-            QMessageBox.critical(self, _('Error'), _('Failed to delete all notes.'))
+            QMessageBox.critical(self, _("Error"), _("Failed to delete all notes."))
         
     def deleteContent(self, name: str) -> None:
         """
@@ -657,7 +657,7 @@ class NotesTabWidget(QTabWidget):
         """
         
         if name == "" or name == None:
-            QMessageBox.critical(self, _('Error'), _('Note name can not be blank.'))
+            QMessageBox.critical(self, _("Error"), _("Note name can not be blank."))
             return        
         
         if self.checkIfTheNoteExists(name) == False:
@@ -667,9 +667,9 @@ class NotesTabWidget(QTabWidget):
                                      datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"))
     
         if call:
-            QMessageBox.information(self, _('Successful'), _('Content of {name} note deleted.').format(name = name))
+            QMessageBox.information(self, _("Successful"), _("Content of {name} note deleted.").format(name = name))
         else:
-            QMessageBox.critical(self, _('Error'), _('Failed to delete content of {name} note.').format(name = name))
+            QMessageBox.critical(self, _("Error"), _("Failed to delete content of {name} note.").format(name = name))
                        
     def deleteNote(self, name: str) -> None:
         """
@@ -680,7 +680,7 @@ class NotesTabWidget(QTabWidget):
         """
         
         if name == "" or name == None:
-            QMessageBox.critical(self, _('Error'), _('Note name can not be blank.'))
+            QMessageBox.critical(self, _("Error"), _("Note name can not be blank."))
             return
         
         if self.checkIfTheNoteExists(name) == False:
@@ -692,9 +692,9 @@ class NotesTabWidget(QTabWidget):
         self.insertInformations("")
             
         if call:
-            QMessageBox.information(self, _('Successful'), _('{name} note deleted.').format(name = name))
+            QMessageBox.information(self, _("Successful"), _("{name} note deleted.").format(name = name))
         else:
-            QMessageBox.critical(self, _('Error'), _('Failed to delete {name} note.').format(name = name))
+            QMessageBox.critical(self, _("Error"), _("Failed to delete {name} note.").format(name = name))
         
     def insertInformations(self, name: str) -> None:
         """Insert name and creation, edit dates.
@@ -710,12 +710,12 @@ class NotesTabWidget(QTabWidget):
             
         try:
             self.entry.setText(name)
-            self.created.setText(f"{_('Created')}: {call[0]}")
-            self.edited.setText(f"{_('Edited')}: {call[1]}")
+            self.created.setText(_("Created: ") + call[0])
+            self.edited.setText(_("Edited: ") + call[1])
         except TypeError:
             self.entry.setText("")
-            self.created.setText(f"{_('Created')}:")
-            self.edited.setText(f"{_('Edited')}:")
+            self.created.setText(_("Created: "))
+            self.edited.setText(_("Edited: "))
         
     def openCreate(self, name: str) -> None:
         """Open or create a note.
@@ -727,7 +727,7 @@ class NotesTabWidget(QTabWidget):
         notes_parent.tabwidget.setCurrentIndex(1)
         
         if name == "" or name == None:
-            QMessageBox.critical(self, _('Error'), _('Note name can not be blank.'))
+            QMessageBox.critical(self, _("Error"), _("Note name can not be blank."))
             return
         
         if name in notes:
@@ -747,7 +747,7 @@ class NotesTabWidget(QTabWidget):
         """
         
         if name == "" or name == None:
-            QMessageBox.critical(self, _('Error'), _('Note name can not be blank.'))
+            QMessageBox.critical(self, _("Error"), _("Note name can not be blank."))
             return        
         
         if self.checkIfTheNoteExists(name) == False:
@@ -764,11 +764,14 @@ class NotesTabWidget(QTabWidget):
             if call:
                 self.entry.setText(newname)
                 
-                QMessageBox.information(self, _('Successful'), _('{name} note renamed as {newname}.').format(name = name, newname = newname))
+                QMessageBox.information(self, _("Successful"), _("{name} note renamed as {newname}.")
+                                        .format(name = name, newname = newname))
             else:
-                QMessageBox.critical(self, _('Error'), _('Failed to rename {name} note.').format(name = name))
+                QMessageBox.critical(self, _("Error"), _("Failed to rename {name} note.")
+                                     .format(name = name))
         else:
-            QMessageBox.critical(self, _('Error'), _('Failed to rename {name} note.').format(name = name))
+            QMessageBox.critical(self, _("Error"), _("Failed to rename {name} note.")
+                                 .format(name = name))
             
     def restoreContent(self, name: str) -> None:
         """Restore content of note with NotesDB's rename function.
@@ -778,7 +781,7 @@ class NotesTabWidget(QTabWidget):
         """
         
         if name == "" or name == None:
-            QMessageBox.critical(self, _('Error'), _('Note name can not be blank.'))
+            QMessageBox.critical(self, _("Error"), _("Note name can not be blank."))
             return
         
         if self.checkIfTheNoteExists(name) == False:
@@ -850,7 +853,7 @@ class NotesTabWidget(QTabWidget):
         """
         
         if name == "" or name == None:
-            QMessageBox.critical(self, _('Error'), _('Note name can not be blank.'))
+            QMessageBox.critical(self, _("Error"), _("Note name can not be blank."))
             return
 
         if self.checkIfTheNoteExists(name) == False:
@@ -885,7 +888,7 @@ class NotesNote(QWidget):
         self.setLayout(QGridLayout(self))
         self.setStatusTip(_("Auto-saves do not change backups."))
         
-        self.autosave = QCheckBox(self, text=_('Enable auto-save for this time'))
+        self.autosave = QCheckBox(self, text=_("Enable auto-save for this time"))
         if get_autosave == "true":
             self.autosave.setChecked(True)
         try:
@@ -916,7 +919,7 @@ class NotesNote(QWidget):
         self.output.setReadOnly(True)
         self.updateOutput(self.content)
         
-        self.button = QPushButton(self, text=_('Save'))
+        self.button = QPushButton(self, text=_("Save"))
         self.button.clicked.connect(self.saveNote)
         
         self.layout().addWidget(self.autosave, 0, 0, 1, 1)
@@ -1037,7 +1040,7 @@ class NotesBackup(QWidget):
         self.output.setReadOnly(True)
         self.updateOutput(self.backup)
         
-        self.button = QPushButton(self, text=_('Restore content'))
+        self.button = QPushButton(self, text=_("Restore content"))
         self.button.clicked.connect(lambda: parent.restoreContent(name))
         
         self.layout().addWidget(self.format)

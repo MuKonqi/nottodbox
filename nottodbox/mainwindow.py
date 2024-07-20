@@ -86,9 +86,9 @@ class MainWindow(QMainWindow):
         self.setGeometry(0, 0, 960, 540)
         self.setCentralWidget(self.widget)
         
-        self.menu_sidebar = self.menuBar().addMenu(_('Sidebar'))
-        self.menu_sidebar.addAction(_('Show'), self.restoreDockWidget)
-        self.menu_sidebar.addAction(_('Close'), lambda: self.removeDockWidget(self.dock))
+        self.menu_sidebar = self.menuBar().addMenu(_("Sidebar"))
+        self.menu_sidebar.addAction(_("Show"), self.restoreDockWidget)
+        self.menu_sidebar.addAction(_("Close"), lambda: self.removeDockWidget(self.dock))
 
         self.notes = NotesTabWidget(self)
         self.todos = Todos(self)
@@ -114,7 +114,7 @@ class MainWindow(QMainWindow):
         
         self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.dock)
         self.setStatusBar(self.statusbar)
-        self.setStatusTip(_('Copyright (C) 2024 MuKonqi (Muhammed S.), licensed under GPLv3 or later'))
+        self.setStatusTip(_("Copyright (C) 2024 MuKonqi (Muhammed S.), licensed under GPLv3 or later"))
 
     def restoreDockWidget(self):
         """Restore dock widget (sidebar)"""

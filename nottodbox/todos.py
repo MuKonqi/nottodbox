@@ -288,12 +288,12 @@ class Todolist(QWidget):
             return True
         except TypeError:
             if mode == "normal":
-                QMessageBox.critical(self, _('Error'), _('There is no todo in {todolist} list called {todo}.').format(todolist = self._todolist, todo = todo))
+                QMessageBox.critical(self, _("Error"), _('There is no todo in {todolist} list called {todo}.').format(todolist = self._todolist, todo = todo))
             return False
     
     def comp(self, todo: str, completed: str):
         if todo == "" or todo == None:
-            QMessageBox.critical(self, _('Error'), _('Todo can not be blank.'))
+            QMessageBox.critical(self, _("Error"), _('Todo can not be blank.'))
             return        
         
         if self.control(todo) == False:
@@ -321,7 +321,7 @@ class Todolist(QWidget):
     
     def uncomp(self, todo: str):
         if todo == "" or todo == None:
-            QMessageBox.critical(self, _('Error'), _('Todo can not be blank.'))
+            QMessageBox.critical(self, _("Error"), _('Todo can not be blank.'))
             return        
         
         if self.control(todo) == False:
@@ -349,7 +349,7 @@ class Todolist(QWidget):
     
     def add(self, todo: str, started: str):
         if todo == "" or todo == None:
-            QMessageBox.critical(self, _('Error'), _('Todo can not be blank.'))
+            QMessageBox.critical(self, _("Error"), _('Todo can not be blank.'))
             return           
         
         if Todos.control(self, self._todolist) == False:
@@ -363,7 +363,7 @@ class Todolist(QWidget):
                 self.cur_add1.execute(self.sql_add1)
                 self.db_add1.commit()
         except sqlite3.IntegrityError:
-            QMessageBox.critical(self, _('Error'), _('{todo} todo already added to {todolist}.').format(todo = todo, todolist = self._todolist))
+            QMessageBox.critical(self, _("Error"), _('{todo} todo already added to {todolist}.').format(todo = todo, todolist = self._todolist))
             return
                 
         TodolistListView.refresh(self.listview, self._todolist)
@@ -376,13 +376,13 @@ class Todolist(QWidget):
         self.if_add = self.fetch_add2[0] == todo and self.fetch_add2[1] == "uncompleted"
         
         if self.if_add and self.fetch_add2[2] == started:
-            QMessageBox.information(self, _('Successful'), _('{todo} added to {todolist}.').format(todo = todo, todolist = self._todolist))
+            QMessageBox.information(self, _("Successful"), _('{todo} added to {todolist}.').format(todo = todo, todolist = self._todolist))
         else:
-            QMessageBox.critical(self, _('Error'), _('Failed to add {todo} to {todolist}.').format(todo = todo, todolist = self._todolist))
+            QMessageBox.critical(self, _("Error"), _('Failed to add {todo} to {todolist}.').format(todo = todo, todolist = self._todolist))
     
     def edit(self, todo: str):
         if todo == "" or todo == None:
-            QMessageBox.critical(self, _('Error'), _('Todo can not be blank.'))
+            QMessageBox.critical(self, _("Error"), _('Todo can not be blank.'))
             return        
         
         if self.control(todo) == False:
@@ -413,19 +413,19 @@ class Todolist(QWidget):
                 
                 self.entry.setText(self.newtodo)
                 
-                QMessageBox.information(self, _('Successful'),
+                QMessageBox.information(self, _("Successful"),
                                         _('{todo} todo in {todolist} edited as {newtodo}.')
                                         .format(todo = todo, todolist = self._todolist, newtodo = self.newtodo))
                 
             except TypeError:
-                QMessageBox.critical(self, _('Error'), _('Failed to edit {todo} todo in {todolist}.').format(todo = todo, todolist = self._todolist))
+                QMessageBox.critical(self, _("Error"), _('Failed to edit {todo} todo in {todolist}.').format(todo = todo, todolist = self._todolist))
                 
         else:
-            QMessageBox.critical(self, _('Error'), _('Failed to edit {todo} todo in {todolist}.').format(todo = todo, todolist = self._todolist))
+            QMessageBox.critical(self, _("Error"), _('Failed to edit {todo} todo in {todolist}.').format(todo = todo, todolist = self._todolist))
     
     def delete(self, todo: str):
         if todo == "" or todo == None:
-            QMessageBox.critical(self, _('Error'), _('Todo can not be blank.'))
+            QMessageBox.critical(self, _("Error"), _('Todo can not be blank.'))
             return
         
         if self.control(todo) == False:
@@ -443,9 +443,9 @@ class Todolist(QWidget):
         self.entry.setText("")
             
         if self.control(todo, "inverted") == False:
-            QMessageBox.information(self, _('Successful'), _('{todo} todo in {todolist} deleted.').format(todo = todo, todolist = self._todolist))
+            QMessageBox.information(self, _("Successful"), _('{todo} todo in {todolist} deleted.').format(todo = todo, todolist = self._todolist))
         else:
-            QMessageBox.critical(self, _('Error'), _('Failed to delete {todo} todo in {todolist}.').format(todo = todo, todolist = self._todolist))
+            QMessageBox.critical(self, _("Error"), _('Failed to delete {todo} todo in {todolist}.').format(todo = todo, todolist = self._todolist))
     
     def delete_all(self):
         if Todos.control(self, self._todolist) == False:
@@ -470,9 +470,9 @@ class Todolist(QWidget):
         TodolistListView.refresh(self.listview, self._todolist)
         
         if self.fetch_delete_all3 == []:
-            QMessageBox.information(self, _('Successful'), _('All todos in {todolist} deleted.').format(todolist = self._todolist))
+            QMessageBox.information(self, _("Successful"), _('All todos in {todolist} deleted.').format(todolist = self._todolist))
         else:
-            QMessageBox.critical(self, _('Error'), _('Failed to delete all todos in {todolist}.').format(todolist = self._todolist))
+            QMessageBox.critical(self, _("Error"), _('Failed to delete all todos in {todolist}.').format(todolist = self._todolist))
 
 
 class TodosListView(QListView):
@@ -583,7 +583,7 @@ class Todos(QTabWidget):
         self.side.layout().addWidget(self.delete_all_button, 5, 1, 1, 1)
         self.home.layout().addWidget(self.side)
         
-        self.addTab(self.home, _('Home'))
+        self.addTab(self.home, _("Home"))
         self.setTabsClosable(True)
         self.setMovable(True)
         
@@ -618,14 +618,14 @@ class Todos(QTabWidget):
             return True
         except sqlite3.OperationalError:
             if mode == "normal":
-                QMessageBox.critical(self, _('Error'), _('There is no todo list called {todolist}.').format(todolist = todolist))
+                QMessageBox.critical(self, _("Error"), _('There is no todo list called {todolist}.').format(todolist = todolist))
             return False
         finally:
             self.cur_control.close()
     
     def open(self, todolist: str):
         if todolist == "main" or todolist == "" or todolist == None:
-            QMessageBox.critical(self, _('Error'), _('Todo list name can not be blank or main.'))
+            QMessageBox.critical(self, _("Error"), _('Todo list name can not be blank or main.'))
             return
         
         if self.control(todolist) == False:
@@ -642,7 +642,7 @@ class Todos(QTabWidget):
     
     def add(self, todolist: str, created: str):
         if todolist == "main" or todolist == "" or todolist == None:
-            QMessageBox.critical(self, _('Error'), _('Todo list name can not be blank or main.'))
+            QMessageBox.critical(self, _("Error"), _('Todo list name can not be blank or main.'))
             return 
         
         try:
@@ -660,7 +660,7 @@ class Todos(QTabWidget):
                 self.db_add1.commit()
                 
         except sqlite3.OperationalError:
-            QMessageBox.critical(self, _('Error'), _('{todolist} list already exist.').format(todolist = todolist))
+            QMessageBox.critical(self, _("Error"), _('{todolist} list already exist.').format(todolist = todolist))
             return
         
         TodosListView.refresh(self.listview)
@@ -674,17 +674,17 @@ class Todos(QTabWidget):
                 self.fetch_add2 = self.cur_add2.fetchone()
             
             if todolist in self.fetch_add2 and created in self.fetch_add2:
-                QMessageBox.information(self, _('Successful'), _('{todolist} list added.').format(todolist = todolist))
+                QMessageBox.information(self, _("Successful"), _('{todolist} list added.').format(todolist = todolist))
                 
             else:
-                QMessageBox.critical(self, _('Error'), _('Failed to add {todolist} list.').format(todolist = todolist))
+                QMessageBox.critical(self, _("Error"), _('Failed to add {todolist} list.').format(todolist = todolist))
         
         except sqlite3.OperationalError:
-            QMessageBox.critical(self, _('Error'), _('Failed to add {todolist} list.').format(todolist = todolist))
+            QMessageBox.critical(self, _("Error"), _('Failed to add {todolist} list.').format(todolist = todolist))
 
     def rename(self, todolist: str):
         if todolist == "main" or todolist == "" or todolist == None:
-            QMessageBox.critical(self, _('Error'), _('Todo list name can not be blank or main.'))
+            QMessageBox.critical(self, _("Error"), _('Todo list name can not be blank or main.'))
             return
         
         if self.control(todolist) == False:
@@ -713,17 +713,17 @@ class Todos(QTabWidget):
             self.entry.setText(self.newname)
                 
             if self.newname in self.fetch_rename2:
-                QMessageBox.information(self, _('Successful'), _('{todolist} list renamed as {newname}.').format(todolist = todolist, newname = self.newname))
+                QMessageBox.information(self, _("Successful"), _('{todolist} list renamed as {newname}.').format(todolist = todolist, newname = self.newname))
         
             else:
-                QMessageBox.critical(self, _('Error'), _('Failed to rename {todolist} list.').format(todolist = todolist))
+                QMessageBox.critical(self, _("Error"), _('Failed to rename {todolist} list.').format(todolist = todolist))
         
         except sqlite3.OperationalError:
-            QMessageBox.critical(self, _('Error'), _('Failed to rename {todolist} list.').format(todolist = todolist))
+            QMessageBox.critical(self, _("Error"), _('Failed to rename {todolist} list.').format(todolist = todolist))
     
     def delete(self, todolist: str):
         if todolist == "main" or todolist == "" or todolist == None:
-            QMessageBox.critical(self, _('Error'), _('Todo list name can not be blank or main.'))
+            QMessageBox.critical(self, _("Error"), _('Todo list name can not be blank or main.'))
             return
         
         if self.control(todolist) == False:
@@ -751,10 +751,10 @@ class Todos(QTabWidget):
                     
                 if todolist not in self.fetch_delete2:
                     create_db()
-                    QMessageBox.information(self, _('Successful'), _('{todolist} list deleted.').format(todolist = todolist))
+                    QMessageBox.information(self, _("Successful"), _('{todolist} list deleted.').format(todolist = todolist))
             
             else:
-                QMessageBox.critical(self, _('Error'), _('Failed to delete {todolist} list.').format(todolist = todolist))
+                QMessageBox.critical(self, _("Error"), _('Failed to delete {todolist} list.').format(todolist = todolist))
     
     def delete_all(self):
         with sqlite3.connect(f"{userdata}todos.db") as self.db_delete_all1:
@@ -786,10 +786,10 @@ class Todos(QTabWidget):
                     create_db()
                     TodosListView.refresh(self.listview)
                     
-                    QMessageBox.information(self, _('Successful'), _('All todolists deleted.'))
+                    QMessageBox.information(self, _("Successful"), _('All todolists deleted.'))
 
             else:
-                QMessageBox.critical(self, _('Error'), _('Failed to delete all todolists.')) 
+                QMessageBox.critical(self, _("Error"), _('Failed to delete all todolists.')) 
     
     
 if __name__ == "__main__":
