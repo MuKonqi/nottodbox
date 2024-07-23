@@ -18,15 +18,10 @@
 
 if __name__ == "__main__":
     import sys
-    from mainwindow import MainWindow
-    from PyQt6.QtWidgets import QApplication
+    from application import Application
     
-    application = QApplication(sys.argv)
-
-    window = MainWindow()
-    window.show()
-    window.tabwidget.setCurrentIndex(3)
-
+    application = Application(sys.argv, 3)
+    
     sys.exit(application.exec())
 
 
@@ -1139,9 +1134,27 @@ class DiariesCalendarWidget(QCalendarWidget):
             lambda: self.parent_.insertInformations(self.selectedDate().toString("dd.MM.yyyy")))
 
         self.parent_.insertInformations(self.selectedDate().toString("dd.MM.yyyy"))
+        
+        self.setMenu(diariesdb.getNames())
+        
+    def setMenu(self, call: list):
+        """
+        Set diaries menu
+
+        Args:
+            call (list): diariesdb.getNames function
+        """
+        
+        if not hasattr(self, "menu"):
+            self.menu = diaries_parent.menuBar().addMenu(_("Diaries"))
+        self.menu.clear()
+        
+        for name in call:
+            self.menu.addAction(name[0], lambda name = name: self.parent_.openCreate(name[0]))
     
     def paintCell(self, painter: QPainter | None, rect: QRect, date: QDate | datetime.date) -> None:
-        """Override of QCalendarWidget's paintCell function.
+        """
+        Override of QCalendarWidget's paintCell function.
 
         Args:
             painter (QPainter | None): Painter
@@ -1154,10 +1167,6 @@ class DiariesCalendarWidget(QCalendarWidget):
         call = diariesdb.getNames()
         dates = []
         
-        if not hasattr(self, "menu"):
-            self.menu = diaries_parent.menuBar().addMenu(_("Diaries"))
-        self.menu.clear()
-        
         for name in call:
             dates.append(QDate.fromString(name[0], "dd.MM.yyyy"))
             self.menu.addAction(name[0], lambda name = name: self.parent_.openCreate(name[0]))
@@ -1168,6 +1177,8 @@ class DiariesCalendarWidget(QCalendarWidget):
             
         if date >= today:
             painter.setOpacity(0)
+            
+        self.setMenu(call)
     
     def mouseDoubleClickEvent(self, a0: QMouseEvent | None) -> None:
         """Override of QCalendarWidget's mouseDoubleClickEvent function.

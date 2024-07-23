@@ -16,15 +16,11 @@
 # along with Nottodbox.  If not, see <https://www.gnu.org/licenses/>.
 
 
-import sys
 import locale
 import gettext
 import getpass
-import os
-import subprocess
-import sqlite3
 import datetime
-from PyQt6.QtGui import QCloseEvent, QKeySequence
+from PyQt6.QtGui import QCloseEvent
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import *
 
@@ -43,25 +39,10 @@ align_center = Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter
 
 username = getpass.getuser()
 userdata = f"/home/{username}/.local/share/nottodbox/"
-if not os.path.isdir(userdata):
-    os.mkdir(userdata)
-    
-
-with sqlite3.connect(f"{userdata}settings.db", timeout=5.0) as db_settings:
-    cur_settings = db_settings.cursor()
-    
-    sql_settings = """
-    CREATE TABLE IF NOT EXISTS settings (
-        setting TEXT NOT NULL PRIMARY KEY,
-        value TEXT NOT NULL
-    );"""
-    cur_settings.execute(sql_settings)
-    
-    db_settings.commit()
     
 
 from sidebar import SidebarListView
-from home import HomeScrollableArea, HomeWidget
+from home import HomeMain
 from notes import NotesTabWidget, notesdb, notes
 from todos import Todos
 from diaries import DiariesTabWidget, today, diariesdb, diaries
@@ -93,7 +74,7 @@ class MainWindow(QMainWindow):
         self.notes = NotesTabWidget(self)
         self.todos = Todos(self)
         self.diaries = DiariesTabWidget(self)
-        self.home = HomeScrollableArea(self, self.todos, self.notes)
+        self.home = HomeMain(self, self.todos, self.notes)
 
         self.tabwidget.addTab(self.home, _("Home"))
         self.tabwidget.addTab(self.notes, _("Notes"))
@@ -156,7 +137,7 @@ class MainWindow(QMainWindow):
                     except UnboundLocalError:
                         insert_for_question = _("diaries")
                         
-        if not self.home.widget().diary.closable:
+        if not self.home.left.widget().diary.closable:
             try:
                 if not _("diaries") in insert_for_question:
                     insert_for_question += _(" and diaries")
@@ -164,18 +145,20 @@ class MainWindow(QMainWindow):
                     insert_for_question = _("diaries")
             finally:
                 is_main_diary_unsaved = True
+                stringlist = None
 
-        if (self.dock.widget().model().stringList() == [] or
-            (not are_there_unsaved_notes or not are_there_unsaved_diaries or not is_main_diary_unsaved)):
+
+        if (stringlist != None or
+            (not are_there_unsaved_notes and not are_there_unsaved_diaries and not is_main_diary_unsaved)):
             
             return super().closeEvent(a0)
         
         else:
             self.question = QMessageBox.question(self,
                                                  _("Warning"),
-                                                 _("Some {opens} are not saved.\n"
+                                                 _("Some {pages} are not saved.\n"
                                                    + "Do you want to directly closing or closing after saving them or cancel?")
-                                                 .format(opens = insert_for_question),
+                                                 .format(pages = insert_for_question),
                                                  QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.SaveAll | QMessageBox.StandardButton.Cancel,
                                                  QMessageBox.StandardButton.SaveAll)
             
@@ -191,8 +174,8 @@ class MainWindow(QMainWindow):
                     
                 if is_main_diary_unsaved:
                     call_diary_save_one = diariesdb.saveOne(today.toString("dd.MM.yyyy"),
-                                                            self.home.widget().diary.input.toPlainText(),
-                                                            self.home.widget().diary.content,
+                                                            self.home.left.widget().diary.input.toPlainText(),
+                                                            self.home.left.widget().diary.content,
                                                             datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
                                                             False)
                 
@@ -229,10 +212,11 @@ class MainWindow(QMainWindow):
             else:
                 a0.ignore()
         
+
 if __name__ == "__main__":
-    application = QApplication(sys.argv)
-
-    window = MainWindow()
-    window.show()
-
-    application.exec()
+    import sys
+    from application import Application
+    
+    application = Application(sys.argv)
+    
+    sys.exit(application.exec())

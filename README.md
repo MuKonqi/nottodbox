@@ -1,2 +1,2 @@
 # Nottodbox
-- Create, edit and manage your notes, todolists and diaries
+- Create, edit and manage notes, todolists and diaries

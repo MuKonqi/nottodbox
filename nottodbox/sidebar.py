@@ -18,15 +18,10 @@
 
 if __name__ == "__main__":
     import sys
-    from mainwindow import MainWindow
-    from PyQt6.QtWidgets import QApplication
+    from application import Application
     
-    application = QApplication(sys.argv)
-
-    window = MainWindow()
-    window.show()
-    window.tabwidget.setCurrentIndex(0)
-
+    application = Application(sys.argv)
+    
     sys.exit(application.exec())
 
 
