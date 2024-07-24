@@ -29,8 +29,11 @@ import locale
 import gettext
 import getpass
 import sqlite3
-from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QIcon
+from PyQt6.QtCore import Qt, QSize
 from PyQt6.QtWidgets import *
+from notes import NotesTabWidget
+from diaries import DiariesTabWidget
 
 
 if locale.getlocale()[0].startswith("tr"):
@@ -43,27 +46,37 @@ translations.install()
 
 _ = translations.gettext
 
-align_center = Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter
-
 username = getpass.getuser()
 userdata = f"/home/{username}/.local/share/nottodbox/"
 
 
-defaults = {
-    "autosave": "true",
-    "format": "markdown",
-    "space": "2",
-}
-
 settings = {
-    "notes-autosave": "",
-    "notes-format": "",
-    "diaries-autosave": "",
-    "diaries-format": "",
-    "diaries-space": ""
+    "general-language": language,
+    
+    "mainwindow-unsaved": "true",
+    "mainwindow-documentmode": "false",
+
+    "notes-autohide": "true",
+    "notes-documentmode": "true",
+    "notes-autosave": "true",
+    "notes-format": "markdown",
+    "notes-unsaved": "true",
+
+    "todos-autohide": "true",
+    "todos-documentmode": "true",
+
+    "diaries-autohide": "true",
+    "diaries-documentmode": "true",
+    "diaries-autosave": "true",
+    "diaries-format": "markdown",
+    "diaries-space": "2",
+    "diaries-unsaved": "true",
+    "diaries-olddiary": "true",
+    "diaries-sections": "all"
 }
 
-print(settings[1])
+defaults = settings.copy()
+
 
 class SettingsDB:
     """The settings database pool."""
@@ -118,8 +131,8 @@ class SettingsDB:
         """Get all settings' values."""
 
         for setting, value in settings.items():
-                setting.replace("-", " ")
-                self.getSetting(setting.split()[0], setting.split(1))
+                self.getSetting(setting.replace("-", " ").split()[0], 
+                                setting.replace("-", " ").split()[1])
     
     def getSetting(self, module: str, setting: str) -> str:
         """
@@ -142,9 +155,10 @@ class SettingsDB:
             return self.cur.fetchone()[0]
 
         except:
-            self.cur.execute(f"insert into settings (setting, value) values ('{module}-{setting}', '{defaults[setting]}')")
+            self.cur.execute(
+                f"insert into settings (setting, value) values ('{module}-{setting}', '{defaults[f'{module}-{setting}']}')")
             self.db.commit()
-            return defaults[setting]
+            return defaults[f'{module}-{setting}']
         
     def updateSetting(self, module: str, setting: str, value: str) -> bool:
         """
@@ -180,3 +194,147 @@ if create_table:
     table = True
 else:
     table = False
+
+
+class SettingsScrollArea(QScrollArea):
+    """Scrollable area for Settings module."""
+    
+    def __init__(self, parent: QMainWindow, notes: NotesTabWidget, diaries: DiariesTabWidget) -> None:
+        """
+        Init and set scrollable area.
+
+        Args:
+            parent (QMainWindow): Main window
+            notes (NotesTabWidget): Notes tab widget
+            diaries (DiariesTabWidget): Diaries tab widget
+        """
+        
+        super().__init__(parent)
+        
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
+        self.setWidgetResizable(True)
+        self.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.setWidget(SettingsWidget(self, notes, diaries))
+
+
+class SettingsWidget(QWidget):
+    """Main widget class for Settings module."""
+    
+    def __init__(self, parent: QMainWindow, notes: NotesTabWidget, diaries: DiariesTabWidget) -> None:        
+        """
+        Display a widget for list of setting modules.
+
+        Args:
+            parent (QMainWindow): Main window
+            notes (NotesTabWidget): Notes tab widget
+            diaries (DiariesTabWidget): Diaries tab widget
+        """
+        
+        super().__init__(parent)
+        
+        self.setLayout(QHBoxLayout(self))
+        
+        self.stacked = QStackedWidget(self)
+        self.stacked.addWidget(SettingsGeneral(self, notes, diaries))
+        self.stacked.addWidget(SettingsInterface(self, notes, diaries))
+        self.stacked.addWidget(SettingsDocument(self, notes, diaries))
+        self.stacked.addWidget(SettingsQuestions(self, notes, diaries))
+        
+        self.list = QListWidget(self)
+        self.list.setCurrentRow(0)
+        self.list.setFixedWidth(144)
+        self.list.currentRowChanged.connect(lambda: self.stacked.setCurrentIndex(self.list.currentRow()))
+        
+        self.list_general = QListWidgetItem(_("General"), self.list)
+        self.list_general.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+        
+        self.list_interface = QListWidgetItem(_("Interface"), self.list)
+        self.list_interface.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+        
+        self.list_document = QListWidgetItem(_("Document"), self.list)
+        self.list_document.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+        
+        self.list_questions = QListWidgetItem(_("Questions"), self.list)
+        self.list_questions.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+        
+        self.list.addItem(self.list_general)
+        self.list.addItem(self.list_interface)
+        self.list.addItem(self.list_document)
+        self.list.addItem(self.list_questions)
+        
+        self.layout().addWidget(self.list)
+        self.layout().addWidget(self.stacked)
+        
+    def showPage(self, index: int) -> None:
+        """Show the selected page.
+
+        Args:
+            index (int): Selected index
+        """
+        
+        self.stacked.setCurrentIndex(index)
+        
+    
+class SettingsGeneral(QWidget):
+    """Widget for general settings."""
+    
+    def __init__(self, parent: SettingsWidget, notes: NotesTabWidget, diaries: DiariesTabWidget):
+        """
+        Display a widget for setting general settings.
+
+        Args:
+            parent (SettingsWidget): Main settings widget
+            notes (NotesTabWidget): Notes tab widget
+            diaries (DiariesTabWidget): Diaries tab widget
+        """
+        
+        super().__init__(parent)
+        
+
+class SettingsInterface(QWidget):
+    """Widget for interface settings."""
+    
+    def __init__(self, parent: QWidget, notes: NotesTabWidget, diaries: DiariesTabWidget):
+        """
+        Display a widget for setting interface settings.
+
+        Args:
+            parent (SettingsWidget): Main settings widget
+            notes (NotesTabWidget): Notes tab widget
+            diaries (DiariesTabWidget): Diaries tab widget
+        """
+        
+        super().__init__(parent)
+        
+
+class SettingsDocument(QWidget):
+    """Widget for document settings."""
+    
+    def __init__(self, parent: QWidget, notes: NotesTabWidget, diaries: DiariesTabWidget):
+        """
+        Display a widget for setting document settings.
+
+        Args:
+            parent (SettingsWidget): Main settings widget
+            notes (NotesTabWidget): Notes tab widget
+            diaries (DiariesTabWidget): Diaries tab widget
+        """
+        
+        super().__init__(parent)
+
+
+class SettingsQuestions(QWidget):
+    """Widget for question settings."""
+    
+    def __init__(self, parent: QWidget, notes: NotesTabWidget, diaries: DiariesTabWidget):
+        """
+        Display a widget for setting diaries' settings.
+
+        Args:
+            parent (SettingsWidget): Main settings widget
+            notes (NotesTabWidget): Notes tab widget
+            diaries (DiariesTabWidget): Diaries tab widget
+        """
+        
+        super().__init__(parent)

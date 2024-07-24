@@ -46,8 +46,6 @@ translations.install()
 
 _ = translations.gettext
 
-align_center = Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter
-
 username = getpass.getuser()
 userdata = f"/home/{username}/.local/share/nottodbox/"
 if not os.path.isdir(userdata):
@@ -203,9 +201,9 @@ class Todolist(QWidget):
         self.setLayout(QGridLayout(self))
         self.setStatusTip(_("Double-click on list to marking a todo as completed/uncompleted."))
         
-        self.started = QLabel(self, alignment=align_center, 
+        self.started = QLabel(self, alignment=Qt.AlignmentFlag.AlignCenter, 
                               text=_('Started:'))
-        self.completed = QLabel(self, alignment=align_center, 
+        self.completed = QLabel(self, alignment=Qt.AlignmentFlag.AlignCenter, 
                                 text=_("Completed:"))
         
         self.listview = TodolistListView(self, self._todolist)
@@ -539,7 +537,7 @@ class Todos(QTabWidget):
         self.side.setLayout(QGridLayout(self.side))
         self.side.setStatusTip(_("Double-click on list to opening a todolist."))
         
-        self.created = QLabel(self.side, alignment=align_center, 
+        self.created = QLabel(self.side, alignment=Qt.AlignmentFlag.AlignCenter, 
                               text=_('Created:'))
         
         self.listview = TodosListView(self)
@@ -581,6 +579,9 @@ class Todos(QTabWidget):
         self.addTab(self.home, _("Home"))
         self.setTabsClosable(True)
         self.setMovable(True)
+        self.setDocumentMode(True)
+        self.setTabBarAutoHide(True)
+        self.setUsesScrollButtons(True)
         
         self.tabCloseRequested.connect(self.close)
          

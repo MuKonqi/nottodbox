@@ -46,7 +46,6 @@ translations.install()
 _ = translations.gettext
 
 notes = {}
-align_center = Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter
 
 username = getpass.getuser()
 userdata = f"/home/{username}/.local/share/nottodbox/"
@@ -509,9 +508,9 @@ class NotesTabWidget(QTabWidget):
         self.clear_button.setFixedWidth(144)
         self.clear_button.clicked.connect(lambda: self.insertInformations(""))
         
-        self.created = QLabel(self.home, alignment=align_center, 
+        self.created = QLabel(self.home, alignment=Qt.AlignmentFlag.AlignCenter, 
                               text=_("Created: "))
-        self.edited = QLabel(self.home, alignment=align_center, 
+        self.edited = QLabel(self.home, alignment=Qt.AlignmentFlag.AlignCenter, 
                              text=_("Edited: "))
 
         self.side = QWidget(self.home)
@@ -578,6 +577,9 @@ class NotesTabWidget(QTabWidget):
         self.addTab(self.home, _("Home"))
         self.setTabsClosable(True)
         self.setMovable(True)
+        self.setDocumentMode(True)
+        self.setTabBarAutoHide(True)
+        self.setUsesScrollButtons(True)
         
         self.tabCloseRequested.connect(self.closeTab)
         
@@ -609,7 +611,7 @@ class NotesTabWidget(QTabWidget):
             try:
                 if not notes[self.tabText(index).replace("&", "")].closable:
                     self.question = QMessageBox.question(self, 
-                                                         _("Warning"),
+                                                         _("Question"),
                                                          _("{name} note not saved.\nDo you want to directly closing or closing after saving it or cancel?")
                                                          .format(name = self.tabText(index).replace("&", "")),
                                                          QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.Save | QMessageBox.StandardButton.Cancel,

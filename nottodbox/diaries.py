@@ -48,7 +48,6 @@ _ = translations.gettext
 
 diaries = {}
 today = QDate.currentDate()
-align_center = Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter
 
 username = getpass.getuser()
 userdata = f"/home/{username}/.local/share/nottodbox/"
@@ -536,7 +535,7 @@ class DiariesTabWidget(QTabWidget):
         self.home = QWidget(self)
         self.home.setLayout(QGridLayout(self.home))
         
-        self.edited = QLabel(self.home, alignment=align_center, 
+        self.edited = QLabel(self.home, alignment=Qt.AlignmentFlag.AlignCenter, 
                              text=_("Edited: "))
         
         self.calendar = DiariesCalendarWidget(self)
@@ -613,6 +612,9 @@ class DiariesTabWidget(QTabWidget):
         self.addTab(self.home, _("Home"))
         self.setTabsClosable(True)
         self.setMovable(True)
+        self.setDocumentMode(True)
+        self.setTabBarAutoHide(True)
+        self.setUsesScrollButtons(True)
         
         self.tabCloseRequested.connect(self.closeTab)
         
@@ -644,7 +646,7 @@ class DiariesTabWidget(QTabWidget):
             try:
                 if not diaries[self.tabText(index).replace("&", "")].closable:
                     self.question = QMessageBox.question(self, 
-                                                         _("Warning"),
+                                                         _("Question"),
                                                          _("{date} diary not saved.\nDo you want to directly closing or closing after saving it or cancel?")
                                                          .format(date = self.tabText(index).replace("&", "")),
                                                          QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.Save | QMessageBox.StandardButton.Cancel,

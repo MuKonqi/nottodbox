@@ -43,9 +43,6 @@ translations.install()
 
 _ = translations.gettext
 
-
-align_center = Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter
-
 username = getpass.getuser()
 userdata = f"/home/{username}/.local/share/nottodbox/"
 if not os.path.isdir(userdata):

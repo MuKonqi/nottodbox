@@ -45,8 +45,6 @@ translations.install()
 
 _ = translations.gettext
 
-align_center = Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter
-
 username = getpass.getuser()
 userdata = f"/home/{username}/.local/share/nottodbox/"
 if not os.path.isdir(userdata):
@@ -75,7 +73,7 @@ class HomeMain(QWidget):
         
         self.setLayout(QGridLayout(self))
         
-        self.label = QLabel(self, alignment=align_center,
+        self.label = QLabel(self, alignment=Qt.AlignmentFlag.AlignCenter,
                              text=_("Welcome {username}!").format(username = username))
         self.label.setStyleSheet("QLabel{font-size: 12pt;}")
         
@@ -83,15 +81,15 @@ class HomeMain(QWidget):
         self.left.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
         self.left.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
         self.left.setWidgetResizable(True)
-        self.left.setAlignment(align_center)
-        self.left.setWidget(HomeLeft(parent, todos, notes))
+        self.left.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.left.setWidget(HomeLeft(self, todos, notes))
         
         self.right = QScrollArea(self)
         self.right.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
         self.right.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
         self.right.setWidgetResizable(True)
-        self.right.setAlignment(align_center)
-        self.right.setWidget(HomeRight(parent))
+        self.right.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.right.setWidget(HomeRight(self))
         self.right.setFixedWidth(144)
         
         self.layout().addWidget(self.label, 0, 0, 1, 2)
@@ -120,23 +118,23 @@ class HomeLeft(QWidget):
         
         self.setLayout(QGridLayout(self))
         
-        self.label_diary = QLabel(self, alignment=align_center,
+        self.label_diary = QLabel(self, alignment=Qt.AlignmentFlag.AlignCenter,
                                   text=_("Your Diary for {date}").format(date = today.toString("dd.MM.yyyy")))
         
         self.diary = DiariesDiary(self, today.toString("dd.MM.yyyy"), diariesdb)
         
-        self.label_maintodos = QLabel(self, alignment=align_center, 
+        self.label_maintodos = QLabel(self, alignment=Qt.AlignmentFlag.AlignCenter, 
                                   text=_("List of Your Main Todos"))
         
         self.maintodos = TodolistListView(todos, "main", "home")
         
-        self.label_todolist = QLabel(self, alignment=align_center, 
+        self.label_todolist = QLabel(self, alignment=Qt.AlignmentFlag.AlignCenter, 
                                   text=_("List of Your Todolists"))
         
         self.todolist = TodosListView(todos, "home")
         self.todolist.doubleClicked.connect(lambda: home_parent.tabwidget.setCurrentWidget(home_parent.todos))
         
-        self.label_notes = QLabel(self, alignment=align_center, 
+        self.label_notes = QLabel(self, alignment=Qt.AlignmentFlag.AlignCenter, 
                                   text=_("List of Your Notes"))
         
         self.notes = NotesListView(notes, "home")

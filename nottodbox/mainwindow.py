@@ -16,6 +16,15 @@
 # along with Nottodbox.  If not, see <https://www.gnu.org/licenses/>.
 
 
+if __name__ == "__main__":
+    import sys
+    from application import Application
+    
+    application = Application(sys.argv)
+    
+    sys.exit(application.exec())
+
+
 import locale
 import gettext
 import getpass
@@ -35,13 +44,12 @@ translations.install()
 
 _ = translations.gettext
 
-align_center = Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter
-
 username = getpass.getuser()
 userdata = f"/home/{username}/.local/share/nottodbox/"
     
 
 from sidebar import SidebarListView
+from settings import SettingsScrollArea, settings
 from home import HomeMain
 from notes import NotesTabWidget, notesdb, notes
 from todos import Todos
@@ -60,11 +68,11 @@ class MainWindow(QMainWindow):
         self.widget.setLayout(QVBoxLayout(self.widget))
         
         self.tabwidget = QTabWidget(self)
+        self.tabwidget.setUsesScrollButtons(True)
         
         self.widget.layout().addWidget(self.tabwidget)
         
         self.setWindowTitle("Nottodbox")
-        self.setGeometry(0, 0, 960, 540)
         self.setCentralWidget(self.widget)
         
         self.menu_sidebar = self.menuBar().addMenu(_("Sidebar"))
@@ -74,15 +82,17 @@ class MainWindow(QMainWindow):
         self.notes = NotesTabWidget(self)
         self.todos = Todos(self)
         self.diaries = DiariesTabWidget(self)
+        self.settings = SettingsScrollArea(self, self.notes, self.diaries)
         self.home = HomeMain(self, self.todos, self.notes)
 
         self.tabwidget.addTab(self.home, _("Home"))
         self.tabwidget.addTab(self.notes, _("Notes"))
         self.tabwidget.addTab(self.todos, _("Todos"))
         self.tabwidget.addTab(self.diaries, _("Diaries"))
+        self.tabwidget.addTab(self.settings, _("Settings"))
         
         self.dock = QDockWidget(self)
-        self.dock.setTitleBarWidget(QLabel(self.dock, alignment=align_center, text=_("List of Opened Pages")))
+        self.dock.setTitleBarWidget(QLabel(self.dock, alignment=Qt.AlignmentFlag.AlignCenter, text=_("List of Opened Pages")))
         self.dock.titleBarWidget().setStyleSheet("QLabel{margin: 10px 0px;}")
         self.dock.setFixedWidth(144)
         self.dock.setStyleSheet("QDockWidget{margin: 0px;}")
@@ -155,7 +165,7 @@ class MainWindow(QMainWindow):
         
         else:
             self.question = QMessageBox.question(self,
-                                                 _("Warning"),
+                                                 _("Question"),
                                                  _("Some {pages} are not saved.\n"
                                                    + "Do you want to directly closing or closing after saving them or cancel?")
                                                  .format(pages = insert_for_question),
@@ -211,12 +221,3 @@ class MainWindow(QMainWindow):
             
             else:
                 a0.ignore()
-        
-
-if __name__ == "__main__":
-    import sys
-    from application import Application
-    
-    application = Application(sys.argv)
-    
-    sys.exit(application.exec())
