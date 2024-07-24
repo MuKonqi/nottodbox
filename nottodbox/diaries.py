@@ -38,10 +38,10 @@ from PyQt6.QtWidgets import *
 
 if locale.getlocale()[0].startswith("tr"):
     language = "tr"
-    translations = gettext.translation("nottodbox", "po", languages=["tr"], fallback=True)
+    translations = gettext.translation("nottodbox", "mo", languages=["tr"], fallback=True)
 else:
     language = "en"
-    translations = gettext.translation("nottodbox", "po", languages=["en"], fallback=True)
+    translations = gettext.translation("nottodbox", "mo", languages=["en"], fallback=True)
 translations.install()
 
 _ = translations.gettext
@@ -64,27 +64,32 @@ class SettingsDB:
         self.cur = self.db.cursor()
     
     def getSettings(self) -> tuple:
-        """Get required settings. If not any string, create them with default value."""
+        """
+        Get required settings. If not any string, create them with default value.
+
+        Returns:
+            str: Settings' values
+        """
         
         try:
             self.cur.execute(f"select value from settings where setting = 'diaries-autosave'")
-            self.get_autosave = self.cur.fetchone()[0]
+            self.setting_autosave = self.cur.fetchone()[0]
 
         except:
             self.cur.execute(f"insert into settings (setting, value) values ('diaries-autosave', 'true')")
             self.db.commit()
-            self.get_autosave = "true"
+            self.setting_autosave = "true"
         
         try:
             self.cur.execute(f"select value from settings where setting = 'diaries-format'")
-            self.get_format = self.cur.fetchone()[0]
+            self.setting_format = self.cur.fetchone()[0]
 
         except:
             self.cur.execute(f"insert into settings (setting, value) values ('diaries-format', 'markdown')")
             self.db.commit()
-            self.get_format = "markdown"
+            self.setting_format = "markdown"
     
-        return self.get_autosave, self.get_format
+        return self.setting_autosave, self.setting_format
     
     def setAutoSave(self, signal: Qt.CheckState | int) -> bool:
         """
@@ -97,22 +102,22 @@ class SettingsDB:
             bool: True if successful, False if unsuccesful
         """
         
-        global get_autosave
+        global setting_autosave
         
         if signal == Qt.CheckState.Unchecked or signal == 0:
-            get_autosave = "false"
+            setting_autosave = "false"
 
         elif signal == Qt.CheckState.Checked or signal == 2:
-            get_autosave = "true"
+            setting_autosave = "true"
             
-        self.cur.execute(f"update settings set value = '{get_autosave}' where setting = 'diaries-autosave'")
+        self.cur.execute(f"update settings set value = '{setting_autosave}' where setting = 'diaries-autosave'")
         self.db.commit()
         
         call = self.getSettings()
         
-        if call[0] == get_autosave:
+        if call[0] == setting_autosave:
             return True
-        elif call[0] == get_autosave:
+        elif call[0] == setting_autosave:
             return False
                 
     def setFormat(self, index: int) -> bool:
@@ -126,30 +131,30 @@ class SettingsDB:
             bool: True if successful, False if unsuccesful
         """
         
-        global get_format
+        global setting_format
         
         if index == 0:
-            get_format = "plain-text"
+            setting_format = "plain-text"
         
         elif index == 1:
-            get_format = "markdown"
+            setting_format = "markdown"
         
         elif index == 2:
-            get_format = "html"
+            setting_format = "html"
 
-        self.cur.execute(f"update settings set value = '{get_format}' where setting = 'diaries-format'")
+        self.cur.execute(f"update settings set value = '{setting_format}' where setting = 'diaries-format'")
         self.db.commit()
         
         call = self.getSettings()
         
-        if call[1] == get_format:
+        if call[1] == setting_format:
             return True
-        elif call[1] == get_format:
+        elif call[1] == setting_format:
             return False
     
 
 settingsdb = SettingsDB()
-get_autosave, get_format = settingsdb.getSettings()
+setting_autosave, setting_format = settingsdb.getSettings()
 
 
 class DiariesDB:
@@ -574,16 +579,16 @@ class DiariesTabWidget(QTabWidget):
         self.format = QComboBox(self)
         self.format.addItems([_("Format: Plain text"), _("Format: Markdown"), _("Format: HTML")])
         self.format.setEditable(False)
-        if get_format == "plain-text":
+        if setting_format == "plain-text":
             self.format.setCurrentIndex(0)
-        elif get_format == "markdown":
+        elif setting_format == "markdown":
             self.format.setCurrentIndex(1)
-        elif get_format == "html":
+        elif setting_format == "html":
             self.format.setCurrentIndex(2)
         self.format.currentIndexChanged.connect(self.setFormat)        
         
         self.autosave = QCheckBox(self, text=_("Enable auto-save"))
-        if get_autosave == "true":
+        if setting_autosave == "true":
             self.autosave.setChecked(True)
         self.autosave.setStatusTip(_("Auto-saves do not change backups."))
         try:
@@ -815,13 +820,13 @@ class DiariesTabWidget(QTabWidget):
             signal (Qt.CheckState | int): QCheckBox's signal.
         """
         
-        global get_autosave
+        global setting_autosave
         
         if signal == Qt.CheckState.Unchecked or signal == 0:
-            get_autosave = "false"
+            setting_autosave = "false"
 
         elif signal == Qt.CheckState.Checked or signal == 2:
-            get_autosave = "true"
+            setting_autosave = "true"
             
         call = settingsdb.setAutoSave(signal)
         
@@ -836,16 +841,16 @@ class DiariesTabWidget(QTabWidget):
             index (int): Selected index in QComboBox.
         """
         
-        global get_format
+        global setting_format
         
         if index == 0:
-            get_format = "plain-text"
+            setting_format = "plain-text"
         
         elif index == 1:
-            get_format = "markdown"
+            setting_format = "markdown"
         
         elif index == 2:
-            get_format = "html"
+            setting_format = "html"
             
         call = settingsdb.setFormat(index)
         
@@ -899,8 +904,8 @@ class DiariesDiary(QWidget):
         self.date = date
         self.database = database
         self.content = self.database.getContent(date)
-        self.get_autosave = get_autosave
-        self.get_format = get_format
+        self.setting_autosave = setting_autosave
+        self.setting_format = setting_format
         self.closable = True
         
         self.setLayout(QGridLayout(self))
@@ -909,7 +914,7 @@ class DiariesDiary(QWidget):
         self.autosave = QCheckBox(self)
         if QDate().fromString(self.date, "dd.MM.yyyy") == today:
             self.autosave.setText(_("Enable auto-save for this time"))
-            if get_autosave == "true":
+            if setting_autosave == "true":
                 self.autosave.setChecked(True)
             try:
                 self.autosave.checkStateChanged.connect(self.setAutoSave)
@@ -919,7 +924,7 @@ class DiariesDiary(QWidget):
             self.autosave.setText(_("Auto-saves disabled for old diaries"))
             self.autosave.setDisabled(True)
             
-            self.get_autosave = "false"
+            self.setting_autosave = "false"
         
         self.input = QTextEdit(self)
         self.input.setPlainText(self.content)
@@ -932,11 +937,11 @@ class DiariesDiary(QWidget):
                                _("Format for this time: Markdown"), 
                                _("Format for this time: HTML")])
         self.format.setEditable(False)
-        if self.get_format == "plain-text":
+        if self.setting_format == "plain-text":
             self.format.setCurrentIndex(0)
-        elif self.get_format == "markdown":
+        elif self.setting_format == "markdown":
             self.format.setCurrentIndex(1)
-        elif self.get_format == "html":
+        elif self.setting_format == "html":
             self.format.setCurrentIndex(2)
         self.format.currentIndexChanged.connect(self.setFormat)
         
@@ -962,7 +967,7 @@ class DiariesDiary(QWidget):
         
         self.closable = False
         
-        if not autosave or (autosave and self.get_autosave == "true"):
+        if not autosave or (autosave and self.setting_autosave == "true"):
             if QDate.fromString(self.date, "dd.MM.yyyy") != today:
                 question = QMessageBox.question(self, 
                                                 _("Question"),
@@ -995,10 +1000,10 @@ class DiariesDiary(QWidget):
         """
         
         if signal == Qt.CheckState.Unchecked or signal == 0:
-            self.get_autosave = "false"
+            self.setting_autosave = "false"
 
         elif signal == Qt.CheckState.Checked or signal == 2:
-            self.get_autosave = "true"
+            self.setting_autosave = "true"
 
     def setFormat(self, index: int) -> None:
         """Set format setting for only this page.
@@ -1008,13 +1013,13 @@ class DiariesDiary(QWidget):
         """
         
         if index == 0:
-            self.get_format = "plain-text"
+            self.setting_format = "plain-text"
         
         elif index == 1:
-            self.get_format = "markdown"
+            self.setting_format = "markdown"
         
         elif index == 2:
-            self.get_format = "html"
+            self.setting_format = "html"
             
         self.updateOutput(self.input.toPlainText())
             
@@ -1025,13 +1030,13 @@ class DiariesDiary(QWidget):
             text (str): Content
         """
         
-        if self.get_format == "plain-text":
+        if self.setting_format == "plain-text":
             self.output.setPlainText(text)
         
-        elif self.get_format == "markdown":
+        elif self.setting_format == "markdown":
             self.output.setMarkdown(text)
         
-        elif self.get_format == "html":
+        elif self.setting_format == "html":
             self.output.setHtml(text)
             
 
@@ -1050,7 +1055,7 @@ class DiariesBackup(QWidget):
         
         self.backup = diariesdb.getBackup(date)
         
-        self.get_format = get_format
+        self.setting_format = setting_format
         
         self.setLayout(QVBoxLayout(self))
         self.setStatusTip(_("Auto-saves do not change backups."))
@@ -1060,11 +1065,11 @@ class DiariesBackup(QWidget):
                                _("Format for this time: Markdown"), 
                                _("Format for this time: HTML")])
         self.format.setEditable(False)
-        if self.get_format == "plain-text":
+        if self.setting_format == "plain-text":
             self.format.setCurrentIndex(0)
-        elif self.get_format == "markdown":
+        elif self.setting_format == "markdown":
             self.format.setCurrentIndex(1)
-        elif self.get_format == "html":
+        elif self.setting_format == "html":
             self.format.setCurrentIndex(2)
         self.format.currentIndexChanged.connect(self.setFormat)
         
@@ -1087,13 +1092,13 @@ class DiariesBackup(QWidget):
         """
         
         if index == 0:
-            self.get_format = "plain-text"
+            self.setting_format = "plain-text"
         
         elif index == 1:
-            self.get_format = "markdown"
+            self.setting_format = "markdown"
         
         elif index == 2:
-            self.get_format = "html"
+            self.setting_format = "html"
             
         self.updateOutput(self.backup)
             
@@ -1104,13 +1109,13 @@ class DiariesBackup(QWidget):
             text (str): Content
         """
         
-        if self.get_format == "plain-text":
+        if self.setting_format == "plain-text":
             self.output.setPlainText(text)
         
-        elif self.get_format == "markdown":
+        elif self.setting_format == "markdown":
             self.output.setMarkdown(text)
         
-        elif self.get_format == "html":
+        elif self.setting_format == "html":
             self.output.setHtml(text)
 
 

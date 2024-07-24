@@ -27,10 +27,10 @@ from PyQt6.QtWidgets import *
 
 if locale.getlocale()[0].startswith("tr"):
     language = "tr"
-    translations = gettext.translation("nottodbox", "po", languages=["tr"], fallback=True)
+    translations = gettext.translation("nottodbox", "mo", languages=["tr"], fallback=True)
 else:
     language = "en"
-    translations = gettext.translation("nottodbox", "po", languages=["en"], fallback=True)
+    translations = gettext.translation("nottodbox", "mo", languages=["en"], fallback=True)
 translations.install()
 
 _ = translations.gettext
