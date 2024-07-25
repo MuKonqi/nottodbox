@@ -1,3 +1,4 @@
-nottodbox/__pycache__
-po/
-mo/
+.vscode/
+.build/
+builddir/
+po/template.pot

@@ -16,13 +16,8 @@
 # along with Nottodbox.  If not, see <https://www.gnu.org/licenses/>.
 
 
-if __name__ == "__main__":
-    import sys
-    from application import Application
-    
-    application = Application(sys.argv, 4)
-    
-    sys.exit(application.exec())
+import sys
+sys.dont_write_bytecode = True
 
 
 import locale
@@ -51,8 +46,6 @@ userdata = f"/home/{username}/.local/share/nottodbox/"
 
 
 settings = {
-    "general-language": language,
-    
     "mainwindow-unsaved": "true",
     "mainwindow-documentmode": "false",
 
@@ -236,7 +229,6 @@ class SettingsWidget(QWidget):
         self.setLayout(QHBoxLayout(self))
         
         self.stacked = QStackedWidget(self)
-        self.stacked.addWidget(SettingsGeneral(self, notes, diaries))
         self.stacked.addWidget(SettingsInterface(self, notes, diaries))
         self.stacked.addWidget(SettingsDocument(self, notes, diaries))
         self.stacked.addWidget(SettingsQuestions(self, notes, diaries))
@@ -245,9 +237,6 @@ class SettingsWidget(QWidget):
         self.list.setCurrentRow(0)
         self.list.setFixedWidth(144)
         self.list.currentRowChanged.connect(lambda: self.stacked.setCurrentIndex(self.list.currentRow()))
-        
-        self.list_general = QListWidgetItem(_("General"), self.list)
-        self.list_general.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
         
         self.list_interface = QListWidgetItem(_("Interface"), self.list)
         self.list_interface.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -258,7 +247,6 @@ class SettingsWidget(QWidget):
         self.list_questions = QListWidgetItem(_("Questions"), self.list)
         self.list_questions.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
         
-        self.list.addItem(self.list_general)
         self.list.addItem(self.list_interface)
         self.list.addItem(self.list_document)
         self.list.addItem(self.list_questions)
@@ -274,22 +262,6 @@ class SettingsWidget(QWidget):
         """
         
         self.stacked.setCurrentIndex(index)
-        
-    
-class SettingsGeneral(QWidget):
-    """Widget for general settings."""
-    
-    def __init__(self, parent: SettingsWidget, notes: NotesTabWidget, diaries: DiariesTabWidget):
-        """
-        Display a widget for setting general settings.
-
-        Args:
-            parent (SettingsWidget): Main settings widget
-            notes (NotesTabWidget): Notes tab widget
-            diaries (DiariesTabWidget): Diaries tab widget
-        """
-        
-        super().__init__(parent)
         
 
 class SettingsInterface(QWidget):

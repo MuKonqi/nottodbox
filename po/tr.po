@@ -1,0 +1,784 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the Nottodbox package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: 0.1.0\n"
+"Report-Msgid-Bugs-To: https://github.com/mukonqi/nottodbox/issuses\n"
+"POT-Creation-Date: 2024-07-26 00:43+0300\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: data/io.github.mukonqi.nottodbox.desktop.in.in:3
+msgid "Nottodbox"
+msgstr ""
+
+#: data/io.github.mukonqi.nottodbox.desktop.in.in:4
+msgid "Edit notes, todos lists and diaries"
+msgstr ""
+
+#: data/io.github.mukonqi.nottodbox.desktop.in.in:17 nottodbox/diaries.py:596
+#: nottodbox/mainwindow.py:72 nottodbox/notes.py:572 nottodbox/todos.py:574
+msgid "Home"
+msgstr ""
+
+#: data/io.github.mukonqi.nottodbox.desktop.in.in:21 nottodbox/mainwindow.py:73
+#: nottodbox/notes.py:1153
+msgid "Notes"
+msgstr ""
+
+#: data/io.github.mukonqi.nottodbox.desktop.in.in:25 nottodbox/mainwindow.py:74
+msgid "Todos"
+msgstr ""
+
+#: data/io.github.mukonqi.nottodbox.desktop.in.in:29 nottodbox/diaries.py:1140
+#: nottodbox/mainwindow.py:75
+msgid "Diaries"
+msgstr ""
+
+#: data/io.github.mukonqi.nottodbox.desktop.in.in:32 nottodbox/mainwindow.py:76
+msgid "Settings"
+msgstr ""
+
+#: nottodbox/diaries.py:523 nottodbox/diaries.py:734 nottodbox/diaries.py:736
+#: nottodbox/notes.py:509 nottodbox/notes.py:716 nottodbox/notes.py:720
+msgid "Edited: "
+msgstr ""
+
+#: nottodbox/diaries.py:527
+msgid "Come back to today"
+msgstr ""
+
+#: nottodbox/diaries.py:531 nottodbox/diaries.py:873
+#, python-brace-format
+msgid "Update today variable (it is {date})"
+msgstr ""
+
+#: nottodbox/diaries.py:538
+msgid "Open/create diary"
+msgstr ""
+
+#: nottodbox/diaries.py:542 nottodbox/notes.py:521
+msgid "Show backup"
+msgstr ""
+
+#: nottodbox/diaries.py:546 nottodbox/diaries.py:1066 nottodbox/notes.py:524
+#: nottodbox/notes.py:1045
+msgid "Restore content"
+msgstr ""
+
+#: nottodbox/diaries.py:550 nottodbox/notes.py:527
+msgid "Delete content"
+msgstr ""
+
+#: nottodbox/diaries.py:554
+msgid "Delete diary"
+msgstr ""
+
+#: nottodbox/diaries.py:558
+msgid "Delete all diaries"
+msgstr ""
+
+#: nottodbox/diaries.py:563 nottodbox/notes.py:537
+msgid "Format: Plain text"
+msgstr ""
+
+#: nottodbox/diaries.py:563 nottodbox/notes.py:537
+msgid "Format: Markdown"
+msgstr ""
+
+#: nottodbox/diaries.py:563 nottodbox/notes.py:537
+msgid "Format: HTML"
+msgstr ""
+
+#: nottodbox/diaries.py:573 nottodbox/notes.py:547
+msgid "Enable auto-save"
+msgstr ""
+
+#: nottodbox/diaries.py:576 nottodbox/diaries.py:898 nottodbox/diaries.py:1047
+#: nottodbox/notes.py:550 nottodbox/notes.py:891 nottodbox/notes.py:1026
+msgid "Auto-saves do not change backups."
+msgstr ""
+
+#: nottodbox/diaries.py:617 nottodbox/diaries.py:649 nottodbox/diaries.py:672
+#: nottodbox/diaries.py:683 nottodbox/diaries.py:695 nottodbox/diaries.py:706
+#: nottodbox/diaries.py:719 nottodbox/diaries.py:746 nottodbox/diaries.py:752
+#: nottodbox/diaries.py:774 nottodbox/diaries.py:796 nottodbox/diaries.py:799
+#: nottodbox/diaries.py:855 nottodbox/diaries.py:979
+#: nottodbox/mainwindow.py:184 nottodbox/mainwindow.py:190
+#: nottodbox/mainwindow.py:196 nottodbox/mainwindow.py:202
+#: nottodbox/notes.py:593 nottodbox/notes.py:627 nottodbox/notes.py:651
+#: nottodbox/notes.py:662 nottodbox/notes.py:674 nottodbox/notes.py:685
+#: nottodbox/notes.py:699 nottodbox/notes.py:732 nottodbox/notes.py:752
+#: nottodbox/notes.py:772 nottodbox/notes.py:775 nottodbox/notes.py:786
+#: nottodbox/notes.py:799 nottodbox/notes.py:802 nottodbox/notes.py:858
+#: nottodbox/notes.py:958 nottodbox/todos.py:169 nottodbox/todos.py:187
+#: nottodbox/todos.py:279 nottodbox/todos.py:284 nottodbox/todos.py:308
+#: nottodbox/todos.py:312 nottodbox/todos.py:336 nottodbox/todos.py:340
+#: nottodbox/todos.py:354 nottodbox/todos.py:369 nottodbox/todos.py:373
+#: nottodbox/todos.py:409 nottodbox/todos.py:412 nottodbox/todos.py:416
+#: nottodbox/todos.py:436 nottodbox/todos.py:463 nottodbox/todos.py:612
+#: nottodbox/todos.py:619 nottodbox/todos.py:636 nottodbox/todos.py:654
+#: nottodbox/todos.py:671 nottodbox/todos.py:674 nottodbox/todos.py:678
+#: nottodbox/todos.py:710 nottodbox/todos.py:713 nottodbox/todos.py:717
+#: nottodbox/todos.py:748 nottodbox/todos.py:783
+msgid "Error"
+msgstr ""
+
+#: nottodbox/diaries.py:617
+#, python-brace-format
+msgid "There is no diary called {date}."
+msgstr ""
+
+#: nottodbox/diaries.py:633 nottodbox/diaries.py:782 nottodbox/diaries.py:959
+#: nottodbox/mainwindow.py:152 nottodbox/notes.py:609
+msgid "Question"
+msgstr ""
+
+#: nottodbox/diaries.py:634
+#, python-brace-format
+msgid ""
+"{date} diary not saved.\n"
+"Do you want to directly closing or closing after saving it or cancel?"
+msgstr ""
+
+#: nottodbox/diaries.py:649 nottodbox/diaries.py:979
+#, python-brace-format
+msgid "Failed to save {date} diary."
+msgstr ""
+
+#: nottodbox/diaries.py:670 nottodbox/diaries.py:693 nottodbox/diaries.py:717
+#: nottodbox/diaries.py:793 nottodbox/diaries.py:976
+#: nottodbox/mainwindow.py:178 nottodbox/mainwindow.py:188
+#: nottodbox/mainwindow.py:194 nottodbox/mainwindow.py:200
+#: nottodbox/notes.py:649 nottodbox/notes.py:672 nottodbox/notes.py:697
+#: nottodbox/notes.py:769 nottodbox/notes.py:796 nottodbox/notes.py:955
+#: nottodbox/todos.py:167 nottodbox/todos.py:185 nottodbox/todos.py:306
+#: nottodbox/todos.py:334 nottodbox/todos.py:367 nottodbox/todos.py:404
+#: nottodbox/todos.py:434 nottodbox/todos.py:461 nottodbox/todos.py:668
+#: nottodbox/todos.py:707 nottodbox/todos.py:745 nottodbox/todos.py:780
+msgid "Successful"
+msgstr ""
+
+#: nottodbox/diaries.py:670
+msgid "All diaries deleted."
+msgstr ""
+
+#: nottodbox/diaries.py:672
+msgid "Failed to delete all diaries."
+msgstr ""
+
+#: nottodbox/diaries.py:683 nottodbox/diaries.py:706 nottodbox/diaries.py:746
+#: nottodbox/diaries.py:774 nottodbox/diaries.py:855
+msgid "Diary date can not be blank."
+msgstr ""
+
+#: nottodbox/diaries.py:693
+#, python-brace-format
+msgid "Content of {date} diary deleted."
+msgstr ""
+
+#: nottodbox/diaries.py:695
+#, python-brace-format
+msgid "Failed to delete content of {date} diary."
+msgstr ""
+
+#: nottodbox/diaries.py:717
+#, python-brace-format
+msgid "{date} diary deleted."
+msgstr ""
+
+#: nottodbox/diaries.py:719
+#, python-brace-format
+msgid "Failed to delete {date} diary."
+msgstr ""
+
+#: nottodbox/diaries.py:752
+msgid "You can not create a diary for past."
+msgstr ""
+
+#: nottodbox/diaries.py:783
+msgid ""
+"Diaries are special for that day, editing an old diary can take away the "
+"meaning of the diary.\n"
+"So, are you sure you want to restoring content of it?"
+msgstr ""
+
+#: nottodbox/diaries.py:793
+#, python-brace-format
+msgid "Backup of {date} diary restored."
+msgstr ""
+
+#: nottodbox/diaries.py:796
+#, python-brace-format
+msgid "There is no backup for {date} diary."
+msgstr ""
+
+#: nottodbox/diaries.py:799
+#, python-brace-format
+msgid "Failed to restore backup of {date} diary."
+msgstr ""
+
+#: nottodbox/diaries.py:820 nottodbox/diaries.py:844 nottodbox/notes.py:823
+#: nottodbox/notes.py:847
+msgid "Erorr"
+msgstr ""
+
+#: nottodbox/diaries.py:820 nottodbox/notes.py:823
+msgid "Failed to set auto-save setting."
+msgstr ""
+
+#: nottodbox/diaries.py:844 nottodbox/notes.py:847
+msgid "Failed to set format setting."
+msgstr ""
+
+#: nottodbox/diaries.py:861 nottodbox/diaries.py:863 nottodbox/notes.py:864
+#: nottodbox/notes.py:866
+msgid "(Backup)"
+msgstr ""
+
+#: nottodbox/diaries.py:902 nottodbox/notes.py:893
+msgid "Enable auto-save for this time"
+msgstr ""
+
+#: nottodbox/diaries.py:910
+msgid "Auto-saves disabled for old diaries"
+msgstr ""
+
+#: nottodbox/diaries.py:922 nottodbox/diaries.py:1050 nottodbox/notes.py:908
+#: nottodbox/notes.py:1029
+msgid "Format for this time: Plain text"
+msgstr ""
+
+#: nottodbox/diaries.py:923 nottodbox/diaries.py:1051 nottodbox/notes.py:909
+#: nottodbox/notes.py:1030
+msgid "Format for this time: Markdown"
+msgstr ""
+
+#: nottodbox/diaries.py:924 nottodbox/diaries.py:1052 nottodbox/notes.py:910
+#: nottodbox/notes.py:1031
+msgid "Format for this time: HTML"
+msgstr ""
+
+#: nottodbox/diaries.py:938 nottodbox/notes.py:924
+msgid "Save"
+msgstr ""
+
+#: nottodbox/diaries.py:960
+msgid ""
+"Diaries are special for that day, editing an old diary can take away the "
+"meaning of the diary.\n"
+"So, are you sure you want to save it?"
+msgstr ""
+
+#: nottodbox/diaries.py:976
+#, python-brace-format
+msgid "Diary {date} saved."
+msgstr ""
+
+#: nottodbox/diaries.py:1123
+msgid "Double-click on top to opening a diary."
+msgstr ""
+
+#: nottodbox/home.py:62
+#, python-brace-format
+msgid "Welcome {username}!"
+msgstr ""
+
+#: nottodbox/home.py:107
+#, python-brace-format
+msgid "Your Diary for {date}"
+msgstr ""
+
+#: nottodbox/home.py:112
+msgid "List of Your Main Todos"
+msgstr ""
+
+#: nottodbox/home.py:117
+msgid "List of Your Todolists"
+msgstr ""
+
+#: nottodbox/home.py:123
+msgid "List of Your Notes"
+msgstr ""
+
+#: nottodbox/mainwindow.py:62
+msgid "Sidebar"
+msgstr ""
+
+#: nottodbox/mainwindow.py:63
+msgid "Show"
+msgstr ""
+
+#: nottodbox/mainwindow.py:64
+msgid "Close"
+msgstr ""
+
+#: nottodbox/mainwindow.py:79
+msgid "List of Opened Pages"
+msgstr ""
+
+#: nottodbox/mainwindow.py:92
+msgid "Copyright (C) 2024 MuKonqi (Muhammed S.), licensed under GPLv3 or later"
+msgstr ""
+
+#: nottodbox/mainwindow.py:117 nottodbox/mainwindow.py:118
+#: nottodbox/sidebar.py:91
+msgid "Note"
+msgstr ""
+
+#: nottodbox/mainwindow.py:117 nottodbox/mainwindow.py:124
+#: nottodbox/sidebar.py:93 nottodbox/sidebar.py:94 nottodbox/sidebar.py:107
+#: nottodbox/sidebar.py:108
+msgid " (Backup)"
+msgstr ""
+
+#: nottodbox/mainwindow.py:122
+msgid "notes"
+msgstr ""
+
+#: nottodbox/mainwindow.py:124
+msgid "Diary"
+msgstr ""
+
+#: nottodbox/mainwindow.py:125 nottodbox/sidebar.py:105
+msgid "Diary for"
+msgstr ""
+
+#: nottodbox/mainwindow.py:130 nottodbox/mainwindow.py:137
+msgid " and diaries"
+msgstr ""
+
+#: nottodbox/mainwindow.py:132 nottodbox/mainwindow.py:136
+#: nottodbox/mainwindow.py:139
+msgid "diaries"
+msgstr ""
+
+#: nottodbox/mainwindow.py:153
+#, python-brace-format
+msgid ""
+"Some {pages} are not saved.\n"
+"Do you want to directly closing or closing after saving them or cancel?"
+msgstr ""
+
+#: nottodbox/mainwindow.py:178
+msgid "All open notes and open diaries saved."
+msgstr ""
+
+#: nottodbox/mainwindow.py:180 nottodbox/mainwindow.py:182
+msgid "Warning"
+msgstr ""
+
+#: nottodbox/mainwindow.py:180
+msgid "All open notes saved but failed to save all open diaries."
+msgstr ""
+
+#: nottodbox/mainwindow.py:182
+msgid "All open diaries saved but failed to save all open notes."
+msgstr ""
+
+#: nottodbox/mainwindow.py:184
+msgid "Failed to save all open notes and open diaries."
+msgstr ""
+
+#: nottodbox/mainwindow.py:188
+msgid "All open notes saved."
+msgstr ""
+
+#: nottodbox/mainwindow.py:190
+msgid "Failed to save all open notes."
+msgstr ""
+
+#: nottodbox/mainwindow.py:194
+msgid "All open diaries saved."
+msgstr ""
+
+#: nottodbox/mainwindow.py:196
+msgid "Failed to save all open diaries."
+msgstr ""
+
+#: nottodbox/mainwindow.py:200
+#, python-brace-format
+msgid "Diary for {date} saved."
+msgstr ""
+
+#: nottodbox/mainwindow.py:202
+#, python-brace-format
+msgid "Failed to save diary for {date}."
+msgstr ""
+
+#: nottodbox/notes.py:502
+msgid "Clear"
+msgstr ""
+
+#: nottodbox/notes.py:507 nottodbox/notes.py:715 nottodbox/notes.py:719
+msgid "Created: "
+msgstr ""
+
+#: nottodbox/notes.py:515
+msgid "Open/create note"
+msgstr ""
+
+#: nottodbox/notes.py:518
+msgid "Rename note"
+msgstr ""
+
+#: nottodbox/notes.py:530
+msgid "Delete note"
+msgstr ""
+
+#: nottodbox/notes.py:533
+msgid "Delete all notes"
+msgstr ""
+
+#: nottodbox/notes.py:593
+#, python-brace-format
+msgid "There is no note called {name}."
+msgstr ""
+
+#: nottodbox/notes.py:610
+#, python-brace-format
+msgid ""
+"{name} note not saved.\n"
+"Do you want to directly closing or closing after saving it or cancel?"
+msgstr ""
+
+#: nottodbox/notes.py:627 nottodbox/notes.py:958
+#, python-brace-format
+msgid "Failed to save {name} note."
+msgstr ""
+
+#: nottodbox/notes.py:649
+msgid "All notes deleted."
+msgstr ""
+
+#: nottodbox/notes.py:651
+msgid "Failed to delete all notes."
+msgstr ""
+
+#: nottodbox/notes.py:662 nottodbox/notes.py:685 nottodbox/notes.py:732
+#: nottodbox/notes.py:752 nottodbox/notes.py:786 nottodbox/notes.py:858
+msgid "Note name can not be blank."
+msgstr ""
+
+#: nottodbox/notes.py:672
+#, python-brace-format
+msgid "Content of {name} note deleted."
+msgstr ""
+
+#: nottodbox/notes.py:674
+#, python-brace-format
+msgid "Failed to delete content of {name} note."
+msgstr ""
+
+#: nottodbox/notes.py:697
+#, python-brace-format
+msgid "{name} note deleted."
+msgstr ""
+
+#: nottodbox/notes.py:699
+#, python-brace-format
+msgid "Failed to delete {name} note."
+msgstr ""
+
+#: nottodbox/notes.py:759
+#, python-brace-format
+msgid "Rename {name} Note"
+msgstr ""
+
+#: nottodbox/notes.py:760
+#, python-brace-format
+msgid "Please enter a new name for {name} below."
+msgstr ""
+
+#: nottodbox/notes.py:769
+#, python-brace-format
+msgid "{name} note renamed as {newname}."
+msgstr ""
+
+#: nottodbox/notes.py:772 nottodbox/notes.py:775
+#, python-brace-format
+msgid "Failed to rename {name} note."
+msgstr ""
+
+#: nottodbox/notes.py:796
+#, python-brace-format
+msgid "Backup of {name} note restored."
+msgstr ""
+
+#: nottodbox/notes.py:799
+#, python-brace-format
+msgid "There is no backup for {name} note."
+msgstr ""
+
+#: nottodbox/notes.py:802
+#, python-brace-format
+msgid "Failed to restore backup of {name} note."
+msgstr ""
+
+#: nottodbox/notes.py:955
+#, python-brace-format
+msgid "Note {name} saved."
+msgstr ""
+
+#: nottodbox/settings.py:241
+msgid "Interface"
+msgstr ""
+
+#: nottodbox/settings.py:244
+msgid "Document"
+msgstr ""
+
+#: nottodbox/settings.py:247
+msgid "Questions"
+msgstr ""
+
+#: nottodbox/sidebar.py:74
+msgid "Double-click to going to selected open page."
+msgstr ""
+
+#: nottodbox/sidebar.py:100
+msgid "Todo list"
+msgstr ""
+
+#: nottodbox/sidebar.py:127 nottodbox/sidebar.py:128 nottodbox/sidebar.py:152
+#: nottodbox/sidebar.py:154
+#, python-brace-format
+msgid "Note: {name}"
+msgstr ""
+
+#: nottodbox/sidebar.py:131 nottodbox/sidebar.py:132 nottodbox/sidebar.py:159
+#: nottodbox/sidebar.py:160
+#, python-brace-format
+msgid "Todo list: {todolist}"
+msgstr ""
+
+#: nottodbox/sidebar.py:135 nottodbox/sidebar.py:136 nottodbox/sidebar.py:163
+#: nottodbox/sidebar.py:165
+#, python-brace-format
+msgid "Diary for: {date}"
+msgstr ""
+
+#: nottodbox/todos.py:98
+msgid "Double-click to marking a todo as completed/uncompleted."
+msgstr ""
+
+#: nottodbox/todos.py:167 nottodbox/todos.py:306
+#, python-brace-format
+msgid "{todo} in {todolist} marked as completed."
+msgstr ""
+
+#: nottodbox/todos.py:169 nottodbox/todos.py:308
+#, python-brace-format
+msgid "Failed to mark {todo} in {todolist} as completed."
+msgstr ""
+
+#: nottodbox/todos.py:185 nottodbox/todos.py:334
+#, python-brace-format
+msgid "{todo} in {todolist} marked as uncompleted."
+msgstr ""
+
+#: nottodbox/todos.py:187 nottodbox/todos.py:336
+#, python-brace-format
+msgid "Failed to mark {todo} in {todolist} as uncompleted."
+msgstr ""
+
+#: nottodbox/todos.py:197
+msgid "Double-click on list to marking a todo as completed/uncompleted."
+msgstr ""
+
+#: nottodbox/todos.py:200
+msgid "Started:"
+msgstr ""
+
+#: nottodbox/todos.py:202
+msgid "Completed:"
+msgstr ""
+
+#: nottodbox/todos.py:207
+msgid "Type a todo"
+msgstr ""
+
+#: nottodbox/todos.py:213
+msgid "Mark as completed"
+msgstr ""
+
+#: nottodbox/todos.py:217
+msgid "Mark as uncompleted"
+msgstr ""
+
+#: nottodbox/todos.py:220 nottodbox/todos.py:550
+msgid "Add"
+msgstr ""
+
+#: nottodbox/todos.py:224
+msgid "Edit"
+msgstr ""
+
+#: nottodbox/todos.py:227 nottodbox/todos.py:557
+msgid "Delete"
+msgstr ""
+
+#: nottodbox/todos.py:230 nottodbox/todos.py:560
+msgid "Delete All"
+msgstr ""
+
+#: nottodbox/todos.py:279
+#, python-brace-format
+msgid "There is no todo in {todolist} list called {todo}."
+msgstr ""
+
+#: nottodbox/todos.py:284 nottodbox/todos.py:312 nottodbox/todos.py:340
+#: nottodbox/todos.py:373 nottodbox/todos.py:416
+msgid "Todo can not be blank."
+msgstr ""
+
+#: nottodbox/todos.py:354
+#, python-brace-format
+msgid "{todo} todo already added to {todolist}."
+msgstr ""
+
+#: nottodbox/todos.py:367
+#, python-brace-format
+msgid "{todo} added to {todolist}."
+msgstr ""
+
+#: nottodbox/todos.py:369
+#, python-brace-format
+msgid "Failed to add {todo} to {todolist}."
+msgstr ""
+
+#: nottodbox/todos.py:383
+#, python-brace-format
+msgid "Edit {todo} todo in {todolist}"
+msgstr ""
+
+#: nottodbox/todos.py:384
+#, python-brace-format
+msgid "Please enter a todo for {todo} in {todolist} below."
+msgstr ""
+
+#: nottodbox/todos.py:405
+#, python-brace-format
+msgid "{todo} todo in {todolist} edited as {newtodo}."
+msgstr ""
+
+#: nottodbox/todos.py:409 nottodbox/todos.py:412
+#, python-brace-format
+msgid "Failed to edit {todo} todo in {todolist}."
+msgstr ""
+
+#: nottodbox/todos.py:434
+#, python-brace-format
+msgid "{todo} todo in {todolist} deleted."
+msgstr ""
+
+#: nottodbox/todos.py:436
+#, python-brace-format
+msgid "Failed to delete {todo} todo in {todolist}."
+msgstr ""
+
+#: nottodbox/todos.py:461
+#, python-brace-format
+msgid "All todos in {todolist} deleted."
+msgstr ""
+
+#: nottodbox/todos.py:463
+#, python-brace-format
+msgid "Failed to delete all todos in {todolist}."
+msgstr ""
+
+#: nottodbox/todos.py:475
+msgid "Double-click to opening a todolist."
+msgstr ""
+
+#: nottodbox/todos.py:533
+msgid "Double-click on list to opening a todolist."
+msgstr ""
+
+#: nottodbox/todos.py:536
+msgid "Created:"
+msgstr ""
+
+#: nottodbox/todos.py:541
+msgid "Type a todolist name"
+msgstr ""
+
+#: nottodbox/todos.py:547
+msgid "Open"
+msgstr ""
+
+#: nottodbox/todos.py:554
+msgid "Rename"
+msgstr ""
+
+#: nottodbox/todos.py:612
+#, python-brace-format
+msgid "There is no todo list called {todolist}."
+msgstr ""
+
+#: nottodbox/todos.py:619 nottodbox/todos.py:636 nottodbox/todos.py:678
+#: nottodbox/todos.py:717
+msgid "Todo list name can not be blank or main."
+msgstr ""
+
+#: nottodbox/todos.py:654
+#, python-brace-format
+msgid "{todolist} list already exist."
+msgstr ""
+
+#: nottodbox/todos.py:668
+#, python-brace-format
+msgid "{todolist} list added."
+msgstr ""
+
+#: nottodbox/todos.py:671 nottodbox/todos.py:674
+#, python-brace-format
+msgid "Failed to add {todolist} list."
+msgstr ""
+
+#: nottodbox/todos.py:685
+#, python-brace-format
+msgid "Rename {todolist} List"
+msgstr ""
+
+#: nottodbox/todos.py:686
+#, python-brace-format
+msgid "Please enter a new name for {todolist} list below."
+msgstr ""
+
+#: nottodbox/todos.py:707
+#, python-brace-format
+msgid "{todolist} list renamed as {newname}."
+msgstr ""
+
+#: nottodbox/todos.py:710 nottodbox/todos.py:713
+#, python-brace-format
+msgid "Failed to rename {todolist} list."
+msgstr ""
+
+#: nottodbox/todos.py:745
+#, python-brace-format
+msgid "{todolist} list deleted."
+msgstr ""
+
+#: nottodbox/todos.py:748
+#, python-brace-format
+msgid "Failed to delete {todolist} list."
+msgstr ""
+
+#: nottodbox/todos.py:780
+msgid "All todolists deleted."
+msgstr ""
+
+#: nottodbox/todos.py:783
+msgid "Failed to delete all todolists."
+msgstr ""

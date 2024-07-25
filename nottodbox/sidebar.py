@@ -16,13 +16,8 @@
 # along with Nottodbox.  If not, see <https://www.gnu.org/licenses/>.
 
 
-if __name__ == "__main__":
-    import sys
-    from application import Application
-    
-    application = Application(sys.argv)
-    
-    sys.exit(application.exec())
+import sys
+sys.dont_write_bytecode = True
 
 
 import locale

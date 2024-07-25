@@ -1,7 +1,7 @@
 # Nottodbox (pre-alpha)
 
 <p align="center"><img src="https://github.com/mukonqi/nottodbox/blob/main/data/icons/hicolor/scalable/apps/nottodbox.svg?raw=true" alt="Nottodbox Icon"></img></a></p>
-<p align="center"><img src="https://img.shields.io/badge/Create notes, todo lists, diaries-376296" alt="Create notes, todo lists, diaries."></img></p>
+<p align="center"><img src="https://img.shields.io/badge/Edit notes, todo lists and diaries-376296" alt="Edit notes, todo lists and diaries"></img></p>
 <p align="center"><img src="https://img.shields.io/github/downloads/mukonqi/nottodbox/total?label=Downloads" alt="GitHub Downloads"></img></p>
 <p align="center"><img src="https://img.shields.io/github/v/release/mukonqi/nottodbox?label=Latest Release" alt="GitHub Release"></p>
 
@@ -10,8 +10,22 @@
 TBA
 
 
-## Bulding
-TBA
+## Building
+### Dependencies
+- Python3
+- Python modules: sys, locale, gettext, getpass, os, sqlite3, typing, datetime, PyQt6 (they are generally built-in except PyQt6)
+- git version control system (for downloading)
+- meson build system
+- ninja build system
+
+### Commands
+- Note: Do not forget to install dependencies.
+```
+    git clone https://github.com/mukonqi/nottodbox.git
+    meson setup . .build
+    ninja -C .build
+    ninja -C .build install
+```
 
 
 ## Installing
@@ -19,10 +33,10 @@ TBA
 
 
 ## Contributing
-- Developing
+### For devoloping
 TBA
 
-- Translation
+### For translating
 TBA
 
 

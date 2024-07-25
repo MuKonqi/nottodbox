@@ -30,15 +30,15 @@ This art is a part of Nottodbox. -->
      inkscape:document-units="px"
      shape-rendering="auto"
      inkscape:clip-to-page="false"
-     inkscape:zoom="11.313709"
-     inkscape:cx="13.965358"
-     inkscape:cy="17.147339"
+     inkscape:zoom="32.000001"
+     inkscape:cx="25.343749"
+     inkscape:cy="18.687499"
      inkscape:window-width="1920"
      inkscape:window-height="1016"
      inkscape:window-x="0"
      inkscape:window-y="0"
      inkscape:window-maximized="1"
-     inkscape:current-layer="layer7"
+     inkscape:current-layer="layer2"
      showguides="true">
     <sodipodi:guide
        position="3.175,3.175"
@@ -90,7 +90,7 @@ This art is a part of Nottodbox. -->
        inkscape:locked="false"
        inkscape:color="rgb(0,134,229)" />
     <sodipodi:guide
-       position="10.800292,7.3025"
+       position="8.2005327,8.0025156"
        orientation="0.25881905,0.96592583"
        id="guide20"
        inkscape:label=""
@@ -269,7 +269,7 @@ This art is a part of Nottodbox. -->
        style="opacity:1;fill:#ffcc00;fill-opacity:1;stroke-width:0.264583"
        id="path17"
        cx="7.8713541"
-       cy="4.6963544"
+       cy="4.8286457"
        r="0.52916664"
        inkscape:label="Sun" />
     <rect
@@ -277,7 +277,7 @@ This art is a part of Nottodbox. -->
        id="rect18"
        width="0.06614583"
        height="0.26458332"
-       x="-4.7294269"
+       x="-4.8617187"
        y="6.9453125"
        transform="rotate(-90)"
        inkscape:label="Line Left" />
@@ -287,14 +287,14 @@ This art is a part of Nottodbox. -->
        width="0.06614583"
        height="0.26458332"
        x="7.8382812"
-       y="5.3578124"
+       y="5.4901042"
        inkscape:label="Line Bottom" />
     <rect
        style="opacity:1;fill:#000000;fill-opacity:1;stroke-width:0.264583"
        id="rect3"
        width="0.06614583"
        height="0.26458332"
-       x="-4.7294269"
+       x="-4.8617187"
        y="8.5328121"
        transform="rotate(-90)"
        inkscape:label="Line Right" />
@@ -304,7 +304,7 @@ This art is a part of Nottodbox. -->
        width="0.06614583"
        height="0.26458332"
        x="7.8382812"
-       y="3.7703125"
+       y="3.9026041"
        inkscape:label="Line Top" />
   </g>
   <g

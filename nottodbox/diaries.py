@@ -16,35 +16,19 @@
 # along with Nottodbox.  If not, see <https://www.gnu.org/licenses/>.
 
 
-if __name__ == "__main__":
-    import sys
-    from application import Application
-    
-    application = Application(sys.argv, 3)
-    
-    sys.exit(application.exec())
+import sys
+sys.dont_write_bytecode = True
 
 
-import locale
-import gettext
 import getpass
 import sqlite3
 import datetime
+from gettext import gettext as _
 from sidebar import SidebarListView
 from PyQt6.QtGui import QMouseEvent, QPainter, QColor
 from PyQt6.QtCore import Qt, QDate, QRect, QPoint
 from PyQt6.QtWidgets import *
 
-
-if locale.getlocale()[0].startswith("tr"):
-    language = "tr"
-    translations = gettext.translation("nottodbox", "mo", languages=["tr"], fallback=True)
-else:
-    language = "en"
-    translations = gettext.translation("nottodbox", "mo", languages=["en"], fallback=True)
-translations.install()
-
-_ = translations.gettext
 
 diaries = {}
 today = QDate.currentDate()

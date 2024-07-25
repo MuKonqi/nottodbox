@@ -1,0 +1,32 @@
+[Desktop Entry],
+Name=Nottodbox
+Comment=Edit notes, todos lists and diaries
+
+Type=Application
+Exec=@BINDIR@/nottodbox
+Version=@VERSION@
+Terminal=false
+Icon=io.github.mukonqi.nottodbox
+
+Categories=Utility;Office;TextEditor;Qt;
+Actions=Home;Notes;Todos;Diaries;Settings;
+
+[Desktop Action Home]
+Exec=nottodbox --home
+Name=Home
+
+[Desktop Action Notes]
+Exec=nottodbox --notes
+Name=Notes
+
+[Desktop Action Todos]
+Exec=nottodbox --todos
+Name=Todos
+
+[Desktop Action Diaries]
+Exec=nottodbox --diaries
+Name=Diaries
+
+[Desktop Action Settings]
+Exec=nottodbox --settings
+Name=Settings
