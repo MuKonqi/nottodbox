@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 # Copyright (C) 2024 MuKonqi (Muhammed S.)
 
 # Nottodbox is free software: you can redistribute it and/or modify
@@ -52,7 +50,7 @@ class SidebarDB:
             module (str): Module
 
         Returns:
-            bool: True if successful, False if unsuccessful
+            bool: True if successful, False if not
         """
         
         try:
@@ -131,7 +129,7 @@ class SidebarDB:
             name (str): Page name
 
         Returns:
-            bool: True if successful, False if unsuccessful
+            bool: True if successful, False if not
         """
         
         call = self.checkIfThePageExists(page)
@@ -164,7 +162,7 @@ class SidebarDB:
         """Recreates the pages table.
 
         Returns:
-            bool: True if successful, False if unsuccessful
+            bool: True if successful, False if not
         """
         
         self.cur.execute(f"DROP TABLE IF EXISTS pages")
@@ -294,7 +292,7 @@ class SidebarWidget(QWidget):
         elif target == self.diaries:
             module = "diaries"
             
-            stringlist.append(_("Diary for: {date}").format(date = text))
+            stringlist.append(_("Diary: {date}").format(date = text))
             
         if not text.endswith(_(" (Backup)")):
             call = sidebardb.addPage(text, module)
@@ -331,8 +329,8 @@ class SidebarWidget(QWidget):
         elif key.startswith(_("Todo list: ")):
             length = len(_("Todo list: "))
 
-        elif key.startswith(_("Diary for: ")):
-            length = len(_("Diary for: "))
+        elif key.startswith(_("Diary: ")):
+            length = len(_("Diary: "))
         
         call = sidebardb.deletePage(key[length:])
         
@@ -365,8 +363,8 @@ class SidebarWidget(QWidget):
             
             self.todos.open(key[length:])
 
-        elif key.startswith(_("Diary for: ")):
-            length = len(_("Diary for: "))
+        elif key.startswith(_("Diary: ")):
+            length = len(_("Diary: "))
             
             if key.endswith(_(" (Backup)")):
                 self.diaries.showBackup(key[length:].replace(_(" (Backup)"), ""))
@@ -386,7 +384,7 @@ class SidebarWidget(QWidget):
             if module == "todos":
                 pages.append(_("Todo list: {page}").format(page = page))
             if module == "diaries":
-                pages.append(_("Diary for: {page}").format(page = page))
+                pages.append(_("Diary: {page}").format(page = page))
             
         self.model2.setStringList(pages)
         
@@ -408,7 +406,7 @@ class SidebarWidget(QWidget):
             stringlist.remove(_("Todo list: {todolist}").format(todolist = text))
             
         elif target == self.diaries:
-            stringlist.remove(_("Diary for: {date}").format(date = text))
+            stringlist.remove(_("Diary: {date}").format(date = text))
         
         self.model1.setStringList(stringlist)
         

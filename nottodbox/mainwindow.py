@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 # Copyright (C) 2024 MuKonqi (Muhammed S.)
 
 # Nottodbox is free software: you can redistribute it and/or modify
@@ -36,7 +34,7 @@ from sidebar import SidebarWidget
 from settings import SettingsScrollArea, settings
 from home import HomeScrollArea
 from notes import NotesTabWidget, notesdb, notes
-from todos import Todos
+from todos import TodosTabWidget
 from diaries import DiariesTabWidget, today, diariesdb, diaries
 
 
@@ -64,7 +62,7 @@ class MainWindow(QMainWindow):
         self.menu_sidebar.addAction(_("Close"), lambda: self.removeDockWidget(self.dock))
 
         self.notes = NotesTabWidget(self)
-        self.todos = Todos(self)
+        self.todos = TodosTabWidget(self)
         self.diaries = DiariesTabWidget(self)
         self.settings = SettingsScrollArea(self, self.notes, self.diaries)
         self.home = HomeScrollArea(self, self.todos, self.notes)
@@ -113,15 +111,15 @@ class MainWindow(QMainWindow):
         
         for page in stringlist:
             if page.startswith(_("Note")) and not page.endswith(_(" (Backup)")):
-                length = len(_("Note"))
-                if not are_there_unsaved_notes and not notes[page[(length + 2):]].closable:
+                length = len(_("Note: "))
+                if not are_there_unsaved_notes and not notes[page[length:]].closable:
                     are_there_unsaved_notes = True
                     
                     insert_for_question = _("notes")
                 
             elif page.startswith(_("Diary")) and not page.endswith(_(" (Backup)")):
-                length = len(_("Diary for"))
-                if not are_there_unsaved_diaries and not diaries[page[(length + 2):]].closable:
+                length = len(_("Diary: "))
+                if not are_there_unsaved_diaries and not diaries[page[length:]].closable:
                     are_there_unsaved_diaries = True
                     
                     try:
@@ -195,9 +193,9 @@ class MainWindow(QMainWindow):
                         
                 elif is_main_diary_unsaved:
                     if call_diary_save_one:
-                        QMessageBox.information(self, _("Successful"), _("Diary for {date} saved.").format(date = today.toString("dd.MM.yyyy")))
+                        QMessageBox.information(self, _("Successful"), _("Diary {date} saved.").format(date = today.toString("dd.MM.yyyy")))
                     elif not call_diary_save_one:
-                        QMessageBox.critical(self, _("Error"), _("Failed to save diary for {date}.").format(date = today.toString("dd.MM.yyyy")))
+                        QMessageBox.critical(self, _("Error"), _("Failed to save diary {date}.").format(date = today.toString("dd.MM.yyyy")))
                         
                 return super().closeEvent(a0)
             

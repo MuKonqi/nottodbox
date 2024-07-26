@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 # Copyright (C) 2024 MuKonqi (Muhammed S.)
 
 # Nottodbox is free software: you can redistribute it and/or modify
@@ -211,7 +209,7 @@ class NotesDB:
             edited (str): Editing date
 
         Returns:
-            bool: True if successful, False if unsuccessful
+            bool: True if successful, False if not
         """
         
         fetch_before = self.getContent(name)
@@ -238,7 +236,7 @@ class NotesDB:
             name (str): Note name
 
         Returns:
-            bool: True if successful, False if unsuccessful
+            bool: True if successful, False if not
         """
         
         self.cur.execute(f"delete from notes where name = '{name}'")
@@ -325,20 +323,14 @@ class NotesDB:
         
         self.cur.execute(f"update notes set name = '{newname}' where name = '{name}'")
         self.db.commit()
-
-        try:
-            self.cur.execute(f"select * from notes where name = '{newname}'")
-            self.cur.fetchone()[0]
-            return True
-            
-        except TypeError:
-            return False
+        
+        return self.checkIfTheNoteExists(newname)
         
     def recreateTable(self) -> bool:
         """Recreates the notes table.
 
         Returns:
-            bool: True if successful, False if unsuccessful
+            bool: True if successful, False if not
         """
         
         self.cur.execute(f"DROP TABLE IF EXISTS notes")

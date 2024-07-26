@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 # Copyright (C) 2024 MuKonqi (Muhammed S.)
 
 # Nottodbox is free software: you can redistribute it and/or modify
@@ -214,7 +212,7 @@ class DiariesDB:
             edited (str): Editing date
 
         Returns:
-            bool: True if successful, False if unsuccessful
+            bool: True if successful, False if not
         """
         
         fetch_before = self.getContent(date)
@@ -251,7 +249,7 @@ class DiariesDB:
             date (str): Diary date
 
         Returns:
-            bool: True if successful, False if unsuccessful
+            bool: True if successful, False if not
         """
         
         self.cur.execute(f"delete from diaries where date = '{date}'")
@@ -351,7 +349,7 @@ class DiariesDB:
         """Recreates the diaries table.
 
         Returns:
-            bool: True if successful, False if unsuccessful
+            bool: True if successful, False if not
         """
         
         self.cur.execute(f"DROP TABLE IF EXISTS diaries")

@@ -14,9 +14,8 @@ configure_file(
     install: true
 )
 
-
 install_subdir(
-    meson.current_build_dir(),
+    meson.current_source_dir(),
     exclude_directories: ['__pycache__'],
     exclude_files: ['nottodbox.in', 'meson.build'],
     install_dir: join_paths(get_option('prefix'), get_option('datadir'))

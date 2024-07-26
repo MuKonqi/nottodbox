@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 # Copyright (C) 2024 MuKonqi (Muhammed S.)
 
 # Nottodbox is free software: you can redistribute it and/or modify
@@ -24,7 +22,7 @@ import getpass
 import os
 from gettext import gettext as _
 from notes import NotesTabWidget, NotesListView
-from todos import Todos, TodolistListView, TodosListView
+from todos import TodosTabWidget, TodolistListView, TodosListView
 from diaries import DiariesDiary, diariesdb
 from PyQt6.QtCore import Qt, QDate
 from PyQt6.QtWidgets import *
@@ -66,7 +64,7 @@ class HomeScrollArea(QScrollArea):
 class HomeWidget(QWidget):
     """Home page main widget.."""
     
-    def __init__(self, parent: HomeScrollArea, todos: Todos, notes: NotesTabWidget):
+    def __init__(self, parent: HomeScrollArea, todos: TodosTabWidget, notes: NotesTabWidget):
         """
         Display a widget for some shortcuts.
 
@@ -89,16 +87,16 @@ class HomeWidget(QWidget):
         
         self.diary = DiariesDiary(self, today.toString("dd.MM.yyyy"), diariesdb)
         
-        self.label_maintodos = QLabel(self, alignment=Qt.AlignmentFlag.AlignCenter, 
-                                  text=_("List of Your Main Todos"))
+        # self.label_maintodos = QLabel(self, alignment=Qt.AlignmentFlag.AlignCenter, 
+        #                           text=_("List of Your Main Todos"))
         
-        self.maintodos = TodolistListView(todos, "main", "home")
+        # self.maintodos = TodolistListView(todos, "main", "home")
         
-        self.label_todolist = QLabel(self, alignment=Qt.AlignmentFlag.AlignCenter, 
-                                  text=_("List of Your Todolists"))
+        # self.label_todolist = QLabel(self, alignment=Qt.AlignmentFlag.AlignCenter, 
+        #                           text=_("List of Your Todolists"))
         
-        self.todolist = TodosListView(todos, "home")
-        self.todolist.doubleClicked.connect(lambda: home_parent.tabwidget.setCurrentWidget(home_parent.todos))
+        # self.todolist = TodosListView(todos, "home")
+        # self.todolist.doubleClicked.connect(lambda: home_parent.tabwidget.setCurrentWidget(home_parent.todos))
         
         self.label_notes = QLabel(self, alignment=Qt.AlignmentFlag.AlignCenter, 
                                   text=_("List of Your Notes"))
@@ -109,9 +107,9 @@ class HomeWidget(QWidget):
         self.layout().addWidget(self.label_welcome, 0, 0, 1, 2)
         self.layout().addWidget(self.label_diary, 1, 0, 1, 2)
         self.layout().addWidget(self.diary, 2, 0, 1, 2)
-        self.layout().addWidget(self.label_maintodos, 3, 0, 1, 1)
-        self.layout().addWidget(self.maintodos, 4, 0, 1, 1)
-        self.layout().addWidget(self.label_todolist, 3, 1, 1, 1)
-        self.layout().addWidget(self.todolist, 4, 1, 1, 1)
+        # self.layout().addWidget(self.label_maintodos, 3, 0, 1, 1)
+        # self.layout().addWidget(self.maintodos, 4, 0, 1, 1)
+        # self.layout().addWidget(self.label_todolist, 3, 1, 1, 1)
+        # self.layout().addWidget(self.todolist, 4, 1, 1, 1)
         self.layout().addWidget(self.label_notes, 5, 0, 1, 2)
         self.layout().addWidget(self.notes, 6, 0, 1, 2)
