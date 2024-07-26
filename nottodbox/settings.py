@@ -25,8 +25,7 @@ import sqlite3
 from gettext import gettext as _
 from notes import NotesTabWidget
 from diaries import DiariesTabWidget
-from PyQt6.QtGui import QIcon
-from PyQt6.QtCore import Qt, QSize
+from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import *
 
 

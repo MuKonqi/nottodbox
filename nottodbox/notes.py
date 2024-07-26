@@ -24,7 +24,6 @@ import getpass
 import sqlite3
 import datetime
 from gettext import gettext as _
-from sidebar import SidebarWidget
 from PyQt6.QtCore import Qt, QStringListModel, QSortFilterProxyModel
 from PyQt6.QtWidgets import *
 

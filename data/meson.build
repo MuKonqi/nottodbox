@@ -32,5 +32,5 @@ endif
 
 
 run_command(find_program('chmod'), 'a+x', 
-    join_paths(meson.current_build_dir(), project_id + '.desktop'), 
+    join_paths(meson.current_build_dir(), project_id + '.desktop.in'), 
     check: true)

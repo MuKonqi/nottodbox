@@ -24,7 +24,6 @@ import getpass
 import sqlite3
 import datetime
 from gettext import gettext as _
-from sidebar import SidebarWidget
 from PyQt6.QtGui import QMouseEvent, QPainter, QColor
 from PyQt6.QtCore import Qt, QDate, QRect, QPoint
 from PyQt6.QtWidgets import *
