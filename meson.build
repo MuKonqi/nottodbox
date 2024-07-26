@@ -1,14 +1,16 @@
 project (
     'nottodbox',
-    version: '0.2.0',
+    version: '0.2.1',
     license: 'GPL-3.0-or-later'
 )
+
 
 project_id = 'io.github.mukonqi.nottodbox'
 project_version = meson.project_version()
 project_name = 'Nottodbox'
 project_url = 'https://github.com/mukonqi/nottodbox'
 project_copyright = 'Copyright (C) 2024 MuKonqi (Muhammed S.)'
+
 
 python = import('python')
 i18n = import('i18n')

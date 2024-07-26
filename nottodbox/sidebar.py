@@ -55,8 +55,12 @@ class SidebarDB:
             bool: True if successful, False if unsuccessful
         """
         
-        self.cur.execute(f"insert into pages (page, module) values ('{page}', '{module}')")
-        self.db.commit()
+        try:
+            self.cur.execute(f"insert into pages (page, module) values ('{page}', '{module}')")
+            self.db.commit()
+
+        except sqlite3.IntegrityError:
+            pass
         
         self.cur.execute(f"select page, module from pages where page = '{page}'")
         control = self.cur.fetchone()
@@ -199,7 +203,7 @@ class SidebarWidget(QWidget):
         
         super().__init__(parent)
         
-        self.setLayout(QVBoxLayout(self))
+        self.setLayout(QGridLayout(self))
         
         self.parent_ = parent
         self.notes = notes
@@ -245,15 +249,24 @@ class SidebarWidget(QWidget):
         self.listview2.doubleClicked.connect(
             lambda: self.goToPage(self.proxy2.itemData(self.listview2.currentIndex())[0]))
         
-        self.button = QPushButton(self, text=_("Clear 2nd List"))
-        self.button.clicked.connect(self.clear2ndList)
+        self.label_2nd = QLabel(self, alignment=Qt.AlignmentFlag.AlignCenter,
+                                text=_('Only for 2nd list:'))
         
-        self.layout().addWidget(self.entry)
-        self.layout().addWidget(self.label1)
-        self.layout().addWidget(self.listview1)
-        self.layout().addWidget(self.label2)
-        self.layout().addWidget(self.listview2)
-        self.layout().addWidget(self.button)
+        self.button_delete = QPushButton(self, text=_("Delete"))
+        self.button_delete.clicked.connect(lambda: 
+            self.deletePage(self.proxy2.itemData(self.listview2.currentIndex())[0]))
+        
+        self.button_clear = QPushButton(self, text=_("Clear"))
+        self.button_clear.clicked.connect(self.clearList)
+        
+        self.layout().addWidget(self.entry, 0, 0, 1, 2)
+        self.layout().addWidget(self.label1, 1, 0, 1, 2)
+        self.layout().addWidget(self.listview1, 2, 0, 1, 2)
+        self.layout().addWidget(self.label2, 3, 0, 1, 2)
+        self.layout().addWidget(self.listview2, 4, 0, 1, 2)
+        self.layout().addWidget(self.label_2nd, 5, 0, 1, 2)
+        self.layout().addWidget(self.button_delete, 6, 0, 1, 1)
+        self.layout().addWidget(self.button_clear, 6, 1, 1, 1)
         
         self.insertPages()
         
@@ -268,26 +281,32 @@ class SidebarWidget(QWidget):
         
         stringlist = self.model1.stringList()
 
-        if target == self.notes:        
+        if target == self.notes:
+            module = "notes"
+            
             stringlist.append(_("Note: {name}").format(name = text))
             
         elif target == self.todos:
+            module = "todos"
+            
             stringlist.append(_("Todo list: {todolist}").format(todolist = text))
             
         elif target == self.diaries:
+            module = "diaries"
+            
             stringlist.append(_("Diary for: {date}").format(date = text))
             
         if not text.endswith(_(" (Backup)")):
-            call = sidebardb.deletePage(text)
+            call = sidebardb.addPage(text, module)
 
             if not call:
-                QMessageBox.critical(self, _("Error"), _("Failed to delete {page} from database.").format(page = text))
+                QMessageBox.critical(self, _("Error"), _("Failed to add {page} to 2nd list.").format(page = text))
         
-            self.model1.setStringList(stringlist)
+        self.model1.setStringList(stringlist)
         
         self.insertPages()
         
-    def clear2ndList(self) -> None:
+    def clearList(self) -> None:
         """Clear 2nd list, last opened pages."""
         
         call = sidebardb.recreateTable()
@@ -298,6 +317,31 @@ class SidebarWidget(QWidget):
             QMessageBox.information(self, _("Successful"), _("2nd list cleaned."))
         else:
             QMessageBox.critical(self, _("Error"), _("Failed to clear 2nd list."))
+            
+    def deletePage(self, key: str) -> None:
+        """Delete a page.
+
+        Args:
+            key (str): Name of page
+        """
+        
+        if key.startswith(_("Note: ")):
+            length = len(_("Note: "))
+                
+        elif key.startswith(_("Todo list: ")):
+            length = len(_("Todo list: "))
+
+        elif key.startswith(_("Diary for: ")):
+            length = len(_("Diary for: "))
+        
+        call = sidebardb.deletePage(key[length:])
+        
+        self.insertPages()
+        
+        if call:
+            QMessageBox.information(self, _("Successful"), _("{page} deleted from 2nd list.").format(page = key[length:]))
+        else:
+            QMessageBox.critical(self, _("Error"), _("Failed to delete {page} from 2nd list.").format(page = key[length:]))
 
     def goToPage(self, key: str) -> None:
         """
@@ -311,24 +355,24 @@ class SidebarWidget(QWidget):
             length = len(_("Note: "))
             
             if key.endswith(_(" (Backup)")):
-                self.notes.showBackup(key[(length):].replace(_(" (Backup)"), ""))
+                self.notes.showBackup(key[length:].replace(_(" (Backup)"), ""))
 
             else:
-                self.notes.openCreate(key[(length):])
+                self.notes.openCreate(key[length:])
                 
         elif key.startswith(_("Todo list: ")):
             length = len(_("Todo list: "))
             
-            self.todos.open(key[(length):])
+            self.todos.open(key[length:])
 
         elif key.startswith(_("Diary for: ")):
             length = len(_("Diary for: "))
             
             if key.endswith(_(" (Backup)")):
-                self.diaries.showBackup(key[(length):].replace(_(" (Backup)"), ""))
+                self.diaries.showBackup(key[length:].replace(_(" (Backup)"), ""))
 
             else:
-                self.diaries.openCreate(key[(length):])
+                self.diaries.openCreate(key[length:])
         
     def insertPages(self) -> None:
         """Insert pages' names."""
@@ -358,25 +402,13 @@ class SidebarWidget(QWidget):
         stringlist = self.model1.stringList()
 
         if target == self.notes:
-            module = "notes"
-            
             stringlist.remove(_("Note: {name}").format(name = text))
             
         elif target == self.todos:
-            module = "todos"
-            
             stringlist.remove(_("Todo list: {todolist}").format(todolist = text))
             
         elif target == self.diaries:
-            module = "diaries"
-            
             stringlist.remove(_("Diary for: {date}").format(date = text))
-        
-        if not text.endswith(_(" (Backup)")):
-            call = sidebardb.addPage(text, module)
-        
-            if not call:
-                QMessageBox.critical(self, _("Error"), _("Failed to add {page} to database.").format(page = text))
         
         self.model1.setStringList(stringlist)
         
