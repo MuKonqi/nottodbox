@@ -13,7 +13,7 @@ TBA
 ## Building
 ### Dependencies
 - Python3
-- Python modules: sys, locale, gettext, getpass, os, sqlite3, typing, datetime, PyQt6 (they are generally built-in except PyQt6)
+- Python modules: sys, locale, gettext, getpass, os, sqlite3, datetime, PyQt6 (they are generally built-in except PyQt6)
 - git version control system (for downloading)
 - meson build system
 - ninja build system

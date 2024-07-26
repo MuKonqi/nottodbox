@@ -1,6 +1,6 @@
 project (
     'nottodbox',
-    version: '0.1.0',
+    version: '0.1.1',
     license: 'GPL-3.0-or-later'
 )
 
@@ -16,7 +16,7 @@ gnome = import('gnome')
 
 
 python_bin = python.find_installation('python3',
-    modules: ['sys', 'locale', 'gettext', 'getpass', 'os', 'sqlite3', 'typing', 'datetime', 'PyQt6'])
+    modules: ['sys', 'locale', 'gettext', 'getpass', 'os', 'sqlite3', 'datetime', 'PyQt6'])
 
 
 if not python_bin.found()

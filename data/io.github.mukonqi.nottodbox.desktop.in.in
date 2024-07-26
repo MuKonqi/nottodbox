@@ -1,14 +1,13 @@
-[Desktop Entry],
+[Desktop Entry]
 Name=Nottodbox
 Comment=Edit notes, todos lists and diaries
 
 Type=Application
 Exec=@BINDIR@/nottodbox
-Version=@VERSION@
 Terminal=false
 Icon=io.github.mukonqi.nottodbox
 
-Categories=Utility;Office;TextEditor;Qt;
+Categories=Utility;TextEditor;Qt;
 Actions=Home;Notes;Todos;Diaries;Settings;
 
 [Desktop Action Home]

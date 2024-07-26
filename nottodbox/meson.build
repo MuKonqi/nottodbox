@@ -21,3 +21,8 @@ install_subdir(
     exclude_files: ['nottodbox.in', 'meson.build'],
     install_dir: join_paths(get_option('prefix'), get_option('datadir'))
 )
+
+
+run_command(find_program('chmod'), 'a+x', 
+    join_paths(meson.current_build_dir(), 'nottodbox'), 
+    check: true)

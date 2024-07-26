@@ -1,7 +1,6 @@
 conf_desktop = configuration_data()
 
 conf_desktop.set('BINDIR', join_paths(get_option('prefix'), get_option('bindir')))
-conf_desktop.set('VERSION', project_version)
 
 
 i18n.merge_file(
@@ -27,5 +26,11 @@ install_data(
 desktop_file_validater = find_program('desktop-file-validate', required: false)
 
 if desktop_file_validater.found()
-    test('Validate desktop file...', desktop_file_validater, args: [project_id + '.svg'])
+    test('Validate desktop file...', 
+        desktop_file_validater, args: [join_paths(meson.current_build_dir(), project_id + '.desktop')])
 endif
+
+
+run_command(find_program('chmod'), 'a+x', 
+    join_paths(meson.current_build_dir(), project_id + '.desktop'), 
+    check: true)
