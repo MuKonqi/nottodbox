@@ -6,6 +6,7 @@ Type=Application
 Exec=@BINDIR@/nottodbox
 Terminal=false
 Icon=io.github.mukonqi.nottodbox
+StartupWMClass=nottodbox
 
 Categories=Utility;TextEditor;Qt;
 Actions=Home;Notes;Todos;Diaries;Settings;
