@@ -32,9 +32,9 @@ username = getpass.getuser()
 userdata = f"/home/{username}/.local/share/nottodbox/"
     
 
-from sidebar import SidebarListView
+from sidebar import SidebarWidget
 from settings import SettingsScrollArea, settings
-from home import HomeMain
+from home import HomeScrollArea
 from notes import NotesTabWidget, notesdb, notes
 from todos import Todos
 from diaries import DiariesTabWidget, today, diariesdb, diaries
@@ -67,7 +67,7 @@ class MainWindow(QMainWindow):
         self.todos = Todos(self)
         self.diaries = DiariesTabWidget(self)
         self.settings = SettingsScrollArea(self, self.notes, self.diaries)
-        self.home = HomeMain(self, self.todos, self.notes)
+        self.home = HomeScrollArea(self, self.todos, self.notes)
 
         self.tabwidget.addTab(self.home, _("Home"))
         self.tabwidget.addTab(self.notes, _("Notes"))
@@ -76,14 +76,12 @@ class MainWindow(QMainWindow):
         self.tabwidget.addTab(self.settings, _("Settings"))
         
         self.dock = QDockWidget(self)
-        self.dock.setTitleBarWidget(QLabel(self.dock, alignment=Qt.AlignmentFlag.AlignCenter, text=_("List of Opened Pages")))
-        self.dock.titleBarWidget().setStyleSheet("QLabel{margin: 10px 0px;}")
         self.dock.setFixedWidth(144)
         self.dock.setStyleSheet("QDockWidget{margin: 0px;}")
         self.dock.setFeatures(QDockWidget.DockWidgetFeature.DockWidgetClosable |
                               QDockWidget.DockWidgetFeature.DockWidgetFloatable |
                               QDockWidget.DockWidgetFeature.DockWidgetMovable)
-        self.dock.setWidget(SidebarListView(self, self.notes, self.todos, self.diaries))
+        self.dock.setWidget(SidebarWidget(self, self.notes, self.todos, self.diaries))
         
         self.statusbar = QStatusBar(self)
         
@@ -107,7 +105,7 @@ class MainWindow(QMainWindow):
             super().closeEvent(a0): Close window
         """
         
-        stringlist = self.dock.widget().model().stringList()
+        stringlist = self.dock.widget().model1.stringList()
         
         are_there_unsaved_notes = False
         are_there_unsaved_diaries = False
@@ -131,7 +129,7 @@ class MainWindow(QMainWindow):
                     except UnboundLocalError:
                         insert_for_question = _("diaries")
                         
-        if not self.home.left.widget().diary.closable:
+        if not self.home.widget().diary.closable:
             try:
                 if not _("diaries") in insert_for_question:
                     insert_for_question += _(" and diaries")
@@ -168,8 +166,8 @@ class MainWindow(QMainWindow):
                     
                 if is_main_diary_unsaved:
                     call_diary_save_one = diariesdb.saveOne(today.toString("dd.MM.yyyy"),
-                                                            self.home.left.widget().diary.input.toPlainText(),
-                                                            self.home.left.widget().diary.content,
+                                                            self.home.widget().diary.input.toPlainText(),
+                                                            self.home.widget().diary.content,
                                                             datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
                                                             False)
                 

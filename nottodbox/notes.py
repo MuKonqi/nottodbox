@@ -20,25 +20,14 @@ import sys
 sys.dont_write_bytecode = True
 
 
-import locale
-import gettext
 import getpass
 import sqlite3
 import datetime
-from sidebar import SidebarListView
+from gettext import gettext as _
+from sidebar import SidebarWidget
 from PyQt6.QtCore import Qt, QStringListModel, QSortFilterProxyModel
 from PyQt6.QtWidgets import *
 
-
-if locale.getlocale()[0].startswith("tr"):
-    language = "tr"
-    translations = gettext.translation("nottodbox", "mo", languages=["tr"], fallback=True)
-else:
-    language = "en"
-    translations = gettext.translation("nottodbox", "mo", languages=["en"], fallback=True)
-translations.install()
-
-_ = translations.gettext
 
 notes = {}
 
@@ -243,7 +232,7 @@ class NotesDB:
         else:
             return False
     
-    def deleteOne(self, name) -> bool:
+    def deleteOne(self, name: str) -> bool:
         """Delete a note.
 
         Args:
@@ -487,6 +476,7 @@ class NotesTabWidget(QTabWidget):
         global notes_parent
         
         notes_parent = parent
+        self.notes = notes
         self.backups = {}
         
         self.home = QWidget(self)
@@ -497,11 +487,8 @@ class NotesTabWidget(QTabWidget):
         self.entry = QLineEdit(self.home)
         self.entry.setPlaceholderText("Type a note name")
         self.entry.setStatusTip("Typing in entry also searches in list.")
+        self.entry.setClearButtonEnabled(True)
         self.entry.textChanged.connect(self.listview.setFilter)
-        
-        self.clear_button = QPushButton(self.home, text=_("Clear"))
-        self.clear_button.setFixedWidth(144)
-        self.clear_button.clicked.connect(lambda: self.insertInformations(""))
         
         self.created = QLabel(self.home, alignment=Qt.AlignmentFlag.AlignCenter, 
                               text=_("Created: "))
@@ -563,8 +550,7 @@ class NotesTabWidget(QTabWidget):
         self.side.layout().addWidget(self.format)
         self.side.layout().addWidget(self.autosave)
         self.home.layout().addWidget(self.side, 1, 2, 2, 1)
-        self.home.layout().addWidget(self.entry, 0, 0, 1, 2)
-        self.home.layout().addWidget(self.clear_button, 0, 2, 1, 1)
+        self.home.layout().addWidget(self.entry, 0, 0, 1, 3)
         self.home.layout().addWidget(self.created, 1, 0, 1, 1)
         self.home.layout().addWidget(self.edited, 1, 1, 1, 1)
         self.home.layout().addWidget(self.listview, 2, 0, 1, 2)
@@ -634,7 +620,7 @@ class NotesTabWidget(QTabWidget):
             except KeyError:
                 pass
             
-            SidebarListView.remove(self.tabText(index).replace("&", ""), self)
+            notes_parent.dock.widget().removePage(self.tabText(index).replace("&", ""), self)
             self.removeTab(index)
         
     def deleteAll(self) -> None:
@@ -726,17 +712,17 @@ class NotesTabWidget(QTabWidget):
             name (str): Note name
         """
         
-        notes_parent.tabwidget.setCurrentIndex(1)
-        
         if name == "" or name == None:
             QMessageBox.critical(self, _("Error"), _("Note name can not be blank."))
             return
+        
+        notes_parent.tabwidget.setCurrentIndex(1)
         
         if name in notes:
             self.setCurrentWidget(notes[name])
             
         else:
-            SidebarListView.add(name, self)
+            notes_parent.dock.widget().addPage(name, self)
             notes[name] = NotesNote(self, name)
             self.addTab(notes[name], name)
             self.setCurrentWidget(notes[name])
@@ -861,7 +847,9 @@ class NotesTabWidget(QTabWidget):
         if self.checkIfTheNoteExists(name) == False:
             return
         
-        SidebarListView.add(name + " " + _("(Backup)"), self)
+        notes_parent.tabwidget.setCurrentIndex(1)
+        notes_parent.dock.widget().addPage(name + " " + _("(Backup)"), self)
+
         self.backups[name] = NotesBackup(self, name)
         self.addTab(self.backups[name], (name + " " + _("(Backup)")))
         self.setCurrentWidget(self.backups[name])
@@ -1182,3 +1170,6 @@ class NotesListView(QListView):
         self.proxy.beginResetModel()
         self.proxy.setFilterFixedString(text)
         self.proxy.endResetModel()
+    
+        self.parent_.created.setText(_("Created: "))
+        self.parent_.edited.setText(_("Edited: "))

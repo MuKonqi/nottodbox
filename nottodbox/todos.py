@@ -20,26 +20,15 @@ import sys
 sys.dont_write_bytecode = True
 
 
-import locale
-import gettext
 import getpass
 import os
 import sqlite3
 import datetime
-from sidebar import SidebarListView
+from gettext import gettext as _
+from sidebar import SidebarWidget
 from PyQt6.QtCore import Qt, QStringListModel, QSortFilterProxyModel, QRegularExpression
 from PyQt6.QtWidgets import *
 
-
-if locale.getlocale()[0].startswith("tr"):
-    language = "tr"
-    translations = gettext.translation("nottodbox", "mo", languages=["tr"], fallback=True)
-else:
-    language = "en"
-    translations = gettext.translation("nottodbox", "mo", languages=["en"], fallback=True)
-translations.install()
-
-_ = translations.gettext
 
 username = getpass.getuser()
 userdata = f"/home/{username}/.local/share/nottodbox/"
@@ -206,6 +195,7 @@ class Todolist(QWidget):
         self.entry = QLineEdit(self)
         self.entry.setPlaceholderText(_('Type a todo'))
         self.entry.setStatusTip("Typing in entry also searches in list.")
+        self.entry.setClearButtonEnabled(True)
         self.entry.textChanged.connect(
             lambda: self.listview.proxy.setFilterRegularExpression(QRegularExpression
                                                           (self.entry.text(), QRegularExpression.PatternOption.CaseInsensitiveOption)))
@@ -522,6 +512,9 @@ class Todos(QTabWidget):
     def __init__(self, parent: QMainWindow):
         super().__init__(parent)
         
+        global todos_parent
+
+        todos_parent = parent
         self.todolists = {}
         
         self.home = QWidget(self)
@@ -540,6 +533,7 @@ class Todos(QTabWidget):
         self.entry = QLineEdit(self.side)
         self.entry.setPlaceholderText(_('Type a todolist name'))
         self.entry.setStatusTip("Typing in entry also searches in list.")
+        self.entry.setClearButtonEnabled(True)
         self.entry.textChanged.connect(
             lambda: self.listview.proxy.setFilterRegularExpression(QRegularExpression
                                                           (self.entry.text(), QRegularExpression.PatternOption.CaseInsensitiveOption)))
@@ -582,7 +576,7 @@ class Todos(QTabWidget):
          
     def close(self, index: int):
         if index != self.indexOf(self.home):
-            SidebarListView.remove(self.tabText(index).replace("&", ""), self)
+            todos_parent.dock.widget().removePage(self.tabText(index).replace("&", ""), self)
             try:
                 del self.todolists[self.tabText(index).replace("&", "")]
             finally:
@@ -622,11 +616,14 @@ class Todos(QTabWidget):
         if self.control(todolist) == False:
             return
         
+        todos_parent.tabwidget.setCurrentIndex(2)
+        
         if todolist in self.todolists:
             self.setCurrentWidget(self.todolists[todolist])
             
         else:
-            SidebarListView.add(todolist, self)
+            todos_parent.dock.widget().addPage(todolist, self)
+
             self.todolists[todolist] = Todolist(self, todolist)
             self.addTab(self.todolists[todolist], todolist)
             self.setCurrentWidget(self.todolists[todolist])

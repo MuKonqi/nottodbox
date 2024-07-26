@@ -38,12 +38,12 @@ if not os.path.isdir(userdata):
 today = QDate.currentDate()
 
 
-class HomeMain(QWidget):
-    """The main home widget."""
+class HomeScrollArea(QScrollArea):
+    """Scrollable area for home page."""
     
     def __init__(self, parent: QMainWindow, todos: QTabWidget, notes: QTabWidget):
         """
-        Create a widget for managing other widgets. 
+        Display a scrollable area for main widget.
 
         Args:
             parent (QMainWindow): Parent of this widget (main window)
@@ -55,46 +55,23 @@ class HomeMain(QWidget):
         
         global home_parent
         home_parent = parent
-        
-        self.setLayout(QGridLayout(self))
-        
-        self.label = QLabel(self, alignment=Qt.AlignmentFlag.AlignCenter,
-                             text=_("Welcome {username}!").format(username = username))
-        self.label.setStyleSheet("QLabel{font-size: 12pt;}")
-        
-        self.left = QScrollArea(self)
-        self.left.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
-        self.left.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
-        self.left.setWidgetResizable(True)
-        self.left.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.left.setWidget(HomeLeft(self, todos, notes))
-        
-        self.right = QScrollArea(self)
-        self.right.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
-        self.right.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
-        self.right.setWidgetResizable(True)
-        self.right.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.right.setWidget(HomeRight(self))
-        self.right.setFixedWidth(144)
-        
-        self.layout().addWidget(self.label, 0, 0, 1, 2)
-        self.layout().addWidget(self.left, 1, 0, 1, 1)
-        self.layout().addWidget(self.right, 1, 1, 1, 1)
-
-
-class HomeLeft(QWidget):
-    """A widget for managing items (etc. text-edits, list-views) on the left."""
     
-    def __init__(self, parent: HomeMain, todos: Todos, notes: NotesTabWidget):
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
+        self.setWidgetResizable(True)
+        self.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.setWidget(HomeWidget(self, todos, notes))
+
+
+class HomeWidget(QWidget):
+    """Home page main widget.."""
+    
+    def __init__(self, parent: HomeScrollArea, todos: Todos, notes: NotesTabWidget):
         """
-        Display a widget for shortcut for them:
-            - Keeping diary for today
-            - Marking as completed/uncompleted todos in main todo list
-            - Listing all todo lists except main
-            - Listing all notes
+        Display a widget for some shortcuts.
 
         Args:
-            parent (HomeMain): Main widget
+            parent (HomeScrollArea): Main widget
             todos (Todos): Todos widget of parent
             notes (NotesTabWidget): Notes widget of parent
         """
@@ -102,6 +79,10 @@ class HomeLeft(QWidget):
         super().__init__(parent)
         
         self.setLayout(QGridLayout(self))
+        
+        self.label_welcome = QLabel(self, alignment=Qt.AlignmentFlag.AlignCenter,
+                             text=_("Welcome {username}!").format(username = username))
+        self.label_welcome.setStyleSheet("QLabel{font-size: 12pt;}")
         
         self.label_diary = QLabel(self, alignment=Qt.AlignmentFlag.AlignCenter,
                                   text=_("Your Diary for {date}").format(date = today.toString("dd.MM.yyyy")))
@@ -125,27 +106,12 @@ class HomeLeft(QWidget):
         self.notes = NotesListView(notes, "home")
         self.notes.doubleClicked.connect(lambda: home_parent.tabwidget.setCurrentWidget(home_parent.notes))
         
-        self.layout().addWidget(self.label_diary, 0, 0, 1, 2)
-        self.layout().addWidget(self.diary, 1, 0, 1, 2)
-        self.layout().addWidget(self.label_maintodos, 2, 0, 1, 1)
-        self.layout().addWidget(self.maintodos, 3, 0, 1, 1)
-        self.layout().addWidget(self.label_todolist, 2, 1, 1, 1)
-        self.layout().addWidget(self.todolist, 3, 1, 1, 1)
-        self.layout().addWidget(self.label_notes, 4, 0, 1, 2)
-        self.layout().addWidget(self.notes, 5, 0, 1, 2)
-        
-
-class HomeRight(QWidget):
-    """A widget for managing items (etc. list-views) on the right."""
-    
-    def __init__(self, parent: HomeMain):
-        """
-        Display a widget for list-views.
-
-        Args:
-            parent (HomeMain): Main widget
-            todos (Todos): Todos widget of parent
-            notes (NotesTabWidget): Notes widget of parent
-        """
-        
-        super().__init__(parent)
+        self.layout().addWidget(self.label_welcome, 0, 0, 1, 2)
+        self.layout().addWidget(self.label_diary, 1, 0, 1, 2)
+        self.layout().addWidget(self.diary, 2, 0, 1, 2)
+        self.layout().addWidget(self.label_maintodos, 3, 0, 1, 1)
+        self.layout().addWidget(self.maintodos, 4, 0, 1, 1)
+        self.layout().addWidget(self.label_todolist, 3, 1, 1, 1)
+        self.layout().addWidget(self.todolist, 4, 1, 1, 1)
+        self.layout().addWidget(self.label_notes, 5, 0, 1, 2)
+        self.layout().addWidget(self.notes, 6, 0, 1, 2)

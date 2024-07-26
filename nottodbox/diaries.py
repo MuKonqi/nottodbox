@@ -24,7 +24,7 @@ import getpass
 import sqlite3
 import datetime
 from gettext import gettext as _
-from sidebar import SidebarListView
+from sidebar import SidebarWidget
 from PyQt6.QtGui import QMouseEvent, QPainter, QColor
 from PyQt6.QtCore import Qt, QDate, QRect, QPoint
 from PyQt6.QtWidgets import *
@@ -514,6 +514,7 @@ class DiariesTabWidget(QTabWidget):
         global diaries_parent
         
         diaries_parent = parent
+        self.diaries = diaries
         self.backups = {}
         
         self.home = QWidget(self)
@@ -656,7 +657,7 @@ class DiariesTabWidget(QTabWidget):
             except KeyError:
                 pass
             
-            SidebarListView.remove(self.tabText(index).replace("&", ""), self)
+            diaries_parent.dock.widget().removePage(self.tabText(index).replace("&", ""), self)
             self.removeTab(index)
         
     def deleteAll(self) -> None:
@@ -758,7 +759,8 @@ class DiariesTabWidget(QTabWidget):
             self.setCurrentWidget(diaries[date])
             
         else:
-            SidebarListView.add(date, self)
+            diaries_parent.dock.widget().addPage(date, self)
+
             diaries[date] = DiariesDiary(self, date, diariesdb)
             self.addTab(diaries[date], date)
             self.setCurrentWidget(diaries[date])
@@ -858,7 +860,9 @@ class DiariesTabWidget(QTabWidget):
         if self.checkIfTheDiaryExists(date) == False:
             return
         
-        SidebarListView.add(date + " " + _("(Backup)"), self)
+        diaries_parent.tabwidget.setCurrentIndex(3)
+        diaries_parent.dock.widget().addPage(date + " " + _("(Backup)"), self)
+
         self.backups[date] = DiariesBackup(self, date)
         self.addTab(self.backups[date], (date + " " + _("(Backup)")))
         self.setCurrentWidget(self.backups[date])

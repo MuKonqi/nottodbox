@@ -20,26 +20,15 @@ import sys
 sys.dont_write_bytecode = True
 
 
-import locale
-import gettext
 import getpass
 import sqlite3
+from gettext import gettext as _
+from notes import NotesTabWidget
+from diaries import DiariesTabWidget
 from PyQt6.QtGui import QIcon
 from PyQt6.QtCore import Qt, QSize
 from PyQt6.QtWidgets import *
-from notes import NotesTabWidget
-from diaries import DiariesTabWidget
 
-
-if locale.getlocale()[0].startswith("tr"):
-    language = "tr"
-    translations = gettext.translation("nottodbox", "mo", languages=["tr"], fallback=True)
-else:
-    language = "en"
-    translations = gettext.translation("nottodbox", "mo", languages=["en"], fallback=True)
-translations.install()
-
-_ = translations.gettext
 
 username = getpass.getuser()
 userdata = f"/home/{username}/.local/share/nottodbox/"
