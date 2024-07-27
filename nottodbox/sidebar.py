@@ -361,7 +361,7 @@ class SidebarWidget(QWidget):
         elif key.startswith(_("Todo list: ")):
             length = len(_("Todo list: "))
             
-            self.todos.open(key[length:])
+            self.todos.openCreate(key[length:])
 
         elif key.startswith(_("Diary: ")):
             length = len(_("Diary: "))

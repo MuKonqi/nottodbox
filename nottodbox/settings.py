@@ -221,7 +221,7 @@ class SettingsWidget(QWidget):
         
         self.list = QListWidget(self)
         self.list.setCurrentRow(0)
-        self.list.setFixedWidth(144)
+        self.list.setFixedWidth(150)
         self.list.currentRowChanged.connect(lambda: self.stacked.setCurrentIndex(self.list.currentRow()))
         
         self.list_interface = QListWidgetItem(_("Interface"), self.list)

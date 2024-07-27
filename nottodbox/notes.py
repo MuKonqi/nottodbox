@@ -201,21 +201,23 @@ class NotesDB:
         
         return self.checkIfTheTableExists()
     
-    def deleteContent(self, name: str, edited: str) -> bool:
-        """Delete content of a note.
+    def deleteContent(self, name: str) -> bool:
+        """
+        Delete content of a note.
 
         Args:
             name (str): Note name
-            edited (str): Editing date
 
         Returns:
             bool: True if successful, False if not
         """
         
+        date_time = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+        
         fetch_before = self.getContent(name)
         
         sql = f"""
-        update notes set content = '', backup = '{fetch_before}, edited = '{edited}'
+        update notes set content = '', backup = '{fetch_before}, edited = '{date_time}'
         where name = '{name}'
         """
             
@@ -230,7 +232,8 @@ class NotesDB:
             return False
     
     def deleteOne(self, name: str) -> bool:
-        """Delete a note.
+        """
+        Delete a note.
 
         Args:
             name (str): Note name
@@ -343,17 +346,18 @@ class NotesDB:
         else:
             return self.createTable()
     
-    def restoreContent(self, name: str, edited: str) -> tuple:
+    def restoreContent(self, name: str) -> tuple:
         """
         Restore content of note.
         
         Args:
             name (str): Note name
-            edited (str): Editing date
             
         Returns:
             tuple: Status and True if successful, False if unsuccesful
         """
+        
+        date_time = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
         
         self.cur.execute(f"select content, backup from notes where name = '{name}'")
         fetch_before = self.cur.fetchone()
@@ -362,7 +366,7 @@ class NotesDB:
             return "no-backup", False
         
         sql = f"""update notes set content = '{fetch_before[1]}', 
-        backup = '{fetch_before[0]}', edited = '{edited}' where name = '{name}'"""
+        backup = '{fetch_before[0]}', edited = '{date_time}' where name = '{name}'"""
         self.cur.execute(sql)
         self.db.commit()
         
@@ -389,8 +393,7 @@ class NotesDB:
         for name in notes:
             calls[name] = self.saveOne(name,
                                        notes[name].input.toPlainText(), 
-                                       notes[name].content,
-                                       datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"), 
+                                       notes[name].content, 
                                        False)
             
             if calls[name] == False:
@@ -398,7 +401,7 @@ class NotesDB:
                 
         return successful
 
-    def saveOne(self, name: str, content: str, backup: str, edited: str, autosave: bool) -> bool:        
+    def saveOne(self, name: str, content: str, backup: str, autosave: bool) -> bool:        
         """
         Save a note.
         If there is such a note, create it.
@@ -407,37 +410,38 @@ class NotesDB:
             name (str): Note name
             content (str): Content of note
             backup (str): Backup of diary
-            edited (str): Creating/editing date
             autosave (bool): True if the caller is "auto-save", false if it is not
             
         Returns:
             bool: True if successful, False if unsuccesful
         """
         
+        date_time = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+        
         check = self.checkIfTheNoteExists(name)
         
         if check:
             if autosave:
                 sql = f"""update notes set content = '{content}',
-                edited = '{edited}' where name = '{name}'"""
+                edited = '{date_time}' where name = '{name}'"""
                         
             else:
                 sql = f"""update notes set content = '{content}', backup = '{backup}',
-                edited = '{edited}' where name = '{name}'"""
+                edited = '{date_time}' where name = '{name}'"""
             
             self.cur.execute(sql)
             self.db.commit()
             
         else:
             sql = f"""insert into notes (name, content, backup, created, edited) 
-                    values ('{name}', '{content}', '', '{edited}', '{edited}')"""
+                    values ('{name}', '{content}', '', '{date_time}', '{date_time}')"""
             self.cur.execute(sql)
             self.db.commit()
                         
         self.cur.execute(f"select content, edited from notes where name = '{name}'")
         control = self.cur.fetchone()
 
-        if control[0] == content and control[1] == edited:            
+        if control[0] == content and control[1] == date_time:            
             return True
         else:
             return False
@@ -446,10 +450,9 @@ class NotesDB:
 notesdb = NotesDB()
 
 create_table = notesdb.createTable()
-if create_table:
-    table = True
-else:
-    table = False
+if not create_table:
+    print("[2] Failed to create table")
+    sys.exit(2)
 
 
 class NotesTabWidget(QTabWidget):
@@ -467,7 +470,6 @@ class NotesTabWidget(QTabWidget):
         global notes_parent
         
         notes_parent = parent
-        self.notes = notes
         self.backups = {}
         
         self.home = QWidget(self)
@@ -476,8 +478,8 @@ class NotesTabWidget(QTabWidget):
         self.listview = NotesListView(self)
         
         self.entry = QLineEdit(self.home)
-        self.entry.setPlaceholderText("Type a note name")
-        self.entry.setStatusTip("Typing in entry also searches in list.")
+        self.entry.setPlaceholderText("Enter a note name")
+        self.entry.setStatusTip(_("You can search in list while entering anythings in entry."))
         self.entry.setClearButtonEnabled(True)
         self.entry.textChanged.connect(self.listview.setFilter)
         
@@ -487,11 +489,11 @@ class NotesTabWidget(QTabWidget):
                              text=_("Edited: "))
 
         self.side = QWidget(self.home)
-        self.side.setFixedWidth(144)
+        self.side.setFixedWidth(150)
         self.side.setLayout(QVBoxLayout(self.side))
         
-        self.open_button = QPushButton(self.side, text=_("Open/create note"))
-        self.open_button.clicked.connect(lambda: self.openCreate(self.entry.text()))
+        self.open_create_button = QPushButton(self.side, text=_("Open/create note"))
+        self.open_create_button.clicked.connect(lambda: self.openCreate(self.entry.text()))
         
         self.rename_button = QPushButton(self.side, text=_("Rename note"))
         self.rename_button.clicked.connect(lambda: self.renameNote(self.entry.text()))
@@ -531,7 +533,7 @@ class NotesTabWidget(QTabWidget):
         except:
             self.autosave.stateChanged.connect(self.setAutoSave)
         
-        self.side.layout().addWidget(self.open_button)
+        self.side.layout().addWidget(self.open_create_button)
         self.side.layout().addWidget(self.rename_button)
         self.side.layout().addWidget(self.show_backup_button)
         self.side.layout().addWidget(self.restore_button)
@@ -560,7 +562,7 @@ class NotesTabWidget(QTabWidget):
         Check if the note exists.
 
         Args:
-            name (str): Note name.
+            name (str): Note name
             mode (str, optional): Inverted mode for deleting etc. Defaults to "normal".
         """
         
@@ -573,7 +575,7 @@ class NotesTabWidget(QTabWidget):
          
     def closeTab(self, index: int) -> None:
         """
-        Close tab.
+        Close a tab.
 
         Args:
             index (int): Index of tab
@@ -592,8 +594,7 @@ class NotesTabWidget(QTabWidget):
                     if self.question == QMessageBox.StandardButton.Save:
                         call = notesdb.saveOne(self.tabText(index).replace("&", ""),
                                                notes[self.tabText(index).replace("&", "")].input.toPlainText(),
-                                               notes[self.tabText(index).replace("&", "")].content,
-                                               datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"), 
+                                               notes[self.tabText(index).replace("&", "")].content, 
                                                False)
                         
                         self.listview.insertNames()
@@ -629,7 +630,7 @@ class NotesTabWidget(QTabWidget):
         
     def deleteContent(self, name: str) -> None:
         """
-        Delete content of note with NotesDB's deleteContent function.
+        Delete content of a note.
 
         Args:
             name (str): Note name
@@ -642,8 +643,7 @@ class NotesTabWidget(QTabWidget):
         if self.checkIfTheNoteExists(name) == False:
             return
         
-        call = notesdb.deleteContent(name,
-                                     datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"))
+        call = notesdb.deleteContent(name)
     
         if call:
             QMessageBox.information(self, _("Successful"), _("Content of {name} note deleted.").format(name = name))
@@ -652,7 +652,7 @@ class NotesTabWidget(QTabWidget):
                        
     def deleteNote(self, name: str) -> None:
         """
-        Delete note of note with NotesDB's deleteOne function.
+        Delete a note.
 
         Args:
             name (str): Note name
@@ -679,7 +679,7 @@ class NotesTabWidget(QTabWidget):
         """Insert name and creation, edit dates.
 
         Args:
-            name (str): Note name.
+            name (str): Note name
         """
         
         if name != "":
@@ -697,7 +697,8 @@ class NotesTabWidget(QTabWidget):
             self.edited.setText(_("Edited: "))
         
     def openCreate(self, name: str) -> None:
-        """Open or create a note.
+        """
+        Open or create a note.
 
         Args:
             name (str): Note name
@@ -719,7 +720,7 @@ class NotesTabWidget(QTabWidget):
             self.setCurrentWidget(notes[name])
     
     def renameNote(self, name: str) -> None:
-        """Rename note with NotesDB's rename function.
+        """Rename a note.
 
         Args:
             name (str): Note name
@@ -733,8 +734,8 @@ class NotesTabWidget(QTabWidget):
             return
         
         newname, topwindow = QInputDialog.getText(self, 
-                                                             _("Rename {name} Note").format(name = name), 
-                                                             _("Please enter a new name for {name} below.").format(name = name))
+                                                  _("Rename {name} Note").format(name = name), 
+                                                  _("Please enter a new name for {name} below.").format(name = name))
         
         if newname != "" and newname != None and topwindow:
             call = notesdb.renameNote(name, newname)
@@ -753,7 +754,7 @@ class NotesTabWidget(QTabWidget):
                                  .format(name = name))
             
     def restoreContent(self, name: str) -> None:
-        """Restore content of note with NotesDB's rename function.
+        """Restore content of a note.
 
         Args:
             name (str): Note name
@@ -766,8 +767,7 @@ class NotesTabWidget(QTabWidget):
         if self.checkIfTheNoteExists(name) == False:
             return
         
-        status, call = notesdb.restoreContent(name,
-                                              datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"))
+        status, call = notesdb.restoreContent(name)
         
         if status == "successful" and call:
             QMessageBox.information(self, _("Successful"), _("Backup of {name} note restored.").format(name = name))
@@ -780,7 +780,7 @@ class NotesTabWidget(QTabWidget):
             
     def setAutoSave(self, signal: Qt.CheckState | int) -> None:
         """
-        Set auto-save setting for global with SettingsDB's setAutoSave function.
+        Set auto-save setting for global.
 
         Args:
             signal (Qt.CheckState | int): QCheckBox's signal.
@@ -801,7 +801,7 @@ class NotesTabWidget(QTabWidget):
                 
     def setFormat(self, index: int) -> None:
         """
-        Set format setting for global with SettingsDB's setFormat function.
+        Set format setting for global.
 
         Args:
             index (int): Selected index in QComboBox.
@@ -910,7 +910,8 @@ class NotesNote(QWidget):
         self.layout().addWidget(self.button, 2, 0, 1, 2)
         
     def saveNote(self, autosave: bool = False) -> None:
-        """Save a note with NotesDB's saveOne function.
+        """
+        Save a note.
 
         Args:
             autosave (bool, optional): _description_. Defaults to False.
@@ -1108,7 +1109,7 @@ class NotesListView(QListView):
         
     def getItemText(self) -> str:
         """
-        Get and then return item text
+        Get and then return item text.
 
         Returns:
             str: Item text
@@ -1120,7 +1121,7 @@ class NotesListView(QListView):
             return ""
         
     def insertNames(self) -> None:
-        """Insert notes' names with NotesDB's getNames function."""
+        """Insert notes' names."""
         
         global menu_notes
         
@@ -1152,7 +1153,7 @@ class NotesListView(QListView):
             pass
         
     def setFilter(self, text: str) -> None:
-        """Set filter in proxy
+        """Set filtering proxy.
 
         Args:
             text (str): Filtering text

@@ -204,16 +204,17 @@ class DiariesDB:
         
         return self.checkIfTheTableExists()
     
-    def deleteContent(self, date: str, edited: str) -> bool:
+    def deleteContent(self, date: str) -> bool:
         """Delete content of a diary.
 
         Args:
             date (str): Diary date
-            edited (str): Editing date
 
         Returns:
             bool: True if successful, False if not
         """
+        
+        date_time = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
         
         fetch_before = self.getContent(date)
         
@@ -223,14 +224,14 @@ class DiariesDB:
 
             if check_outdated == "yes":
                 sql = f"""update diaries set content = '',
-                edited = '{edited}', outdated = 'yes' where date = '{date}'"""
+                edited = '{date_time}', outdated = 'yes' where date = '{date}'"""
             elif check_outdated == "no":
                 sql = f"""update diaries set content = '', backup = '{fetch_before}',
-                edited = '{edited}', outdated = 'yes' where date = '{date}'"""
+                edited = '{date_time}', outdated = 'yes' where date = '{date}'"""
 
         else:            
             sql = f"""update diaries set content = '', backup = '{fetch_before}',
-            edited = '{edited}', outdated = 'no' where date = '{date}'"""
+            edited = '{date_time}', outdated = 'no' where date = '{date}'"""
         
         self.cur.execute(sql)
         self.db.commit()
@@ -362,17 +363,18 @@ class DiariesDB:
         else:
             return self.createTable()
     
-    def restoreContent(self, date: str, edited: str) -> tuple:
+    def restoreContent(self, date: str) -> tuple:
         """
         Restore content of diary.
         
         Args:
             date (str): Diary date
-            edited (str): Editing date
             
         Returns:
             tuple: Status and True if successful, False if unsuccesful
         """
+        
+        date_time = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
         
         self.cur.execute(f"select content, backup from diaries where date = '{date}'")
         fetch_before = self.cur.fetchone()
@@ -386,14 +388,14 @@ class DiariesDB:
 
             if check_outdated == "yes":
                 sql = f"""update diaries set content = '{fetch_before[1]}',
-                edited = '{edited}', outdated = 'yes' where date = '{date}'"""
+                edited = '{date_time}', outdated = 'yes' where date = '{date}'"""
             elif check_outdated == "no":
                 sql = f"""update diaries set content = '{fetch_before[1]}', backup = '{fetch_before[0]}',
-                edited = '{edited}', outdated = 'yes' where date = '{date}'"""
+                edited = '{date_time}', outdated = 'yes' where date = '{date}'"""
 
         else:            
             sql = f"""update diaries set content = '{fetch_before[1]}', backup = '{fetch_before[0]}',
-            edited = '{edited}', outdated = 'no' where date = '{date}'"""
+            edited = '{date_time}', outdated = 'no' where date = '{date}'"""
 
         self.cur.execute(sql)
         self.db.commit()
@@ -421,8 +423,7 @@ class DiariesDB:
         for date in diaries:
             calls[date] = self.saveOne(date,
                                        diaries[date].input.toPlainText(), 
-                                       diaries[date].content,
-                                       datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"), 
+                                       diaries[date].content, 
                                        False)
             
             if calls[date] == False:
@@ -430,7 +431,7 @@ class DiariesDB:
                 
         return successful
 
-    def saveOne(self, date: str, content: str, backup: str, edited: str, autosave: bool) -> bool:        
+    def saveOne(self, date: str, content: str, backup: str, autosave: bool) -> bool:        
         """
         Save a diary.
         If there is such a diary, create it.
@@ -439,19 +440,20 @@ class DiariesDB:
             date (str): Diary date
             content (str): Content of diary
             backup (str): Backup of diary
-            edited (str): Creating/editing date
             autosave (bool): True if the caller is "auto-save", false if it is not
             
         Returns:
             bool: True if successful, False if unsuccesful
         """
         
+        date_time = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+        
         check = self.checkIfTheDiaryExists(date)
         
         if check:
             if autosave:
                 sql = f"""update diaries set content = '{content}',
-                edited = '{edited}' where date = '{date}'"""
+                edited = '{date_time}' where date = '{date}'"""
             
             elif QDate.fromString(date, "dd.MM.yyyy") != today:
                 self.cur.execute(f"select outdated from diaries where date = '{date}'")
@@ -459,21 +461,21 @@ class DiariesDB:
     
                 if check_outdated == "yes":
                     sql = f"""update diaries set content = '{content}',
-                    edited = '{edited}', outdated = 'yes' where date = '{date}'"""
+                    edited = '{date_time}', outdated = 'yes' where date = '{date}'"""
                 elif check_outdated == "no":
                     sql = f"""update diaries set content = '{content}', backup = '{backup}',
-                    edited = '{edited}', outdated = 'yes' where date = '{date}'"""
+                    edited = '{date_time}', outdated = 'yes' where date = '{date}'"""
             
             else: 
                 sql = f"""update diaries set content = '{content}', backup = '{backup}',
-                edited = '{edited}', outdated = 'no' where date = '{date}'"""
+                edited = '{date_time}', outdated = 'no' where date = '{date}'"""
             
             self.cur.execute(sql)
             self.db.commit()
             
         else:
             sql = f"""insert into diaries (date, content, backup, edited, outdated) 
-                    values ('{date}', '{content}', '', '{edited}', 'no')"""
+                    values ('{date}', '{content}', '', '{date_time}', 'no')"""
 
             self.cur.execute(sql)
             self.db.commit()
@@ -481,7 +483,7 @@ class DiariesDB:
         self.cur.execute(f"select content, edited from diaries where date = '{date}'")
         control = self.cur.fetchone()
 
-        if control[0] == content and control[1] == edited:             
+        if control[0] == content and control[1] == date_time:             
             return True
         else:
             return False
@@ -490,10 +492,9 @@ class DiariesDB:
 diariesdb = DiariesDB()
 
 create_table = diariesdb.createTable()
-if create_table:
-    table = True
-else:
-    table = False
+if not create_table:
+    print("[2] Failed to create table")
+    sys.exit(2)
 
 
 class DiariesTabWidget(QTabWidget):
@@ -511,7 +512,6 @@ class DiariesTabWidget(QTabWidget):
         global diaries_parent
         
         diaries_parent = parent
-        self.diaries = diaries
         self.backups = {}
         
         self.home = QWidget(self)
@@ -530,11 +530,11 @@ class DiariesTabWidget(QTabWidget):
         self.update_button.clicked.connect(self.updateToday)
 
         self.side = QWidget(self.home)
-        self.side.setFixedWidth(144)
+        self.side.setFixedWidth(150)
         self.side.setLayout(QVBoxLayout(self.side))
         
-        self.open_button = QPushButton(self.side, text=_("Open/create diary"))
-        self.open_button.clicked.connect(
+        self.open_create_button = QPushButton(self.side, text=_("Open/create diary"))
+        self.open_create_button.clicked.connect(
             lambda: self.openCreate(self.calendar.selectedDate().toString("dd.MM.yyyy")))
 
         self.show_backup_button = QPushButton(self.side, text=_("Show backup"))
@@ -577,7 +577,7 @@ class DiariesTabWidget(QTabWidget):
         except:
             self.autosave.stateChanged.connect(self.setAutoSave)
         
-        self.side.layout().addWidget(self.open_button)
+        self.side.layout().addWidget(self.open_create_button)
         self.side.layout().addWidget(self.show_backup_button)
         self.side.layout().addWidget(self.restore_button)
         self.side.layout().addWidget(self.delete_content_button)
@@ -605,7 +605,7 @@ class DiariesTabWidget(QTabWidget):
         Check if the diary exists.
 
         Args:
-            date (str): Diary date.
+            date (str): Diary date
             mode (str, optional): Inverted mode for deleting etc. Defaults to "normal".
         """
         
@@ -618,7 +618,7 @@ class DiariesTabWidget(QTabWidget):
          
     def closeTab(self, index: int) -> None:
         """
-        Close tab.
+        Close a tab.
 
         Args:
             index (int): Index of tab
@@ -637,8 +637,7 @@ class DiariesTabWidget(QTabWidget):
                     if self.question == QMessageBox.StandardButton.Save:
                         call = diariesdb.saveOne(self.tabText(index).replace("&", ""),
                                                  diaries[self.tabText(index).replace("&", "")].input.toPlainText(),
-                                                 diaries[self.tabText(index).replace("&", "")].content,
-                                                 datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"), 
+                                                 diaries[self.tabText(index).replace("&", "")].content, 
                                                  False)
                         
                         if call:
@@ -671,7 +670,7 @@ class DiariesTabWidget(QTabWidget):
         
     def deleteContent(self, date: str) -> None:
         """
-        Delete content of diary with DiariesDB's deleteContent function.
+        Delete content of a diary.
 
         Args:
             date (str): Diary date
@@ -684,8 +683,7 @@ class DiariesTabWidget(QTabWidget):
         if self.checkIfTheDiaryExists(date) == False:
             return
         
-        call = diariesdb.deleteContent(date,
-                                       datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"))
+        call = diariesdb.deleteContent(date)
     
         if call:
             QMessageBox.information(self, _("Successful"), _("Content of {date} diary deleted.").format(date = date))
@@ -694,7 +692,7 @@ class DiariesTabWidget(QTabWidget):
                        
     def deleteDiary(self, date: str) -> None:
         """
-        Delete diary of diary with DiariesDB's deleteOne function.
+        Delete a diary.
 
         Args:
             date (str): Diary date
@@ -763,7 +761,7 @@ class DiariesTabWidget(QTabWidget):
             self.setCurrentWidget(diaries[date])
             
     def restoreContent(self, date: str) -> None:
-        """Restore content of diary with DiariesDB's rename function.
+        """Restore content of a diary.
 
         Args:
             date (str): Diary date
@@ -785,8 +783,7 @@ class DiariesTabWidget(QTabWidget):
             if question != QMessageBox.StandardButton.Yes:
                 return
         
-        status, call = diariesdb.restoreContent(date, 
-                                                datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"))
+        status, call = diariesdb.restoreContent(date)
         
         if status == "successful" and call:
             QMessageBox.information(self, _("Successful"), _("Backup of {date} diary restored.").format(date = date))
@@ -799,7 +796,7 @@ class DiariesTabWidget(QTabWidget):
             
     def setAutoSave(self, signal: Qt.CheckState | int) -> None:
         """
-        Set auto-save setting for global with SettingsDB's setAutoSave function.
+        Set auto-save setting for global.
 
         Args:
             signal (Qt.CheckState | int): QCheckBox's signal.
@@ -820,7 +817,7 @@ class DiariesTabWidget(QTabWidget):
                 
     def setFormat(self, index: int) -> None:
         """
-        Set format setting for global with SettingsDB's setFormat function.
+        Set format setting for global.
 
         Args:
             index (int): Selected index in QComboBox.
@@ -946,7 +943,7 @@ class DiariesDiary(QWidget):
         self.layout().addWidget(self.button, 2, 0, 1, 2)
         
     def saveDiary(self, autosave: bool = False) -> None:
-        """Save a diary with DiariesDB's saveOne function.
+        """Save a diary.
 
         Args:
             autosave (bool, optional): _description_. Defaults to False.
@@ -966,8 +963,7 @@ class DiariesDiary(QWidget):
             
             call = self.database.saveOne(self.date,
                                          self.input.toPlainText(),
-                                         self.content,
-                                         datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"), 
+                                         self.content, 
                                          autosave)
 
             if call:

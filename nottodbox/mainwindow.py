@@ -74,7 +74,7 @@ class MainWindow(QMainWindow):
         self.tabwidget.addTab(self.settings, _("Settings"))
         
         self.dock = QDockWidget(self)
-        self.dock.setFixedWidth(144)
+        self.dock.setFixedWidth(150)
         self.dock.setStyleSheet("QDockWidget{margin: 0px;}")
         self.dock.setFeatures(QDockWidget.DockWidgetFeature.DockWidgetClosable |
                               QDockWidget.DockWidgetFeature.DockWidgetFloatable |
@@ -166,7 +166,6 @@ class MainWindow(QMainWindow):
                     call_diary_save_one = diariesdb.saveOne(today.toString("dd.MM.yyyy"),
                                                             self.home.widget().diary.input.toPlainText(),
                                                             self.home.widget().diary.content,
-                                                            datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
                                                             False)
                 
                 if are_there_unsaved_notes and are_there_unsaved_diaries:
