@@ -661,10 +661,11 @@ class DiariesTabWidget(QTabWidget):
         
         call = diariesdb.recreateTable()
         
-        self.insertInformations("")
-    
         if call:
+            self.insertInformations("")
+            
             QMessageBox.information(self, _("Successful"), _("All diaries deleted."))
+
         else:
             QMessageBox.critical(self, _("Error"), _("Failed to delete all diaries."))
         
@@ -706,11 +707,12 @@ class DiariesTabWidget(QTabWidget):
             return
         
         call = diariesdb.deleteOne(date)
-
-        self.insertInformations("")
             
         if call:
+            self.insertInformations("")
+            
             QMessageBox.information(self, _("Successful"), _("{date} diary deleted.").format(date = date))
+            
         else:
             QMessageBox.critical(self, _("Error"), _("Failed to delete {date} diary.").format(date = date))
         

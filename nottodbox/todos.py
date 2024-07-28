@@ -15,6 +15,7 @@
 
 
 import sys
+from typing import Type
 
 from PyQt6.QtWidgets import QWidget
 sys.dont_write_bytecode = True
@@ -28,8 +29,7 @@ from PyQt6.QtCore import Qt, QStringListModel, QSortFilterProxyModel
 from PyQt6.QtWidgets import *
 
 
-todolists_widgets = {}
-todolists_listviews = {}
+todolists = {}
 
 
 username = getpass.getuser()
@@ -77,7 +77,7 @@ class TodosDB:
         else:
             return False
         
-    def checkIfTheTablesExists(self, tables: list) -> bool:
+    def checkIfTheTablesExist(self, tables: list) -> bool:
         """
         Check if the tables exists.
         
@@ -96,7 +96,7 @@ class TodosDB:
         except sqlite3.OperationalError:
             return False
         
-    def checkIfTheTodoExist(self, todolist: str, todo: str) -> bool:
+    def checkIfTheTodoExists(self, todolist: str, todo: str) -> bool:
         """
         Check if the todo exists.
 
@@ -117,7 +117,7 @@ class TodosDB:
         except TypeError:
             return False
     
-    def checkIfTheTodolistExist(self, name: str) -> bool:
+    def checkIfTheTodolistExists(self, name: str) -> bool:
         """
         Check if the todolist exists.
 
@@ -132,7 +132,7 @@ class TodosDB:
         
         try:
             self.cur.fetchone()[0]
-            return self.checkIfTheTablesExists([name])
+            return self.checkIfTheTablesExist([name])
         
         except TypeError:
             return False
@@ -169,7 +169,7 @@ class TodosDB:
             self.cur.execute(sql)
             self.db.commit()
         
-        return self.checkIfTheTablesExists(tables)
+        return self.checkIfTheTablesExist(tables)
     
     def createTodolist(self, name: str) -> bool:
         """
@@ -212,7 +212,7 @@ class TodosDB:
         self.cur.execute(f"delete from '{todolist}' where todo = '{todo}'")
         self.db.commit()
         
-        call = self.checkIfTheTodoExist(todolist, todo)
+        call = self.checkIfTheTodoExists(todolist, todo)
         
         if call:
             return False
@@ -236,7 +236,7 @@ class TodosDB:
         self.cur.execute(f"DROP TABLE IF EXISTS '{name}'")
         self.db.commit()
         
-        call = self.checkIfTheTodolistExist(name)
+        call = self.checkIfTheTodolistExists(name)
         
         if call:
             return False
@@ -266,7 +266,7 @@ class TodosDB:
         self.cur.execute(f"update '{todolist}' set todo = '{newtodo}' where todo = '{todo}'")
         self.db.commit()
         
-        return self.checkIfTheTodoExist(todolist, newtodo)
+        return self.checkIfTheTodoExists(todolist, newtodo)
     
     def getTodos(self, todolist: str) -> list:
         """
@@ -279,7 +279,7 @@ class TodosDB:
             list: List of todos
         """
         
-        self.cur.execute(f"select todo from '{todolist}'")
+        self.cur.execute(f"select todo, status from '{todolist}'")
         return self.cur.fetchall()
     
     def getTodolists(self) -> list:
@@ -293,7 +293,7 @@ class TodosDB:
         self.cur.execute(f"select name from todolists")
         return self.cur.fetchall()
     
-    def getTodoInformations(self, todolist: str, name: str) -> tuple:
+    def getTodoInformations(self, todolist: str, todo: str) -> tuple:
         """
         Get starting and completing dates.
 
@@ -305,7 +305,7 @@ class TodosDB:
             tuple: Returns starting and completing dates
         """
         
-        self.cur.execute(f"select started, completed from '{todolist}' where name = '{name}'")
+        self.cur.execute(f"select status, started, completed from '{todolist}' where todo = '{todo}'")
         return self.cur.fetchone()
     
     def getTodolistInformations(self, name: str) -> tuple:
@@ -337,7 +337,7 @@ class TodosDB:
             self.cur.execute(f"DROP TABLE IF EXISTS '{table}'")
             self.db.commit()
         
-        call = self.checkIfTheTablesExists(tables)
+        call = self.checkIfTheTablesExist(tables)
         
         if call:
             return False
@@ -362,7 +362,7 @@ class TodosDB:
         self.cur.execute(f"ALTER TABLE '{name}' RENAME TO '{newname}'")
         self.db.commit()
         
-        return self.checkIfTheTodolistExist(newname)
+        return self.checkIfTheTodolistExists(newname)
         
     def makeCompleted(self, todolist: str, todo: str) -> bool:
         """
@@ -446,6 +446,8 @@ class TodosTabWidget(QTabWidget):
         self.home = QWidget(self)
         self.home.setLayout(QHBoxLayout(self))
         
+        self.maintodos = TodolistWidget(self, "main")
+        
         self.side = QWidget(self.home)
         self.side.setFixedWidth(300)
         self.side.setLayout(QGridLayout(self.side))
@@ -484,7 +486,7 @@ class TodosTabWidget(QTabWidget):
         self.side.layout().addWidget(self.rename_button, 4, 1, 1, 1)
         self.side.layout().addWidget(self.delete_todolist_button, 5, 0, 1, 1)
         self.side.layout().addWidget(self.delete_all_button, 5, 1, 1, 1)
-        self.home.layout().addWidget(TodolistWidget(self, "main"))
+        self.home.layout().addWidget(self.maintodos)
         self.home.layout().addWidget(self.side)
         
         self.addTab(self.home, _("Home"))
@@ -496,7 +498,7 @@ class TodosTabWidget(QTabWidget):
         
         self.tabCloseRequested.connect(self.closeTab)
         
-    def checkIfTheTodolistExist(self, name: str, mode: str = "normal") -> None:
+    def checkIfTheTodolistExists(self, name: str, mode: str = "normal") -> None:
         """
         Check if the todo list exists.
 
@@ -505,7 +507,7 @@ class TodosTabWidget(QTabWidget):
             mode (str, optional): Inverted mode for deleting etc. Defaults to "normal".
         """
         
-        call = todosdb.checkIfTheTodolistExist(name)
+        call = todosdb.checkIfTheTodolistExists(name)
         
         if call == False and mode == "normal":
             QMessageBox.critical(self, _("Error"), _("There is no todo list called {name}.").format(name = name))
@@ -521,7 +523,7 @@ class TodosTabWidget(QTabWidget):
         """
         
         if index != self.indexOf(self.home):           
-            del todolists_widgets[self.tabText(index).replace("&", "")]
+            del todolists[self.tabText(index).replace("&", "")]
             
             todos_parent.dock.widget().removePage(self.tabText(index).replace("&", ""), self)
             self.removeTab(index)
@@ -530,12 +532,13 @@ class TodosTabWidget(QTabWidget):
         """Delete all todo lists."""
         
         call = todosdb.recreateTables(["todolists"])
-        
-        self.listview.insertNames()
-        self.insertInformations("")
     
         if call:
+            self.listview.insertNames()
+            self.insertInformations("")
+            
             QMessageBox.information(self, _("Successful"), _("All todo lists deleted."))
+            
         else:
             QMessageBox.critical(self, _("Error"), _("Failed to delete all todo lists."))
                        
@@ -551,16 +554,17 @@ class TodosTabWidget(QTabWidget):
             QMessageBox.critical(self, _("Error"), _('Todo list name can not be blank, "main" or "todolists".'))
             return
         
-        if self.checkIfTheTodolistExist(name) == False:
+        if self.checkIfTheTodolistExists(name) == False:
             return
         
         call = todosdb.deleteTodolist(name)
-        
-        self.listview.insertNames()
-        self.insertInformations("")
             
         if call:
+            self.listview.insertNames()
+            self.insertInformations("")
+            
             QMessageBox.information(self, _("Successful"), _("{name} todo list deleted.").format(name = name))
+            
         else:
             QMessageBox.critical(self, _("Error"), _("Failed to delete {name} todo list.").format(name = name))
 
@@ -576,13 +580,16 @@ class TodosTabWidget(QTabWidget):
         else:
             call = None
             
+        self.entry.setText(name)
+        
         try:
-            self.entry.setText(name)
             self.created.setText(_("Created: ") + call[0])
+        except TypeError:
+            self.created.setText(_("Created: "))
+            
+        try:
             self.edited.setText(_("Edited: ") + call[1])
         except TypeError:
-            self.entry.setText("")
-            self.created.setText(_("Created: "))
             self.edited.setText(_("Edited: "))
         
     def openCreate(self, name: str) -> None:
@@ -592,20 +599,24 @@ class TodosTabWidget(QTabWidget):
             name (str): Todo list name
         """
         
-        if name == "" or name == None or name == "main" or name == "todolists":
-            QMessageBox.critical(self, _("Error"), _('Todo list name can not be blank, "main" or "todolists".'))
+        if name == "" or name == None or name == "todolists":
+            QMessageBox.critical(self, _("Error"), _('Todo list name can not be blank or "todolists".'))
             return
         
         todos_parent.tabwidget.setCurrentIndex(2)
         
-        if name in todolists_widgets:
-            self.setCurrentWidget(todolists_widgets[name])
+        if name == "main":
+            self.setCurrentWidget(self.home)
+            return
+        
+        if name in todolists:
+            self.setCurrentWidget(todolists[name])
             
         else:
             todos_parent.dock.widget().addPage(name, self)
-            todolists_widgets[name] = TodolistWidget(self, name)
-            self.addTab(todolists_widgets[name], name)
-            self.setCurrentWidget(todolists_widgets[name])
+            todolists[name] = TodolistWidget(self, name)
+            self.addTab(todolists[name], name)
+            self.setCurrentWidget(todolists[name])
     
     def renameTodolist(self, name: str) -> None:
         """Rename a todo list.
@@ -618,7 +629,7 @@ class TodosTabWidget(QTabWidget):
             QMessageBox.critical(self, _("Error"), _('Todo list name can not be blank, "main" or "todolists".'))
             return
         
-        if self.checkIfTheTodolistExist(name) == False:
+        if self.checkIfTheTodolistExists(name) == False:
             return
         
         newname, topwindow = QInputDialog.getText(self, 
@@ -627,10 +638,11 @@ class TodosTabWidget(QTabWidget):
         
         if newname != "" and newname != None and topwindow:
             call = todosdb.renameTodolist(name, newname)
+            
             self.listview.insertNames()
             
             if call:
-                self.entry.setText(newname)
+                self.insertInformations(newname)
                 
                 QMessageBox.information(self, _("Successful"), _("{name} todo list renamed as {newname}.")
                                         .format(name = name, newname = newname))
@@ -643,7 +655,7 @@ class TodosTabWidget(QTabWidget):
 
 
 class TodosListView(QListView):
-    """A list for showing todos' names."""
+    """A list for showing todo lists' names."""
     
     def __init__(self, parent: TodosTabWidget, caller: str = "todos") -> None:
         """Init and then set properties.
@@ -708,9 +720,11 @@ class TodosListView(QListView):
         
         if self.caller == "todos":
             if not "menu_todos" in globals():
-                menu_todos = todos_parent.menuBar().addMenu(_("todos"))
+                menu_todos = todos_parent.menuBar().addMenu(_("Todos"))
             
             menu_todos.clear()
+            
+            menu_todos.addAction(_("Main List"), lambda: self.parent_.openCreate("main"))
             
             for name in call:
                 names.append(name[0])
@@ -738,8 +752,8 @@ class TodosListView(QListView):
         """
         
         self.proxy.beginResetModel()
-        self.proxy.setFilterFixedString(text)
         self.proxy.endResetModel()
+        self.proxy.setFilterFixedString(text)
     
         self.parent_.created.setText(_("Created: "))
         self.parent_.edited.setText(_("Edited: "))
@@ -759,7 +773,7 @@ class TodolistWidget(QWidget):
         self.parent_ = parent
         self.name = name
         
-        call = todosdb.checkIfTheTodolistExist(name)
+        call = todosdb.checkIfTheTodolistExists(name)
         
         if name != "main" and not call:
             call = todosdb.createTodolist(name)
@@ -767,9 +781,9 @@ class TodolistWidget(QWidget):
             self.parent_.listview.insertNames()
             
             if not call:
-                global todolists_widgets
+                global todolists
 
-                del todolists_widgets[name]
+                del todolists[name]
                 
                 QMessageBox.critical(parent, _("Error"), _("Failed to create todo list {name}.").format(name = name))
 
@@ -784,7 +798,7 @@ class TodolistWidget(QWidget):
         self.completed = QLabel(self, alignment=Qt.AlignmentFlag.AlignCenter, 
                                 text=_("Completed:"))
         
-        self.listview = TodolistListView()
+        self.listview = TodolistListView(self, self.name)
         
         self.entry = QLineEdit(self)
         self.entry.setPlaceholderText(_("Enter a todo"))
@@ -793,15 +807,13 @@ class TodolistWidget(QWidget):
         self.entry.textChanged.connect(self.listview.setFilter)
         
         self.comp_button = QPushButton(self, text=_("Make completed todo"))
-        self.comp_button.clicked.connect(lambda: self.makeCompleted(self.entry.text(), 
-                                                           datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")))
+        self.comp_button.clicked.connect(lambda: self.makeCompleted(self.entry.text()))
         
         self.uncomp_button = QPushButton(self, text=_("Make uncompleted todo"))
         self.uncomp_button.clicked.connect(lambda: self.makeUncompleted(self.entry.text()))
         
         self.add_button = QPushButton(self, text=_("Add todo"))
-        self.add_button.clicked.connect(lambda: self.addTodo(self.entry.text(),
-                                                         datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")))
+        self.add_button.clicked.connect(lambda: self.addTodo(self.entry.text()))
         
         self.edit_button = QPushButton(self, text=_("Edit todo"))
         self.edit_button.clicked.connect(lambda: self.editTodo(self.entry.text()))
@@ -831,6 +843,26 @@ class TodolistWidget(QWidget):
             todo (str): Todo
         """
         
+        if todo == "" or todo == None:
+            todo, topwindow = QInputDialog.getText(self, 
+                                                    _("Add A Todo"),
+                                                    _("Please enter a todo below."))
+            
+            if todo == "" or todo == None or not topwindow:
+                QMessageBox.critical(self, _("Error"), _("Failed to add {todo} todo.").format(todo = todo))
+                return
+        
+        call = todosdb.addTodo(self.name, todo)
+        
+        if call:
+            self.listview.insertTodos()
+            self.insertInformations(todo)            
+
+            QMessageBox.information(self, _("Successful"), _("{todo} added.").format(todo = todo))
+            
+        else:
+            QMessageBox.critical(self, _("Error"), _("Failed to add {todo} todo.").format(todo = todo))
+        
     def checkIfTheTodoExists(self, todo: str, mode: str = "normal") -> None:
         """
         Check if the todo exists.
@@ -840,7 +872,11 @@ class TodolistWidget(QWidget):
             mode (str, optional): Inverted mode for deleting etc. Defaults to "normal".
         """
         
-        call = todosdb.checkIfTheTodoExist(self.name, todo)
+        if todo == "" or todo == None:
+            QMessageBox.critical(self, _("Error"), _('Todo name can not be blank.'))
+            return
+        
+        call = todosdb.checkIfTheTodoExists(self.name, todo)
         
         if call == False and mode == "normal":
             QMessageBox.critical(self, _("Error"), _("There is no todo called {todo}.").format(todo = todo))
@@ -858,18 +894,32 @@ class TodolistWidget(QWidget):
             call = todosdb.getTodoInformations(self.name, todo)
         else:
             call = None
-            
+        
+        self.entry.setText(todo)
+        
         try:
-            self.entry.setText(todo)
-            self.started.setText(_("Started: ") + call[0])
-            self.completed.setText(_("Completed: ") + call[1])
+            self.started.setText(_("Started: ") + call[1])
         except TypeError:
-            self.entry.setText("")
             self.started.setText(_("Started: "))
+
+        try:
+            self.completed.setText(_("Completed: ") + call[2])
+        except TypeError:
             self.completed.setText(_("Completed: "))
             
     def deleteAll(self) -> None:
         """Delete all todos."""
+        
+        call = todosdb.recreateTables([self.name])
+
+        if call:
+            self.listview.insertTodos()
+            self.insertInformations("")
+            
+            QMessageBox.information(self, _("Successful"), _("All todos deleted."))
+            
+        else:
+            QMessageBox.critical(self,_("Error"), _("Failed to delete all todos."))
         
     def deleteTodo(self, todo: str) -> None:
         """
@@ -879,6 +929,23 @@ class TodolistWidget(QWidget):
             todo (str): Todo
         """
         
+        if todo == "" or todo == None:
+            QMessageBox.critical(self, _("Error"), _('Todo can not be blank.'))
+            return
+        
+        if self.checkIfTheTodoExists(todo) == False:
+            return
+        
+        call = todosdb.deleteTodo(self.name, todo)
+        
+        if call:
+            self.listview.insertTodos()
+            self.insertInformations("")
+            
+            QMessageBox.information(self, _("Successful"), _("Todo {todo} deleted.").format(todo = todo))
+        else:
+            QMessageBox.critical(self, _("Error"), _("Failed to delete {todo}.").format(todo = todo))
+        
     def editTodo(self, todo: str) -> None:
         """
         Edit a todo.
@@ -886,6 +953,34 @@ class TodolistWidget(QWidget):
         Args:
             todo (str): Todo
         """
+        
+        if todo == "" or todo == None:
+            QMessageBox.critical(self, _("Error"), _('Todo can not be blank.'))
+            return
+        
+        if self.checkIfTheTodoExists(todo) == False:
+            return
+        
+        newtodo, topwindow = QInputDialog.getText(self, 
+                                                  _("Edit {todo} Todo").format(todo = todo), 
+                                                  _("Please enter a text for {todo} below.").format(todo = todo))
+        
+        if newtodo != "" and newtodo != None and topwindow:
+            call = todosdb.editTodo(self.name, todo, newtodo)
+            
+            self.listview.insertTodos()
+            
+            if call:
+                self.insertInformations(newtodo)
+                
+                QMessageBox.information(self, _("Successful"), _("{todo} todo edited as {newtodo}.")
+                                        .format(todo = todo, newtodo = newtodo))
+            else:
+                QMessageBox.critical(self, _("Error"), _("Failed to edit {name} todo.")
+                                     .format(todo = todo))
+        else:
+            QMessageBox.critical(self, _("Error"), _("Failed to edit {name} todo.")
+                                 .format(todo = todo))
         
     def makeCompleted(self, todo: str) -> None:
         """
@@ -895,6 +990,23 @@ class TodolistWidget(QWidget):
             todo (str): Todo
         """
         
+        if todo == "" or todo == None:
+            QMessageBox.critical(self, _("Error"), _('Todo can not be blank.'))
+            return
+        
+        if self.checkIfTheTodoExists(todo) == False:
+            return
+        
+        call = todosdb.makeCompleted(self.name, todo)
+        
+        if call:
+            self.insertInformations(todo)
+            
+            QMessageBox.information(self, _("Successful"), _("{todo} maded completed.").format(todo = todo))
+            
+        else:
+            QMessageBox.critical(self, _("Error"), _("Failed to make {todo} completed.").format(todo = todo))
+        
     def makeUncompleted(self, todo: str) -> None:
         """
         Make uncompleted a todo.
@@ -902,10 +1014,106 @@ class TodolistWidget(QWidget):
         Args:
             todo (str): Todo
         """
+        
+        if todo == "" or todo == None:
+            QMessageBox.critical(self, _("Error"), _('Todo can not be blank.'))
+            return
+        
+        if self.checkIfTheTodoExists(todo) == False:
+            return
+        
+        call = todosdb.makeUncompleted(self.name, todo)
+        
+        if call:
+            self.insertInformations(todo)
+            
+            QMessageBox.information(self, _("Successful"), _("{todo} maded uncompleted.").format(todo = todo))
+
+        else:
+            QMessageBox.critical(self, _("Error"), _("Failed to make {todo} uncompleted.").format(todo = todo))
 
 
 class TodolistListView(QListView):
+    """A list for showing todos' names."""
     
+    def __init__(self, parent: TodolistWidget, name: str, caller: str = "todos") -> None:
+        """
+        Init and then set properties.
+
+        Args:
+            parent (TodolistWidget): A todo list page
+            name (str): Todo list name
+            caller (str): The caller. Defaults to "todos".
+        """
+        
+        super().__init__(parent)
+        
+        self.parent_ = parent
+        self.name = name
+        self.caller = caller
+        self.proxy = QSortFilterProxyModel(self)
+        
+        if caller == "todos":
+            self.model_ = QStringListModel(self)
+            self.proxy.setSourceModel(self.model_)
+            
+        elif caller == "home":
+            global todolist_model_for_home
+            
+            todolist_model_for_home = QStringListModel(self)
+            self.proxy.setSourceModel(todolist_model_for_home)
+            
+        self.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
+        self.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+        self.setStatusTip(_("Double-click to marking a todo as completed/uncompleted."))
+        self.setModel(self.proxy)
+        
+        if caller == "todos":
+            self.selectionModel().selectionChanged.connect(
+                lambda: self.parent_.insertInformations(self.getItemText()))
+        
+        self.doubleClicked.connect(lambda: self.setTodoStatus(self.getItemText()))
+        
+        self.insertTodos()
+        
+    def getItemText(self) -> str:
+        """
+        Get and then return item text.
+
+        Returns:
+            str: Item text
+        """
+        
+        try:
+            return self.proxy.itemData(self.currentIndex())[0]
+        except KeyError:
+            return ""
+    
+    def insertTodos(self) -> None:
+        """Insert todos."""
+        
+        call = todosdb.getTodos(self.name)
+        todos = []
+        
+        for todo, status in call:
+            if status == "completed":
+                prefix = "[+]"
+            elif status == "uncompleted":
+                prefix = " [-]"
+            
+            todos.append(f"{prefix} {todo}")
+    
+        try:
+            self.model_.setStringList(todos)
+        except AttributeError:
+            pass
+    
+        if self.name == "main":
+            try:
+                todolist_model_for_home.setStringList(todos)
+            except NameError:
+                pass
 
     def setFilter(self, text: str) -> None:
         """Set filtering proxy.
@@ -914,9 +1122,25 @@ class TodolistListView(QListView):
             text (str): Filtering text
         """
         
-        # self.proxy.beginResetModel()
-        # self.proxy.setFilterFixedString(text)
-        # self.proxy.endResetModel()
+        self.proxy.beginResetModel()
+        self.proxy.endResetModel()
+        self.proxy.setFilterFixedString(text)
     
-        # self.parent_.started.setText(_("Started: "))
-        # self.parent_.completed.setText(_("Completed: "))
+        self.parent_.started.setText(_("Started: "))
+        self.parent_.completed.setText(_("Completed: "))
+        
+    def setTodoStatus(self, todo: str) -> None:
+        """
+        Set todo's status.
+
+        Args:
+            todo (str): Todo
+        """
+        
+        call = todosdb.getTodoInformations(self.name, todo)
+        
+        if call[0] == "completed":
+            self.parent_.makeUncompleted(todo)
+
+        elif call[0] == "uncompleted":
+            self.parent_.makeCompleted(todo)

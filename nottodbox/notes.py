@@ -15,6 +15,7 @@
 
 
 import sys
+from typing import Type
 sys.dont_write_bytecode = True
 
 
@@ -217,7 +218,7 @@ class NotesDB:
         fetch_before = self.getContent(name)
         
         sql = f"""
-        update notes set content = '', backup = '{fetch_before}, edited = '{date_time}'
+        update notes set content = '', backup = '{fetch_before}', edited = '{date_time}'
         where name = '{name}'
         """
             
@@ -619,12 +620,13 @@ class NotesTabWidget(QTabWidget):
         """Delete all notes."""
         
         call = notesdb.recreateTable()
-        
-        self.listview.insertNames()
-        self.insertInformations("")
     
         if call:
+            self.listview.insertNames()
+            self.insertInformations("")
+            
             QMessageBox.information(self, _("Successful"), _("All notes deleted."))
+            
         else:
             QMessageBox.critical(self, _("Error"), _("Failed to delete all notes."))
         
@@ -666,12 +668,13 @@ class NotesTabWidget(QTabWidget):
             return
         
         call = notesdb.deleteOne(name)
-        
-        self.listview.insertNames()
-        self.insertInformations("")
             
         if call:
+            self.listview.insertNames()
+            self.insertInformations("")
+            
             QMessageBox.information(self, _("Successful"), _("{name} note deleted.").format(name = name))
+            
         else:
             QMessageBox.critical(self, _("Error"), _("Failed to delete {name} note.").format(name = name))
         
@@ -686,14 +689,17 @@ class NotesTabWidget(QTabWidget):
             call = notesdb.getInformations(name)
         else:
             call = None
+        
+        self.entry.setText(name)
+        
+        try:
+            self.created.setText(_("Created: ") + call[0])
+        except TypeError:
+            self.created.setText(_("Created: "))
             
         try:
-            self.entry.setText(name)
-            self.created.setText(_("Created: ") + call[0])
             self.edited.setText(_("Edited: ") + call[1])
         except TypeError:
-            self.entry.setText("")
-            self.created.setText(_("Created: "))
             self.edited.setText(_("Edited: "))
         
     def openCreate(self, name: str) -> None:
@@ -739,10 +745,11 @@ class NotesTabWidget(QTabWidget):
         
         if newname != "" and newname != None and topwindow:
             call = notesdb.renameNote(name, newname)
+
             self.listview.insertNames()
             
             if call:
-                self.entry.setText(newname)
+                self.insertInformations(newname)
                 
                 QMessageBox.information(self, _("Successful"), _("{name} note renamed as {newname}.")
                                         .format(name = name, newname = newname))
@@ -923,7 +930,6 @@ class NotesNote(QWidget):
             call = notesdb.saveOne(self.name,
                                    self.input.toPlainText(),
                                    self.content,
-                                   datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"), 
                                    autosave)
             
             self.parent_.listview.insertNames()
@@ -1096,7 +1102,7 @@ class NotesListView(QListView):
         self.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
         self.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
-        self.setStatusTip("Double-click to opening a note.")
+        self.setStatusTip(_("Double-click to opening a note."))
         self.setModel(self.proxy)
 
         if self.caller == "notes":
@@ -1160,8 +1166,8 @@ class NotesListView(QListView):
         """
         
         self.proxy.beginResetModel()
-        self.proxy.setFilterFixedString(text)
         self.proxy.endResetModel()
+        self.proxy.setFilterFixedString(text)
     
         self.parent_.created.setText(_("Created: "))
         self.parent_.edited.setText(_("Edited: "))

@@ -237,6 +237,8 @@ class SettingsWidget(QWidget):
         self.list.addItem(self.list_document)
         self.list.addItem(self.list_questions)
         
+        self.list.setCurrentRow(0)
+        
         self.layout().addWidget(self.list)
         self.layout().addWidget(self.stacked)
         

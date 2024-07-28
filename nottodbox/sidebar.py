@@ -54,18 +54,22 @@ class SidebarDB:
         """
         
         try:
-            self.cur.execute(f"insert into pages (page, module) values ('{page}', '{module}')")
+            self.cur.execute(f"insert into pages (page) values ('{module}-{page}')")
             self.db.commit()
 
         except sqlite3.IntegrityError:
             pass
         
-        self.cur.execute(f"select page, module from pages where page = '{page}'")
+        self.cur.execute(f"select page from pages where page = '{module}-{page}'")
         control = self.cur.fetchone()
 
-        if control[0] == page and control[1] == module:            
-            return True
-        else:
+        try:
+            if control[0] == f"{module}-{page}":            
+                return True
+            else:
+                return False
+
+        except TypeError:
             return False
         
     def checkIfThePageExists(self, name: str) -> bool:
@@ -113,8 +117,7 @@ class SidebarDB:
         
         sql = """
         CREATE TABLE IF NOT EXISTS pages (
-            page TEXT NOT NULL PRIMARY KEY,
-            module TEXT NOT NULL
+            page TEXT NOT NULL PRIMARY KEY
         );"""
         
         self.cur.execute(sql)
@@ -122,23 +125,24 @@ class SidebarDB:
         
         return self.checkIfTheTableExists()
     
-    def deletePage(self, page: str) -> bool:
+    def deletePage(self, page: str, module: str) -> bool:
         """Delete a page.
 
         Args:
-            name (str): Page name
+            page (str): Page name
+            module (str): Module
 
         Returns:
             bool: True if successful, False if not
         """
         
-        call = self.checkIfThePageExists(page)
+        call = self.checkIfThePageExists(f"{module}-{page}")
         
         if call:
-            self.cur.execute(f"delete from pages where page = '{page}'")
+            self.cur.execute(f"delete from pages where page = '{module}-{page}'")
             self.db.commit()
             
-            call = self.checkIfThePageExists(page)
+            call = self.checkIfThePageExists(f"{module}-{page}")
             
             if call:
                 return False
@@ -325,14 +329,17 @@ class SidebarWidget(QWidget):
         
         if key.startswith(_("Note: ")):
             length = len(_("Note: "))
+            module = "notes"
                 
         elif key.startswith(_("Todo list: ")):
             length = len(_("Todo list: "))
+            module = "todos"
 
         elif key.startswith(_("Diary: ")):
             length = len(_("Diary: "))
+            module = "diaries"
         
-        call = sidebardb.deletePage(key[length:])
+        call = sidebardb.deletePage(key[length:], module)
         
         self.insertPages()
         
@@ -378,13 +385,15 @@ class SidebarWidget(QWidget):
         call = sidebardb.getNames()
         pages = []
 
-        for page, module in call:
-            if module == "notes":
-                pages.append(_("Note: {page}").format(page = page))
-            if module == "todos":
-                pages.append(_("Todo list: {page}").format(page = page))
-            if module == "diaries":
-                pages.append(_("Diary: {page}").format(page = page))
+        for page in call:
+            page = page[0]
+            
+            if str(page).startswith("notes-"):
+                pages.append(_("Note: {page}").format(page = page[6:]))
+            if str(page).startswith("todos-"):
+                pages.append(_("Todo list: {page}").format(page = page[6:]))
+            if str(page).startswith("diaries-"):
+                pages.append(_("Diary: {page}").format(page = page[8:]))
             
         self.model2.setStringList(pages)
         
@@ -422,7 +431,7 @@ class SidebarWidget(QWidget):
         
         self.proxy1.beginResetModel()
         self.proxy2.beginResetModel()
-        self.proxy1.setFilterFixedString(text)
-        self.proxy2.setFilterFixedString(text)
         self.proxy1.endResetModel()  
         self.proxy2.endResetModel()
+        self.proxy1.setFilterFixedString(text)
+        self.proxy2.setFilterFixedString(text)
