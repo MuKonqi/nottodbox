@@ -169,10 +169,9 @@ class SettingsDB:
 settingsdb = SettingsDB()
 
 create_table = settingsdb.createTable()
-if create_table:
-    table = True
-else:
-    table = False
+if not create_table:
+    print("[2] Failed to create table")
+    sys.exit(2)
 
 
 class SettingsScrollArea(QScrollArea):
