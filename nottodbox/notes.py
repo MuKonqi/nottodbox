@@ -15,7 +15,6 @@
 
 
 import sys
-from typing import Type
 sys.dont_write_bytecode = True
 
 

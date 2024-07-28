@@ -15,7 +15,6 @@
 
 
 import sys
-from typing import Type
 
 from PyQt6.QtWidgets import QWidget
 sys.dont_write_bytecode = True
