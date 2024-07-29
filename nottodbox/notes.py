@@ -1082,21 +1082,18 @@ class NotesListView(QListView):
         
         super().__init__(parent)
         
-        global notes_model1, notes_model2
-        
         self.parent_ = parent
         self.caller = caller
 
         self.proxy = QSortFilterProxyModel(self)
         self.proxy.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
         
-        if self.caller == "notes":  
-            notes_model1 = QStringListModel(self)
-            self.proxy.setSourceModel(notes_model1)
+        if self.caller == "notes":
+            global notes_model
             
-        elif self.caller == "home":
-            notes_model2 = QStringListModel(self)
-            self.proxy.setSourceModel(notes_model2)
+            notes_model = QStringListModel(self)
+            
+        self.proxy.setSourceModel(notes_model)
         
         self.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
@@ -1146,16 +1143,8 @@ class NotesListView(QListView):
         elif self.caller == "home":
             for name in call:
                 names.append(name[0])
-    
-        try:
-            notes_model1.setStringList(names)
-        except NameError:
-            pass
-    
-        try:
-            notes_model2.setStringList(names)
-        except NameError:
-            pass
+
+        notes_model.setStringList(names)
         
     def setFilter(self, text: str) -> None:
         """Set filtering proxy.

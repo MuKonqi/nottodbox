@@ -666,8 +666,6 @@ class TodosListView(QListView):
         
         super().__init__(parent)
         
-        global todos_model1, todos_model2
-        
         self.parent_ = parent
         self.caller = caller
 
@@ -675,12 +673,11 @@ class TodosListView(QListView):
         self.proxy.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
         
         if self.caller == "todos":  
-            todos_model1 = QStringListModel(self)
-            self.proxy.setSourceModel(todos_model1)
+            global todos_model
             
-        elif self.caller == "home":
-            todos_model2 = QStringListModel(self)
-            self.proxy.setSourceModel(todos_model2)
+            todos_model = QStringListModel(self)
+            
+        self.proxy.setSourceModel(todos_model)
         
         self.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
@@ -732,16 +729,8 @@ class TodosListView(QListView):
         elif self.caller == "home":
             for name in call:
                 names.append(name[0])
-    
-        try:
-            todos_model1.setStringList(names)
-        except NameError:
-            pass
-    
-        try:
-            todos_model2.setStringList(names)
-        except NameError:
-            pass
+                
+        todos_model.setStringList(names)
         
     def setFilter(self, text: str) -> None:
         """Set filtering proxy.
