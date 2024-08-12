@@ -653,7 +653,9 @@ class DiariesTabWidget(QTabWidget):
             except KeyError:
                 pass
             
-            diaries_parent.dock.widget().removePage(self.tabText(index).replace("&", ""), self)
+            if not str(self.tabText(index).replace("&", "")).endswith(f' {_("(Backup)")}'):
+                diaries_parent.dock.widget().removePage(self.tabText(index).replace("&", ""), self)
+            
             self.removeTab(index)
         
     def deleteAll(self) -> None:
@@ -857,7 +859,6 @@ class DiariesTabWidget(QTabWidget):
             return
         
         diaries_parent.tabwidget.setCurrentIndex(3)
-        diaries_parent.dock.widget().addPage(date + " " + _("(Backup)"), self)
 
         self.backups[date] = DiariesBackup(self, date)
         self.addTab(self.backups[date], (date + " " + _("(Backup)")))
@@ -879,7 +880,7 @@ class DiariesDiary(QWidget):
         """Init and then set page.
         
         Args:
-            parent (DiariesTabWidget | QWidget): "Diaries" tab widget in main window or home page
+            parent (DiariesTabWidget | QWidget): "Diaries" tab in main window or home page
             date (str): Diary date
             database (DiariesDB): Database class
         """
@@ -1032,7 +1033,7 @@ class DiariesBackup(QWidget):
         """Init and then set page.
         
         Args:
-            parent (DiariesTabWidget): "Diaries" tab widget in main window
+            parent (DiariesTabWidget): "Diaries" tab in main window
             date (str): Diary date
         """        
         
@@ -1111,7 +1112,7 @@ class DiariesCalendarWidget(QCalendarWidget):
         """Init and set calendar widget.
 
         Args:
-            parent (DiariesTabWidget): "Diaries" tab widget in main window
+            parent (DiariesTabWidget): "Diaries" tab in main window
         """
         
         super().__init__(parent)
@@ -1171,7 +1172,8 @@ class DiariesCalendarWidget(QCalendarWidget):
         self.setMenu(call)
     
     def mouseDoubleClickEvent(self, a0: QMouseEvent | None) -> None:
-        """Override of QCalendarWidget's mouseDoubleClickEvent function.
+        """
+        Override of QCalendarWidget's mouseDoubleClickEvent function.
 
         Args:
             a0 (QMouseEvent | None): Mouse event

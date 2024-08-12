@@ -14,6 +14,7 @@
 # along with Nottodbox.  If not, see <https://www.gnu.org/licenses/>.
 
 
+from multiprocessing import Value
 import sys
 sys.dont_write_bytecode = True
 
@@ -283,25 +284,22 @@ class SidebarWidget(QWidget):
         stringlist = self.model1.stringList()
 
         if target == self.notes:
-            module = "notes"
-            
+            call = sidebardb.addPage(text, "notes")
+
             stringlist.append(_("Note: {name}").format(name = text))
             
         elif target == self.todos:
-            module = "todos"
+            call = sidebardb.addPage(text, "todos")
             
             stringlist.append(_("Todo list: {todolist}").format(todolist = text))
             
         elif target == self.diaries:
-            module = "diaries"
+            call = sidebardb.addPage(text, "diaries")
             
             stringlist.append(_("Diary: {date}").format(date = text))
-            
-        if not text.endswith(_(" (Backup)")):
-            call = sidebardb.addPage(text, module)
 
-            if not call:
-                QMessageBox.critical(self, _("Error"), _("Failed to add {page} to 2nd list.").format(page = text))
+        if not call:
+            QMessageBox.critical(self, _("Error"), _("Failed to add {page} to 2nd list.").format(page = text))
         
         self.model1.setStringList(stringlist)
         
@@ -358,11 +356,12 @@ class SidebarWidget(QWidget):
         if key.startswith(_("Note: ")):
             length = len(_("Note: "))
             
-            if key.endswith(_(" (Backup)")):
-                self.notes.showBackup(key[length:].replace(_(" (Backup)"), ""))
-
-            else:
-                self.notes.openCreate(key[length:])
+            try:
+                notebook, name = str(key[length:]).split(" @ ")
+                self.notes.treeview.openNote(notebook, name)
+            
+            except ValueError:
+                QMessageBox.critical(self, _("Error"), _('Failed to open note via text "{text}".').format(text = key[length:]))
                 
         elif key.startswith(_("Todo list: ")):
             length = len(_("Todo list: "))
@@ -372,11 +371,7 @@ class SidebarWidget(QWidget):
         elif key.startswith(_("Diary: ")):
             length = len(_("Diary: "))
             
-            if key.endswith(_(" (Backup)")):
-                self.diaries.showBackup(key[length:].replace(_(" (Backup)"), ""))
-
-            else:
-                self.diaries.openCreate(key[length:])
+            self.diaries.openCreate(key[length:])
         
     def insertPages(self) -> None:
         """Insert pages' names."""

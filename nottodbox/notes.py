@@ -22,11 +22,17 @@ import getpass
 import sqlite3
 import datetime
 from gettext import gettext as _
-from PyQt6.QtCore import Qt, QStringListModel, QSortFilterProxyModel
+from PyQt6.QtGui import QStandardItem, QStandardItemModel, QMouseEvent
+from PyQt6.QtCore import Qt, QSortFilterProxyModel, QModelIndex
 from PyQt6.QtWidgets import *
 
 
 notes = {}
+note_counts = {}
+note_items = {}
+note_menus = {}
+notebook_counts = {}
+notebook_items = {}
 
 username = getpass.getuser()
 userdata = f"/home/{username}/.local/share/nottodbox/"
@@ -77,7 +83,7 @@ class SettingsDB:
             signal (Qt.CheckState | int): QCheckBox's signal.
 
         Returns:
-            bool: True if successful, False if unsuccesful
+            bool: True if successful, False if unsuccessful
         """
         
         global setting_autosave
@@ -106,7 +112,7 @@ class SettingsDB:
             index (int): Selected index in QComboBox.
 
         Returns:
-            bool: True if successful, False if unsuccesful
+            bool: True if successful, False if unsuccessful
         """
         
         global setting_format
@@ -144,18 +150,19 @@ class NotesDB:
         self.db = sqlite3.connect(f"{userdata}notes.db")
         self.cur = self.db.cursor()
     
-    def checkIfTheNoteExists(self, name: str) -> bool:
+    def checkIfTheNoteExists(self, notebook: str, name: str) -> bool:
         """
         Check if the note exists.
 
         Args:
+            notebook (str): Notebook name
             name (str): Note name
 
         Returns:
             bool: True if the note exists, if not False
         """
         
-        self.cur.execute(f"select * from notes where name = '{name}'")
+        self.cur.execute(f"select * from '{notebook}' where name = '{name}'")
         
         try:
             self.cur.fetchone()[0]
@@ -164,48 +171,120 @@ class NotesDB:
         except TypeError:
             return False
         
-    def checkIfTheTableExists(self) -> bool:
+    def checkIfTheNoteBackupExists(self, notebook: str, name: str) -> bool:
         """
-        Check if the table exists.
+        Check if the note's backup exists.
+
+        Args:
+            notebook (str): Notebook name
+            name (str): Note name
 
         Returns:
-            bool: True if the table exists, if not False
+            bool: True if the backup exists, if not False
+        """
+        
+        self.cur.execute(f"select backup from '{notebook}' where name = '{name}'")
+        fetch = self.cur.fetchone()[0]
+        
+        if fetch == None or fetch == "":
+            return False
+        else:
+            return True
+        
+    def checkIfTheNotebookExists(self, name: str) -> bool:
+        """
+        Check if the notebook exists.
+
+        Args:
+            name (str): Notebook name
+
+        Returns:
+            bool: True if the notebook exists, if not False
         """
         
         try:
-            self.cur.execute("select * from notes")
+            self.cur.execute(f"select * from '{name}'")
             return True
         
         except sqlite3.OperationalError:
             return False
         
-    def createTable(self) -> bool:
+    def createNote(self, notebook: str, name: str) -> bool:
         """
-        If the notes table not exists, create it.
+        Create a note if not exist.
+
+        Args:
+            notebook (str): Notebook name
+            name (str): Note name
 
         Returns:
-            bool: True if successful, False if unsuccesful
+            bool: True if successful, False if not
         """
         
-        sql = """
-        CREATE TABLE IF NOT EXISTS notes (
+        if not self.checkIfTheNoteExists(notebook, name):
+            date_time = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+            
+            sql = f"""insert into '{notebook}' (name, content, backup, creation, modification) 
+                    values ('{name}', '', '', '{date_time}', '{date_time}')"""
+                
+            self.cur.execute(sql)
+            self.db.commit()
+        
+            return self.checkIfTheNoteExists(notebook, name)
+
+        else:
+            return True
+
+    def createNotebook(self, name: str) -> bool:
+        """
+        Create a notebook if not exist.
+        
+        Args:
+            name (str): Notebook name
+
+        Returns:
+            bool: True if successful, False if unsuccessful
+        """
+        
+        sql = f"""
+        CREATE TABLE IF NOT EXISTS '{name}' (
             name TEXT NOT NULL PRIMARY KEY,
             content TEXT,
             backup TEXT, 
-            created TEXT NOT NULL,
-            edited TEXT
+            creation TEXT NOT NULL,
+            modification TEXT
         );"""
         
         self.cur.execute(sql)
         self.db.commit()
         
-        return self.checkIfTheTableExists()
+        return self.checkIfTheNotebookExists(name)
     
-    def deleteContent(self, name: str) -> bool:
+    def deleteAll(self) -> bool:
+        """Delete all."""
+        
+        successful = True
+        calls = {}
+        
+        self.cur.execute("select name from sqlite_master where type = 'table'")
+        notebooks = self.cur.fetchall()
+        
+        for notebook in notebooks:
+            notebook = notebook[0]
+            
+            calls[notebook] = self.deleteNotebook(notebook)
+            
+            if not calls[notebook]:
+                successful = False
+        
+        return successful
+    
+    def deleteContent(self, notebook: str, name: str) -> bool:
         """
         Delete content of a note.
 
         Args:
+            notebook (str): Notebook name    
             name (str): Note name
 
         Returns:
@@ -214,163 +293,231 @@ class NotesDB:
         
         date_time = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
         
-        fetch_before = self.getContent(name)
+        fetch_before = self.getContent(notebook, name)
         
         sql = f"""
-        update notes set content = '', backup = '{fetch_before}', edited = '{date_time}'
+        update '{notebook}' set content = '', backup = '{fetch_before}', modification = '{date_time}'
         where name = '{name}'
         """
             
         self.cur.execute(sql)
         self.db.commit()
         
-        fetch_after = self.getContent(name)
+        fetch_after = self.getContent(notebook, name)
         
         if fetch_after == "" or fetch_after == None:
             return True
         else:
             return False
     
-    def deleteOne(self, name: str) -> bool:
+    def deleteNote(self, notebook: str, name: str) -> bool:
         """
         Delete a note.
 
         Args:
+            notebook (str): Notebook name
             name (str): Note name
 
         Returns:
             bool: True if successful, False if not
         """
         
-        self.cur.execute(f"delete from notes where name = '{name}'")
+        self.cur.execute(f"delete from '{notebook}' where name = '{name}'")
         self.db.commit()
         
-        call = self.checkIfTheNoteExists(name)
+        call = self.checkIfTheNoteExists(notebook, name)
         
         if call:
             return False
         else:
             return True
+        
+    def deleteNotebook(self, name: str):
+        """
+        Delete a notebook.
+
+        Args:
+            name (str): Notebook name
+        """
+        
+        self.cur.execute(f"DROP TABLE IF EXISTS '{name}'")
+        self.db.commit()
+        
+        if self.checkIfTheNotebookExists(name):
+            return False
+        else:
+            return True
+        
+    def getAll(self) -> dict:
+        """
+        Get all notebooks' names, notes' informations and names.
+
+        Returns:
+            dict: Notebooks', notes' informations and names
+        """
+        
+        all = {}
+        
+        self.cur.execute("select name from sqlite_master where type = 'table'")
+        notebooks = self.cur.fetchall()
+        
+        for notebook in notebooks:
+            notebook = notebook[0]
+            
+            self.cur.execute(f"select name, creation, modification from '{notebook}'")
+            all[notebook] = self.cur.fetchall()
+            
+        return all
     
-    def getBackup(self, name: str) -> str:
+    def getBackup(self, notebook: str, name: str) -> str:
         """
         Get backup of a note.
 
         Args:
-            name (str): Note name.
+            notebook (str): Notebook name
+            name (str): Note name
 
         Returns:
-            str: Content.
+            str: Content
         """
         
-        self.cur.execute(f"select backup from notes where name = '{name}'")
+        self.cur.execute(f"select backup from '{notebook}' where name = '{name}'")
         try:
             fetch = self.cur.fetchone()[0]
         except TypeError:
             fetch = ""
         return fetch
-
-    def getContent(self, name: str) -> str:
+    
+    def getContent(self, notebook: str, name: str) -> str:
         """
         Get content of a note.
 
         Args:
-            name (str): Note name.
+            notebook (str): Notebook name
+            name (str): Note name
 
         Returns:
             str: Content.
         """
         
-        self.cur.execute(f"select content from notes where name = '{name}'")
+        self.cur.execute(f"select content from '{notebook}' where name = '{name}'")
         try:
             fetch = self.cur.fetchone()[0]
         except TypeError:
             fetch = ""
         return fetch
-        
-    def getInformations(self, name: str) -> tuple:
+    
+    def getNote(self, notebook: str, name: str) -> list:
         """
-        Get creation and edit dates.
+        Get a note's creation and modification dates.
 
         Args:
+            notebook (str): Notebook name
             name (str): Note name
 
         Returns:
-            tuple: Returns creation and edit dates
+            list: A note's creation and modefication dates
         """
         
-        self.cur.execute(f"select created, edited from notes where name = '{name}'")
+        self.cur.execute(f"select creation, modification from '{notebook}' where name = '{name}'")
         return self.cur.fetchone()
-        
-    def getNames(self) -> list:
-        """Get all notes' names.
+    
+    def getNotebook(self, name: str) -> list:
+        """
+        Get a notebook's notes' names, creation and modification dates.
+
+        Args:
+            name (str): Notebook name
 
         Returns:
-            list: List of all notes' names.
+            list: A notebook's notes' names, creation and modification dates
         """
         
-        self.cur.execute("select name from notes")
+        self.cur.execute(f"select name, creation, modification from '{name}'")
         return self.cur.fetchall()
     
-    def renameNote(self, name: str, newname: str) -> bool:
+    def renameNote(self, notebook: str, name: str, newname: str) -> bool:
         """
         Rename a note.
 
         Args:
+            notebook (str): Notebook name
             name (str): Old name
             newname (str): New name
 
         Returns:
-            bool: True if successful, False if unsuccesful
+            bool: True if successful, False if unsuccessful
         """
         
-        self.cur.execute(f"update notes set name = '{newname}' where name = '{name}'")
+        self.cur.execute(f"update '{notebook}' set name = '{newname}' where name = '{name}'")
         self.db.commit()
         
-        return self.checkIfTheNoteExists(newname)
+        return self.checkIfTheNoteExists(notebook, newname)
+    
+    def renameNotebook(self, name: str, newname: str) -> bool:
+        """
+        Rename a notebook.
         
-    def recreateTable(self) -> bool:
-        """Recreates the notes table.
+        Args:
+            name (str): Notebook name
+            newname (str): New name
+            
+        Returns:
+            bool: True if successful, False if not
+        """
+        
+        self.cur.execute(f"ALTER TABLE '{name}' RENAME TO '{newname}'")
+        self.db.commit()
+        
+        return self.checkIfTheNotebookExists(newname)
+        
+    def resetNotebook(self, name: str) -> bool:
+        """
+        Reset a notebook.
+
+        Args:
+            name (str): Notebook name
 
         Returns:
             bool: True if successful, False if not
         """
         
-        self.cur.execute(f"DROP TABLE IF EXISTS notes")
+        self.cur.execute(f"DROP TABLE IF EXISTS '{name}'")
         self.db.commit()
         
-        call = self.checkIfTheTableExists()
+        call = self.checkIfTheNotebookExists(name)
         
         if call:
             return False
         else:
-            return self.createTable()
+            return self.createNotebook(name)
     
-    def restoreContent(self, name: str) -> tuple:
+    def restoreContent(self, notebook: str, name: str) -> bool:
         """
         Restore content of note.
         
         Args:
+            notebook (str): Notebook name
             name (str): Note name
             
         Returns:
-            tuple: Status and True if successful, False if unsuccesful
+            bool: True if successful, False if unsuccessful
         """
+        
+        if not self.checkIfTheNoteBackupExists(notebook, name):
+            return False
         
         date_time = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
         
-        self.cur.execute(f"select content, backup from notes where name = '{name}'")
+        self.cur.execute(f"select content, backup from '{notebook}' where name = '{name}'")
         fetch_before = self.cur.fetchone()
         
-        if fetch_before[1] == None or fetch_before[1] == "":
-            return "no-backup", False
-        
-        sql = f"""update notes set content = '{fetch_before[1]}', 
-        backup = '{fetch_before[0]}', edited = '{date_time}' where name = '{name}'"""
+        sql = f"""update '{notebook}' set content = '{fetch_before[1]}', 
+        backup = '{fetch_before[0]}', modification = '{date_time}' where name = '{name}'"""
         self.cur.execute(sql)
         self.db.commit()
         
-        self.cur.execute(f"select content, backup from notes where name = '{name}'")
+        self.cur.execute(f"select content, backup from '{notebook}' where name = '{name}'")
         fetch_after = self.cur.fetchone()
         
         if fetch_before[1] == fetch_after[0] and fetch_before[0] == fetch_after[1]:
@@ -384,75 +531,74 @@ class NotesDB:
         If there is such a note, create it.
 
         Returns:
-            bool: True if successful, False if unsuccesful
+            bool: True if successful, False if unsuccessful
         """
         
         successful = True
         calls = {}
         
-        for name in notes:
-            calls[name] = self.saveOne(name,
-                                       notes[name].input.toPlainText(), 
-                                       notes[name].content, 
-                                       False)
+        for item in notes:
+            try:
+                name, notebook = str(name).split(" @ ")
             
-            if calls[name] == False:
+            except ValueError:
+                return False
+            
+            calls[item] = self.saveNote(notebook,
+                                        name,
+                                        notes[item].input.toPlainText(), 
+                                        notes[item].content, 
+                                        False)
+            
+            if not calls[item]:
                 successful = False
                 
         return successful
 
-    def saveOne(self, name: str, content: str, backup: str, autosave: bool) -> bool:        
+    def saveNote(self, notebook: str, name: str, content: str, backup: str, autosave: bool) -> bool:        
         """
         Save a note.
-        If there is such a note, create it.
         
         Args:
+            notebook (str): Notebook name
             name (str): Note name
             content (str): Content of note
             backup (str): Backup of diary
             autosave (bool): True if the caller is "auto-save", false if it is not
             
         Returns:
-            bool: True if successful, False if unsuccesful
+            bool: True if successful, False if unsuccessful
         """
         
         date_time = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
         
-        check = self.checkIfTheNoteExists(name)
+        check = self.checkIfTheNoteExists(notebook, name)
         
         if check:
             if autosave:
-                sql = f"""update notes set content = '{content}',
-                edited = '{date_time}' where name = '{name}'"""
+                sql = f"""update '{notebook}' set content = '{content}',
+                modification = '{date_time}' where name = '{name}'"""
                         
             else:
-                sql = f"""update notes set content = '{content}', backup = '{backup}',
-                edited = '{date_time}' where name = '{name}'"""
+                sql = f"""update '{notebook}' set content = '{content}', backup = '{backup}',
+                modification = '{date_time}' where name = '{name}'"""
             
             self.cur.execute(sql)
             self.db.commit()
-            
-        else:
-            sql = f"""insert into notes (name, content, backup, created, edited) 
-                    values ('{name}', '{content}', '', '{date_time}', '{date_time}')"""
-            self.cur.execute(sql)
-            self.db.commit()
-                        
-        self.cur.execute(f"select content, edited from notes where name = '{name}'")
-        control = self.cur.fetchone()
+        
+            self.cur.execute(f"select content, modification from '{notebook}' where name = '{name}'")
+            control = self.cur.fetchone()
 
-        if control[0] == content and control[1] == date_time:            
-            return True
+            if control[0] == content and control[1] == date_time:            
+                return True
+            else:
+                return False
+
         else:
             return False
 
 
 notesdb = NotesDB()
-
-create_table = notesdb.createTable()
-if not create_table:
-    print("[2] Failed to create table")
-    sys.exit(2)
 
 
 class NotesTabWidget(QTabWidget):
@@ -471,82 +617,39 @@ class NotesTabWidget(QTabWidget):
         
         notes_parent = parent
         self.backups = {}
+        self.note = ""
+        self.notebook = ""
+        self.current_widget = None
         
         self.home = QWidget(self)
         self.home.setLayout(QGridLayout(self.home))
         
-        self.listview = NotesListView(self)
+        self.treeview = NotesTreeView(self)
         
         self.entry = QLineEdit(self.home)
-        self.entry.setPlaceholderText("Enter a note name")
-        self.entry.setStatusTip(_("You can search in list while entering anythings in entry."))
+        self.entry.setPlaceholderText("Search in the list below")
         self.entry.setClearButtonEnabled(True)
-        self.entry.textChanged.connect(self.listview.setFilter)
+        self.entry.textEdited.connect(self.treeview.setFilter)
         
-        self.created = QLabel(self.home, alignment=Qt.AlignmentFlag.AlignCenter, 
-                              text=_("Created: "))
-        self.edited = QLabel(self.home, alignment=Qt.AlignmentFlag.AlignCenter, 
-                             text=_("Edited: "))
-
-        self.side = QWidget(self.home)
-        self.side.setFixedWidth(150)
-        self.side.setLayout(QVBoxLayout(self.side))
+        self.none_options = NotesNoneOptions(self)
         
-        self.open_create_button = QPushButton(self.side, text=_("Open/create note"))
-        self.open_create_button.clicked.connect(lambda: self.openCreate(self.entry.text()))
+        self.notebook_options = NotesNotebookOptions(self)
+        self.notebook_options.setVisible(False)
         
-        self.rename_button = QPushButton(self.side, text=_("Rename note"))
-        self.rename_button.clicked.connect(lambda: self.renameNote(self.entry.text()))
-
-        self.show_backup_button = QPushButton(self.side, text=_("Show backup"))
-        self.show_backup_button.clicked.connect(lambda: self.showBackup(self.entry.text()))
-
-        self.restore_button = QPushButton(self.side, text=_("Restore content"))
-        self.restore_button.clicked.connect(lambda: self.restoreContent(self.entry.text()))
+        self.notebook_selected = QLabel(self, alignment=Qt.AlignmentFlag.AlignCenter, text=_("Notebook: "))
         
-        self.delete_content_button = QPushButton(self.side, text=_("Delete content"))
-        self.delete_content_button.clicked.connect(lambda: self.deleteContent(self.entry.text()))
+        self.note_options = NotesNoteOptions(self)
+        self.note_options.setVisible(False)
         
-        self.delete_note_button = QPushButton(self.side, text=_("Delete note"))
-        self.delete_note_button.clicked.connect(lambda: self.deleteNote(self.entry.text()))
+        self.note_selected = QLabel(self, alignment=Qt.AlignmentFlag.AlignCenter, text=_("Note: "))
         
-        self.delete_all_button = QPushButton(self.side, text=_("Delete all notes"))
-        self.delete_all_button.clicked.connect(self.deleteAll)
+        self.current_widget = self.none_options
         
-        self.format = QComboBox(self)
-        self.format.addItems([_("Format: Plain text"), _("Format: Markdown"), _("Format: HTML")])
-        self.format.setEditable(False)
-        if setting_format == "plain-text":
-            self.format.setCurrentIndex(0)
-        elif setting_format == "markdown":
-            self.format.setCurrentIndex(1)
-        elif setting_format == "html":
-            self.format.setCurrentIndex(2)
-        self.format.currentIndexChanged.connect(self.setFormat)        
-        
-        self.autosave = QCheckBox(self, text=_("Enable auto-save"))
-        if setting_autosave == "true":
-            self.autosave.setChecked(True)
-        self.autosave.setStatusTip(_("Auto-saves do not change backups."))
-        try:
-            self.autosave.checkStateChanged.connect(self.setAutoSave)
-        except:
-            self.autosave.stateChanged.connect(self.setAutoSave)
-        
-        self.side.layout().addWidget(self.open_create_button)
-        self.side.layout().addWidget(self.rename_button)
-        self.side.layout().addWidget(self.show_backup_button)
-        self.side.layout().addWidget(self.restore_button)
-        self.side.layout().addWidget(self.delete_content_button)
-        self.side.layout().addWidget(self.delete_note_button)
-        self.side.layout().addWidget(self.delete_all_button)
-        self.side.layout().addWidget(self.format)
-        self.side.layout().addWidget(self.autosave)
-        self.home.layout().addWidget(self.side, 1, 2, 2, 1)
         self.home.layout().addWidget(self.entry, 0, 0, 1, 3)
-        self.home.layout().addWidget(self.created, 1, 0, 1, 1)
-        self.home.layout().addWidget(self.edited, 1, 1, 1, 1)
-        self.home.layout().addWidget(self.listview, 2, 0, 1, 2)
+        self.home.layout().addWidget(self.note_selected, 1, 0, 1, 1)
+        self.home.layout().addWidget(self.notebook_selected, 1, 1, 1, 1)
+        self.home.layout().addWidget(self.treeview, 2, 0, 1, 2)
+        self.home.layout().addWidget(self.none_options, 1, 2, 2, 1)
         
         self.addTab(self.home, _("Home"))
         self.setTabsClosable(True)
@@ -556,22 +659,6 @@ class NotesTabWidget(QTabWidget):
         self.setUsesScrollButtons(True)
         
         self.tabCloseRequested.connect(self.closeTab)
-        
-    def checkIfTheNoteExists(self, name: str, mode: str = "normal") -> None:
-        """
-        Check if the note exists.
-
-        Args:
-            name (str): Note name
-            mode (str, optional): Inverted mode for deleting etc. Defaults to "normal".
-        """
-        
-        call = notesdb.checkIfTheNoteExists(name)
-        
-        if call == False and mode == "normal":
-            QMessageBox.critical(self, _("Error"), _("There is no note called {name}.").format(name = name))
-        
-        return call
          
     def closeTab(self, index: int) -> None:
         """
@@ -592,12 +679,7 @@ class NotesTabWidget(QTabWidget):
                                                          QMessageBox.StandardButton.Save)
                     
                     if self.question == QMessageBox.StandardButton.Save:
-                        call = notesdb.saveOne(self.tabText(index).replace("&", ""),
-                                               notes[self.tabText(index).replace("&", "")].input.toPlainText(),
-                                               notes[self.tabText(index).replace("&", "")].content, 
-                                               False)
-                        
-                        self.listview.insertNames()
+                        call = notes[self.tabText(index).replace("&", "")].saveNote()
                         
                         if call:
                             self.closable = True
@@ -612,130 +694,282 @@ class NotesTabWidget(QTabWidget):
             except KeyError:
                 pass
             
-            notes_parent.dock.widget().removePage(self.tabText(index).replace("&", ""), self)
+            if not str(self.tabText(index).replace("&", "")).endswith(f' {_("(Backup)")}'):
+                notes_parent.dock.widget().removePage(self.tabText(index).replace("&", ""), self)
+                
             self.removeTab(index)
-        
-    def deleteAll(self) -> None:
-        """Delete all notes."""
-        
-        call = notesdb.recreateTable()
-    
-        if call:
-            self.listview.insertNames()
-            self.insertInformations("")
             
-            QMessageBox.information(self, _("Successful"), _("All notes deleted."))
-            
-        else:
-            QMessageBox.critical(self, _("Error"), _("Failed to delete all notes."))
-        
-    def deleteContent(self, name: str) -> None:
+    def insertInformations(self, notebook: str, name: str) -> None:
         """
-        Delete content of a note.
+        Insert informations.
 
         Args:
+            notebook (str): Notebook name
+            name (str): Note name
+        """
+
+        self.notebook = notebook
+        self.name = name      
+        
+        self.none_options.setVisible(False)
+        self.notebook_options.setVisible(False)
+        self.note_options.setVisible(False)
+        
+        if self.notebook == "":
+            self.none_options.setVisible(True)
+            self.home.layout().replaceWidget(self.current_widget, self.none_options)
+            
+            self.current_widget = self.none_options
+            
+        elif self.notebook != "" and self.name == "":
+            self.notebook_options.setVisible(True)
+            self.home.layout().replaceWidget(self.current_widget, self.notebook_options)
+            
+            self.current_widget = self.notebook_options
+            
+        elif self.notebook != "" and self.name != "":
+            self.note_options.setVisible(True)
+            self.home.layout().replaceWidget(self.current_widget, self.note_options)
+            
+            self.current_widget = self.note_options
+            
+        self.notebook_selected.setText(_("Notebook: ") + notebook)
+        self.note_selected.setText(_("Note: ") + name)
+        self.entry.setText(name)
+        
+class NotesNoneOptions(QWidget):
+    """Options when selected nothing."""
+    
+    def __init__(self, parent: NotesTabWidget) -> None:
+        """
+        Init and then set widget.
+        
+        Args:
+            parent (NotesTabWidget): "Notes" tab in main window
+        """
+        
+        super().__init__(parent)
+        
+        self.parent_ = parent
+        
+        self.warning_label = QLabel(self, alignment=Qt.AlignmentFlag.AlignCenter,
+                                    text=_("You can select\na notebook or a note\non the left."))
+        self.warning_label.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Maximum)
+        
+        self.create_notebook = QPushButton(self, text=_("Create notebook"))
+        self.create_notebook.clicked.connect(self.createNotebook)
+        
+        self.delete_all = QPushButton(self, text=_("Delete all"))
+        self.delete_all.clicked.connect(self.deleteAll)
+        
+        self.setLayout(QVBoxLayout(self))
+        self.setFixedWidth(150)
+        
+        self.layout().addWidget(self.warning_label)
+        self.layout().addWidget(self.create_notebook)
+        self.layout().addWidget(self.delete_all)
+        
+    def createNotebook(self) -> None:
+        """Create a notebook."""
+        
+        name, topwindow = QInputDialog.getText(self, _("Type a Name"), _("Type a name for creating a notebook."))
+        
+        if "@" in name:
+            QMessageBox.critical(self, _("Error"), _('The notebook name cannot contain @ character.'))
+            
+            return
+        
+        elif name != "" and name != None and topwindow:
+            call = self.parent_.notebook_options.checkIfTheNotebookExists(name, "inverted")
+        
+            if call:
+                QMessageBox.critical(self, _("Error"), _("{name} notebook already created.").format(name = name))
+        
+            else:
+                call = notesdb.createNotebook(name)
+                
+                if call:
+                    self.parent_.treeview.appendNotebook(name)
+                    self.parent_.insertInformations(name, "")
+                    
+                    QMessageBox.information(self, _("Successful"), _("{name} notebook created.").format(name = name))
+                    
+                else:
+                    QMessageBox.critical(self, _("Error"), _("Failed to create {notebook} notebook.").format(name = name))
+                    
+    def deleteAll(self) -> None:
+        """Delete all."""
+        
+        call = notesdb.deleteAll()
+        
+        if call:
+            self.parent_.treeview.updateAll()
+            self.parent_.insertInformations("", "")
+            
+            QMessageBox.information(self, _("Successful"), _("All notebooks deleted."))
+
+        else:
+            QMessageBox.critical(self, _("Error"), _("Failed to delete all notebooks."))
+
+
+class NotesNoteOptions(QWidget):
+    """Options when selected note."""
+    
+    def __init__(self, parent: NotesTabWidget) -> None:
+        """
+        Init and then set widget.
+
+        Args:
+            parent (NotesTabWidget): "Notes" tab in main window
+        """
+        
+        super().__init__(parent)
+
+        self.parent_ = parent
+        
+        self.open_note = QPushButton(self, text=_("Open note"))
+        self.open_note.clicked.connect(self.openNote)
+        
+        self.rename_note = QPushButton(self, text=_("Rename note"))
+        self.rename_note.clicked.connect(self.renameNote)
+
+        self.show_backup = QPushButton(self, text=_("Show backup"))
+        self.show_backup.clicked.connect(self.showBackup)
+
+        self.restore_content = QPushButton(self, text=_("Restore content"))
+        self.restore_content.clicked.connect(self.restoreContent)
+        
+        self.delete_content = QPushButton(self, text=_("Delete content"))
+        self.delete_content.clicked.connect(self.deleteContent)
+        
+        self.delete_note = QPushButton(self, text=_("Delete note"))
+        self.delete_note.clicked.connect(self.deleteNote)
+
+        self.setLayout(QVBoxLayout(self))
+        self.setFixedWidth(150)
+        
+        self.layout().addWidget(self.open_note)
+        self.layout().addWidget(self.rename_note)
+        self.layout().addWidget(self.show_backup)
+        self.layout().addWidget(self.restore_content)
+        self.layout().addWidget(self.delete_content)
+        self.layout().addWidget(self.delete_note)
+
+    def checkIfTheNoteExists(self, notebook: str, name: str, mode: str = "normal") -> bool:
+        """
+        Check if the note exists.
+
+        Args:
+            notebook (str): Notebook name
+            name (str): Note name
+            mode (str, optional): Inverted mode for deleting etc. Defaults to "normal".
+            
+        Returns:
+            bool: True if successful, False if not
+        """
+        
+        call = notesdb.checkIfTheNoteExists(notebook, name)
+        
+        if not call and mode == "normal":
+            QMessageBox.critical(self, _("Error"), _("There is no note called {name}.").format(name = name))
+        
+        return call
+    
+    def checkIfTheNoteBackupExists(self, notebook: str, name: str) -> bool:
+        """
+        Check if the note backup exists.
+
+        Args:
+            notebook (str): Notebook name
             name (str): Note name
         """
         
-        if name == "" or name == None:
-            QMessageBox.critical(self, _("Error"), _("Note name can not be blank."))
-            return        
+        call = notesdb.checkIfTheNoteBackupExists(notebook, name)
         
-        if self.checkIfTheNoteExists(name) == False:
+        if not call:
+            QMessageBox.critical(self, _("Error"), _("There is no backup for note {name}.").format(name = name))
+        
+        return call
+        
+    def deleteContent(self) -> None:
+        """Delete content of a note."""
+        
+        notebook = self.parent_.notebook
+        name = self.parent_.name
+        
+        if notebook == "" or notebook == None or name == "" or name == None:
+            QMessageBox.critical(self, _("Error"), _("Please select a note."))
             return
         
-        call = notesdb.deleteContent(name)
+        if not self.checkIfTheNoteExists(notebook, name):
+            return
+        
+        call = notesdb.deleteContent(notebook, name)
     
         if call:
             QMessageBox.information(self, _("Successful"), _("Content of {name} note deleted.").format(name = name))
         else:
             QMessageBox.critical(self, _("Error"), _("Failed to delete content of {name} note.").format(name = name))
-                       
-    def deleteNote(self, name: str) -> None:
-        """
-        Delete a note.
-
-        Args:
-            name (str): Note name
-        """
+            
+    def deleteNote(self) -> None:
+        """Delete a note."""
         
-        if name == "" or name == None:
-            QMessageBox.critical(self, _("Error"), _("Note name can not be blank."))
+        notebook = self.parent_.notebook
+        name = self.parent_.name
+        
+        if notebook == "" or notebook == None or name == "" or name == None:
+            QMessageBox.critical(self, _("Error"), _("Please select a note."))
             return
         
-        if self.checkIfTheNoteExists(name) == False:
+        if not self.checkIfTheNoteExists(notebook, name):
             return
         
-        call = notesdb.deleteOne(name)
+        call = notesdb.deleteNote(notebook, name)
             
         if call:
-            self.listview.insertNames()
-            self.insertInformations("")
+            self.parent_.treeview.deleteNote(notebook, name)
+            self.parent_.insertInformations(notebook, "")
             
             QMessageBox.information(self, _("Successful"), _("{name} note deleted.").format(name = name))
             
         else:
             QMessageBox.critical(self, _("Error"), _("Failed to delete {name} note.").format(name = name))
         
-    def insertInformations(self, name: str) -> None:
-        """Insert name and creation, edit dates.
+    def openNote(self, notebook: str = "", name: str = "") -> None:
+        """Open a note."""
 
-        Args:
-            name (str): Note name
-        """
+        notebook = self.parent_.notebook
+        name = self.parent_.name
         
-        if name != "":
-            call = notesdb.getInformations(name)
-        else:
-            call = None
-        
-        self.entry.setText(name)
-        
-        try:
-            self.created.setText(_("Created: ") + call[0])
-        except TypeError:
-            self.created.setText(_("Created: "))
-            
-        try:
-            self.edited.setText(_("Edited: ") + call[1])
-        except TypeError:
-            self.edited.setText(_("Edited: "))
-        
-    def openCreate(self, name: str) -> None:
-        """
-        Open or create a note.
+        if notebook == "" or notebook == None or name == "" or name == None:
+            QMessageBox.critical(self, _("Error"), _("Please select a note."))
+            return
 
-        Args:
-            name (str): Note name
-        """
-        
-        if name == "" or name == None:
-            QMessageBox.critical(self, _("Error"), _("Note name can not be blank."))
+        if not self.checkIfTheNoteExists(notebook, name):
             return
         
         notes_parent.tabwidget.setCurrentIndex(1)
         
-        if name in notes:
-            self.setCurrentWidget(notes[name])
+        if f"{name} @ {notebook}" in notes:
+            self.parent_.setCurrentWidget(notes[f"{name} @ {notebook}"])
             
-        else:
-            notes_parent.dock.widget().addPage(name, self)
-            notes[name] = NotesNote(self, name)
-            self.addTab(notes[name], name)
-            self.setCurrentWidget(notes[name])
+        else:            
+            notes_parent.dock.widget().addPage(f"{name} @ {notebook}", self.parent_)
+            notes[f"{name} @ {notebook}"] = NotesNote(self, notebook, name)
+            self.parent_.addTab(notes[f"{name} @ {notebook}"], f"{name} @ {notebook}")
+            self.parent_.setCurrentWidget(notes[f"{name} @ {notebook}"])
     
-    def renameNote(self, name: str) -> None:
-        """Rename a note.
-
-        Args:
-            name (str): Note name
-        """
+    def renameNote(self) -> None:
+        """Rename a note."""
         
-        if name == "" or name == None:
-            QMessageBox.critical(self, _("Error"), _("Note name can not be blank."))
-            return        
+        notebook = self.parent_.notebook
+        name = self.parent_.name
         
-        if self.checkIfTheNoteExists(name) == False:
+        if notebook == "" or notebook == None or name == "" or name == None:
+            QMessageBox.critical(self, _("Error"), _("Please select a note."))
+            return
+        
+        if not self.checkIfTheNoteExists(notebook, name):
             return
         
         newname, topwindow = QInputDialog.getText(self, 
@@ -743,12 +977,12 @@ class NotesTabWidget(QTabWidget):
                                                   _("Please enter a new name for {name} below.").format(name = name))
         
         if newname != "" and newname != None and topwindow:
-            call = notesdb.renameNote(name, newname)
+            call = notesdb.renameNote(notebook, name, newname)
 
-            self.listview.insertNames()
+            self.parent_.treeview.updateNote(notebook, name, newname)
             
             if call:
-                self.insertInformations(newname)
+                self.parent_.insertInformations(notebook, newname)
                 
                 QMessageBox.information(self, _("Successful"), _("{name} note renamed as {newname}.")
                                         .format(name = name, newname = newname))
@@ -759,115 +993,274 @@ class NotesTabWidget(QTabWidget):
             QMessageBox.critical(self, _("Error"), _("Failed to rename {name} note.")
                                  .format(name = name))
             
-    def restoreContent(self, name: str) -> None:
-        """Restore content of a note.
-
-        Args:
-            name (str): Note name
-        """
+    def restoreContent(self) -> None:
+        """Restore content of a note."""
         
-        if name == "" or name == None:
-            QMessageBox.critical(self, _("Error"), _("Note name can not be blank."))
+        notebook = self.parent_.notebook
+        name = self.parent_.name
+        
+        if notebook == "" or notebook == None or name == "" or name == None:
+            QMessageBox.critical(self, _("Error"), _("Please select a note."))
             return
         
-        if self.checkIfTheNoteExists(name) == False:
+        if not self.checkIfTheNoteExists(notebook, name):
             return
         
-        status, call = notesdb.restoreContent(name)
+        if not self.checkIfTheNoteBackupExists(notebook, name):
+            return
         
-        if status == "successful" and call:
+        call = notesdb.restoreContent(notebook, name)
+        
+        if call:
             QMessageBox.information(self, _("Successful"), _("Backup of {name} note restored.").format(name = name))
-        
-        elif status == "no-backup" and not call:
-            QMessageBox.critical(self, _("Error"), _("There is no backup for {name} note.").format(name = name))
             
-        elif status == "failed" and not call:
+        elif not call:
             QMessageBox.critical(self, _("Error"), _("Failed to restore backup of {name} note.").format(name = name))
             
-    def setAutoSave(self, signal: Qt.CheckState | int) -> None:
-        """
-        Set auto-save setting for global.
-
-        Args:
-            signal (Qt.CheckState | int): QCheckBox's signal.
-        """
+    def showBackup(self) -> None:
+        """Show backup of a note."""
         
-        global setting_autosave
+        notebook = self.parent_.notebook
+        name = self.parent_.name
         
-        if signal == Qt.CheckState.Unchecked or signal == 0:
-            setting_autosave = "false"
-
-        elif signal == Qt.CheckState.Checked or signal == 2:
-            setting_autosave = "true"
-            
-        call = settingsdb.setAutoSave(signal)
-        
-        if call == False:
-            QMessageBox.critical(self, _("Erorr"), _("Failed to set auto-save setting."))
-                
-    def setFormat(self, index: int) -> None:
-        """
-        Set format setting for global.
-
-        Args:
-            index (int): Selected index in QComboBox.
-        """
-        
-        global setting_format
-        
-        if index == 0:
-            setting_format = "plain-text"
-        
-        elif index == 1:
-            setting_format = "markdown"
-        
-        elif index == 2:
-            setting_format = "html"
-            
-        call = settingsdb.setFormat(index)
-        
-        if call == False:
-            QMessageBox.critical(self, _("Erorr"), _("Failed to set format setting."))
-            
-    def showBackup(self, name: str) -> None:
-        """
-        Show backup of a note.
-
-        Args:
-            name (str): Note name
-        """
-        
-        if name == "" or name == None:
-            QMessageBox.critical(self, _("Error"), _("Note name can not be blank."))
+        if notebook == "" or notebook == None or name == "" or name == None:
+            QMessageBox.critical(self, _("Error"), _("Please select a note."))
             return
-
-        if self.checkIfTheNoteExists(name) == False:
+        
+        if not self.checkIfTheNoteExists(notebook, name):
+            return
+        
+        if not self.checkIfTheNoteBackupExists(notebook, name):
             return
         
         notes_parent.tabwidget.setCurrentIndex(1)
-        notes_parent.dock.widget().addPage(name + " " + _("(Backup)"), self)
 
-        self.backups[name] = NotesBackup(self, name)
-        self.addTab(self.backups[name], (name + " " + _("(Backup)")))
-        self.setCurrentWidget(self.backups[name])
+        self.parent_.backups[f'{name} @ {notebook}'] = NotesBackup(self, notebook, name)
+        self.parent_.addTab(self.parent_.backups[f'{name} @ {notebook}'], f'{name} @ {notebook} {_("(Backup)")}')
+        self.parent_.setCurrentWidget(self.parent_.backups[f'{name} @ {notebook}'])
+            
+            
+class NotesNotebookOptions(QWidget):
+    """Options when selected notebook."""
+    
+    def __init__(self, parent: NotesTabWidget) -> None:
+        """
+        Init and then set widget.
+
+        Args:
+            parent (NotesTabWidget): "Notes" tab in main window
+        """
         
+        super().__init__(parent)
+        
+        self.parent_ = parent
+
+        self.create_note = QPushButton(self, text=_("Create note"))
+        self.create_note.clicked.connect(self.createNote)
+        
+        self.create_notebook = QPushButton(self, text=_("Create notebook"))
+        self.create_notebook.clicked.connect(self.createNotebook)
+        
+        self.rename_notebook = QPushButton(self, text=_("Rename notebook"))
+        self.rename_notebook.clicked.connect(self.renameNotebook)
+        
+        self.reset_notebook = QPushButton(self, text=_("Reset notebook"))
+        self.reset_notebook.clicked.connect(self.resetNotebook)
+        
+        self.delete_notebook = QPushButton(self, text=_("Delete notebook"))
+        self.delete_notebook.clicked.connect(self.deleteNotebook)
+        
+        self.delete_all = QPushButton(self, text=_("Delete all"))
+        self.delete_all.clicked.connect(self.deleteAll)
+        
+        self.setLayout(QVBoxLayout(self))
+        self.setFixedWidth(150)
+        
+        self.layout().addWidget(self.create_note)
+        self.layout().addWidget(self.create_notebook)
+        self.layout().addWidget(self.rename_notebook)
+        self.layout().addWidget(self.reset_notebook)
+        self.layout().addWidget(self.delete_notebook)
+        self.layout().addWidget(self.delete_all)
+        
+    def checkIfTheNotebookExists(self, name: str, mode: str = "normal") -> bool:
+        """
+        Check if the notebook exists.
+
+        Args:
+            name (str): Notebook name
+            mode (str, optional): Inverted mode for deleting etc. Defaults to "normal".
+            
+        Returns:
+            bool: True if successful, False if not
+        """
+        
+        call = notesdb.checkIfTheNotebookExists(name)
+        
+        if not call and mode == "normal":
+            QMessageBox.critical(self, _("Error"), _("There is no notebook called {name}.").format(name = name))
+        
+        return call
+    
+    def createNote(self) -> None:
+        """Create a note."""
+        
+        notebook = self.parent_.notebook
+        
+        if not self.checkIfTheNotebookExists(notebook):
+            return
+        
+        name, topwindow = QInputDialog.getText(self, _("Type a Name"), _("Type a name for creating a note."))
+        
+        if "@" in name:
+            QMessageBox.critical(self, _("Error"), _('The note name cannot contain @ character.'))
+            
+            return
+        
+        elif name != "" and name != None and topwindow:
+            call = self.parent_.note_options.checkIfTheNoteExists(notebook, name, "inverted")
+        
+            if call:
+                QMessageBox.critical(self, _("Error"), _("{name} note already created.").format(name = name))
+        
+            else:
+                call = notesdb.createNote(notebook, name)
+                
+                if call:
+                    self.parent_.treeview.appendNote(notebook, name)
+                    self.parent_.insertInformations(notebook, name)
+                    
+                    QMessageBox.information(self, _("Successful"), _("{name} note created.").format(name = name))
+                    
+                else:
+                    QMessageBox.critical(self, _("Error"), _("Failed to create {notebook} note.").format(name = name))
+                    
+    def createNotebook(self) -> None:
+        """Create a notebook."""
+        
+        name, topwindow = QInputDialog.getText(self, _("Type a Name"), _("Type a name for creating a notebook."))
+        
+        if "@" in name:
+            QMessageBox.critical(self, _("Error"), _('The notebook name cannot contain @ character.'))
+            
+            return
+        
+        elif name != "" and name != None and topwindow:
+            call = self.checkIfTheNotebookExists(name, "inverted")
+        
+            if call:
+                QMessageBox.critical(self, _("Error"), _("{name} notebook already created.").format(name = name))
+        
+            else:
+                call = notesdb.createNotebook(name)
+                
+                if call:
+                    self.parent_.treeview.appendNotebook(name)
+                    self.parent_.insertInformations(name, "")
+                    
+                    QMessageBox.information(self, _("Successful"), _("{name} notebook created.").format(name = name))
+                    
+                else:
+                    QMessageBox.critical(self, _("Error"), _("Failed to create {notebook} notebook.").format(name = name))
+                    
+    def deleteAll(self) -> None:
+        """Delete all."""
+        
+        call = notesdb.deleteAll()
+        
+        if call:
+            self.parent_.treeview.updateAll()
+            self.parent_.insertInformations("", "")
+            
+            QMessageBox.information(self, _("Successful"), _("All notebooks deleted."))
+
+        else:
+            QMessageBox.critical(self, _("Error"), _("Failed to delete all notebooks."))
+        
+    def deleteNotebook(self) -> None:
+        """Delete a notebook."""
+        
+        name = self.parent_.notebook
+        
+        if not self.checkIfTheNotebookExists(name):
+            return
+        
+        call = notesdb.deleteNotebook(name)
+        
+        if call:
+            self.parent_.treeview.deleteNotebook(name)
+            self.parent_.insertInformations("", "")
+            
+            QMessageBox.information(self, _("Successful"), _("{name} notebook deleted.").format(name = name))
+        else:
+            QMessageBox.critical(self, _("Error"), _("Failed to delete {name} notebook.").format(name = name))
+        
+    def renameNotebook(self) -> None:
+        """Rename a notebook."""
+        
+        name = self.parent_.notebook
+        
+        if not self.checkIfTheNotebookExists(name):
+            return
+        
+        newname, topwindow = QInputDialog.getText(self, 
+                                                  _("Rename {name} Notebook").format(name = name), 
+                                                  _("Please enter a new name for {name} below.").format(name = name))
+        
+        if newname != "" and newname != None and topwindow:
+            call = notesdb.renameNotebook(name, newname)
+            
+            if call:
+                self.parent_.treeview.updateNotebook(name, newname)
+                self.parent_.insertInformations(newname, "")
+                
+                QMessageBox.information(self, _("Successful"), _("{name} notebook renamed as {newname}.")
+                                        .format(name = name, newname = newname))
+            else:
+                QMessageBox.critical(self, _("Error"), _("Failed to rename {name} notebook.")
+                                     .format(name = name))
+        else:
+            QMessageBox.critical(self, _("Error"), _("Failed to rename {name} notebook.")
+                                 .format(name = name))
+        
+    def resetNotebook(self) -> None:
+        """Reset a notebook."""
+        
+        name = self.parent_.notebook
+        
+        if not self.checkIfTheNotebookExists(name):
+            return
+        
+        call = notesdb.resetNotebook(name)
+        
+        if call:
+            self.parent_.treeview.updateNotebook(name, name)
+            self.parent_.insertInformations(name, "")
+            
+            QMessageBox.information(self, _("Successful"), _("{name} notebook reset.").format(name = name))
+            
+        else:
+            QMessageBox.critical(self, _("Error"), _("Failed to reset {name} notebook.").format(name = name))
+
 
 class NotesNote(QWidget):
     """A page for notes."""
     
-    def __init__(self, parent: NotesTabWidget, name: str) -> None:
+    def __init__(self, parent: NotesTabWidget, notebook: str, name: str) -> None:
         """Init and then set page.
         
         Args:
-            parent (NotesTabWidget): "Notes" tab widget in main window
+            parent (NotesTabWidget): "Notes" tab in main window
+            notebook (str): Notebook name
             name (str): Note name
         """
         
         super().__init__(parent)
         
         self.parent_ = parent
+        self.notebook = notebook
         self.name = name
-        self.content = notesdb.getContent(name)
+        self.content = notesdb.getContent(notebook, name)
         self.setting_autosave = setting_autosave
         self.setting_format = setting_format
         self.closable = True
@@ -915,32 +1308,38 @@ class NotesNote(QWidget):
         self.layout().addWidget(self.output, 1, 1, 1, 1)
         self.layout().addWidget(self.button, 2, 0, 1, 2)
         
-    def saveNote(self, autosave: bool = False) -> None:
+    def saveNote(self, autosave: bool = False) -> bool:
         """
         Save a note.
 
         Args:
-            autosave (bool, optional): _description_. Defaults to False.
+            autosave (bool, optional): Autosave value. Defaults to False.
+            
+        Returns:
+            bool: True if successful, False if not
         """
         
         self.closable = False
         
         if not autosave or (autosave and self.setting_autosave == "true"):
-            call = notesdb.saveOne(self.name,
-                                   self.input.toPlainText(),
-                                   self.content,
-                                   autosave)
-            
-            self.parent_.listview.insertNames()
+            call = notesdb.saveNote(self.notebook,
+                                    self.name,
+                                    self.input.toPlainText(),
+                                    self.content,
+                                    autosave)
 
             if call:
                 self.closable = True
                 
                 if not autosave:
                     QMessageBox.information(self, _("Successful"), _("Note {name} saved.").format(name = self.name))
+                    
+                return True
                 
             else:
                 QMessageBox.critical(self, _("Error"), _("Failed to save {name} note.").format(name = self.name))
+                
+                return False
                 
     def setAutoSave(self, signal: Qt.CheckState | int) -> None:
         """Set auto-save setting for only this page.
@@ -993,17 +1392,21 @@ class NotesNote(QWidget):
 class NotesBackup(QWidget):
     """A page for notes' backups."""
     
-    def __init__(self, parent: NotesTabWidget, name: str) -> None:
+    def __init__(self, parent: NotesTabWidget, notebook: str, name: str) -> None:
         """Init and then set page.
         
         Args:
-            parent (NotesTabWidget): "Notes" tab widget in main window
+            parent (NotesTabWidget): "Notes" tab in main window
+            notebook (str): Notebook name
             name (str): Note name
         """        
         
         super().__init__(parent)
         
-        self.backup = notesdb.getBackup(name)
+        self.parent_ = parent
+        self.notebook = notebook
+        self.name = name
+        self.backup = notesdb.getBackup(notebook, name)
         
         self.setting_format = setting_format
         
@@ -1028,7 +1431,7 @@ class NotesBackup(QWidget):
         self.updateOutput(self.backup)
         
         self.button = QPushButton(self, text=_("Restore content"))
-        self.button.clicked.connect(lambda: parent.restoreContent(name))
+        self.button.clicked.connect(self.restoreContent)
         
         self.layout().addWidget(self.format)
         self.layout().addWidget(self.output)
@@ -1067,16 +1470,42 @@ class NotesBackup(QWidget):
         
         elif self.setting_format == "html":
             self.output.setHtml(text)
+            
+    def restoreContent(self):
+        """Restore content of a note."""
+        
+        notebook = self.notebook
+        name = self.name
+        
+        if notebook == "" or notebook == None or name == "" or name == None:
+            find_status, notebook, name = self.tryFindTheNoteInModel(notebook, name)
+            
+            if not find_status:
+                return False
+        
+        if not self.checkIfTheNoteExists(notebook, name):
+            return
+        
+        status, call = notesdb.restoreContent(notebook, name)
+        
+        if status == "successful" and call:
+            QMessageBox.information(self, _("Successful"), _("Backup of {name} note restored.").format(name = name))
+        
+        elif status == "no-backup" and not call:
+            QMessageBox.critical(self, _("Error"), _("There is no backup for {name} note.").format(name = name))
+            
+        elif status == "failed" and not call:
+            QMessageBox.critical(self, _("Error"), _("Failed to restore backup of {name} note.").format(name = name))
 
 
-class NotesListView(QListView):
+class NotesTreeView(QTreeView):
     """A list for showing notes' names."""
     
     def __init__(self, parent: NotesTabWidget, caller: str = "notes") -> None:
         """Init and then set properties.
 
         Args:
-            parent (NotesTabWidget): "Notes" tab widget in main window
+            parent (NotesTabWidget): "Notes" tab in main window
             caller (str, optional): For some special properties. Defaults to "notes".
         """
         
@@ -1087,11 +1516,13 @@ class NotesListView(QListView):
 
         self.proxy = QSortFilterProxyModel(self)
         self.proxy.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
+        self.proxy.setRecursiveFilteringEnabled(True)
         
         if self.caller == "notes":
             global notes_model
             
-            notes_model = QStringListModel(self)
+            notes_model = QStandardItemModel(self)
+            notes_model.setHorizontalHeaderLabels(["Note name", "Creation date", "Modification date"])
             
         self.proxy.setSourceModel(notes_model)
         
@@ -1102,50 +1533,248 @@ class NotesListView(QListView):
         self.setModel(self.proxy)
 
         if self.caller == "notes":
-            self.selectionModel().selectionChanged.connect(
-                lambda: self.parent_.insertInformations(self.getItemText()))
+            self.selectionModel().currentRowChanged.connect(
+                lambda: self.parent_.insertInformations(self.getParentText(), self.getCurrentText()))
         
-        self.doubleClicked.connect(lambda: self.parent_.openCreate(self.getItemText()))
+        self.doubleClicked.connect(lambda: self.openNote(self.getParentText(), self.getCurrentText()))
         
-        self.insertNames()
-        
-    def getItemText(self) -> str:
-        """
-        Get and then return item text.
+        self.appendAll()
 
-        Returns:
-            str: Item text
-        """
-        
-        try:
-            return self.proxy.itemData(self.currentIndex())[0]
-        except KeyError:
-            return ""
-        
-    def insertNames(self) -> None:
-        """Insert notes' names."""
+    def appendAll(self) -> None:
+        """Append all."""
         
         global menu_notes
         
-        call = notesdb.getNames()
-        names = []
+        call = notesdb.getAll()
         
         if self.caller == "notes":
             if not "menu_notes" in globals():
                 menu_notes = notes_parent.menuBar().addMenu(_("Notes"))
             
-            menu_notes.clear()
-            
-            for name in call:
-                names.append(name[0])
-                menu_notes.addAction(name[0], lambda name = name: self.parent_.openCreate(name[0]))
-
-        elif self.caller == "home":
-            for name in call:
-                names.append(name[0])
-
-        notes_model.setStringList(names)
+            menu_notes.clear() 
         
+        if call != None and self.caller == "notes":
+            model_count = -1
+            
+            notebooks = [*call]
+            
+            for notebook in notebooks:
+                model_count += 1
+                notebook_count = -1
+                
+                notebook_counts[notebook] = model_count
+                notebook_items[model_count] = QStandardItem(notebook)
+                
+                for name, creation, modification in call[notebook]:
+                    notebook_count += 1
+                    
+                    name_column = QStandardItem(name)
+                    creation_column = QStandardItem(creation)
+                    modification_column = QStandardItem(modification)
+                    
+                    note_counts[(notebook, name)] = notebook_count
+                    note_items[(notebook, notebook_count)] = [name_column, creation_column, modification_column]
+                
+                    notebook_items[model_count].appendRow(note_items[(notebook, notebook_count)])
+                    
+                    if self.caller == "notes":
+                        note_menus[(notebook, name)] = menu_notes.addAction(
+                            f"{name} @ {notebook}", lambda name = name, notebook = notebook: self.openNote(notebook, name))
+                
+                notes_model.appendRow(notebook_items[model_count])
+
+                self.setFirstColumnSpanned(0, self.rootIndex(), True)
+                
+            self.expandAll()
+            
+    def appendNote(self, notebook: str, name: str) -> None:
+        """
+        Append a note.
+
+        Args:
+            notebook (str): Notebook name
+            name (str): Name
+        """
+    
+        creation, modification = notesdb.getNote(notebook, name)
+        
+        name_column = QStandardItem(name)
+        creation_column = QStandardItem(creation)
+        modification_column = QStandardItem(modification)
+        
+        notebook_count = notebook_items[notebook_counts[notebook]].rowCount()
+        
+        note_counts[(notebook, name)] = notebook_count
+        note_items[(notebook, notebook_count)] = [name_column, creation_column, modification_column]
+        
+        if self.caller == "notes":
+            note_menus[(notebook, name)] = menu_notes.addAction(
+                f"{name} @ {notebook}", lambda name = name, notebook = notebook: self.openNote(notebook, name))
+        
+        notebook_items[notebook_counts[notebook]].appendRow(note_items[(notebook, notebook_count)])
+            
+    def appendNotebook(self, notebook: str) -> None:
+        """
+        Append a notebook.
+
+        Args:
+            notebook (str): Notebook name
+        """
+        
+        call = notesdb.getNotebook(notebook)
+        
+        model_count = notes_model.rowCount()
+        notebook_count = -1
+        
+        notebook_counts[notebook] = model_count
+        notebook_items[model_count] = QStandardItem(notebook)
+        
+        for name, creation, modification in call:
+            notebook_count += 1
+            
+            name_column = QStandardItem(name)
+            creation_column = QStandardItem(creation)
+            modification_column = QStandardItem(modification)
+            
+            note_counts[(notebook, name)] = notebook_count
+            note_items[(notebook, notebook_count)] = [name_column, creation_column, modification_column]
+        
+            notebook_items[model_count].appendRow(note_items[(notebook, notebook_count)])
+            
+            if self.caller == "notes":
+                note_menus[(notebook, name)] = menu_notes.addAction(
+                    f"{name} @ {notebook}", lambda name = name, notebook = notebook: self.openNote(notebook, name))
+        
+        notes_model.appendRow(notebook_items[model_count])
+        
+    def deleteNote(self, notebook: str, name: str) -> None:
+        """
+        Delete a note.
+
+        Args:
+            notebook (str): Notebook name
+            name (str): Note name
+        """
+        
+        notebook_items[notebook_counts[notebook]].removeRow(note_counts[(notebook, name)])
+        
+        del note_items[(notebook, note_counts[(notebook, name)])]
+        del note_counts[(notebook, name)]
+        
+        if self.caller == "notes":
+            menu_notes.removeAction(note_menus[(notebook, name)])
+            
+            del note_menus[(notebook, name)]
+        
+    def deleteNotebook(self, notebook: str) -> None:
+        """
+        Delete a notebook.
+
+        Args:
+            notebook (str): Notebook name
+        """
+        
+        notebook_count = notebook_counts[notebook]
+        
+        notes_model.removeRow(notebook_counts[notebook])
+        
+        del notebook_items[notebook_count]
+        del notebook_counts[notebook]
+        
+        for key in note_items.copy().keys():
+            if key[0] == notebook:
+                del note_items[key]
+                
+        for key in note_counts.copy().keys():
+            if key[0] == notebook:
+                del note_counts[key]
+                
+        if self.caller == "notes":
+            for key in note_menus.copy().keys():
+                if key[0] == notebook:
+                    menu_notes.removeAction(note_menus[key])
+                    
+                    del note_menus[key]
+                    
+    def getParentText(self) -> str:
+        """
+        Get and then return parent item text.
+
+        Returns:
+            str: The text
+        """
+        
+        try:
+            if self.currentIndex().parent().isValid():
+                return self.proxy.itemData(self.currentIndex().parent())[0]
+            
+            else:
+                return self.proxy.itemData(self.currentIndex())[0]
+            
+        except KeyError:
+            return ""
+        
+    def getCurrentText(self) -> str:
+        """
+        Get and then return current item's text.
+
+        Returns:
+            str: The text
+        """
+        
+        try:
+            if self.currentIndex().parent().isValid():
+                return self.proxy.itemData(self.currentIndex())[0]
+            
+            else:
+                return ""
+            
+        except KeyError:
+            return ""
+                
+    def mousePressEvent(self, e: QMouseEvent | None) -> None:
+        """
+        Override of QTreeView's mousePressEvent function.
+
+        Args:
+            e (QMouseEvent | None): Mouse event
+        """
+        
+        index = self.indexAt(e.pos())
+        
+        if index.column() == 0:
+            super().mousePressEvent(e)
+            
+        else:
+            QMessageBox.warning(self, _("Warning"), _("Please select a note only by clicking on the first column."))
+    
+    def openNote(self, notebook: str = "", name: str = "") -> None:
+        """
+        Open a note.
+
+        Args:
+            notebook (str, optional): Notebook name. Defaults to "".
+            name (str, optional): Note name. Defaults to "".
+        """
+        
+        if notebook == "" or notebook == None or name == "" or name == None:
+            QMessageBox.critical(self, _("Error"), _("Please select a note."))
+            return
+
+        if not self.parent_.note_options.checkIfTheNoteExists(notebook, name):
+            return
+        
+        notes_parent.tabwidget.setCurrentIndex(1)
+        
+        if f"{name} @ {notebook}" in notes:
+            self.parent_.setCurrentWidget(notes[f"{name} @ {notebook}"])
+            
+        else:            
+            notes_parent.dock.widget().addPage(f"{name} @ {notebook}", self.parent_)
+            notes[f"{name} @ {notebook}"] = NotesNote(self, notebook, name)
+            self.parent_.addTab(notes[f"{name} @ {notebook}"], f"{name} @ {notebook}")
+            self.parent_.setCurrentWidget(notes[f"{name} @ {notebook}"])
+                
     def setFilter(self, text: str) -> None:
         """Set filtering proxy.
 
@@ -1154,8 +1783,36 @@ class NotesListView(QListView):
         """
         
         self.proxy.beginResetModel()
-        self.proxy.endResetModel()
         self.proxy.setFilterFixedString(text)
-    
-        self.parent_.created.setText(_("Created: "))
-        self.parent_.edited.setText(_("Edited: "))
+        self.proxy.endResetModel()
+        
+    def updateAll(self) -> None:
+        """Delete all and then append all."""
+        
+        notes_model.clear()
+        self.appendAll()
+        
+    def updateNote(self, notebook: str, name: str, newname: str) -> None:
+        """
+        Delete and then append a note.
+
+        Args:
+            notebook (str): Notebook name
+            name (str): Old note name
+            newname (str): New note name
+        """
+        
+        self.deleteNote(notebook, name)
+        self.appendNote(notebook, newname)
+        
+    def updateNotebook(self, name: str, newname: str) -> None:
+        """
+        Delete and then append a notebook.
+
+        Args:
+            name (str): Old notebook name
+            newname (str): New notebook name
+        """
+        
+        self.deleteNotebook(name)
+        self.appendNotebook(newname)

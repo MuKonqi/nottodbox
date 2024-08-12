@@ -21,7 +21,7 @@ sys.dont_write_bytecode = True
 import getpass
 import os
 from gettext import gettext as _
-from notes import NotesTabWidget, NotesListView
+from notes import NotesTabWidget, NotesTreeView
 from todos import TodosTabWidget, TodolistListView, TodosListView
 from diaries import DiariesDiary, diariesdb
 from PyQt6.QtCore import Qt, QDate
@@ -101,7 +101,7 @@ class HomeWidget(QWidget):
         self.label_notes = QLabel(self, alignment=Qt.AlignmentFlag.AlignCenter, 
                                   text=_("List of Your Notes"))
         
-        self.notes = NotesListView(notes, "home")
+        self.notes = NotesTreeView(notes, "home")
         self.notes.doubleClicked.connect(lambda: home_parent.tabwidget.setCurrentWidget(home_parent.notes))
         
         self.layout().addWidget(self.label_welcome, 0, 0, 1, 2)

@@ -660,7 +660,7 @@ class TodosListView(QListView):
         """Init and then set properties.
 
         Args:
-            parent (TodosTabWidget): "Todos" tab widget in main window
+            parent (TodosTabWidget): "Todos" tab in main window
             caller (str, optional): For some special properties. Defaults to "todos".
         """
         
@@ -754,7 +754,7 @@ class TodolistWidget(QWidget):
         """Init and then set page.
         
         Args:
-            parent (TodosTabWidget): "Todos" tab widget in main window
+            parent (TodosTabWidget): "Todos" tab in main window
             name (str): Todo list name
         """
         

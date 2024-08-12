@@ -19,7 +19,6 @@ sys.dont_write_bytecode = True
 
 
 import getpass
-import datetime
 from gettext import gettext as _
 from PyQt6.QtGui import QCloseEvent
 from PyQt6.QtCore import Qt
