@@ -15,8 +15,6 @@
 
 
 import sys
-
-from PyQt6.QtWidgets import QWidget
 sys.dont_write_bytecode = True
 
 
