@@ -162,7 +162,7 @@ class NotesDB:
             bool: True if the note exists, if not False
         """
         
-        self.cur.execute(f"select * from '{notebook}' where name = '{name}'")
+        self.cur.execute(f"select * from '{notebook}' where name = ?", (name,))
         
         try:
             self.cur.fetchone()[0]
@@ -183,7 +183,7 @@ class NotesDB:
             bool: True if the backup exists, if not False
         """
         
-        self.cur.execute(f"select backup from '{notebook}' where name = '{name}'")
+        self.cur.execute(f"select backup from '{notebook}' where name = ?", (name,))
         fetch = self.cur.fetchone()[0]
         
         if fetch == None or fetch == "":
@@ -225,9 +225,9 @@ class NotesDB:
             date_time = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
             
             sql = f"""insert into '{notebook}' (name, content, backup, creation, modification) 
-                    values ('{name}', '', '', '{date_time}', '{date_time}')"""
+            values (?, '', '', ?, ?)"""
                 
-            self.cur.execute(sql)
+            self.cur.execute(sql, (name, date_time, date_time))
             self.db.commit()
         
             return self.checkIfTheNoteExists(notebook, name)
@@ -252,8 +252,7 @@ class NotesDB:
             content TEXT,
             backup TEXT, 
             creation TEXT NOT NULL,
-            modification TEXT,
-            color TEXT
+            modification TEXT
         );"""
         
         self.cur.execute(sql)
@@ -296,12 +295,9 @@ class NotesDB:
         
         fetch_before = self.getContent(notebook, name)
         
-        sql = f"""
-        update '{notebook}' set content = '', backup = '{fetch_before}', modification = '{date_time}'
-        where name = '{name}'
-        """
+        sql = f"update '{notebook}' set content = '', backup = ?, modification = ? where name = ?"
             
-        self.cur.execute(sql)
+        self.cur.execute(sql, (fetch_before, date_time, name))
         self.db.commit()
         
         fetch_after = self.getContent(notebook, name)
@@ -323,7 +319,7 @@ class NotesDB:
             bool: True if successful, False if not
         """
         
-        self.cur.execute(f"delete from '{notebook}' where name = '{name}'")
+        self.cur.execute(f"delete from '{notebook}' where name = ?", (name,))
         self.db.commit()
         
         call = self.checkIfTheNoteExists(notebook, name)
@@ -382,7 +378,7 @@ class NotesDB:
             str: Content
         """
         
-        self.cur.execute(f"select backup from '{notebook}' where name = '{name}'")
+        self.cur.execute(f"select backup from '{notebook}' where name = ?", (name,))
         try:
             fetch = self.cur.fetchone()[0]
         except TypeError:
@@ -401,7 +397,7 @@ class NotesDB:
             str: Content.
         """
         
-        self.cur.execute(f"select content from '{notebook}' where name = '{name}'")
+        self.cur.execute(f"select content from '{notebook}' where name = ?", (name,))
         try:
             fetch = self.cur.fetchone()[0]
         except TypeError:
@@ -420,7 +416,7 @@ class NotesDB:
             list: A note's creation and modefication dates
         """
         
-        self.cur.execute(f"select creation, modification from '{notebook}' where name = '{name}'")
+        self.cur.execute(f"select creation, modification from '{notebook}' where name = ?", (name,))
         return self.cur.fetchone()
     
     def getNotebook(self, name: str) -> list:
@@ -450,7 +446,7 @@ class NotesDB:
             bool: True if successful, False if unsuccessful
         """
         
-        self.cur.execute(f"update '{notebook}' set name = '{newname}' where name = '{name}'")
+        self.cur.execute(f"update '{notebook}' set name = ? where name = ?", (newname, name))
         self.db.commit()
         
         return self.checkIfTheNoteExists(notebook, newname)
@@ -510,21 +506,21 @@ class NotesDB:
         
         date_time = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
         
-        self.cur.execute(f"select content, backup from '{notebook}' where name = '{name}'")
+        self.cur.execute(f"select content, backup from '{notebook}' where name = ?", (name,))
         fetch_before = self.cur.fetchone()
         
-        sql = f"""update '{notebook}' set content = '{fetch_before[1]}', 
-        backup = '{fetch_before[0]}', modification = '{date_time}' where name = '{name}'"""
-        self.cur.execute(sql)
+        sql = f"update '{notebook}' set content = ?, backup = ?, modification = ? where name = ?"
+        
+        self.cur.execute(sql, (fetch_before[1], fetch_before[0], date_time, name))
         self.db.commit()
         
-        self.cur.execute(f"select content, backup from '{notebook}' where name = '{name}'")
+        self.cur.execute(f"select content, backup from '{notebook}' where name = ?", (name,))
         fetch_after = self.cur.fetchone()
         
         if fetch_before[1] == fetch_after[0] and fetch_before[0] == fetch_after[1]:
-            return "successful", True
+            return True
         else:
-            return "failed", False
+            return False
         
     def saveAll(self) -> bool:
         """
@@ -577,17 +573,18 @@ class NotesDB:
         
         if check:
             if autosave:
-                sql = f"""update '{notebook}' set content = '{content}',
-                modification = '{date_time}' where name = '{name}'"""
+                sql = f"update '{notebook}' set content = ?, modification = ? where name = ?"
+                
+                self.cur.execute(sql, (content, date_time, name))
                         
             else:
-                sql = f"""update '{notebook}' set content = '{content}', backup = '{backup}',
-                modification = '{date_time}' where name = '{name}'"""
+                sql = f"update '{notebook}' set content = ?, backup = ?, modification = ? where name = ?"
+                
+                self.cur.execute(sql, (content, backup, date_time, name))
             
-            self.cur.execute(sql)
             self.db.commit()
         
-            self.cur.execute(f"select content, modification from '{notebook}' where name = '{name}'")
+            self.cur.execute(f"select content, modification from '{notebook}' where name = ?", (name,))
             control = self.cur.fetchone()
 
             if control[0] == content and control[1] == date_time:            
@@ -1098,8 +1095,8 @@ class NotesNotebookOptions(QWidget):
         
         name, topwindow = QInputDialog.getText(self, _("Type a Name"), _("Type a name for creating a notebook."))
         
-        if "@" in name:
-            QMessageBox.critical(self, _("Error"), _('The notebook name cannot contain @ character.'))
+        if "@" in name or "'" in name:
+            QMessageBox.critical(self, _("Error"), _("The notebook name cannot contain these characters: @ and '"))
             
             return
         
@@ -1119,7 +1116,7 @@ class NotesNotebookOptions(QWidget):
                     QMessageBox.information(self, _("Successful"), _("{name} notebook created.").format(name = name))
                     
                 else:
-                    QMessageBox.critical(self, _("Error"), _("Failed to create {notebook} notebook.").format(name = name))
+                    QMessageBox.critical(self, _("Error"), _("Failed to create notebook {name}.").format(name = name))
                     
     def deleteAll(self) -> None:
         """Delete all."""
@@ -1444,15 +1441,12 @@ class NotesBackup(QWidget):
         if not self.checkIfTheNoteExists(notebook, name):
             return
         
-        status, call = notesdb.restoreContent(notebook, name)
+        call = notesdb.restoreContent(notebook, name)
         
-        if status == "successful" and call:
+        if call:
             QMessageBox.information(self, _("Successful"), _("Backup of {name} note restored.").format(name = name))
-        
-        elif status == "no-backup" and not call:
-            QMessageBox.critical(self, _("Error"), _("There is no backup for {name} note.").format(name = name))
             
-        elif status == "failed" and not call:
+        elif not call:
             QMessageBox.critical(self, _("Error"), _("Failed to restore backup of {name} note.").format(name = name))
 
 
