@@ -62,7 +62,7 @@ class SettingsDB:
         except:
             self.cur.execute(f"insert into settings (setting, value) values ('notes-autosave', 'true')")
             self.db.commit()
-            self.setting_autosave = "true"
+            self.setting_autosave = "enabled"
         
         try:
             self.cur.execute(f"select value from settings where setting = 'notes-format'")
@@ -89,10 +89,10 @@ class SettingsDB:
         global setting_autosave
         
         if signal == Qt.CheckState.Unchecked or signal == 0:
-            setting_autosave = "false"
+            setting_autosave = "disabled"
 
         elif signal == Qt.CheckState.Checked or signal == 2:
-            setting_autosave = "true"
+            setting_autosave = "enabled"
             
         self.cur.execute(f"update settings set value = '{setting_autosave}' where setting = 'notes-autosave'")
         self.db.commit()
@@ -224,10 +224,12 @@ class NotesDB:
         if not self.checkIfTheNoteExists(notebook, name):
             date_time = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
             
-            sql = f"""insert into '{notebook}' (name, content, backup, creation, modification) 
-            values (?, '', '', ?, ?)"""
+            sql = f"""
+            insert into '{notebook}' (name, content, backup, creation, modification, autosave, format) 
+            values (?, ?, ?, ?, ?, ?, ?)
+            """
                 
-            self.cur.execute(sql, (name, date_time, date_time))
+            self.cur.execute(sql, (name, "", "", date_time, date_time, "global", "global"))
             self.db.commit()
         
             return self.checkIfTheNoteExists(notebook, name)
@@ -252,7 +254,9 @@ class NotesDB:
             content TEXT,
             backup TEXT, 
             creation TEXT NOT NULL,
-            modification TEXT
+            modification TEXT,
+            autosave INTEGER NOT NULL,
+            format TEXT NOT NULL
         );"""
         
         self.cur.execute(sql)
@@ -366,6 +370,25 @@ class NotesDB:
             
         return all
     
+    def getAutosave(self, notebook: str, name: str) -> str:
+        """
+        Get auto-save setting of a note.
+
+        Args:
+            notebook (str): Notebook name
+            name (str): Note name
+
+        Returns:
+            str: Setting
+        """
+        
+        self.cur.execute(f"select autosave from '{notebook}' where name = ?", (name,))
+        try:
+            fetch = self.cur.fetchone()[0]
+        except TypeError:
+            fetch = setting_autosave
+        return fetch
+    
     def getBackup(self, notebook: str, name: str) -> str:
         """
         Get backup of a note.
@@ -402,6 +425,25 @@ class NotesDB:
             fetch = self.cur.fetchone()[0]
         except TypeError:
             fetch = ""
+        return fetch
+        
+    def getFormat(self, notebook: str, name: str) -> str:
+        """
+        Get format setting of a note.
+
+        Args:
+            notebook (str): Notebook name
+            name (str): Note name
+
+        Returns:
+            str: Setting
+        """
+        
+        self.cur.execute(f"select format from '{notebook}' where name = ?", (name,))
+        try:
+            fetch = self.cur.fetchone()[0]
+        except TypeError:
+            fetch = setting_format
         return fetch
     
     def getNote(self, notebook: str, name: str) -> list:
@@ -592,6 +634,52 @@ class NotesDB:
             else:
                 return False
 
+        else:
+            return False
+        
+    def setAutosave(self, notebook: str, name: str, setting: str) -> bool:
+        """
+        Set auto-save setting for a note.
+
+        Args:
+            notebook (str): Notebook name
+            name (str): Note name
+            setting (str): New setting
+
+        Returns:
+            bool: True if successful, False if not
+        """
+        
+        self.cur.execute(f"update '{notebook}' set autosave = ? where name = ?", (setting, name))
+        self.db.commit()
+        
+        call = self.getAutosave(notebook, name)
+        
+        if call == setting:
+            return True
+        else:
+            return False
+        
+    def setFormat(self, notebook: str, name: str, setting: str) -> bool:
+        """
+        Set format setting for a note.
+
+        Args:
+            notebook (str): Notebook name
+            name (str): Note name
+            setting (str): New setting
+
+        Returns:
+            bool: True if successful, False if not
+        """
+        
+        self.cur.execute(f"update '{notebook}' set format = ? where name = ?", (setting, name))
+        self.db.commit()
+        
+        call = self.getFormat(notebook, name)
+        
+        if call == setting:
+            return True
         else:
             return False
 
@@ -1215,21 +1303,40 @@ class NotesNote(QWidget):
         self.parent_ = parent
         self.notebook = notebook
         self.name = name
-        self.content = notesdb.getContent(notebook, name)
-        self.setting_autosave = setting_autosave
-        self.setting_format = setting_format
         self.closable = True
+        
+        self.content = notesdb.getContent(notebook, name)
+        
+        self.call_autosave = notesdb.getAutosave(notebook, name)
+        if self.call_autosave == "global":
+            self.setting_autosave = setting_autosave
+        else:
+            self.setting_autosave = self.call_autosave
+        
+        self.call_format = notesdb.getFormat(notebook, name)
+        if self.call_format == "global":
+            self.setting_format = setting_format
+        else:
+            self.setting_format = self.call_format
         
         self.setLayout(QGridLayout(self))
         self.setStatusTip(_("Auto-saves do not change backups."))
         
-        self.autosave = QCheckBox(self, text=_("Enable auto-save for this time"))
-        if setting_autosave == "true":
-            self.autosave.setChecked(True)
-        try:
-            self.autosave.checkStateChanged.connect(self.setAutoSave)
-        except:
-            self.autosave.stateChanged.connect(self.setAutoSave)
+        self.autosave = QComboBox(self)
+        self.autosave.addItems([
+            _("Auto-save for this note: Follow global ({setting})").format(setting = setting_autosave),
+            _("Auto-save for this note: Enabled"), 
+            _("Auto-save for this note: Disabled")])
+        
+        if self.call_autosave == "global":
+            self.autosave.setCurrentIndex(0)
+        elif self.call_autosave == "enabled":
+            self.autosave.setCurrentIndex(1)
+        elif self.call_autosave == "disabled":
+            self.autosave.setCurrentIndex(2)
+        
+        self.autosave.setEditable(False)
+        self.autosave.currentIndexChanged.connect(self.setAutoSave)
         
         self.input = QTextEdit(self)
         self.input.setPlainText(self.content)
@@ -1238,16 +1345,22 @@ class NotesNote(QWidget):
         self.input.textChanged.connect(lambda: self.saveNote(True))
         
         self.format = QComboBox(self)
-        self.format.addItems([_("Format for this time: Plain text"), 
-                               _("Format for this time: Markdown"), 
-                               _("Format for this time: HTML")])
-        self.format.setEditable(False)
-        if self.setting_format == "plain-text":
+        self.format.addItems([
+            _("Format for this note: Follow global ({setting})").format(setting = setting_format),
+            _("Format for this note: Plain-text"), 
+            _("Format for this note: Markdown"), 
+            _("Format for this note: HTML")])
+        
+        if self.call_format == "global":
             self.format.setCurrentIndex(0)
-        elif self.setting_format == "markdown":
+        elif self.call_format == "plain-text":
             self.format.setCurrentIndex(1)
-        elif self.setting_format == "html":
+        elif self.call_format == "markdown":
             self.format.setCurrentIndex(2)
+        elif self.call_format == "html":
+            self.format.setCurrentIndex(3)
+        
+        self.format.setEditable(False)
         self.format.currentIndexChanged.connect(self.setFormat)
         
         self.output = QTextEdit(self)
@@ -1276,7 +1389,7 @@ class NotesNote(QWidget):
         
         self.closable = False
         
-        if not autosave or (autosave and self.setting_autosave == "true"):
+        if not autosave or (autosave and self.setting_autosave == "enabled"):
             call = notesdb.saveNote(self.notebook,
                                     self.name,
                                     self.input.toPlainText(),
@@ -1296,39 +1409,66 @@ class NotesNote(QWidget):
                 
                 return False
                 
-    def setAutoSave(self, signal: Qt.CheckState | int) -> None:
-        """Set auto-save setting for only this page.
-
-        Args:
-            signal (Qt.CheckState | int): QCheckBox's signal.
+    def setAutoSave(self, index: int) -> None:
         """
-        
-        if signal == Qt.CheckState.Unchecked or signal == 0:
-            self.setting_autosave = "false"
-
-        elif signal == Qt.CheckState.Checked or signal == 2:
-            self.setting_autosave = "true"
-
-    def setFormat(self, index: int) -> None:
-        """Set format setting for only this page.
+        Set auto-save setting for this note.
 
         Args:
-            index (int): Selected index in QComboBox.
+            index (int): Selected index
         """
         
         if index == 0:
-            self.setting_format = "plain-text"
+            setting = "global"
         
         elif index == 1:
-            self.setting_format = "markdown"
+            setting = "enabled"
         
         elif index == 2:
-            self.setting_format = "html"
+            setting = "disabled"
+        
+        call = notesdb.setAutosave(self.notebook, self.name, setting)
+        
+        if call:
+            self.setting_autosave = setting
             
-        self.updateOutput(self.input.toPlainText())
+            self.updateOutput(self.input.toPlainText())
+        
+        else:
+            QMessageBox.critical(self, _("Error"), _("Failed to save new autosave setting."))
+
+    def setFormat(self, index: int) -> None:
+        """
+        Set format setting for this note.
+
+        Args:
+            index (int): Selected index
+        """
+        
+        if index == 0:
+            setting = "global"
+        
+        elif index == 1:
+            setting = "plain-text"
+        
+        elif index == 2:
+            setting = "markdown"
+        
+        elif index == 3:
+            setting = "html"
+        
+        call = notesdb.setFormat(self.notebook, self.name, setting)
+        
+        if call:
+            self.setting_format = setting
+            
+            self.updateOutput(self.input.toPlainText())
+        
+        else:
+            QMessageBox.critical(self, _("Error"), _("Failed to save new format setting."))
             
     def updateOutput(self, text: str) -> None:
-        """Update output when input's text changed or format changed.
+        """
+        Update output when input's text changed or format changed.
 
         Args:
             text (str): Content
@@ -1474,7 +1614,7 @@ class NotesTreeView(QTreeView):
             global notes_model
             
             notes_model = QStandardItemModel(self)
-            notes_model.setHorizontalHeaderLabels(["Note name", "Creation date", "Modification date"])
+            notes_model.setHorizontalHeaderLabels(["Name", "Creation date", "Modification date"])
             
         self.proxy.setSourceModel(notes_model)
         
