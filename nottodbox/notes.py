@@ -22,8 +22,8 @@ import getpass
 import sqlite3
 import datetime
 from gettext import gettext as _
-from PyQt6.QtGui import QStandardItem, QStandardItemModel, QMouseEvent
-from PyQt6.QtCore import Qt, QSortFilterProxyModel, QModelIndex
+from PyQt6.QtGui import QStandardItem, QStandardItemModel, QMouseEvent, QColor
+from PyQt6.QtCore import Qt, QSortFilterProxyModel
 from PyQt6.QtWidgets import *
 
 
@@ -631,17 +631,16 @@ class NotesTabWidget(QTabWidget):
         self.entry.setClearButtonEnabled(True)
         self.entry.textEdited.connect(self.treeview.setFilter)
         
-        self.none_options = NotesNoneOptions(self)
-        
-        self.notebook_options = NotesNotebookOptions(self)
-        self.notebook_options.setVisible(False)
-        
         self.notebook_selected = QLabel(self, alignment=Qt.AlignmentFlag.AlignCenter, text=_("Notebook: "))
+        self.note_selected = QLabel(self, alignment=Qt.AlignmentFlag.AlignCenter, text=_("Note: "))
         
         self.note_options = NotesNoteOptions(self)
         self.note_options.setVisible(False)
         
-        self.note_selected = QLabel(self, alignment=Qt.AlignmentFlag.AlignCenter, text=_("Note: "))
+        self.notebook_options = NotesNotebookOptions(self)
+        self.notebook_options.setVisible(False)
+
+        self.none_options = NotesNoneOptions(self)
         
         self.current_widget = self.none_options
         
@@ -735,7 +734,7 @@ class NotesTabWidget(QTabWidget):
             
         self.notebook_selected.setText(_("Notebook: ") + notebook)
         self.note_selected.setText(_("Note: ") + name)
-        self.entry.setText(name)
+
         
 class NotesNoneOptions(QWidget):
     """Options when selected nothing."""
@@ -757,10 +756,10 @@ class NotesNoneOptions(QWidget):
         self.warning_label.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Maximum)
         
         self.create_notebook = QPushButton(self, text=_("Create notebook"))
-        self.create_notebook.clicked.connect(self.createNotebook)
+        self.create_notebook.clicked.connect(self.parent_.notebook_options.createNotebook)
         
         self.delete_all = QPushButton(self, text=_("Delete all"))
-        self.delete_all.clicked.connect(self.deleteAll)
+        self.delete_all.clicked.connect(self.parent_.notebook_options.deleteAll)
         
         self.setLayout(QVBoxLayout(self))
         self.setFixedWidth(150)
@@ -768,48 +767,6 @@ class NotesNoneOptions(QWidget):
         self.layout().addWidget(self.warning_label)
         self.layout().addWidget(self.create_notebook)
         self.layout().addWidget(self.delete_all)
-        
-    def createNotebook(self) -> None:
-        """Create a notebook."""
-        
-        name, topwindow = QInputDialog.getText(self, _("Type a Name"), _("Type a name for creating a notebook."))
-        
-        if "@" in name:
-            QMessageBox.critical(self, _("Error"), _('The notebook name cannot contain @ character.'))
-            
-            return
-        
-        elif name != "" and name != None and topwindow:
-            call = self.parent_.notebook_options.checkIfTheNotebookExists(name, "inverted")
-        
-            if call:
-                QMessageBox.critical(self, _("Error"), _("{name} notebook already created.").format(name = name))
-        
-            else:
-                call = notesdb.createNotebook(name)
-                
-                if call:
-                    self.parent_.treeview.appendNotebook(name)
-                    self.parent_.insertInformations(name, "")
-                    
-                    QMessageBox.information(self, _("Successful"), _("{name} notebook created.").format(name = name))
-                    
-                else:
-                    QMessageBox.critical(self, _("Error"), _("Failed to create {notebook} notebook.").format(name = name))
-                    
-    def deleteAll(self) -> None:
-        """Delete all."""
-        
-        call = notesdb.deleteAll()
-        
-        if call:
-            self.parent_.treeview.updateAll()
-            self.parent_.insertInformations("", "")
-            
-            QMessageBox.information(self, _("Successful"), _("All notebooks deleted."))
-
-        else:
-            QMessageBox.critical(self, _("Error"), _("Failed to delete all notebooks."))
 
 
 class NotesNoteOptions(QWidget):
