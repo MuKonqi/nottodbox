@@ -22,7 +22,7 @@ import getpass
 import sqlite3
 import datetime
 from gettext import gettext as _
-from PyQt6.QtGui import QStandardItem, QStandardItemModel, QMouseEvent, QColor
+from PyQt6.QtGui import QStandardItem, QStandardItemModel, QMouseEvent
 from PyQt6.QtCore import Qt, QSortFilterProxyModel
 from PyQt6.QtWidgets import *
 
@@ -252,7 +252,8 @@ class NotesDB:
             content TEXT,
             backup TEXT, 
             creation TEXT NOT NULL,
-            modification TEXT
+            modification TEXT,
+            color TEXT
         );"""
         
         self.cur.execute(sql)
