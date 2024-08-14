@@ -32,25 +32,25 @@ userdata = f"/home/{username}/.local/share/nottodbox/"
 
 
 settings = {
-    "mainwindow-unsaved": "true",
-    "mainwindow-documentmode": "false",
+    "mainwindow-unsaved": "enabled",
+    "mainwindow-documentmode": "disabled",
 
-    "notes-autohide": "true",
-    "notes-documentmode": "true",
-    "notes-autosave": "true",
+    "notes-autohide": "enabled",
+    "notes-documentmode": "enabled",
+    "notes-autosave": "enabled",
     "notes-format": "markdown",
-    "notes-unsaved": "true",
+    "notes-unsaved": "enabled",
 
-    "todos-autohide": "true",
-    "todos-documentmode": "true",
+    "todos-autohide": "enabled",
+    "todos-documentmode": "enabled",
 
-    "diaries-autohide": "true",
-    "diaries-documentmode": "true",
-    "diaries-autosave": "true",
+    "diaries-autohide": "enabled",
+    "diaries-documentmode": "enabled",
+    "diaries-autosave": "enabled",
     "diaries-format": "markdown",
     "diaries-space": "2",
-    "diaries-unsaved": "true",
-    "diaries-olddiary": "true",
+    "diaries-unsaved": "enabled",
+    "diaries-olddiary": "enabled",
     "diaries-sections": "all"
 }
 

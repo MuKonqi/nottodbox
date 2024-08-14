@@ -56,9 +56,9 @@ class SettingsDB:
             self.setting_autosave = self.cur.fetchone()[0]
 
         except:
-            self.cur.execute(f"insert into settings (setting, value) values ('diaries-autosave', 'true')")
+            self.cur.execute(f"insert into settings (setting, value) values ('diaries-autosave', 'enabled')")
             self.db.commit()
-            self.setting_autosave = "true"
+            self.setting_autosave = "enabled"
         
         try:
             self.cur.execute(f"select value from settings where setting = 'diaries-format'")
@@ -85,10 +85,10 @@ class SettingsDB:
         global setting_autosave
         
         if signal == Qt.CheckState.Unchecked or signal == 0:
-            setting_autosave = "false"
+            setting_autosave = "disabled"
 
         elif signal == Qt.CheckState.Checked or signal == 2:
-            setting_autosave = "true"
+            setting_autosave = "enabled"
             
         self.cur.execute(f"update settings set value = '{setting_autosave}' where setting = 'diaries-autosave'")
         self.db.commit()
@@ -569,7 +569,7 @@ class DiariesTabWidget(QTabWidget):
         self.format.currentIndexChanged.connect(self.setFormat)        
         
         self.autosave = QCheckBox(self, text=_("Enable auto-save"))
-        if setting_autosave == "true":
+        if setting_autosave == "enabled":
             self.autosave.setChecked(True)
         self.autosave.setStatusTip(_("Auto-saves do not change backups."))
         try:
@@ -809,10 +809,10 @@ class DiariesTabWidget(QTabWidget):
         global setting_autosave
         
         if signal == Qt.CheckState.Unchecked or signal == 0:
-            setting_autosave = "false"
+            setting_autosave = "disabled"
 
         elif signal == Qt.CheckState.Checked or signal == 2:
-            setting_autosave = "true"
+            setting_autosave = "enabled"
             
         call = settingsdb.setAutoSave(signal)
         
@@ -901,7 +901,7 @@ class DiariesDiary(QWidget):
         self.autosave = QCheckBox(self)
         if QDate().fromString(self.date, "dd.MM.yyyy") == today:
             self.autosave.setText(_("Enable auto-save for this time"))
-            if setting_autosave == "true":
+            if setting_autosave == "enabled":
                 self.autosave.setChecked(True)
             try:
                 self.autosave.checkStateChanged.connect(self.setAutoSave)
@@ -911,7 +911,7 @@ class DiariesDiary(QWidget):
             self.autosave.setText(_("Auto-saves disabled for old diaries"))
             self.autosave.setDisabled(True)
             
-            self.setting_autosave = "false"
+            self.setting_autosave = "disabled"
         
         self.input = QTextEdit(self)
         self.input.setPlainText(self.content)
@@ -954,7 +954,7 @@ class DiariesDiary(QWidget):
         
         self.closable = False
         
-        if not autosave or (autosave and self.setting_autosave == "true"):
+        if not autosave or (autosave and self.setting_autosave == "enabled"):
             if QDate.fromString(self.date, "dd.MM.yyyy") != today:
                 question = QMessageBox.question(self, 
                                                 _("Question"),
@@ -986,10 +986,10 @@ class DiariesDiary(QWidget):
         """
         
         if signal == Qt.CheckState.Unchecked or signal == 0:
-            self.setting_autosave = "false"
+            self.setting_autosave = "disabled"
 
         elif signal == Qt.CheckState.Checked or signal == 2:
-            self.setting_autosave = "true"
+            self.setting_autosave = "enabled"
 
     def setFormat(self, index: int) -> None:
         """Set format setting for only this page.

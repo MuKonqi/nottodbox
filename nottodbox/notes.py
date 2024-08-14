@@ -60,7 +60,7 @@ class SettingsDB:
             self.setting_autosave = self.cur.fetchone()[0]
 
         except:
-            self.cur.execute(f"insert into settings (setting, value) values ('notes-autosave', 'true')")
+            self.cur.execute(f"insert into settings (setting, value) values ('notes-autosave', 'enabled')")
             self.db.commit()
             self.setting_autosave = "enabled"
         
@@ -83,7 +83,7 @@ class SettingsDB:
             signal (Qt.CheckState | int): QCheckBox's signal.
 
         Returns:
-            bool: True if successful, False if unsuccessful
+            bool: True if successful, False if not
         """
         
         global setting_autosave
@@ -112,7 +112,7 @@ class SettingsDB:
             index (int): Selected index in QComboBox.
 
         Returns:
-            bool: True if successful, False if unsuccessful
+            bool: True if successful, False if not
         """
         
         global setting_format
@@ -162,13 +162,19 @@ class NotesDB:
             bool: True if the note exists, if not False
         """
         
-        self.cur.execute(f"select * from '{notebook}' where name = ?", (name,))
+        call = self.checkIfTheNotebookExists(notebook)
         
-        try:
-            self.cur.fetchone()[0]
-            return True
-        
-        except TypeError:
+        if call:
+            self.cur.execute(f"select * from '{notebook}' where name = ?", (name,))
+            
+            try:
+                self.cur.fetchone()[0]
+                return True
+            
+            except TypeError:
+                return False
+            
+        else:
             return False
         
     def checkIfTheNoteBackupExists(self, notebook: str, name: str) -> bool:
@@ -183,23 +189,29 @@ class NotesDB:
             bool: True if the backup exists, if not False
         """
         
-        self.cur.execute(f"select backup from '{notebook}' where name = ?", (name,))
-        fetch = self.cur.fetchone()[0]
+        call = self.checkIfTheNotebookExists(notebook)
         
-        if fetch == None or fetch == "":
-            return False
+        if call:
+            self.cur.execute(f"select backup from '{notebook}' where name = ?", (name,))
+            fetch = self.cur.fetchone()[0]
+            
+            if fetch == None or fetch == "":
+                return False
+            else:
+                return True
+            
         else:
-            return True
+            return False
         
     def checkIfTheNotebookExists(self, name: str) -> bool:
         """
-        Check if the notebook exists.
+        Check if the table exists.
 
         Args:
-            name (str): Notebook name
+            name (str): Table name
 
         Returns:
-            bool: True if the notebook exists, if not False
+            bool: True if the table exists, if not False
         """
         
         try:
@@ -245,7 +257,7 @@ class NotesDB:
             name (str): Notebook name
 
         Returns:
-            bool: True if successful, False if unsuccessful
+            bool: True if successful, False if not
         """
         
         sql = f"""
@@ -485,7 +497,7 @@ class NotesDB:
             newname (str): New name
 
         Returns:
-            bool: True if successful, False if unsuccessful
+            bool: True if successful, False if not
         """
         
         self.cur.execute(f"update '{notebook}' set name = ? where name = ?", (newname, name))
@@ -540,7 +552,7 @@ class NotesDB:
             name (str): Note name
             
         Returns:
-            bool: True if successful, False if unsuccessful
+            bool: True if successful, False if not
         """
         
         if not self.checkIfTheNoteBackupExists(notebook, name):
@@ -570,7 +582,7 @@ class NotesDB:
         If there is such a note, create it.
 
         Returns:
-            bool: True if successful, False if unsuccessful
+            bool: True if successful, False if not
         """
         
         successful = True
@@ -606,7 +618,7 @@ class NotesDB:
             autosave (bool): True if the caller is "auto-save", false if it is not
             
         Returns:
-            bool: True if successful, False if unsuccessful
+            bool: True if successful, False if not
         """
         
         date_time = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
@@ -650,6 +662,9 @@ class NotesDB:
             bool: True if successful, False if not
         """
         
+        if not self.checkIfTheNotebookExists(notebook):
+            return False
+        
         self.cur.execute(f"update '{notebook}' set autosave = ? where name = ?", (setting, name))
         self.db.commit()
         
@@ -672,6 +687,9 @@ class NotesDB:
         Returns:
             bool: True if successful, False if not
         """
+        
+        if not self.checkIfTheNotebookExists(notebook):
+            return False
         
         self.cur.execute(f"update '{notebook}' set format = ? where name = ?", (setting, name))
         self.db.commit()
@@ -768,8 +786,6 @@ class NotesTabWidget(QTabWidget):
                         
                         if call:
                             self.closable = True
-                        else:
-                            QMessageBox.critical(self, _("Error"), _("Failed to save {name} note.").format(name = self.tabText(index).replace("&", "")))
                     
                     elif self.question != QMessageBox.StandardButton.Yes:
                         return
@@ -870,6 +886,9 @@ class NotesNoteOptions(QWidget):
 
         self.parent_ = parent
         
+        self.create_note = QPushButton(self, text=_("Create note"))
+        self.create_note.clicked.connect(self.createNote)
+        
         self.open_note = QPushButton(self, text=_("Open note"))
         self.open_note.clicked.connect(self.openNote)
         
@@ -891,6 +910,7 @@ class NotesNoteOptions(QWidget):
         self.setLayout(QVBoxLayout(self))
         self.setFixedWidth(150)
         
+        self.layout().addWidget(self.create_note)
         self.layout().addWidget(self.open_note)
         self.layout().addWidget(self.rename_note)
         self.layout().addWidget(self.show_backup)
@@ -933,6 +953,41 @@ class NotesNoteOptions(QWidget):
             QMessageBox.critical(self, _("Error"), _("There is no backup for note {name}.").format(name = name))
         
         return call
+    
+    def createNote(self):
+        """Create a note."""
+        
+        notebook = self.parent_.notebook
+        
+        if not notesdb.checkIfTheNotebookExists(notebook):
+            QMessageBox.critical(self, _("Error"), _("There is no notebook called {name}.").format(name = notebook))
+            
+            return
+        
+        name, topwindow = QInputDialog.getText(self, _("Type a Name"), _("Type a name for creating a note."))
+        
+        if "@" in name:
+            QMessageBox.critical(self, _("Error"), _('The note name cannot contain @ character.'))
+            
+            return
+        
+        elif name != "" and name != None and topwindow:
+            call = self.parent_.note_options.checkIfTheNoteExists(notebook, name, "inverted")
+        
+            if call:
+                QMessageBox.critical(self, _("Error"), _("{name} note already created.").format(name = name))
+        
+            else:
+                call = notesdb.createNote(notebook, name)
+                
+                if call:
+                    self.parent_.treeview.appendNote(notebook, name)
+                    self.parent_.insertInformations(notebook, name)
+                    
+                    QMessageBox.information(self, _("Successful"), _("{name} note created.").format(name = name))
+                    
+                else:
+                    QMessageBox.critical(self, _("Error"), _("Failed to create {name} note.").format(name = name))
         
     def deleteContent(self) -> None:
         """Delete content of a note."""
@@ -1099,7 +1154,7 @@ class NotesNotebookOptions(QWidget):
         self.parent_ = parent
 
         self.create_note = QPushButton(self, text=_("Create note"))
-        self.create_note.clicked.connect(self.createNote)
+        self.create_note.clicked.connect(self.parent_.note_options.createNote)
         
         self.create_notebook = QPushButton(self, text=_("Create notebook"))
         self.create_notebook.clicked.connect(self.createNotebook)
@@ -1144,39 +1199,6 @@ class NotesNotebookOptions(QWidget):
             QMessageBox.critical(self, _("Error"), _("There is no notebook called {name}.").format(name = name))
         
         return call
-    
-    def createNote(self) -> None:
-        """Create a note."""
-        
-        notebook = self.parent_.notebook
-        
-        if not self.checkIfTheNotebookExists(notebook):
-            return
-        
-        name, topwindow = QInputDialog.getText(self, _("Type a Name"), _("Type a name for creating a note."))
-        
-        if "@" in name:
-            QMessageBox.critical(self, _("Error"), _('The note name cannot contain @ character.'))
-            
-            return
-        
-        elif name != "" and name != None and topwindow:
-            call = self.parent_.note_options.checkIfTheNoteExists(notebook, name, "inverted")
-        
-            if call:
-                QMessageBox.critical(self, _("Error"), _("{name} note already created.").format(name = name))
-        
-            else:
-                call = notesdb.createNote(notebook, name)
-                
-                if call:
-                    self.parent_.treeview.appendNote(notebook, name)
-                    self.parent_.insertInformations(notebook, name)
-                    
-                    QMessageBox.information(self, _("Successful"), _("{name} note created.").format(name = name))
-                    
-                else:
-                    QMessageBox.critical(self, _("Error"), _("Failed to create {notebook} note.").format(name = name))
                     
     def createNotebook(self) -> None:
         """Create a notebook."""
@@ -1318,10 +1340,7 @@ class NotesNote(QWidget):
             self.setting_format = setting_format
         else:
             self.setting_format = self.call_format
-        
-        self.setLayout(QGridLayout(self))
-        self.setStatusTip(_("Auto-saves do not change backups."))
-        
+              
         self.autosave = QComboBox(self)
         self.autosave.addItems([
             _("Auto-save for this note: Follow global ({setting})").format(setting = setting_autosave),
@@ -1337,12 +1356,6 @@ class NotesNote(QWidget):
         
         self.autosave.setEditable(False)
         self.autosave.currentIndexChanged.connect(self.setAutoSave)
-        
-        self.input = QTextEdit(self)
-        self.input.setPlainText(self.content)
-        self.input.textChanged.connect(
-            lambda: self.updateOutput(self.input.toPlainText()))
-        self.input.textChanged.connect(lambda: self.saveNote(True))
         
         self.format = QComboBox(self)
         self.format.addItems([
@@ -1363,18 +1376,28 @@ class NotesNote(QWidget):
         self.format.setEditable(False)
         self.format.currentIndexChanged.connect(self.setFormat)
         
+        self.input = QTextEdit(self)
+        self.input.setPlainText(self.content)
+        self.input.textChanged.connect(
+            lambda: self.updateOutput(self.input.toPlainText()))
+        self.input.textChanged.connect(lambda: self.saveNote(True))
+        
         self.output = QTextEdit(self)
         self.output.setReadOnly(True)
-        self.updateOutput(self.content)
         
         self.button = QPushButton(self, text=_("Save"))
         self.button.clicked.connect(self.saveNote)
+        
+        self.setLayout(QGridLayout(self))
+        self.setStatusTip(_("Auto-saves do not change backups."))
         
         self.layout().addWidget(self.autosave, 0, 0, 1, 1)
         self.layout().addWidget(self.input, 1, 0, 1, 1)
         self.layout().addWidget(self.format, 0, 1, 1, 1)
         self.layout().addWidget(self.output, 1, 1, 1, 1)
         self.layout().addWidget(self.button, 2, 0, 1, 2)
+        
+        self.updateOutput(self.content)
         
     def saveNote(self, autosave: bool = False) -> bool:
         """
@@ -1501,57 +1524,82 @@ class NotesBackup(QWidget):
         self.parent_ = parent
         self.notebook = notebook
         self.name = name
+        
         self.backup = notesdb.getBackup(notebook, name)
         
         self.setting_format = setting_format
         
-        self.setLayout(QVBoxLayout(self))
-        self.setStatusTip(_("Auto-saves do not change backups."))
-            
+        self.call_format = notesdb.getFormat(notebook, name)
+        if self.call_format == "global":
+            self.setting_format = setting_format
+        else:
+            self.setting_format = self.call_format
+        
         self.format = QComboBox(self)
-        self.format.addItems([_("Format for this time: Plain text"), 
-                               _("Format for this time: Markdown"), 
-                               _("Format for this time: HTML")])
-        self.format.setEditable(False)
-        if self.setting_format == "plain-text":
+        self.format.addItems([
+            _("Format for this note: Follow global ({setting})").format(setting = setting_format),
+            _("Format for this note: Plain-text"), 
+            _("Format for this note: Markdown"), 
+            _("Format for this note: HTML")])
+        
+        if self.call_format == "global":
             self.format.setCurrentIndex(0)
-        elif self.setting_format == "markdown":
+        elif self.call_format == "plain-text":
             self.format.setCurrentIndex(1)
-        elif self.setting_format == "html":
+        elif self.call_format == "markdown":
             self.format.setCurrentIndex(2)
+        elif self.call_format == "html":
+            self.format.setCurrentIndex(3)
+        
+        self.format.setEditable(False)
         self.format.currentIndexChanged.connect(self.setFormat)
         
         self.output = QTextEdit(self)
         self.output.setReadOnly(True)
-        self.updateOutput(self.backup)
         
         self.button = QPushButton(self, text=_("Restore content"))
         self.button.clicked.connect(self.restoreContent)
         
+        self.setLayout(QVBoxLayout(self))
         self.layout().addWidget(self.format)
         self.layout().addWidget(self.output)
         self.layout().addWidget(self.button)
+        
+        self.updateOutput(self.backup)
 
     def setFormat(self, index: int) -> None:
-        """Set format setting for only this page.
+        """
+        Set format setting for this note.
 
         Args:
-            index (int): Selected index in QComboBox.
+            index (int): Selected index
         """
         
         if index == 0:
-            self.setting_format = "plain-text"
+            setting = "global"
         
         elif index == 1:
-            self.setting_format = "markdown"
+            setting = "plain-text"
         
         elif index == 2:
-            self.setting_format = "html"
+            setting = "markdown"
+        
+        elif index == 3:
+            setting = "html"
+        
+        call = notesdb.setFormat(self.notebook, self.name, setting)
+        
+        if call:
+            self.setting_format = setting
             
-        self.updateOutput(self.backup)
+            self.updateOutput(self.backup)
+        
+        else:
+            QMessageBox.critical(self, _("Error"), _("Failed to save new format setting."))
             
     def updateOutput(self, text: str) -> None:
-        """Update output when format changed.
+        """
+        Update output when format changed.
 
         Args:
             text (str): Content
