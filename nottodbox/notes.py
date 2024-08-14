@@ -33,6 +33,7 @@ note_items = {}
 note_menus = {}
 notebook_counts = {}
 notebook_items = {}
+notebook_modifications = {}
 
 username = getpass.getuser()
 userdata = f"/home/{username}/.local/share/nottodbox/"
@@ -162,9 +163,7 @@ class NotesDB:
             bool: True if the note exists, if not False
         """
         
-        call = self.checkIfTheNotebookExists(notebook)
-        
-        if call:
+        if self.checkIfTheNotebookExists(notebook):
             self.cur.execute(f"select * from '{notebook}' where name = ?", (name,))
             
             try:
@@ -189,9 +188,7 @@ class NotesDB:
             bool: True if the backup exists, if not False
         """
         
-        call = self.checkIfTheNotebookExists(notebook)
-        
-        if call:
+        if self.checkIfTheNotebookExists(notebook):
             self.cur.execute(f"select backup from '{notebook}' where name = ?", (name,))
             fetch = self.cur.fetchone()[0]
             
@@ -205,6 +202,26 @@ class NotesDB:
         
     def checkIfTheNotebookExists(self, name: str) -> bool:
         """
+        Check if the notebook exists.
+
+        Args:
+            name (str): Notebook name
+
+        Returns:
+            bool: True if the notebook exists, if not False
+        """
+        
+        self.cur.execute(f"select * from __main__ where name = ?", (name,))
+        
+        try:
+            self.cur.fetchone()[0]
+            return self.checkIfTheTableExists(name)
+            
+        except TypeError:
+            return False
+        
+    def checkIfTheTableExists(self, name: str) -> bool:
+        """
         Check if the table exists.
 
         Args:
@@ -213,7 +230,7 @@ class NotesDB:
         Returns:
             bool: True if the table exists, if not False
         """
-        
+
         try:
             self.cur.execute(f"select * from '{name}'")
             return True
@@ -234,14 +251,17 @@ class NotesDB:
         """
         
         if not self.checkIfTheNoteExists(notebook, name):
-            date_time = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+            date = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+            
+            if not self.updateModificationDate(notebook, date):
+                return False
             
             sql = f"""
             insert into '{notebook}' (name, content, backup, creation, modification, autosave, format) 
             values (?, ?, ?, ?, ?, ?, ?)
             """
                 
-            self.cur.execute(sql, (name, "", "", date_time, date_time, "global", "global"))
+            self.cur.execute(sql, (name, "", "", date, date, "global", "global"))
             self.db.commit()
         
             return self.checkIfTheNoteExists(notebook, name)
@@ -260,21 +280,54 @@ class NotesDB:
             bool: True if successful, False if not
         """
         
-        sql = f"""
+        date = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+        
+        sql_insert = """
+        insert into __main__ (name, creation, modification, background, foreground)
+        values (?, ?, ?, ?, ?)
+        """
+        
+        self.cur.execute(sql_insert, (name, date, date, "", ""))
+        self.db.commit()
+        
+        sql_create = f"""
         CREATE TABLE IF NOT EXISTS '{name}' (
             name TEXT NOT NULL PRIMARY KEY,
             content TEXT,
             backup TEXT, 
             creation TEXT NOT NULL,
-            modification TEXT,
-            autosave INTEGER NOT NULL,
+            modification TEXT NOT NULL,
+            autosave TEXT NOT NULL,
             format TEXT NOT NULL
         );"""
+        
+        self.cur.execute(sql_create)
+        self.db.commit()
+        
+        return self.checkIfTheNotebookExists(name)
+    
+    def createMainTable(self) -> bool:
+        """
+        Create main table if not exists.
+
+        Returns:
+            bool: True if successful, False if not
+        """
+        
+        sql = """
+        CREATE TABLE IF NOT EXISTS __main__ (
+            name TEXT NOT NULL PRIMARY KEY,
+            creation TEXT NOT NULL,
+            modification TEXT NOT NULL,
+            background TEXT,
+            foreground TEXT
+        )
+        """
         
         self.cur.execute(sql)
         self.db.commit()
         
-        return self.checkIfTheNotebookExists(name)
+        return self.checkIfTheTableExists("__main__")
     
     def deleteAll(self) -> bool:
         """Delete all."""
@@ -282,7 +335,7 @@ class NotesDB:
         successful = True
         calls = {}
         
-        self.cur.execute("select name from sqlite_master where type = 'table'")
+        self.cur.execute("select name from __main__")
         notebooks = self.cur.fetchall()
         
         for notebook in notebooks:
@@ -293,7 +346,17 @@ class NotesDB:
             if not calls[notebook]:
                 successful = False
         
-        return successful
+        if successful:
+            self.cur.execute("DROP TABLE IF EXISTS __main__")
+            self.db.commit()
+            
+            if not self.checkIfTheTableExists("__main__"):
+                return self.createMainTable()
+            else:
+                return False
+
+        else:
+            return False
     
     def deleteContent(self, notebook: str, name: str) -> bool:
         """
@@ -307,13 +370,16 @@ class NotesDB:
             bool: True if successful, False if not
         """
         
-        date_time = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+        date = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+        
+        if not self.updateModificationDate(notebook, date):
+            return False
         
         fetch_before = self.getContent(notebook, name)
         
         sql = f"update '{notebook}' set content = '', backup = ?, modification = ? where name = ?"
             
-        self.cur.execute(sql, (fetch_before, date_time, name))
+        self.cur.execute(sql, (fetch_before, date, name))
         self.db.commit()
         
         fetch_after = self.getContent(notebook, name)
@@ -335,12 +401,15 @@ class NotesDB:
             bool: True if successful, False if not
         """
         
+        date = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+        
+        if not self.updateModificationDate(notebook, date):
+            return False
+        
         self.cur.execute(f"delete from '{notebook}' where name = ?", (name,))
         self.db.commit()
         
-        call = self.checkIfTheNoteExists(notebook, name)
-        
-        if call:
+        if self.checkIfTheNoteExists(notebook, name):
             return False
         else:
             return True
@@ -352,6 +421,9 @@ class NotesDB:
         Args:
             name (str): Notebook name
         """
+        
+        self.cur.execute("delete from __main__ where name = ?", (name,))
+        self.db.commit()
         
         self.cur.execute(f"DROP TABLE IF EXISTS '{name}'")
         self.db.commit()
@@ -371,14 +443,12 @@ class NotesDB:
         
         all = {}
         
-        self.cur.execute("select name from sqlite_master where type = 'table'")
+        self.cur.execute("select name, creation, modification from __main__")
         notebooks = self.cur.fetchall()
         
-        for notebook in notebooks:
-            notebook = notebook[0]
-            
+        for notebook, creation, modification in notebooks:
             self.cur.execute(f"select name, creation, modification from '{notebook}'")
-            all[notebook] = self.cur.fetchall()
+            all[(notebook, creation, modification)] = self.cur.fetchall()
             
         return all
     
@@ -473,19 +543,22 @@ class NotesDB:
         self.cur.execute(f"select creation, modification from '{notebook}' where name = ?", (name,))
         return self.cur.fetchone()
     
-    def getNotebook(self, name: str) -> list:
+    def getNotebook(self, name: str) -> tuple:
         """
-        Get a notebook's notes' names, creation and modification dates.
+        Get a notebook's creation & modification date and notes' names, creation & modification dates.
 
         Args:
             name (str): Notebook name
 
         Returns:
-            list: A notebook's notes' names, creation and modification dates
+            tuple: Dates and names
         """
         
+        self.cur.execute(f"select creation, modification from __main__ where name = ?", (name,))
+        creation, modification = self.cur.fetchone()
+        
         self.cur.execute(f"select name, creation, modification from '{name}'")
-        return self.cur.fetchall()
+        return creation, modification, self.cur.fetchall()
     
     def renameNote(self, notebook: str, name: str, newname: str) -> bool:
         """
@@ -499,6 +572,11 @@ class NotesDB:
         Returns:
             bool: True if successful, False if not
         """
+        
+        date = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+        
+        if not self.updateModificationDate(notebook, date):
+            return False
         
         self.cur.execute(f"update '{notebook}' set name = ? where name = ?", (newname, name))
         self.db.commit()
@@ -517,6 +595,14 @@ class NotesDB:
             bool: True if successful, False if not
         """
         
+        date = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+        
+        if not self.updateModificationDate(name, date):
+            return False
+        
+        self.cur.execute("update __main__ set name = ? where name = ?", (newname, name))
+        self.db.commit()
+        
         self.cur.execute(f"ALTER TABLE '{name}' RENAME TO '{newname}'")
         self.db.commit()
         
@@ -533,15 +619,16 @@ class NotesDB:
             bool: True if successful, False if not
         """
         
+        self.cur.execute("delete from __main__ where name = ?", (name,))
+        self.db.commit()
+        
         self.cur.execute(f"DROP TABLE IF EXISTS '{name}'")
         self.db.commit()
         
-        call = self.checkIfTheNotebookExists(name)
-        
-        if call:
-            return False
-        else:
+        if not self.checkIfTheNotebookExists(name):
             return self.createNotebook(name)
+        else:
+            return False
     
     def restoreContent(self, notebook: str, name: str) -> bool:
         """
@@ -558,14 +645,17 @@ class NotesDB:
         if not self.checkIfTheNoteBackupExists(notebook, name):
             return False
         
-        date_time = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+        date = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+        
+        if not self.updateModificationDate(notebook, date):
+            return False
         
         self.cur.execute(f"select content, backup from '{notebook}' where name = ?", (name,))
         fetch_before = self.cur.fetchone()
         
         sql = f"update '{notebook}' set content = ?, backup = ?, modification = ? where name = ?"
         
-        self.cur.execute(sql, (fetch_before[1], fetch_before[0], date_time, name))
+        self.cur.execute(sql, (fetch_before[1], fetch_before[0], date, name))
         self.db.commit()
         
         self.cur.execute(f"select content, backup from '{notebook}' where name = ?", (name,))
@@ -621,27 +711,30 @@ class NotesDB:
             bool: True if successful, False if not
         """
         
-        date_time = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-        
         check = self.checkIfTheNoteExists(notebook, name)
         
         if check:
+            date = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+            
+            if not self.updateModificationDate(notebook, date):
+                return False
+            
             if autosave:
                 sql = f"update '{notebook}' set content = ?, modification = ? where name = ?"
                 
-                self.cur.execute(sql, (content, date_time, name))
+                self.cur.execute(sql, (content, date, name))
                         
             else:
                 sql = f"update '{notebook}' set content = ?, backup = ?, modification = ? where name = ?"
                 
-                self.cur.execute(sql, (content, backup, date_time, name))
+                self.cur.execute(sql, (content, backup, date, name))
             
             self.db.commit()
         
             self.cur.execute(f"select content, modification from '{notebook}' where name = ?", (name,))
             control = self.cur.fetchone()
 
-            if control[0] == content and control[1] == date_time:            
+            if control[0] == content and control[1] == date:            
                 return True
             else:
                 return False
@@ -662,7 +755,7 @@ class NotesDB:
             bool: True if successful, False if not
         """
         
-        if not self.checkIfTheNotebookExists(notebook):
+        if not self.checkIfTheNoteExists(notebook, name):
             return False
         
         self.cur.execute(f"update '{notebook}' set autosave = ? where name = ?", (setting, name))
@@ -688,7 +781,7 @@ class NotesDB:
             bool: True if successful, False if not
         """
         
-        if not self.checkIfTheNotebookExists(notebook):
+        if not self.checkIfTheNotebookExists(notebook, name):
             return False
         
         self.cur.execute(f"update '{notebook}' set format = ? where name = ?", (setting, name))
@@ -700,9 +793,47 @@ class NotesDB:
             return True
         else:
             return False
+        
+    def updateModificationDate(self, name: str, date: str) -> bool:
+        """
+        Update a notebook's modification date on main table.
+        
+        Args:
+            name (str): Notebook name
+            date (str): Date
+
+        Returns:
+            bool: True if successful, False if not
+        """
+        
+        if self.checkIfTheTableExists("__main__"):
+            self.cur.execute("update __main__ set modification = ? where name = ?", (date, name))
+            self.db.commit()
+            
+            self.cur.execute("select modification from __main__ where name = ?", (name,))
+            
+            try:
+                fetch = self.cur.fetchone()[0]
+                
+                if fetch == date:
+                    notebook_modifications[name].setText(date)
+                    
+                    return True
+
+                else:
+                    return False
+        
+            except TypeError:
+                return False
+            
+        else:
+            return False
 
 
 notesdb = NotesDB()
+if not notesdb.createMainTable():
+    print("[2] Failed to create table")
+    sys.exit(2)
 
 
 class NotesTabWidget(QTabWidget):
@@ -892,8 +1023,8 @@ class NotesNoteOptions(QWidget):
         self.open_note = QPushButton(self, text=_("Open note"))
         self.open_note.clicked.connect(self.openNote)
         
-        self.rename_note = QPushButton(self, text=_("Rename note"))
-        self.rename_note.clicked.connect(self.renameNote)
+        self.rename = QPushButton(self, text=_("Rename note"))
+        self.rename.clicked.connect(self.renameNote)
 
         self.show_backup = QPushButton(self, text=_("Show backup"))
         self.show_backup.clicked.connect(self.showBackup)
@@ -912,7 +1043,7 @@ class NotesNoteOptions(QWidget):
         
         self.layout().addWidget(self.create_note)
         self.layout().addWidget(self.open_note)
-        self.layout().addWidget(self.rename_note)
+        self.layout().addWidget(self.rename)
         self.layout().addWidget(self.show_backup)
         self.layout().addWidget(self.restore_content)
         self.layout().addWidget(self.delete_content)
@@ -1159,8 +1290,8 @@ class NotesNotebookOptions(QWidget):
         self.create_notebook = QPushButton(self, text=_("Create notebook"))
         self.create_notebook.clicked.connect(self.createNotebook)
         
-        self.rename_notebook = QPushButton(self, text=_("Rename notebook"))
-        self.rename_notebook.clicked.connect(self.renameNotebook)
+        self.renamebook = QPushButton(self, text=_("Rename notebook"))
+        self.renamebook.clicked.connect(self.renameNotebook)
         
         self.reset_notebook = QPushButton(self, text=_("Reset notebook"))
         self.reset_notebook.clicked.connect(self.resetNotebook)
@@ -1176,7 +1307,7 @@ class NotesNotebookOptions(QWidget):
         
         self.layout().addWidget(self.create_note)
         self.layout().addWidget(self.create_notebook)
-        self.layout().addWidget(self.rename_notebook)
+        self.layout().addWidget(self.renamebook)
         self.layout().addWidget(self.reset_notebook)
         self.layout().addWidget(self.delete_notebook)
         self.layout().addWidget(self.delete_all)
@@ -1311,7 +1442,7 @@ class NotesNotebookOptions(QWidget):
 class NotesNote(QWidget):
     """A page for notes."""
     
-    def __init__(self, parent: NotesTabWidget, notebook: str, name: str) -> None:
+    def __init__(self, parent: NotesNoteOptions, notebook: str, name: str) -> None:
         """Init and then set page.
         
         Args:
@@ -1510,7 +1641,7 @@ class NotesNote(QWidget):
 class NotesBackup(QWidget):
     """A page for notes' backups."""
     
-    def __init__(self, parent: NotesTabWidget, notebook: str, name: str) -> None:
+    def __init__(self, parent: NotesNoteOptions, notebook: str, name: str) -> None:
         """Init and then set page.
         
         Args:
@@ -1626,7 +1757,7 @@ class NotesBackup(QWidget):
             if not find_status:
                 return False
         
-        if not self.checkIfTheNoteExists(notebook, name):
+        if not self.parent_.checkIfTheNoteExists(notebook, name):
             return
         
         call = notesdb.restoreContent(notebook, name)
@@ -1683,42 +1814,43 @@ class NotesTreeView(QTreeView):
     def appendAll(self) -> None:
         """Append all."""
         
-        global menu_notes
+        global notes_menu
         
         call = notesdb.getAll()
         
         if self.caller == "notes":
-            if not "menu_notes" in globals():
-                menu_notes = notes_parent.menuBar().addMenu(_("Notes"))
+            if not "notes_menu" in globals():
+                notes_menu = notes_parent.menuBar().addMenu(_("Notes"))
             
-            menu_notes.clear() 
+            notes_menu.clear() 
         
         if call != None and self.caller == "notes":
             model_count = -1
             
-            notebooks = [*call]
+            all = [*call]
             
-            for notebook in notebooks:
+            for notebook, creation_notebook, modification_notebook in all:
                 model_count += 1
                 notebook_count = -1
                 
                 notebook_counts[notebook] = model_count
-                notebook_items[model_count] = QStandardItem(notebook)
+                notebook_modifications[notebook] = QStandardItem(modification_notebook)
+                notebook_items[model_count] = [QStandardItem(notebook),
+                                               QStandardItem(creation_notebook),
+                                               notebook_modifications[notebook]]
                 
-                for name, creation, modification in call[notebook]:
+                for name, creation_note, modification_note in call[(notebook, creation_notebook, modification_notebook)]:
                     notebook_count += 1
                     
-                    name_column = QStandardItem(name)
-                    creation_column = QStandardItem(creation)
-                    modification_column = QStandardItem(modification)
-                    
                     note_counts[(notebook, name)] = notebook_count
-                    note_items[(notebook, notebook_count)] = [name_column, creation_column, modification_column]
+                    note_items[(notebook, notebook_count)] = [QStandardItem(name), 
+                                                              QStandardItem(creation_note), 
+                                                              QStandardItem(modification_note)]
                 
-                    notebook_items[model_count].appendRow(note_items[(notebook, notebook_count)])
+                    notebook_items[model_count][0].appendRow(note_items[(notebook, notebook_count)])
                     
                     if self.caller == "notes":
-                        note_menus[(notebook, name)] = menu_notes.addAction(
+                        note_menus[(notebook, name)] = notes_menu.addAction(
                             f"{name} @ {notebook}", lambda name = name, notebook = notebook: self.openNote(notebook, name))
                 
                 notes_model.appendRow(notebook_items[model_count])
@@ -1742,16 +1874,16 @@ class NotesTreeView(QTreeView):
         creation_column = QStandardItem(creation)
         modification_column = QStandardItem(modification)
         
-        notebook_count = notebook_items[notebook_counts[notebook]].rowCount()
+        notebook_count = notebook_items[notebook_counts[notebook]][0].rowCount()
         
         note_counts[(notebook, name)] = notebook_count
         note_items[(notebook, notebook_count)] = [name_column, creation_column, modification_column]
         
         if self.caller == "notes":
-            note_menus[(notebook, name)] = menu_notes.addAction(
+            note_menus[(notebook, name)] = notes_menu.addAction(
                 f"{name} @ {notebook}", lambda name = name, notebook = notebook: self.openNote(notebook, name))
         
-        notebook_items[notebook_counts[notebook]].appendRow(note_items[(notebook, notebook_count)])
+        notebook_items[notebook_counts[notebook]][0].appendRow(note_items[(notebook, notebook_count)])
             
     def appendNotebook(self, notebook: str) -> None:
         """
@@ -1761,28 +1893,29 @@ class NotesTreeView(QTreeView):
             notebook (str): Notebook name
         """
         
-        call = notesdb.getNotebook(notebook)
+        creation_notebook, modification_notebook, notes = notesdb.getNotebook(notebook)
         
         model_count = notes_model.rowCount()
         notebook_count = -1
         
         notebook_counts[notebook] = model_count
-        notebook_items[model_count] = QStandardItem(notebook)
+        notebook_modifications[notebook] = QStandardItem(modification_notebook)
+        notebook_items[model_count] = [QStandardItem(notebook),
+                                       QStandardItem(creation_notebook),
+                                       notebook_modifications[notebook]]
         
-        for name, creation, modification in call:
+        for name, creation_note, modification_note in notes:
             notebook_count += 1
             
-            name_column = QStandardItem(name)
-            creation_column = QStandardItem(creation)
-            modification_column = QStandardItem(modification)
-            
             note_counts[(notebook, name)] = notebook_count
-            note_items[(notebook, notebook_count)] = [name_column, creation_column, modification_column]
+            note_items[(notebook, notebook_count)] = [QStandardItem(name), 
+                                                        QStandardItem(creation_note), 
+                                                        QStandardItem(modification_note)]
         
-            notebook_items[model_count].appendRow(note_items[(notebook, notebook_count)])
+            notebook_items[model_count][0].appendRow(note_items[(notebook, notebook_count)])
             
             if self.caller == "notes":
-                note_menus[(notebook, name)] = menu_notes.addAction(
+                note_menus[(notebook, name)] = notes_menu.addAction(
                     f"{name} @ {notebook}", lambda name = name, notebook = notebook: self.openNote(notebook, name))
         
         notes_model.appendRow(notebook_items[model_count])
@@ -1796,13 +1929,13 @@ class NotesTreeView(QTreeView):
             name (str): Note name
         """
         
-        notebook_items[notebook_counts[notebook]].removeRow(note_counts[(notebook, name)])
+        notebook_items[notebook_counts[notebook]][0].removeRow(note_counts[(notebook, name)])
         
         del note_items[(notebook, note_counts[(notebook, name)])]
         del note_counts[(notebook, name)]
         
         if self.caller == "notes":
-            menu_notes.removeAction(note_menus[(notebook, name)])
+            notes_menu.removeAction(note_menus[(notebook, name)])
             
             del note_menus[(notebook, name)]
         
@@ -1832,7 +1965,7 @@ class NotesTreeView(QTreeView):
         if self.caller == "notes":
             for key in note_menus.copy().keys():
                 if key[0] == notebook:
-                    menu_notes.removeAction(note_menus[key])
+                    notes_menu.removeAction(note_menus[key])
                     
                     del note_menus[key]
                     
@@ -1930,6 +2063,7 @@ class NotesTreeView(QTreeView):
         """Delete all and then append all."""
         
         notes_model.clear()
+        notes_menu.clear()
         self.appendAll()
         
     def updateNote(self, notebook: str, name: str, newname: str) -> None:
