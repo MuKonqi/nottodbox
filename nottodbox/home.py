@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 # Copyright (C) 2024 MuKonqi (Muhammed S.)
 
 # Nottodbox is free software: you can redistribute it and/or modify
@@ -12,7 +14,6 @@
 
 # You should have received a copy of the GNU General Public License
 # along with Nottodbox.  If not, see <https://www.gnu.org/licenses/>.
-
 
 import sys
 sys.dont_write_bytecode = True
@@ -80,7 +81,7 @@ class HomeWidget(QWidget):
         
         self.label_welcome = QLabel(self, alignment=Qt.AlignmentFlag.AlignCenter,
                              text=_("Welcome {username}!").format(username = username))
-        self.label_welcome.setStyleSheet("QLabel{font-size: 12pt;}")
+        self.label_welcome.setStyleSheet("font-size: 12pt")
         
         self.label_diary = QLabel(self, alignment=Qt.AlignmentFlag.AlignCenter,
                                   text=_("Your Diary for {date}").format(date = today.toString("dd.MM.yyyy")))

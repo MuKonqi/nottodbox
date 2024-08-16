@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 # Copyright (C) 2024 MuKonqi (Muhammed S.)
 
 # Nottodbox is free software: you can redistribute it and/or modify
@@ -12,7 +14,6 @@
 
 # You should have received a copy of the GNU General Public License
 # along with Nottodbox.  If not, see <https://www.gnu.org/licenses/>.
-
 
 import sys
 sys.dont_write_bytecode = True
@@ -74,7 +75,7 @@ class MainWindow(QMainWindow):
         
         self.dock = QDockWidget(self)
         self.dock.setFixedWidth(150)
-        self.dock.setStyleSheet("QDockWidget{margin: 0px;}")
+        self.dock.setStyleSheet("margin: 0px")
         self.dock.setFeatures(QDockWidget.DockWidgetFeature.DockWidgetClosable |
                               QDockWidget.DockWidgetFeature.DockWidgetFloatable |
                               QDockWidget.DockWidgetFeature.DockWidgetMovable)
