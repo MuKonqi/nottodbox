@@ -35,26 +35,11 @@ if not os.path.isdir(userdata):
     
 
 class SidebarDB:
-    """The sidebar database pool."""
-    
     def __init__(self) -> None:
-        """Connect database and then set cursor."""
-        
         self.db = sqlite3.connect(f"{userdata}sidebar.db")
         self.cur = self.db.cursor()
         
     def addPage(self, page: str, module: str) -> bool:
-        """
-        Add a opened page.
-        
-        Args:
-            page (str): Page name
-            module (str): Module
-
-        Returns:
-            bool: True if successful, False if not
-        """
-        
         try:
             self.cur.execute(f"insert into pages (page) values ('{module}-{page}')")
             self.db.commit()
@@ -75,16 +60,6 @@ class SidebarDB:
             return False
         
     def checkIfThePageExists(self, name: str) -> bool:
-        """
-        Check if the page exists.
-
-        Args:
-            name (str): Page name
-
-        Returns:
-            bool: True if the page exists, if not False
-        """
-        
         self.cur.execute(f"select * from pages where page = '{name}'")
         
         try:
@@ -95,13 +70,6 @@ class SidebarDB:
             return False
         
     def checkIfTheTableExists(self) -> bool:
-        """
-        Check if the table exists.
-
-        Returns:
-            bool: True if the table exists, if not False
-        """
-        
         try:
             self.cur.execute("select * from pages")
             return True
@@ -110,13 +78,6 @@ class SidebarDB:
             return False
         
     def createTable(self) -> bool:
-        """
-        If the notes table not exists, create it.
-
-        Returns:
-            bool: True if successful, False if unsuccesful
-        """
-        
         sql = """
         CREATE TABLE IF NOT EXISTS pages (
             page TEXT NOT NULL PRIMARY KEY
@@ -128,16 +89,6 @@ class SidebarDB:
         return self.checkIfTheTableExists()
     
     def deletePage(self, page: str, module: str) -> bool:
-        """Delete a page.
-
-        Args:
-            page (str): Page name
-            module (str): Module
-
-        Returns:
-            bool: True if successful, False if not
-        """
-        
         call = self.checkIfThePageExists(f"{module}-{page}")
         
         if call:
@@ -155,22 +106,10 @@ class SidebarDB:
             return True
         
     def getNames(self) -> list:
-        """Get all pages' names.
-
-        Returns:
-            list: List of all pages' names.
-        """
-        
         self.cur.execute("select * from pages")
         return self.cur.fetchall()
         
     def recreateTable(self) -> bool:
-        """Recreates the pages table.
-
-        Returns:
-            bool: True if successful, False if not
-        """
-        
         self.cur.execute(f"DROP TABLE IF EXISTS pages")
         self.db.commit()
         
@@ -191,19 +130,7 @@ if not create_table:
 
 
 class SidebarWidget(QWidget):
-    """List for open pages."""
-    
     def __init__(self, parent: QMainWindow, notes: QTabWidget, todos: QTabWidget, diaries: QTabWidget):
-        """
-        Display a list for open pages.
-
-        Args:
-            parent (QMainWindow): Parent of this widget (main window)
-            notes (QTabWidget): Notes widget of parent
-            todos (QTabWidget): Todos widget of parent
-            diaries (QTabWidget): Diaries widget of parent
-        """
-        
         super().__init__(parent)
         
         self.setLayout(QGridLayout(self))
@@ -274,14 +201,6 @@ class SidebarWidget(QWidget):
         self.insertPages()
         
     def addPage(self, text: str, target: QTabWidget) -> None:
-        """
-        Add the open page to list.
-
-        Args:
-            text (str): Name of page
-            target (QTabWidget): Parent widget of page
-        """
-        
         stringlist = self.model1.stringList()
 
         if target == self.notes:
@@ -307,8 +226,6 @@ class SidebarWidget(QWidget):
         self.insertPages()
         
     def clearList(self) -> None:
-        """Clear 2nd list, last opened pages."""
-        
         call = sidebardb.recreateTable()
         
         self.insertPages()
@@ -319,12 +236,6 @@ class SidebarWidget(QWidget):
             QMessageBox.critical(self, _("Error"), _("Failed to clear 2nd list."))
             
     def deletePage(self, key: str) -> None:
-        """Delete a page.
-
-        Args:
-            key (str): Name of page
-        """
-        
         if key.startswith(_("Note: ")):
             length = len(_("Note: "))
             module = "notes"
@@ -347,13 +258,6 @@ class SidebarWidget(QWidget):
             QMessageBox.critical(self, _("Error"), _("Failed to delete {page} from 2nd list.").format(page = key[length:]))
 
     def goToPage(self, key: str) -> None:
-        """
-        Go directly to the selected page.
-
-        Args:
-            key (str): Type and name of selected page
-        """
-        
         if key.startswith(_("Note: ")):
             length = len(_("Note: "))
             
@@ -375,8 +279,6 @@ class SidebarWidget(QWidget):
             self.diaries.openCreate(key[length:])
         
     def insertPages(self) -> None:
-        """Insert pages' names."""
-        
         call = sidebardb.getNames()
         pages = []
 
@@ -393,14 +295,6 @@ class SidebarWidget(QWidget):
         self.model2.setStringList(pages)
         
     def removePage(self, text: str, target: QTabWidget) -> None:
-        """
-        Remove the open (after calling this should be closed) page from list.
-
-        Args:
-            text (str): Name of page
-            target (QTabWidget): Parent widget of page
-        """
-        
         stringlist = self.model1.stringList()
 
         if target == self.notes:
@@ -417,16 +311,9 @@ class SidebarWidget(QWidget):
         self.insertPages()
     
     def setFilter(self, text: str) -> None:
-        """
-        Set filter for all listviews.
-
-        Args:
-            text (str): The text
-        """
-        
         self.proxy1.beginResetModel()
+        self.proxy1.setFilterFixedString(text)
         self.proxy2.beginResetModel()
+        self.proxy2.setFilterFixedString(text)
         self.proxy1.endResetModel()  
         self.proxy2.endResetModel()
-        self.proxy1.setFilterFixedString(text)
-        self.proxy2.setFilterFixedString(text)

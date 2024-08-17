@@ -36,26 +36,11 @@ userdata = f"/home/{username}/.local/share/nottodbox/"
 
 
 class TodosDB:
-    """The totos database pool."""
-    
     def __init__(self) -> None:
-        """Connect database and then set cursor."""
-        
         self.db = sqlite3.connect(f"{userdata}todos.db")
         self.cur = self.db.cursor()
         
     def addTodo(self, todolist: str, todo: str) -> bool:
-        """
-        Add a todo.
-
-        Args:
-            todolist (str): Todolist name
-            todo (str): Todo
-
-        Returns:
-            bool: True if successful, False if not
-        """
-        
         date_time = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
         
         self.cur.execute(
@@ -77,16 +62,6 @@ class TodosDB:
             return False
         
     def checkIfTheTablesExist(self, tables: list) -> bool:
-        """
-        Check if the tables exists.
-        
-        Args:
-            tables (list): Tables' names
-
-        Returns:
-            bool: True if the table exists, if not False
-        """
-        
         try:
             for table in tables:
                 self.cur.execute(f"select * from {table}")
@@ -96,17 +71,6 @@ class TodosDB:
             return False
         
     def checkIfTheTodoExists(self, todolist: str, todo: str) -> bool:
-        """
-        Check if the todo exists.
-
-        Args:
-            todolist (str): Todolist name
-            todo (str): Todo
-
-        Returns:
-            bool: True if the todolist exists, if not False
-        """
-        
         self.cur.execute(f"select * from '{todolist}' where todo = '{todo}'")
         
         try:
@@ -117,16 +81,6 @@ class TodosDB:
             return False
     
     def checkIfTheTodolistExists(self, name: str) -> bool:
-        """
-        Check if the todolist exists.
-
-        Args:
-            name (str): Todo list name
-
-        Returns:
-            bool: True if the todolist exists, if not False
-        """
-        
         self.cur.execute(f"select * from todolists where name = '{name}'")
         
         try:
@@ -137,16 +91,6 @@ class TodosDB:
             return False
         
     def createTables(self, tables: list) -> bool:
-        """
-        If the tables not exist, create it.
-        
-        Args:
-            tables (list): Tables' names
-
-        Returns:
-            bool: True if successful, False if unsuccesful
-        """
-        
         for table in tables:
             if table == "todolists":
                 sql = """
@@ -171,16 +115,6 @@ class TodosDB:
         return self.checkIfTheTablesExist(tables)
     
     def createTodolist(self, name: str) -> bool:
-        """
-        Create a todolist.
-
-        Args:
-            name (str): Todolist name
-            
-        Returns:
-            bool: True if successful, False if not
-        """
-        
         date_time = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
         
         sql = f"insert into todolists (name, created, edited) values ('{name}', '{date_time}', '')"
@@ -191,17 +125,6 @@ class TodosDB:
         return self.createTables([name])
     
     def deleteTodo(self, todolist: str, todo: str) -> bool:
-        """
-        Delete a todo.
-
-        Args:
-            todolist (str): Todolist name
-            todo (str): Todo
-
-        Returns:
-            bool: True if successful, False if not
-        """
-        
         date_time = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
         
         self.cur.execute(
@@ -219,16 +142,6 @@ class TodosDB:
             return True
         
     def deleteTodolist(self, name: str) -> bool:
-        """
-        Delete a todolist.
-
-        Args:
-            name (str): Todolist name
-
-        Returns:
-            bool: True if successful, False if not
-        """
-        
         self.cur.execute(f"delete from todolists where name = '{name}'")
         self.db.commit()
         
@@ -244,18 +157,6 @@ class TodosDB:
         
         
     def editTodo(self, todolist: str, todo: str, newtodo: str) -> bool:
-        """
-        Edit a todo.
-
-        Args:
-            todolist (str): Todolist name
-            todo (str): Old todo
-            newtodo (str): New todo
-
-        Returns:
-            bool: True if successful, False if not
-        """
-        
         date_time = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
         
         self.cur.execute(
@@ -268,70 +169,22 @@ class TodosDB:
         return self.checkIfTheTodoExists(todolist, newtodo)
     
     def getTodos(self, todolist: str) -> list:
-        """
-        Get all todos from a todolist.
-
-        Args:
-            todolist (str): Todolist name
-
-        Returns:
-            list: List of todos
-        """
-        
         self.cur.execute(f"select todo, status from '{todolist}'")
         return self.cur.fetchall()
     
     def getTodolists(self) -> list:
-        """
-        Get todolists' names.
-
-        Returns:
-            list: List of names
-        """
-        
         self.cur.execute(f"select name from todolists")
         return self.cur.fetchall()
     
     def getTodoInformations(self, todolist: str, todo: str) -> tuple:
-        """
-        Get starting and completing dates.
-
-        Args:
-            todolist (str): Todo list name
-            todo (str): Todo
-
-        Returns:
-            tuple: Returns starting and completing dates
-        """
-        
         self.cur.execute(f"select status, started, completed from '{todolist}' where todo = '{todo}'")
         return self.cur.fetchone()
     
     def getTodolistInformations(self, name: str) -> tuple:
-        """
-        Get creation and edit dates.
-
-        Args:
-            name (str): Todo list name
-
-        Returns:
-            tuple: Returns creation and edit dates
-        """
-        
         self.cur.execute(f"select created, edited from todolists where name = '{name}'")
         return self.cur.fetchone()
         
     def recreateTables(self, tables: list) -> bool:
-        """
-        Recreate a tables.
-
-        Args:
-            tables (list): Tables' names
-
-        Returns:
-            bool: True if successful, False if not
-        """
-        
         for table in tables:
             self.cur.execute(f"DROP TABLE IF EXISTS '{table}'")
             self.db.commit()
@@ -344,17 +197,6 @@ class TodosDB:
             return self.createTables(tables)
         
     def renameTodolist(self, name: str, newname: str) -> bool:
-        """
-        Rename a todo list.
-
-        Args:
-            name (str): Old name
-            newname (str): New name
-
-        Returns:
-            bool: True if successful, False if unsuccesful
-        """
-        
         self.cur.execute(f"update todolists set name = '{newname}' where name = '{name}'")
         self.db.commit()
         
@@ -364,17 +206,6 @@ class TodosDB:
         return self.checkIfTheTodolistExists(newname)
         
     def makeCompleted(self, todolist: str, todo: str) -> bool:
-        """
-        Make completed a todo.
-
-        Args:
-            todolist (str): Todolist name
-            todo (str): Todo
-
-        Returns:
-            bool: True if successful, False if not
-        """
-        
         date_time = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
         
         self.cur.execute(
@@ -393,17 +224,6 @@ class TodosDB:
             return False
         
     def makeUncompleted(self, todolist: str, todo: str) -> bool:
-        """
-        Make uncompleted a todo.
-
-        Args:
-            todolist (str): Todolist name
-            todo (str): Todo
-
-        Returns:
-            bool: True if successful, False if not
-        """
-        
         date_time = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
         
         self.cur.execute(
@@ -430,12 +250,8 @@ if not create_tables:
     sys.exit(2)
 
 
-class TodosTabWidget(QTabWidget):
-    """The "Todos" tab widget."""
-    
+class TodosTabWidget(QTabWidget): 
     def __init__(self, parent: QWidget) -> None:
-        """Init and then set."""
-        
         super().__init__(parent)
         
         global todos_parent
@@ -498,14 +314,6 @@ class TodosTabWidget(QTabWidget):
         self.tabCloseRequested.connect(self.closeTab)
         
     def checkIfTheTodolistExists(self, name: str, mode: str = "normal") -> None:
-        """
-        Check if the todo list exists.
-
-        Args:
-            name (str): Todo list name
-            mode (str, optional): Inverted mode for deleting etc. Defaults to "normal".
-        """
-        
         call = todosdb.checkIfTheTodolistExists(name)
         
         if call == False and mode == "normal":
@@ -514,13 +322,6 @@ class TodosTabWidget(QTabWidget):
         return call
          
     def closeTab(self, index: int) -> None:
-        """
-        Close a tab.
-
-        Args:
-            index (int): Index of tab
-        """
-        
         if index != self.indexOf(self.home):           
             del todolists[self.tabText(index).replace("&", "")]
             
@@ -528,8 +329,6 @@ class TodosTabWidget(QTabWidget):
             self.removeTab(index)
             
     def deleteAll(self) -> None:
-        """Delete all todo lists."""
-        
         call = todosdb.recreateTables(["todolists"])
     
         if call:
@@ -542,13 +341,6 @@ class TodosTabWidget(QTabWidget):
             QMessageBox.critical(self, _("Error"), _("Failed to delete all todo lists."))
                        
     def deleteTodolist(self, name: str) -> None:
-        """
-        Delete a todo list.
-
-        Args:
-            name (str): Todo list name
-        """
-        
         if name == "" or name == None or name == "main" or name == "todolists":
             QMessageBox.critical(self, _("Error"), _('Todo list name can not be blank, "main" or "todolists".'))
             return
@@ -568,12 +360,6 @@ class TodosTabWidget(QTabWidget):
             QMessageBox.critical(self, _("Error"), _("Failed to delete {name} todo list.").format(name = name))
 
     def insertInformations(self, name: str) -> None:
-        """Insert name and creation, edit dates.
-
-        Args:
-            name (str): Todo list name
-        """
-        
         if name != "":
             call = todosdb.getTodolistInformations(name)
         else:
@@ -592,12 +378,6 @@ class TodosTabWidget(QTabWidget):
             self.edited.setText(_("Edited: "))
         
     def openCreate(self, name: str) -> None:
-        """Open or create a todolist.
-
-        Args:
-            name (str): Todo list name
-        """
-        
         if name == "" or name == None or name == "todolists":
             QMessageBox.critical(self, _("Error"), _('Todo list name can not be blank or "todolists".'))
             return
@@ -618,12 +398,6 @@ class TodosTabWidget(QTabWidget):
             self.setCurrentWidget(todolists[name])
     
     def renameTodolist(self, name: str) -> None:
-        """Rename a todo list.
-
-        Args:
-            name (str): Todo list name
-        """
-        
         if name == "" or name == None or name == "main" or name == "todolists":
             QMessageBox.critical(self, _("Error"), _('Todo list name can not be blank, "main" or "todolists".'))
             return
@@ -654,16 +428,7 @@ class TodosTabWidget(QTabWidget):
 
 
 class TodosListView(QListView):
-    """A list for showing todo lists' names."""
-    
     def __init__(self, parent: TodosTabWidget, caller: str = "todos") -> None:
-        """Init and then set properties.
-
-        Args:
-            parent (TodosTabWidget): "Todos" tab in main window
-            caller (str, optional): For some special properties. Defaults to "todos".
-        """
-        
         super().__init__(parent)
         
         self.parent_ = parent
@@ -694,21 +459,12 @@ class TodosListView(QListView):
         self.insertNames()
         
     def getItemText(self) -> str:
-        """
-        Get and then return item text.
-
-        Returns:
-            str: Item text
-        """
-        
         try:
             return self.proxy.itemData(self.currentIndex())[0]
         except KeyError:
             return ""
         
     def insertNames(self) -> None:
-        """Insert todo lists' names."""
-        
         global menu_todos
         
         call = todosdb.getTodolists()
@@ -733,12 +489,6 @@ class TodosListView(QListView):
         todos_model.setStringList(names)
         
     def setFilter(self, text: str) -> None:
-        """Set filtering proxy.
-
-        Args:
-            text (str): Filtering text
-        """
-        
         self.proxy.beginResetModel()
         self.proxy.endResetModel()
         self.proxy.setFilterFixedString(text)
@@ -748,16 +498,7 @@ class TodosListView(QListView):
 
 
 class TodolistWidget(QWidget):
-    """Page for todo lists."""
-    
     def __init__(self, parent: TodosTabWidget, name: str) -> None:
-        """Init and then set page.
-        
-        Args:
-            parent (TodosTabWidget): "Todos" tab in main window
-            name (str): Todo list name
-        """
-        
         self.parent_ = parent
         self.name = name
         
@@ -824,13 +565,6 @@ class TodolistWidget(QWidget):
         self.layout().addWidget(self.delete_all_button, 6, 1, 1, 1)
         
     def addTodo(self, todo: str) -> None:
-        """
-        Add a todo.
-
-        Args:
-            todo (str): Todo
-        """
-        
         if todo == "" or todo == None:
             todo, topwindow = QInputDialog.getText(self, 
                                                     _("Add A Todo"),
@@ -852,14 +586,6 @@ class TodolistWidget(QWidget):
             QMessageBox.critical(self, _("Error"), _("Failed to add {todo} todo.").format(todo = todo))
         
     def checkIfTheTodoExists(self, todo: str, mode: str = "normal") -> None:
-        """
-        Check if the todo exists.
-
-        Args:
-            todo (str): Todo
-            mode (str, optional): Inverted mode for deleting etc. Defaults to "normal".
-        """
-        
         if todo == "" or todo == None:
             QMessageBox.critical(self, _("Error"), _('Todo name can not be blank.'))
             return
@@ -872,12 +598,6 @@ class TodolistWidget(QWidget):
         return call
     
     def insertInformations(self, todo: str) -> None:
-        """Insert todo and creation, edit dates.
-
-        Args:
-            todo (str): Todo
-        """
-        
         if todo != "":
             call = todosdb.getTodoInformations(self.name, todo)
         else:
@@ -896,8 +616,6 @@ class TodolistWidget(QWidget):
             self.completed.setText(_("Completed: "))
             
     def deleteAll(self) -> None:
-        """Delete all todos."""
-        
         call = todosdb.recreateTables([self.name])
 
         if call:
@@ -910,13 +628,6 @@ class TodolistWidget(QWidget):
             QMessageBox.critical(self,_("Error"), _("Failed to delete all todos."))
         
     def deleteTodo(self, todo: str) -> None:
-        """
-        Delete a todo.
-
-        Args:
-            todo (str): Todo
-        """
-        
         if todo == "" or todo == None:
             QMessageBox.critical(self, _("Error"), _('Todo can not be blank.'))
             return
@@ -935,13 +646,6 @@ class TodolistWidget(QWidget):
             QMessageBox.critical(self, _("Error"), _("Failed to delete {todo}.").format(todo = todo))
         
     def editTodo(self, todo: str) -> None:
-        """
-        Edit a todo.
-
-        Args:
-            todo (str): Todo
-        """
-        
         if todo == "" or todo == None:
             QMessageBox.critical(self, _("Error"), _('Todo can not be blank.'))
             return
@@ -971,13 +675,6 @@ class TodolistWidget(QWidget):
                                  .format(todo = todo))
         
     def makeCompleted(self, todo: str) -> None:
-        """
-        Make completed a todo.
-
-        Args:
-            todo (str): Todo
-        """
-        
         if todo == "" or todo == None:
             QMessageBox.critical(self, _("Error"), _('Todo can not be blank.'))
             return
@@ -996,13 +693,6 @@ class TodolistWidget(QWidget):
             QMessageBox.critical(self, _("Error"), _("Failed to make {todo} completed.").format(todo = todo))
         
     def makeUncompleted(self, todo: str) -> None:
-        """
-        Make uncompleted a todo.
-
-        Args:
-            todo (str): Todo
-        """
-        
         if todo == "" or todo == None:
             QMessageBox.critical(self, _("Error"), _('Todo can not be blank.'))
             return
@@ -1022,18 +712,7 @@ class TodolistWidget(QWidget):
 
 
 class TodolistListView(QListView):
-    """A list for showing todos' names."""
-    
     def __init__(self, parent: TodolistWidget, name: str, caller: str = "todos") -> None:
-        """
-        Init and then set properties.
-
-        Args:
-            parent (TodolistWidget): A todo list page
-            name (str): Todo list name
-            caller (str): The caller. Defaults to "todos".
-        """
-        
         super().__init__(parent)
         
         self.parent_ = parent
@@ -1066,21 +745,12 @@ class TodolistListView(QListView):
         self.insertTodos()
         
     def getItemText(self) -> str:
-        """
-        Get and then return item text.
-
-        Returns:
-            str: Item text
-        """
-        
         try:
             return self.proxy.itemData(self.currentIndex())[0]
         except KeyError:
             return ""
     
     def insertTodos(self) -> None:
-        """Insert todos."""
-        
         call = todosdb.getTodos(self.name)
         todos = []
         
@@ -1104,12 +774,6 @@ class TodolistListView(QListView):
                 pass
 
     def setFilter(self, text: str) -> None:
-        """Set filtering proxy.
-
-        Args:
-            text (str): Filtering text
-        """
-        
         self.proxy.beginResetModel()
         self.proxy.endResetModel()
         self.proxy.setFilterFixedString(text)
@@ -1118,13 +782,6 @@ class TodolistListView(QListView):
         self.parent_.completed.setText(_("Completed: "))
         
     def setTodoStatus(self, todo: str) -> None:
-        """
-        Set todo's status.
-
-        Args:
-            todo (str): Todo
-        """
-        
         call = todosdb.getTodoInformations(self.name, todo)
         
         if call[0] == "completed":

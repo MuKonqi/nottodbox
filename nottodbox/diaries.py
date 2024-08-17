@@ -37,22 +37,11 @@ userdata = f"/home/{username}/.local/share/nottodbox/"
 
 
 class SettingsDB:
-    """The settings database pool."""
-    
     def __init__(self) -> None:
-        """Connect database and then set cursor."""
-        
         self.db = sqlite3.connect(f"{userdata}settings.db")
         self.cur = self.db.cursor()
     
     def getSettings(self) -> tuple:
-        """
-        Get required settings. If not any string, create them with default value.
-
-        Returns:
-            str: Settings' values
-        """
-        
         try:
             self.cur.execute(f"select value from settings where setting = 'diaries-autosave'")
             self.setting_autosave = self.cur.fetchone()[0]
@@ -74,16 +63,6 @@ class SettingsDB:
         return self.setting_autosave, self.setting_format
     
     def setAutoSave(self, signal: Qt.CheckState | int) -> bool:
-        """
-        Set auto-save setting for global.
-
-        Args:
-            signal (Qt.CheckState | int): QCheckBox's signal.
-
-        Returns:
-            bool: True if successful, False if unsuccesful
-        """
-        
         global setting_autosave
         
         if signal == Qt.CheckState.Unchecked or signal == 0:
@@ -103,16 +82,6 @@ class SettingsDB:
             return False
                 
     def setFormat(self, index: int) -> bool:
-        """
-        Set format setting for global.
-
-        Args:
-            index (int): Selected index in QComboBox.
-
-        Returns:
-            bool: True if successful, False if unsuccesful
-        """
-        
         global setting_format
         
         if index == 0:
@@ -140,26 +109,12 @@ setting_autosave, setting_format = settingsdb.getSettings()
 
 
 class DiariesDB:
-    """The diaries database pool."""
-    
     def __init__(self) -> None:
-        """Connect database and then set cursor."""
-        
         self.db = sqlite3.connect(f"{userdata}diaries.db")
         self.cur = self.db.cursor()
         self.widgets = {}
     
     def checkIfTheDiaryExists(self, date: str) -> bool:
-        """
-        Check if the diary exists.
-
-        Args:
-            date (str): Diary date
-
-        Returns:
-            bool: True if the diary exists, if not False
-        """
-        
         self.cur.execute(f"select * from diaries where date = '{date}'")
         
         try:
@@ -170,13 +125,6 @@ class DiariesDB:
             return False
         
     def checkIfTheTableExists(self) -> bool:
-        """
-        Check if the table exists.
-
-        Returns:
-            bool: True if the table exists, if not False
-        """
-        
         try:
             self.cur.execute("select * from diaries")
             return True
@@ -185,13 +133,6 @@ class DiariesDB:
             return False
         
     def createTable(self) -> bool:
-        """
-        If the diaries table not exists, create it.
-
-        Returns:
-            bool: True if successful, False if unsuccesful
-        """
-        
         sql = """
         CREATE TABLE IF NOT EXISTS diaries (
             date TEXT NOT NULL PRIMARY KEY,
@@ -207,15 +148,6 @@ class DiariesDB:
         return self.checkIfTheTableExists()
     
     def deleteContent(self, date: str) -> bool:
-        """Delete content of a diary.
-
-        Args:
-            date (str): Diary date
-
-        Returns:
-            bool: True if successful, False if not
-        """
-        
         date_time = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
         
         fetch_before = self.getContent(date)
@@ -246,15 +178,6 @@ class DiariesDB:
             return False
     
     def deleteOne(self, date) -> bool:
-        """Delete a diary.
-
-        Args:
-            date (str): Diary date
-
-        Returns:
-            bool: True if successful, False if not
-        """
-        
         self.cur.execute(f"delete from diaries where date = '{date}'")
         self.db.commit()
         
@@ -266,16 +189,6 @@ class DiariesDB:
             return True
     
     def getBackup(self, date: str) -> str:
-        """
-        Get backup of a diary.
-
-        Args:
-            date (str): Diary date.
-
-        Returns:
-            str: Content.
-        """
-        
         self.cur.execute(f"select backup from diaries where date = '{date}'")
         try:
             fetch = self.cur.fetchone()[0]
@@ -284,16 +197,6 @@ class DiariesDB:
         return fetch
 
     def getContent(self, date: str) -> str:
-        """
-        Get content of a diary.
-
-        Args:
-            date (str): Diary date.
-
-        Returns:
-            str: Content.
-        """
-        
         self.cur.execute(f"select content from diaries where date = '{date}'")
         try:
             fetch = self.cur.fetchone()[0]
@@ -302,41 +205,14 @@ class DiariesDB:
         return fetch
         
     def getInformations(self, date: str) -> str:
-        """
-        Get creation and edit dates.
-
-        Args:
-            date (str): Diary date
-
-        Returns:
-            str: Returns creation and edit dates
-        """
-        
         self.cur.execute(f"select edited from diaries where date = '{date}'")
         return self.cur.fetchone()
         
     def getNames(self) -> list:
-        """Get all diaries' names.
-
-        Returns:
-            list: List of all diaries' names.
-        """
-        
         self.cur.execute("select date from diaries")
         return self.cur.fetchall()
     
     def renameDiary(self, date: str, newname: str) -> bool:
-        """
-        Rename a diary.
-
-        Args:
-            date (str): Old date
-            newname (str): New date
-
-        Returns:
-            bool: True if successful, False if unsuccesful
-        """
-        
         self.cur.execute(f"update diaries set date = '{newname}' where date = '{date}'")
         self.db.commit()
 
@@ -349,12 +225,6 @@ class DiariesDB:
             return False
         
     def recreateTable(self) -> bool:
-        """Recreates the diaries table.
-
-        Returns:
-            bool: True if successful, False if not
-        """
-        
         self.cur.execute(f"DROP TABLE IF EXISTS diaries")
         self.db.commit()
         
@@ -366,16 +236,6 @@ class DiariesDB:
             return self.createTable()
     
     def restoreContent(self, date: str) -> tuple:
-        """
-        Restore content of diary.
-        
-        Args:
-            date (str): Diary date
-            
-        Returns:
-            tuple: Status and True if successful, False if unsuccesful
-        """
-        
         date_time = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
         
         self.cur.execute(f"select content, backup from diaries where date = '{date}'")
@@ -411,14 +271,6 @@ class DiariesDB:
             return "failed", False
         
     def saveAll(self) -> bool:
-        """
-        Save all diaries.
-        If there is such a diary, create it.
-
-        Returns:
-            bool: True if successful, False if unsuccesful
-        """
-        
         successful = True
         calls = {}
         
@@ -434,20 +286,6 @@ class DiariesDB:
         return successful
 
     def saveOne(self, date: str, content: str, backup: str, autosave: bool) -> bool:        
-        """
-        Save a diary.
-        If there is such a diary, create it.
-        
-        Args:
-            date (str): Diary date
-            content (str): Content of diary
-            backup (str): Backup of diary
-            autosave (bool): True if the caller is "auto-save", false if it is not
-            
-        Returns:
-            bool: True if successful, False if unsuccesful
-        """
-        
         date_time = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
         
         check = self.checkIfTheDiaryExists(date)
@@ -500,15 +338,7 @@ if not create_table:
 
 
 class DiariesTabWidget(QTabWidget):
-    """The "Diaries" tab widget class."""
-    
     def __init__(self, parent: QMainWindow) -> None:
-        """Init and then set.
-
-        Args:
-            parent (QMainWindow): Main window.
-        """
-        
         super().__init__(parent)
         
         global diaries_parent
@@ -603,14 +433,6 @@ class DiariesTabWidget(QTabWidget):
         self.tabCloseRequested.connect(self.closeTab)
         
     def checkIfTheDiaryExists(self, date: str, mode: str = "normal") -> None:
-        """
-        Check if the diary exists.
-
-        Args:
-            date (str): Diary date
-            mode (str, optional): Inverted mode for deleting etc. Defaults to "normal".
-        """
-        
         call = diariesdb.checkIfTheDiaryExists(date)
         
         if call == False and mode == "normal":
@@ -619,13 +441,6 @@ class DiariesTabWidget(QTabWidget):
         return call
          
     def closeTab(self, index: int) -> None:
-        """
-        Close a tab.
-
-        Args:
-            index (int): Index of tab
-        """
-        
         if index != self.indexOf(self.home):           
             try:
                 if not diaries[self.tabText(index).replace("&", "")].closable:
@@ -661,8 +476,6 @@ class DiariesTabWidget(QTabWidget):
             self.removeTab(index)
         
     def deleteAll(self) -> None:
-        """Delete all diaries."""
-        
         call = diariesdb.recreateTable()
         
         if call:
@@ -674,13 +487,6 @@ class DiariesTabWidget(QTabWidget):
             QMessageBox.critical(self, _("Error"), _("Failed to delete all diaries."))
         
     def deleteContent(self, date: str) -> None:
-        """
-        Delete content of a diary.
-
-        Args:
-            date (str): Diary date
-        """
-        
         if date == "" or date == None:
             QMessageBox.critical(self, _("Error"), _("Diary date can not be blank."))
             return        
@@ -696,13 +502,6 @@ class DiariesTabWidget(QTabWidget):
             QMessageBox.critical(self, _("Error"), _("Failed to delete content of {date} diary.").format(date = date))
                        
     def deleteDiary(self, date: str) -> None:
-        """
-        Delete a diary.
-
-        Args:
-            date (str): Diary date
-        """
-        
         if date == "" or date == None:
             QMessageBox.critical(self, _("Error"), _("Diary date can not be blank."))
             return
@@ -720,13 +519,7 @@ class DiariesTabWidget(QTabWidget):
         else:
             QMessageBox.critical(self, _("Error"), _("Failed to delete {date} diary.").format(date = date))
         
-    def insertInformations(self, date: str) -> None:
-        """Insert edit date.
-
-        Args:
-            date (str): Diary date.
-        """
-        
+    def insertInformations(self, date: str) -> None: 
         if date != "":
             call = diariesdb.getInformations(date)
         else:
@@ -738,12 +531,6 @@ class DiariesTabWidget(QTabWidget):
             self.edited.setText(_("Edited: "))
         
     def openCreate(self, date: str) -> None:
-        """Open or create a diary.
-
-        Args:
-            date (str): Diary date
-        """
-        
         if date == "" or date == None:
             QMessageBox.critical(self, _("Error"), _("Diary date can not be blank."))
             return
@@ -766,13 +553,7 @@ class DiariesTabWidget(QTabWidget):
             self.addTab(diaries[date], date)
             self.setCurrentWidget(diaries[date])
             
-    def restoreContent(self, date: str) -> None:
-        """Restore content of a diary.
-
-        Args:
-            date (str): Diary date
-        """
-        
+    def restoreContent(self, date: str) -> None: 
         if date == "" or date == None:
             QMessageBox.critical(self, _("Error"), _("Diary date can not be blank."))
             return
@@ -801,13 +582,6 @@ class DiariesTabWidget(QTabWidget):
             QMessageBox.critical(self, _("Error"), _("Failed to restore backup of {date} diary.").format(date = date))
             
     def setAutoSave(self, signal: Qt.CheckState | int) -> None:
-        """
-        Set auto-save setting for global.
-
-        Args:
-            signal (Qt.CheckState | int): QCheckBox's signal.
-        """
-        
         global setting_autosave
         
         if signal == Qt.CheckState.Unchecked or signal == 0:
@@ -822,13 +596,6 @@ class DiariesTabWidget(QTabWidget):
             QMessageBox.critical(self, _("Erorr"), _("Failed to set auto-save setting."))
                 
     def setFormat(self, index: int) -> None:
-        """
-        Set format setting for global.
-
-        Args:
-            index (int): Selected index in QComboBox.
-        """
-        
         global setting_format
         
         if index == 0:
@@ -846,13 +613,6 @@ class DiariesTabWidget(QTabWidget):
             QMessageBox.critical(self, _("Erorr"), _("Failed to set format setting."))
             
     def showBackup(self, date: str) -> None:
-        """
-        Show backup of a diary.
-
-        Args:
-            date (str): Diary date
-        """
-        
         if date == "" or date == None:
             QMessageBox.critical(self, _("Error"), _("Diary date can not be blank."))
             return
@@ -867,8 +627,6 @@ class DiariesTabWidget(QTabWidget):
         self.setCurrentWidget(self.backups[date])
         
     def updateToday(self):
-        """Update "today" variable."""
-        
         global today
         
         today = QDate.currentDate()
@@ -877,16 +635,7 @@ class DiariesTabWidget(QTabWidget):
 
 
 class DiariesDiary(QWidget):
-    """A page for diaries."""
     def __init__(self, parent: DiariesTabWidget | QWidget, date: str, database: DiariesDB) -> None:
-        """Init and then set page.
-        
-        Args:
-            parent (DiariesTabWidget | QWidget): "Diaries" tab in main window or home page
-            date (str): Diary date
-            database (DiariesDB): Database class
-        """
-        
         super().__init__(parent)
         
         self.parent_ = parent
@@ -948,12 +697,6 @@ class DiariesDiary(QWidget):
         self.layout().addWidget(self.button, 2, 0, 1, 2)
         
     def saveDiary(self, autosave: bool = False) -> None:
-        """Save a diary.
-
-        Args:
-            autosave (bool, optional): _description_. Defaults to False.
-        """
-        
         self.closable = False
         
         if not autosave or (autosave and self.setting_autosave == "enabled"):
@@ -981,12 +724,6 @@ class DiariesDiary(QWidget):
                 QMessageBox.critical(self, _("Error"), _("Failed to save {date} diary.").format(date = self.date))
                 
     def setAutoSave(self, signal: Qt.CheckState | int) -> None:
-        """Set auto-save setting for only this page.
-
-        Args:
-            signal (Qt.CheckState | int): QCheckBox's signal.
-        """
-        
         if signal == Qt.CheckState.Unchecked or signal == 0:
             self.setting_autosave = "disabled"
 
@@ -994,12 +731,6 @@ class DiariesDiary(QWidget):
             self.setting_autosave = "enabled"
 
     def setFormat(self, index: int) -> None:
-        """Set format setting for only this page.
-
-        Args:
-            index (int): Selected index in QComboBox.
-        """
-        
         if index == 0:
             self.setting_format = "plain-text"
         
@@ -1012,12 +743,6 @@ class DiariesDiary(QWidget):
         self.updateOutput(self.input.toPlainText())
             
     def updateOutput(self, text: str) -> None:
-        """Update output when input's text changed or format changed.
-
-        Args:
-            text (str): Content
-        """
-        
         if self.setting_format == "plain-text":
             self.output.setPlainText(text)
         
@@ -1029,16 +754,7 @@ class DiariesDiary(QWidget):
             
 
 class DiariesBackup(QWidget):
-    """A page for diaries' backups."""
-    
     def __init__(self, parent: DiariesTabWidget, date: str) -> None:
-        """Init and then set page.
-        
-        Args:
-            parent (DiariesTabWidget): "Diaries" tab in main window
-            date (str): Diary date
-        """        
-        
         super().__init__(parent)
         
         self.backup = diariesdb.getBackup(date)
@@ -1073,12 +789,6 @@ class DiariesBackup(QWidget):
         self.layout().addWidget(self.button)
 
     def setFormat(self, index: int) -> None:
-        """Set format setting for only this page.
-
-        Args:
-            index (int): Selected index in QComboBox.
-        """
-        
         if index == 0:
             self.setting_format = "plain-text"
         
@@ -1091,12 +801,6 @@ class DiariesBackup(QWidget):
         self.updateOutput(self.backup)
             
     def updateOutput(self, text: str) -> None:
-        """Update output when format changed.
-
-        Args:
-            text (str): Content
-        """
-        
         if self.setting_format == "plain-text":
             self.output.setPlainText(text)
         
@@ -1108,15 +812,7 @@ class DiariesBackup(QWidget):
 
 
 class DiariesCalendarWidget(QCalendarWidget):
-    """The calendar widget."""
-    
     def __init__(self, parent: DiariesTabWidget):
-        """Init and set calendar widget.
-
-        Args:
-            parent (DiariesTabWidget): "Diaries" tab in main window
-        """
-        
         super().__init__(parent)
         
         self.parent_ = parent
@@ -1131,13 +827,6 @@ class DiariesCalendarWidget(QCalendarWidget):
         self.setMenu(diariesdb.getNames())
         
     def setMenu(self, call: list):
-        """
-        Set diaries menu
-
-        Args:
-            call (list): diariesdb.getNames function
-        """
-        
         if not hasattr(self, "menu"):
             self.menu = diaries_parent.menuBar().addMenu(_("Diaries"))
         self.menu.clear()
@@ -1146,15 +835,6 @@ class DiariesCalendarWidget(QCalendarWidget):
             self.menu.addAction(name[0], lambda name = name: self.parent_.openCreate(name[0]))
     
     def paintCell(self, painter: QPainter | None, rect: QRect, date: QDate | datetime.date) -> None:
-        """
-        Override of QCalendarWidget's paintCell function.
-
-        Args:
-            painter (QPainter | None): Painter
-            rect (QRect): Rect
-            date (QDate | datetime.date): Date
-        """
-        
         super().paintCell(painter, rect, date)
         
         call = diariesdb.getNames()
@@ -1174,12 +854,5 @@ class DiariesCalendarWidget(QCalendarWidget):
         self.setMenu(call)
     
     def mouseDoubleClickEvent(self, a0: QMouseEvent | None) -> None:
-        """
-        Override of QCalendarWidget's mouseDoubleClickEvent function.
-
-        Args:
-            a0 (QMouseEvent | None): Mouse event
-        """
-        
         super().mouseDoubleClickEvent(a0)
         self.parent_.openCreate(self.selectedDate().toString("dd.MM.yyyy"))

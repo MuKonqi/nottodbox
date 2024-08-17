@@ -38,18 +38,7 @@ today = QDate.currentDate()
 
 
 class HomeScrollArea(QScrollArea):
-    """Scrollable area for home page."""
-    
     def __init__(self, parent: QMainWindow, todos: QTabWidget, notes: QTabWidget):
-        """
-        Display a scrollable area for main widget.
-
-        Args:
-            parent (QMainWindow): Parent of this widget (main window)
-            todos (Todos): Todos widget of parent
-            notes (NotesTabWidget): Notes widget of parent
-        """
-
         super().__init__(parent)
         
         global home_parent
@@ -63,18 +52,7 @@ class HomeScrollArea(QScrollArea):
 
 
 class HomeWidget(QWidget):
-    """Home page main widget.."""
-    
     def __init__(self, parent: HomeScrollArea, todos: TodosTabWidget, notes: NotesTabWidget):
-        """
-        Display a widget for some shortcuts.
-
-        Args:
-            parent (HomeScrollArea): Main widget
-            todos (Todos): Todos widget of parent
-            notes (NotesTabWidget): Notes widget of parent
-        """
-        
         super().__init__(parent)
         
         self.setLayout(QGridLayout(self))

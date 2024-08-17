@@ -39,11 +39,7 @@ from diaries import DiariesTabWidget, today, diariesdb, diaries
 
 
 class MainWindow(QMainWindow):
-    """Main window."""
-    
     def __init__(self):
-        """Display a main window."""
-        
         super().__init__()
         
         self.widget = QWidget(self)
@@ -64,7 +60,7 @@ class MainWindow(QMainWindow):
         self.notes = NotesTabWidget(self)
         self.todos = TodosTabWidget(self)
         self.diaries = DiariesTabWidget(self)
-        self.settings = SettingsScrollArea(self, self.notes, self.diaries)
+        self.settings = SettingsScrollArea(self, self.notes, self.todos, self.diaries)
         self.home = HomeScrollArea(self, self.todos, self.notes)
 
         self.tabwidget.addTab(self.home, _("Home"))
@@ -88,21 +84,10 @@ class MainWindow(QMainWindow):
         self.setStatusTip(_("Copyright (C) 2024 MuKonqi (Muhammed S.), licensed under GPLv3 or later"))
 
     def restoreDockWidget(self):
-        """Restore dock widget (sidebar)"""
-        
         self.dock.show()
         self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.dock)
 
     def closeEvent(self, a0: QCloseEvent | None):
-        """Close main window (if there are unsaved pages ask question)
-
-        Args:
-            a0 (QCloseEvent | None): Qt close event
-
-        Returns:
-            super().closeEvent(a0): Close window
-        """
-        
         stringlist = self.dock.widget().model1.stringList()
         
         are_there_unsaved_notes = False
