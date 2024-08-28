@@ -57,21 +57,16 @@ from mainwindow import MainWindow
 
 
 class Application(QApplication):
-    """The main QApplication class."""
-    
     def __init__(self, argv: list, index: int = 0) -> None:
-        """Init and set main application.
-
-        Args:
-            argv (List[str]): Mostly sys.argv
-            index (int): Wanted index in tab widget. Defaults to 0.
-        """
-        
         super().__init__(argv)
+
+        with open(f"@APPDIR@/style.qss") as style_file:
+            style = style_file.read()
         
         self.setApplicationVersion("@VERSION@")
         self.setApplicationName("nottodbox")
         self.setApplicationDisplayName("Nottodbox")
+        self.setStyleSheet(style)
         
         window = MainWindow()
         window.tabwidget.setCurrentIndex(index)

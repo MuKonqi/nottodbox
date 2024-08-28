@@ -22,9 +22,9 @@ TBA
 - Note: Do not forget to install dependencies.
 ```
     git clone https://github.com/mukonqi/nottodbox.git
-    meson setup . .build
-    ninja -C .build
-    ninja -C .build install
+    meson setup . builddir
+    ninja -C builddir
+    ninja -C builddir install
 ```
 
 
@@ -46,3 +46,6 @@ Nottodbox is distributed in the hope that it will be useful, but WITHOUT ANY WAR
 without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 - Note: You can see the license for more details.
+
+## Credit
+While making [nottodbox/widgets/text_formatter.py](./nottodbox/widgets/text_formatter.py), [KDE - Marknote: master/src/documenthandler.cpp](https://invent.kde.org/office/marknote/-/blob/master/src/documenthandler.cpp) helped me.

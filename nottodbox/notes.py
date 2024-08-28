@@ -23,6 +23,7 @@ sys.dont_write_bytecode = True
 import getpass
 import sqlite3
 import datetime
+from widgets.text_formatter import TextFormatter
 from gettext import gettext as _
 from PyQt6.QtGui import QStandardItem, QStandardItemModel, QMouseEvent, QColor
 from PyQt6.QtCore import Qt, QSortFilterProxyModel
@@ -988,9 +989,9 @@ class NotesNotebookOptions(QWidget):
         self.layout().addWidget(self.renamebook)
         self.layout().addWidget(self.reset_notebook)
         self.layout().addWidget(self.delete_notebook)
-        self.layout().addWidget(self.delete_all)
         self.layout().addWidget(self.set_background)
         self.layout().addWidget(self.set_foreground)
+        self.layout().addWidget(self.delete_all)
         
     def checkIfTheNotebookExists(self, name: str, mode: str = "normal") -> bool:
         call = notesdb.checkIfTheNotebookExists(name)
@@ -1172,18 +1173,38 @@ class NotesNotePage(QWidget):
         self.closable = True
         
         self.content = notesdb.getContent(notebook, name)
-        
+
         self.call_autosave = notesdb.getAutosave(notebook, name)
         if self.call_autosave == "global":
             self.setting_autosave = setting_autosave
         else:
             self.setting_autosave = self.call_autosave
-        
+            
         self.call_format = notesdb.getFormat(notebook, name)
         if self.call_format == "global":
             self.setting_format = setting_format
         else:
             self.setting_format = self.call_format
+        
+        self.input = QTextEdit(self)
+        self.input.setAcceptRichText(True)
+
+        self.formatter = TextFormatter(self, self.input, self.setting_format)
+    
+        self.input.textChanged.connect(lambda: self.saveNote(True))
+        self.input.cursorPositionChanged.connect(self.formatter.updateButtons)
+        
+        if self.setting_format == "plain-text":
+            self.input.setPlainText(self.content)
+            
+        elif self.setting_format == "markdown":
+            self.input.setMarkdown(self.content)
+            
+        elif self.setting_format == "html":
+            self.input.setHtml(self.content)
+        
+        self.save = QPushButton(self, text=_("Save"))
+        self.save.clicked.connect(self.saveNote)
               
         self.autosave = QComboBox(self)
         self.autosave.addItems([
@@ -1199,6 +1220,7 @@ class NotesNotePage(QWidget):
             self.autosave.setCurrentIndex(2)
         
         self.autosave.setEditable(False)
+        self.autosave.setStatusTip(_("Auto-saves do not change backups."))
         self.autosave.currentIndexChanged.connect(self.setAutoSave)
         
         self.format = QComboBox(self)
@@ -1218,38 +1240,32 @@ class NotesNotePage(QWidget):
             self.format.setCurrentIndex(3)
         
         self.format.setEditable(False)
+        self.format.setStatusTip(_("Format changes may corrupt the document."))
         self.format.currentIndexChanged.connect(self.setFormat)
         
-        self.input = QTextEdit(self)
-        self.input.setPlainText(self.content)
-        self.input.textChanged.connect(
-            lambda: self.updateOutput(self.input.toPlainText()))
-        self.input.textChanged.connect(lambda: self.saveNote(True))
-        
-        self.output = QTextEdit(self)
-        self.output.setReadOnly(True)
-        
-        self.button = QPushButton(self, text=_("Save"))
-        self.button.clicked.connect(self.saveNote)
-        
         self.setLayout(QGridLayout(self))
-        self.setStatusTip(_("Auto-saves do not change backups."))
-        
-        self.layout().addWidget(self.autosave, 0, 0, 1, 1)
-        self.layout().addWidget(self.input, 1, 0, 1, 1)
-        self.layout().addWidget(self.format, 0, 1, 1, 1)
-        self.layout().addWidget(self.output, 1, 1, 1, 1)
-        self.layout().addWidget(self.button, 2, 0, 1, 2)
-        
-        self.updateOutput(self.content)
-        
+        self.layout().addWidget(self.formatter, 0, 0, 1, 2)
+        self.layout().addWidget(self.input, 1, 0, 1, 2)
+        self.layout().addWidget(self.save, 2, 0, 1, 2)
+        self.layout().addWidget(self.autosave, 3, 0, 1, 1)
+        self.layout().addWidget(self.format, 3, 1, 1, 1)
+                
     def saveNote(self, autosave: bool = False) -> bool:
         self.closable = False
+        
+        if self.setting_format == "plain-text":
+            text = self.input.toPlainText()
+            
+        elif self.setting_format == "markdown":
+            text = self.input.toMarkdown()
+            
+        elif self.setting_format == "html":
+            text = self.input.toHtml()
         
         if not autosave or (autosave and self.setting_autosave == "enabled"):
             call = notesdb.saveNote(self.notebook,
                                     self.name,
-                                    self.input.toPlainText(),
+                                    text,
                                     self.content,
                                     autosave)
 
@@ -1279,13 +1295,14 @@ class NotesNotePage(QWidget):
         call = notesdb.setAutosave(self.notebook, self.name, setting)
         
         if call:
-            self.setting_autosave = setting
-            
-            self.updateOutput(self.input.toPlainText())
+            if setting == "global":
+                self.setting_autosave = setting_autosave
+            else:
+                self.setting_autosave = setting
         
         else:
-            QMessageBox.critical(self, _("Error"), _("Failed to save new autosave setting."))
-
+            QMessageBox.critical(self, _("Error"), _("Failed to save new autosave setting for {note} note.").format(note = self.name))
+            
     def setFormat(self, index: int) -> None:
         if index == 0:
             setting = "global"
@@ -1302,23 +1319,16 @@ class NotesNotePage(QWidget):
         call = notesdb.setFormat(self.notebook, self.name, setting)
         
         if call:
-            self.setting_format = setting
-            
-            self.updateOutput(self.input.toPlainText())
+            if setting == "global":
+                self.setting_format = setting_format
+            else:
+                self.setting_format = setting
+                
+            self.formatter.updateStatus(self.setting_format)
         
         else:
-            QMessageBox.critical(self, _("Error"), _("Failed to save new format setting."))
-            
-    def updateOutput(self, text: str) -> None:
-        if self.setting_format == "plain-text":
-            self.output.setPlainText(text)
-        
-        elif self.setting_format == "markdown":
-            self.output.setMarkdown(text)
-        
-        elif self.setting_format == "html":
-            self.output.setHtml(text)
-            
+            QMessageBox.critical(self, _("Error"), _("Failed to save new format setting for {note} note.").format(note = self.name))
+
 
 class NotesBackupPage(QWidget):
     def __init__(self, parent: NotesNoteOptions, notebook: str, name: str) -> None:
@@ -1338,6 +1348,12 @@ class NotesBackupPage(QWidget):
         else:
             self.setting_format = self.call_format
         
+        self.output = QTextEdit(self)
+        self.output.setReadOnly(True)
+        
+        self.button = QPushButton(self, text=_("Restore content"))
+        self.button.clicked.connect(self.restoreContent)
+        
         self.format = QComboBox(self)
         self.format.addItems([
             _("Format for this note: Follow global ({setting})").format(setting = setting_format),
@@ -1355,18 +1371,13 @@ class NotesBackupPage(QWidget):
             self.format.setCurrentIndex(3)
         
         self.format.setEditable(False)
+        self.format.setStatusTip(_("Format changes may corrupt the document."))
         self.format.currentIndexChanged.connect(self.setFormat)
         
-        self.output = QTextEdit(self)
-        self.output.setReadOnly(True)
-        
-        self.button = QPushButton(self, text=_("Restore content"))
-        self.button.clicked.connect(self.restoreContent)
-        
         self.setLayout(QVBoxLayout(self))
-        self.layout().addWidget(self.format)
         self.layout().addWidget(self.output)
         self.layout().addWidget(self.button)
+        self.layout().addWidget(self.format)
         
         self.updateOutput(self.backup)
 
@@ -1386,12 +1397,13 @@ class NotesBackupPage(QWidget):
         call = notesdb.setFormat(self.notebook, self.name, setting)
         
         if call:
-            self.setting_format = setting
-            
-            self.updateOutput(self.backup)
+            if setting == "global":
+                self.setting_format = setting_format
+            else:
+                self.setting_format = setting
         
         else:
-            QMessageBox.critical(self, _("Error"), _("Failed to save new format setting."))
+            QMessageBox.critical(self, _("Error"), _("Failed to save new format setting for {note} note.").format(note = self.name))
             
     def updateOutput(self, text: str) -> None:
         if self.setting_format == "plain-text":
@@ -1645,7 +1657,10 @@ class NotesTreeView(QTreeView):
         
     def updateAll(self) -> None:
         notes_model.clear()
+        notes_model.setHorizontalHeaderLabels(["Name", "Creation date", "Modification date"])
+        
         notes_menu.clear()
+        
         self.appendAll()
         
     def updateBackground(self, name: str, color: str | None) -> None:

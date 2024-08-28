@@ -80,6 +80,8 @@ class MainWindow(QMainWindow):
         self.statusbar = QStatusBar(self)
         
         self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.dock)
+        self.setMinimumWidth(800)
+        self.setMinimumHeight(480)
         self.setStatusBar(self.statusbar)
         self.setStatusTip(_("Copyright (C) 2024 MuKonqi (Muhammed S.), licensed under GPLv3 or later"))
 

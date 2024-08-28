@@ -1,6 +1,6 @@
 project (
     'nottodbox',
-    version: '0.4.5',
+    version: '0.0.4',
     license: 'GPL-3.0-or-later'
 )
 
