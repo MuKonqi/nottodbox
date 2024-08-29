@@ -23,6 +23,7 @@ sys.dont_write_bytecode = True
 import getpass
 import sqlite3
 import datetime
+from widgets.dialogs import ColorDialog
 from widgets.text_formatter import TextFormatter
 from gettext import gettext as _
 from PyQt6.QtGui import QStandardItem, QStandardItemModel, QMouseEvent, QColor
@@ -431,7 +432,7 @@ class NotesDB:
         
         for item in notes:
             try:
-                name, notebook = str(name).split(" @ ")
+                name, notebook = str(item).split(" @ ")
             
             except ValueError:
                 return False
@@ -739,8 +740,8 @@ class NotesNoteOptions(QWidget):
         self.restore_content = QPushButton(self, text=_("Restore content"))
         self.restore_content.clicked.connect(self.restoreContent)
         
-        self.delete_content = QPushButton(self, text=_("Delete content"))
-        self.delete_content.clicked.connect(self.deleteContent)
+        self.clear_content = QPushButton(self, text=_("Clear content"))
+        self.clear_content.clicked.connect(self.clearContent)
         
         self.delete_note = QPushButton(self, text=_("Delete note"))
         self.delete_note.clicked.connect(self.deleteNote)
@@ -753,7 +754,7 @@ class NotesNoteOptions(QWidget):
         self.layout().addWidget(self.rename)
         self.layout().addWidget(self.show_backup)
         self.layout().addWidget(self.restore_content)
-        self.layout().addWidget(self.delete_content)
+        self.layout().addWidget(self.clear_content)
         self.layout().addWidget(self.delete_note)
 
     def checkIfTheNoteExists(self, notebook: str, name: str, mode: str = "normal") -> bool:
@@ -805,7 +806,7 @@ class NotesNoteOptions(QWidget):
                 else:
                     QMessageBox.critical(self, _("Error"), _("Failed to create {name} note.").format(name = name))
         
-    def deleteContent(self) -> None:
+    def clearContent(self) -> None:
         notebook = self.parent_.notebook
         name = self.parent_.name
         
@@ -819,9 +820,9 @@ class NotesNoteOptions(QWidget):
         call = notesdb.deleteContent(notebook, name)
     
         if call:
-            QMessageBox.information(self, _("Successful"), _("Content of {name} note deleted.").format(name = name))
+            QMessageBox.information(self, _("Successful"), _("Content of {name} note cleared.").format(name = name))
         else:
-            QMessageBox.critical(self, _("Error"), _("Failed to delete content of {name} note.").format(name = name))
+            QMessageBox.critical(self, _("Error"), _("Failed to clear content of {name} note.").format(name = name))
             
     def deleteNote(self) -> None:
         notebook = self.parent_.notebook
@@ -970,12 +971,10 @@ class NotesNotebookOptions(QWidget):
         self.delete_notebook = QPushButton(self, text=_("Delete notebook"))
         self.delete_notebook.clicked.connect(self.deleteNotebook)
         
-        self.set_background = QPushButton(self, text=_("Change background"))
-        self.set_background.setStatusTip(_("For default color, just click the button and then click cancel in new window."))
+        self.set_background = QPushButton(self, text=_("Set background"))
         self.set_background.clicked.connect(self.setBackground)
         
-        self.set_foreground = QPushButton(self, text=_("Change foreground"))
-        self.set_foreground.setStatusTip(_("For default color, just click the button and then click cancel in new window."))
+        self.set_foreground = QPushButton(self, text=_("Set foreground"))
         self.set_foreground.clicked.connect(self.setForeground)
         
         self.delete_all = QPushButton(self, text=_("Delete all"))
@@ -1114,7 +1113,7 @@ class NotesNotebookOptions(QWidget):
         
         background = notesdb.getBackground(name)
         
-        qcolor = QColorDialog.getColor(QColor(background), self, _("Select color (for default click cancel)").format(name = name))
+        qcolor = ColorDialog(QColor(background), self, _("Select color").format(name = name)).getColor()
         
         if qcolor.isValid():
             color = qcolor.name()
@@ -1142,7 +1141,7 @@ class NotesNotebookOptions(QWidget):
         
         foreground = notesdb.getForeground(name)
         
-        qcolor = QColorDialog.getColor(QColor(foreground), self, _("Select color (for default click cancel)").format(name = name))
+        qcolor = ColorDialog(QColor(foreground), self, _("Select color").format(name = name)).getColor()
         
         if qcolor.isValid():
             color = qcolor.name()

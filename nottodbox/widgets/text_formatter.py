@@ -22,7 +22,7 @@ sys.dont_write_bytecode = True
 
 
 from gettext import gettext as _
-from .dialog import GetTwoItem
+from .dialogs import ColorDialog, GetTwoDialog
 from PyQt6.QtGui import QTextCursor, QTextFormat, QTextBlockFormat, QTextCharFormat, QTextListFormat, QAction
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import *
@@ -121,7 +121,7 @@ class TextFormatter(QToolBar):
         self.addAction(_("Link"), self.setLink)
         self.text_color = self.addAction(_("Text color"), self.setTextColor)
         self.text_color.setStatusTip(_("Setting text color is only available in HTML format."))
-        self.background_color = self.addAction(_("Background color"), self.setBackground)
+        self.background_color = self.addAction(_("Background color"), self.setBackgroundColor)
         self.background_color.setStatusTip(_("Setting background color is only available in HTML format."))
         
         self.updateStatus(format)
@@ -140,19 +140,19 @@ class TextFormatter(QToolBar):
         cur = self.input.textCursor()
         cur.mergeBlockFormat(blkfmt)
         
-    def setBackground(self) -> None:
-        color = QColorDialog.getColor(Qt.GlobalColor.white, self, _("Set background color"))
+    def setBackgroundColor(self) -> None:
+        qcolor = ColorDialog(Qt.GlobalColor.white, self, _("Select color")).getColor()
         
-        if color.isValid():
-            cur = self.input.textCursor()
+        cur = self.input.textCursor()
 
-            chrfmt = cur.charFormat()
-            chrfmt.setBackground(color)
-            
-            self.mergeFormat(cur, chrfmt)
-            
+        chrfmt = cur.charFormat()
+        
+        if qcolor.isValid():
+            chrfmt.setBackground(qcolor)
         else:
-            QMessageBox.critical(self, _("Error"), _("The color is invalid."))
+            chrfmt.setBackground(QTextCharFormat().background())
+            
+        self.mergeFormat(cur, chrfmt)
         
     def setBold(self) -> None:
         cur = self.input.textCursor()
@@ -177,18 +177,18 @@ class TextFormatter(QToolBar):
         self.mergeFormat(cur, chrfmt)
     
     def setTextColor(self) -> None:
-        color = QColorDialog.getColor(Qt.GlobalColor.white, self, _("Set text color"))
+        qcolor = ColorDialog(Qt.GlobalColor.white, self, _("Select color")).getColor()
         
-        if color.isValid():
-            cur = self.input.textCursor()
+        cur = self.input.textCursor()
 
-            chrfmt = cur.charFormat()
-            chrfmt.setForeground(color)
-            
-            self.mergeFormat(cur, chrfmt)
-            
+        chrfmt = cur.charFormat()
+        
+        if qcolor.isValid():
+            chrfmt.setForeground(qcolor)
         else:
-            QMessageBox.critical(self, _("Error"), _("The color is invalid."))
+            chrfmt.setForeground(QTextCharFormat().foreground())
+            
+        self.mergeFormat(cur, chrfmt)
         
     def setHeadingLevel(self, level: int) -> None:
         cur = self.input.textCursor()
@@ -236,7 +236,7 @@ class TextFormatter(QToolBar):
         self.mergeFormat(cur, chrfmt)
         
     def setLink(self) -> None:
-        text, url = GetTwoItem(self, "text", _("Add link"), _("Link text:"), _("Link URL:"), _("Not required"), _("Required")).getItems()
+        text, url = GetTwoDialog(self, "text", _("Add link"), _("Link text:"), _("Link URL:"), _("Not required"), _("Required")).getItems()
         
         if url != "" and url != None:
             cur = self.input.textCursor()
@@ -272,7 +272,7 @@ class TextFormatter(QToolBar):
         self.mergeFormat(cur, chrfmt)
         
     def setTable(self) -> None:
-        row, column = GetTwoItem(self, "number", _("Add table"), _("Row number:"), _("Column:"), 1, 1).getItems()
+        row, column = GetTwoDialog(self, "number", _("Add table"), _("Row number:"), _("Column:"), 1, 1).getItems()
         
         if row != None and column != None:
             cur = self.input.textCursor()

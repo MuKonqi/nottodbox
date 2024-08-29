@@ -31,7 +31,6 @@ userdata = f"/home/{username}/.local/share/nottodbox/"
     
 
 from sidebar import SidebarWidget
-from settings import SettingsScrollArea, settings
 from home import HomeScrollArea
 from notes import NotesTabWidget, notesdb, notes
 from todos import TodosTabWidget
@@ -60,14 +59,12 @@ class MainWindow(QMainWindow):
         self.notes = NotesTabWidget(self)
         self.todos = TodosTabWidget(self)
         self.diaries = DiariesTabWidget(self)
-        self.settings = SettingsScrollArea(self, self.notes, self.todos, self.diaries)
         self.home = HomeScrollArea(self, self.todos, self.notes)
 
         self.tabwidget.addTab(self.home, _("Home"))
         self.tabwidget.addTab(self.notes, _("Notes"))
         self.tabwidget.addTab(self.todos, _("Todos"))
         self.tabwidget.addTab(self.diaries, _("Diaries"))
-        self.tabwidget.addTab(self.settings, _("Settings"))
         
         self.dock = QDockWidget(self)
         self.dock.setFixedWidth(150)
@@ -125,9 +122,7 @@ class MainWindow(QMainWindow):
                 stringlist = None
 
 
-        if (stringlist != None or
-            (not are_there_unsaved_notes and not are_there_unsaved_diaries and not is_main_diary_unsaved)):
-            
+        if not are_there_unsaved_notes and not are_there_unsaved_diaries and not is_main_diary_unsaved:
             return super().closeEvent(a0)
         
         else:

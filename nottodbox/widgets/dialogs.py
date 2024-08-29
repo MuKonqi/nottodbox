@@ -15,16 +15,39 @@
 # You should have received a copy of the GNU General Public License
 # along with Nottodbox.  If not, see <https://www.gnu.org/licenses/>.
 
+
 import sys
 sys.dont_write_bytecode = True
 
 
 from gettext import gettext as _
+from PyQt6.QtGui import QColor
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import *
 
 
-class GetTwoItem(QDialog):
+class ColorDialog(QColorDialog):
+    def __init__(self, color: QColor | Qt.GlobalColor | int, parent: QWidget | None, title: str) -> None:
+        super().__init__(color, parent)
+        self.setWindowTitle(title)
+        
+        self.buttonbox = self.findChild(QDialogButtonBox)
+        
+        self.set_to_default = QPushButton(self.buttonbox, text=_("Set to default"))
+        self.set_to_default.clicked.connect(lambda: self.done(0))
+        
+        self.buttonbox.addButton(self.set_to_default, QDialogButtonBox.ButtonRole.DestructiveRole)
+        
+        self.exec()
+
+    def getColor(self) -> QColor:
+        if self.result() == 1:
+            return self.selectedColor()
+        else:
+            return QColor()
+
+
+class GetTwoDialog(QDialog):
     def __init__(self, parent: QWidget, mode: str, window_title: str, 
                  top_text: str, bottom_text: str, top_extra: int | str, bottom_extra: int | str) -> None:
         super().__init__(parent)
