@@ -48,4 +48,4 @@ without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
 - Note: You can see the license for more details.
 
 ## Credit
-While making [nottodbox/widgets/text_formatter.py](./nottodbox/widgets/text_formatter.py), [KDE - Marknote: master/src/documenthandler.cpp](https://invent.kde.org/office/marknote/-/blob/master/src/documenthandler.cpp) helped me.
+While making [nottodbox/widgets/pages.py](./nottodbox/widgets/pages.py)'s TextFormatter class, [KDE - Marknote: master/src/documenthandler.cpp](https://invent.kde.org/office/marknote/-/blob/master/src/documenthandler.cpp) helped me.

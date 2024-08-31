@@ -26,7 +26,3 @@ Name=Todos
 [Desktop Action Diaries]
 Exec=nottodbox --diaries
 Name=Diaries
-
-[Desktop Action Settings]
-Exec=nottodbox --settings
-Name=Settings

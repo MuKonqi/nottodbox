@@ -67,7 +67,7 @@ class MainWindow(QMainWindow):
         self.tabwidget.addTab(self.diaries, _("Diaries"))
         
         self.dock = QDockWidget(self)
-        self.dock.setFixedWidth(150)
+        self.dock.setFixedWidth(160)
         self.dock.setStyleSheet("margin: 0px")
         self.dock.setFeatures(QDockWidget.DockWidgetFeature.DockWidgetClosable |
                               QDockWidget.DockWidgetFeature.DockWidgetFloatable |
@@ -145,7 +145,7 @@ class MainWindow(QMainWindow):
                     call_diaries_save_all = diariesdb.saveAll()
                     
                 if is_main_diary_unsaved:
-                    call_diary_save_one = diariesdb.saveOne(today.toString("dd.MM.yyyy"),
+                    call_diary_save_one = diariesdb.saveNote(today.toString("dd.MM.yyyy"),
                                                             self.home.widget().diary.input.toPlainText(),
                                                             self.home.widget().diary.content,
                                                             False)

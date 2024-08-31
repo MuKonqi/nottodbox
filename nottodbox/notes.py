@@ -23,8 +23,8 @@ sys.dont_write_bytecode = True
 import getpass
 import sqlite3
 import datetime
-from widgets.dialogs import ColorDialog
-from widgets.text_formatter import TextFormatter
+from widgets.dialogs import settingsdb, ColorDialog, SettingsDialog
+from widgets.pages import NormalPage, BackupPage
 from gettext import gettext as _
 from PyQt6.QtGui import QStandardItem, QStandardItemModel, QMouseEvent, QColor
 from PyQt6.QtCore import Qt, QSortFilterProxyModel
@@ -41,77 +41,7 @@ notebook_items = {}
 username = getpass.getuser()
 userdata = f"/home/{username}/.local/share/nottodbox/"
 
-
-class SettingsDB:
-    def __init__(self) -> None:
-        self.db = sqlite3.connect(f"{userdata}settings.db")
-        self.cur = self.db.cursor()
-    
-    def getSettings(self) -> tuple:
-        try:
-            self.cur.execute(f"select value from settings where setting = 'notes-autosave'")
-            self.setting_autosave = self.cur.fetchone()[0]
-
-        except:
-            self.cur.execute(f"insert into settings (setting, value) values ('notes-autosave', 'enabled')")
-            self.db.commit()
-            self.setting_autosave = "enabled"
-        
-        try:
-            self.cur.execute(f"select value from settings where setting = 'notes-format'")
-            self.setting_format = self.cur.fetchone()[0]
-
-        except:
-            self.cur.execute(f"insert into settings (setting, value) values ('notes-format', 'markdown')")
-            self.db.commit()
-            self.setting_format = "markdown"
-    
-        return self.setting_autosave, self.setting_format
-    
-    def setAutoSave(self, signal: Qt.CheckState | int) -> bool:
-        global setting_autosave
-        
-        if signal == Qt.CheckState.Unchecked or signal == 0:
-            setting_autosave = "disabled"
-
-        elif signal == Qt.CheckState.Checked or signal == 2:
-            setting_autosave = "enabled"
-            
-        self.cur.execute(f"update settings set value = '{setting_autosave}' where setting = 'notes-autosave'")
-        self.db.commit()
-        
-        call = self.getSettings()
-        
-        if call[0] == setting_autosave:
-            return True
-        elif call[0] == setting_autosave:
-            return False
-                
-    def setFormat(self, index: int) -> bool:
-        global setting_format
-        
-        if index == 0:
-            setting_format = "plain-text"
-        
-        elif index == 1:
-            setting_format = "markdown"
-        
-        elif index == 2:
-            setting_format = "html"
-
-        self.cur.execute(f"update settings set value = '{setting_format}' where setting = 'notes-format'")
-        self.db.commit()
-        
-        call = self.getSettings()
-        
-        if call[1] == setting_format:
-            return True
-        elif call[1] == setting_format:
-            return False
-    
-
-settingsdb = SettingsDB()
-setting_autosave, setting_format = settingsdb.getSettings()
+setting_autosave, setting_format = settingsdb.getSettings("notes")
 
 
 class NotesDB:
@@ -162,6 +92,25 @@ class NotesDB:
             return True
         
         except sqlite3.OperationalError:
+            return False
+        
+    def clearContent(self, notebook: str, name: str) -> bool:
+        date = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+        
+        fetch_before = self.getContent(notebook, name)
+            
+        self.cur.execute(
+            f"update '{notebook}' set content = '', backup = ? where name = ?", (fetch_before, name))
+        self.db.commit()
+        
+        if not self.updateNoteModificationDate(notebook, name, date):
+            return False
+        
+        fetch_after = self.getContent(notebook, name)
+        
+        if fetch_after == "" or fetch_after == None:
+            return True
+        else:
             return False
         
     def createNote(self, notebook: str, name: str) -> bool:
@@ -254,25 +203,6 @@ class NotesDB:
         else:
             return False
     
-    def deleteContent(self, notebook: str, name: str) -> bool:
-        date = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-        
-        fetch_before = self.getContent(notebook, name)
-            
-        self.cur.execute(
-            f"update '{notebook}' set content = '', backup = ? where name = ?", (fetch_before, name))
-        self.db.commit()
-        
-        if not self.updateNoteModificationDate(notebook, name, date):
-            return False
-        
-        fetch_after = self.getContent(notebook, name)
-        
-        if fetch_after == "" or fetch_after == None:
-            return True
-        else:
-            return False
-    
     def deleteNote(self, notebook: str, name: str) -> bool:
         date = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
         
@@ -316,7 +246,7 @@ class NotesDB:
         try:
             fetch = self.cur.fetchone()[0]
         except TypeError:
-            fetch = setting_autosave
+            fetch = "global"
         return fetch
     
     def getBackground(self, name: str) -> str | None:
@@ -356,7 +286,7 @@ class NotesDB:
         try:
             fetch = self.cur.fetchone()[0]
         except TypeError:
-            fetch = setting_format
+            fetch = "global"
         return fetch
     
     def getNote(self, notebook: str, name: str) -> list:
@@ -437,9 +367,23 @@ class NotesDB:
             except ValueError:
                 return False
             
+            fetch_format = self.getFormat(notebook, name)
+            
+            if fetch_format == "global":
+                fetch_format == setting_format
+            
+            if fetch_format == "plain-text":
+                text = notes[item].input.toPlainText()
+                
+            elif fetch_format == "markdown":
+                text = notes[item].input.toMarkdown()
+                
+            elif fetch_format == "html":
+                text = notes[item].input.toHtml()
+            
             calls[item] = self.saveNote(notebook,
                                         name,
-                                        notes[item].input.toPlainText(), 
+                                        text, 
                                         notes[item].content, 
                                         False)
             
@@ -703,7 +647,7 @@ class NotesNoneOptions(QWidget):
         
         self.warning_label = QLabel(self, alignment=Qt.AlignmentFlag.AlignCenter,
                                     text=_("You can select\na notebook or a note\non the left."))
-        self.warning_label.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Maximum)
+        self.warning_label.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Maximum)
         
         self.create_notebook = QPushButton(self, text=_("Create notebook"))
         self.create_notebook.clicked.connect(self.parent_.notebook_options.createNotebook)
@@ -711,12 +655,16 @@ class NotesNoneOptions(QWidget):
         self.delete_all = QPushButton(self, text=_("Delete all"))
         self.delete_all.clicked.connect(self.parent_.notebook_options.deleteAll)
         
+        self.set_settings = QPushButton(self, text=_("Set settings"))
+        self.set_settings.clicked.connect(self.parent_.note_options.setSettings)
+        
         self.setLayout(QVBoxLayout(self))
-        self.setFixedWidth(150)
+        self.setFixedWidth(160)
         
         self.layout().addWidget(self.warning_label)
         self.layout().addWidget(self.create_notebook)
         self.layout().addWidget(self.delete_all)
+        self.layout().addWidget(self.set_settings)
 
 
 class NotesNoteOptions(QWidget):
@@ -745,9 +693,12 @@ class NotesNoteOptions(QWidget):
         
         self.delete_note = QPushButton(self, text=_("Delete note"))
         self.delete_note.clicked.connect(self.deleteNote)
+        
+        self.set_settings = QPushButton(self, text=_("Set settings"))
+        self.set_settings.clicked.connect(self.setSettings)
 
         self.setLayout(QVBoxLayout(self))
-        self.setFixedWidth(150)
+        self.setFixedWidth(160)
         
         self.layout().addWidget(self.create_note)
         self.layout().addWidget(self.open_note)
@@ -756,6 +707,8 @@ class NotesNoteOptions(QWidget):
         self.layout().addWidget(self.restore_content)
         self.layout().addWidget(self.clear_content)
         self.layout().addWidget(self.delete_note)
+        self.layout().addSpacing(self.set_settings.height())
+        self.layout().addWidget(self.set_settings)
 
     def checkIfTheNoteExists(self, notebook: str, name: str, mode: str = "normal") -> bool:
         call = notesdb.checkIfTheNoteExists(notebook, name)
@@ -772,6 +725,24 @@ class NotesNoteOptions(QWidget):
             QMessageBox.critical(self, _("Error"), _("There is no backup for note {name}.").format(name = name))
         
         return call
+    
+    def clearContent(self) -> None:
+        notebook = self.parent_.notebook
+        name = self.parent_.name
+        
+        if notebook == "" or notebook == None or name == "" or name == None:
+            QMessageBox.critical(self, _("Error"), _("Please select a note."))
+            return
+        
+        if not self.checkIfTheNoteExists(notebook, name):
+            return
+        
+        call = notesdb.clearContent(notebook, name)
+    
+        if call:
+            QMessageBox.information(self, _("Successful"), _("Content of {name} note cleared.").format(name = name))
+        else:
+            QMessageBox.critical(self, _("Error"), _("Failed to clear content of {name} note.").format(name = name))
     
     def createNote(self):
         notebook = self.parent_.notebook
@@ -805,24 +776,6 @@ class NotesNoteOptions(QWidget):
                     
                 else:
                     QMessageBox.critical(self, _("Error"), _("Failed to create {name} note.").format(name = name))
-        
-    def clearContent(self) -> None:
-        notebook = self.parent_.notebook
-        name = self.parent_.name
-        
-        if notebook == "" or notebook == None or name == "" or name == None:
-            QMessageBox.critical(self, _("Error"), _("Please select a note."))
-            return
-        
-        if not self.checkIfTheNoteExists(notebook, name):
-            return
-        
-        call = notesdb.deleteContent(notebook, name)
-    
-        if call:
-            QMessageBox.information(self, _("Successful"), _("Content of {name} note cleared.").format(name = name))
-        else:
-            QMessageBox.critical(self, _("Error"), _("Failed to clear content of {name} note.").format(name = name))
             
     def deleteNote(self) -> None:
         notebook = self.parent_.notebook
@@ -864,7 +817,7 @@ class NotesNoteOptions(QWidget):
             
         else:            
             notes_parent.dock.widget().addPage(f"{name} @ {notebook}", self.parent_)
-            notes[f"{name} @ {notebook}"] = NotesNotePage(self, notebook, name)
+            notes[f"{name} @ {notebook}"] = NormalPage(self, "notes", notebook, name, setting_autosave, setting_format, notesdb)
             self.parent_.addTab(notes[f"{name} @ {notebook}"], f"{name} @ {notebook}")
             self.parent_.setCurrentWidget(notes[f"{name} @ {notebook}"])
     
@@ -945,9 +898,18 @@ class NotesNoteOptions(QWidget):
         
         notes_parent.tabwidget.setCurrentIndex(1)
 
-        self.parent_.backups[f'{name} @ {notebook}'] = NotesBackupPage(self, notebook, name)
+        self.parent_.backups[f'{name} @ {notebook}'] = BackupPage(self, "notes", notebook, name, setting_format, notesdb)
         self.parent_.addTab(self.parent_.backups[f'{name} @ {notebook}'], f'{name} @ {notebook} {_("(Backup)")}')
         self.parent_.setCurrentWidget(self.parent_.backups[f'{name} @ {notebook}'])
+        
+    def setSettings(self) -> None:
+        global setting_autosave, setting_format
+    
+        autosave, format = SettingsDialog(self, "notes", setting_autosave, setting_format).saveSettings()
+        
+        if autosave != "" and autosave != None and format != "" and format != None:
+            setting_autosave = autosave
+            setting_format = format
             
             
 class NotesNotebookOptions(QWidget):
@@ -980,8 +942,11 @@ class NotesNotebookOptions(QWidget):
         self.delete_all = QPushButton(self, text=_("Delete all"))
         self.delete_all.clicked.connect(self.deleteAll)
         
+        self.set_settings = QPushButton(self, text=_("Set settings"))
+        self.set_settings.clicked.connect(self.parent_.note_options.setSettings)
+        
         self.setLayout(QVBoxLayout(self))
-        self.setFixedWidth(150)
+        self.setFixedWidth(160)
         
         self.layout().addWidget(self.create_note)
         self.layout().addWidget(self.create_notebook)
@@ -991,6 +956,8 @@ class NotesNotebookOptions(QWidget):
         self.layout().addWidget(self.set_background)
         self.layout().addWidget(self.set_foreground)
         self.layout().addWidget(self.delete_all)
+        self.layout().addSpacing(self.set_settings.height())
+        self.layout().addWidget(self.set_settings)
         
     def checkIfTheNotebookExists(self, name: str, mode: str = "normal") -> bool:
         call = notesdb.checkIfTheNotebookExists(name)
@@ -1113,25 +1080,26 @@ class NotesNotebookOptions(QWidget):
         
         background = notesdb.getBackground(name)
         
-        qcolor = ColorDialog(QColor(background), self, _("Select color").format(name = name)).getColor()
+        status, qcolor = ColorDialog(QColor(background), self, _("Select color").format(name = name)).getColor()
         
-        if qcolor.isValid():
-            color = qcolor.name()
-        else:
-            color = ""
-        
-        call = notesdb.setBackground(name, color)
-            
-        if call:
-            self.parent_.treeview.updateBackground(name, color)
-            
+        if status == "ok":
             if qcolor.isValid():
-                QMessageBox.information(self, _("Successful"), _("Background color setted to {color} for {name} notebook.").format(color = color, name = name))
+                color = qcolor.name()
             else:
-                QMessageBox.information(self, _("Successful"), _("Background color setted to default for {name} notebook.").format(name = name))
+                color = ""
             
-        else:
-            QMessageBox.critical(self, _("Error"), _("Failed to set background color for {name} notebook.").format(name = name))
+            call = notesdb.setBackground(name, color)
+
+            if call:
+                self.parent_.treeview.updateBackground(name, color)
+                
+                if qcolor.isValid():
+                    QMessageBox.information(self, _("Successful"), _("Background color setted to {color} for {name} notebook.").format(color = color, name = name))
+                else:
+                    QMessageBox.information(self, _("Successful"), _("Background color setted to default for {name} notebook.").format(name = name))
+                
+            else:
+                QMessageBox.critical(self, _("Error"), _("Failed to set background color for {name} notebook.").format(name = name))
         
     def setForeground(self) -> None:
         name = self.parent_.notebook
@@ -1141,299 +1109,26 @@ class NotesNotebookOptions(QWidget):
         
         foreground = notesdb.getForeground(name)
         
-        qcolor = ColorDialog(QColor(foreground), self, _("Select color").format(name = name)).getColor()
+        status, qcolor = ColorDialog(QColor(foreground), self, _("Select color").format(name = name)).getColor()
         
-        if qcolor.isValid():
-            color = qcolor.name()
-        else:
-            color = ""
-        
-        call = notesdb.setForeground(name, color)
-            
-        if call:
-            self.parent_.treeview.updateForeground(name, color)
-            
+        if status == "ok":
             if qcolor.isValid():
-                QMessageBox.information(self, _("Successful"), _("Foreground color setted to {color} for {name} notebook.").format(color = color, name = name))
+                color = qcolor.name()
             else:
-                QMessageBox.information(self, _("Successful"), _("Foreground color setted to default for {name} notebook.").format(name = name))
+                color = ""
             
-        else:
-            QMessageBox.critical(self, _("Error"), _("Failed to set foreground color for {name} notebook.").format(name = name))
-
-
-class NotesNotePage(QWidget):
-    def __init__(self, parent: NotesNoteOptions, notebook: str, name: str) -> None:
-        super().__init__(parent)
-        
-        self.parent_ = parent
-        self.notebook = notebook
-        self.name = name
-        self.closable = True
-        
-        self.content = notesdb.getContent(notebook, name)
-
-        self.call_autosave = notesdb.getAutosave(notebook, name)
-        if self.call_autosave == "global":
-            self.setting_autosave = setting_autosave
-        else:
-            self.setting_autosave = self.call_autosave
-            
-        self.call_format = notesdb.getFormat(notebook, name)
-        if self.call_format == "global":
-            self.setting_format = setting_format
-        else:
-            self.setting_format = self.call_format
-        
-        self.input = QTextEdit(self)
-        self.input.setAcceptRichText(True)
-
-        self.formatter = TextFormatter(self, self.input, self.setting_format)
-    
-        self.input.textChanged.connect(lambda: self.saveNote(True))
-        self.input.cursorPositionChanged.connect(self.formatter.updateButtons)
-        
-        if self.setting_format == "plain-text":
-            self.input.setPlainText(self.content)
-            
-        elif self.setting_format == "markdown":
-            self.input.setMarkdown(self.content)
-            
-        elif self.setting_format == "html":
-            self.input.setHtml(self.content)
-        
-        self.save = QPushButton(self, text=_("Save"))
-        self.save.clicked.connect(self.saveNote)
-              
-        self.autosave = QComboBox(self)
-        self.autosave.addItems([
-            _("Auto-save for this note: Follow global ({setting})").format(setting = setting_autosave),
-            _("Auto-save for this note: Enabled"), 
-            _("Auto-save for this note: Disabled")])
-        
-        if self.call_autosave == "global":
-            self.autosave.setCurrentIndex(0)
-        elif self.call_autosave == "enabled":
-            self.autosave.setCurrentIndex(1)
-        elif self.call_autosave == "disabled":
-            self.autosave.setCurrentIndex(2)
-        
-        self.autosave.setEditable(False)
-        self.autosave.setStatusTip(_("Auto-saves do not change backups."))
-        self.autosave.currentIndexChanged.connect(self.setAutoSave)
-        
-        self.format = QComboBox(self)
-        self.format.addItems([
-            _("Format for this note: Follow global ({setting})").format(setting = setting_format),
-            _("Format for this note: Plain-text"), 
-            _("Format for this note: Markdown"), 
-            _("Format for this note: HTML")])
-        
-        if self.call_format == "global":
-            self.format.setCurrentIndex(0)
-        elif self.call_format == "plain-text":
-            self.format.setCurrentIndex(1)
-        elif self.call_format == "markdown":
-            self.format.setCurrentIndex(2)
-        elif self.call_format == "html":
-            self.format.setCurrentIndex(3)
-        
-        self.format.setEditable(False)
-        self.format.setStatusTip(_("Format changes may corrupt the document."))
-        self.format.currentIndexChanged.connect(self.setFormat)
-        
-        self.setLayout(QGridLayout(self))
-        self.layout().addWidget(self.formatter, 0, 0, 1, 2)
-        self.layout().addWidget(self.input, 1, 0, 1, 2)
-        self.layout().addWidget(self.save, 2, 0, 1, 2)
-        self.layout().addWidget(self.autosave, 3, 0, 1, 1)
-        self.layout().addWidget(self.format, 3, 1, 1, 1)
+            call = notesdb.setForeground(name, color)
                 
-    def saveNote(self, autosave: bool = False) -> bool:
-        self.closable = False
-        
-        if self.setting_format == "plain-text":
-            text = self.input.toPlainText()
-            
-        elif self.setting_format == "markdown":
-            text = self.input.toMarkdown()
-            
-        elif self.setting_format == "html":
-            text = self.input.toHtml()
-        
-        if not autosave or (autosave and self.setting_autosave == "enabled"):
-            call = notesdb.saveNote(self.notebook,
-                                    self.name,
-                                    text,
-                                    self.content,
-                                    autosave)
-
             if call:
-                self.closable = True
+                self.parent_.treeview.updateForeground(name, color)
                 
-                if not autosave:
-                    QMessageBox.information(self, _("Successful"), _("Note {name} saved.").format(name = self.name))
-                    
-                return True
+                if qcolor.isValid():
+                    QMessageBox.information(self, _("Successful"), _("Foreground color setted to {color} for {name} notebook.").format(color = color, name = name))
+                else:
+                    QMessageBox.information(self, _("Successful"), _("Foreground color setted to default for {name} notebook.").format(name = name))
                 
             else:
-                QMessageBox.critical(self, _("Error"), _("Failed to save {name} note.").format(name = self.name))
-                
-                return False
-                
-    def setAutoSave(self, index: int) -> None:
-        if index == 0:
-            setting = "global"
-        
-        elif index == 1:
-            setting = "enabled"
-        
-        elif index == 2:
-            setting = "disabled"
-        
-        call = notesdb.setAutosave(self.notebook, self.name, setting)
-        
-        if call:
-            if setting == "global":
-                self.setting_autosave = setting_autosave
-            else:
-                self.setting_autosave = setting
-        
-        else:
-            QMessageBox.critical(self, _("Error"), _("Failed to save new autosave setting for {note} note.").format(note = self.name))
-            
-    def setFormat(self, index: int) -> None:
-        if index == 0:
-            setting = "global"
-        
-        elif index == 1:
-            setting = "plain-text"
-        
-        elif index == 2:
-            setting = "markdown"
-        
-        elif index == 3:
-            setting = "html"
-        
-        call = notesdb.setFormat(self.notebook, self.name, setting)
-        
-        if call:
-            if setting == "global":
-                self.setting_format = setting_format
-            else:
-                self.setting_format = setting
-                
-            self.formatter.updateStatus(self.setting_format)
-        
-        else:
-            QMessageBox.critical(self, _("Error"), _("Failed to save new format setting for {note} note.").format(note = self.name))
-
-
-class NotesBackupPage(QWidget):
-    def __init__(self, parent: NotesNoteOptions, notebook: str, name: str) -> None:
-        super().__init__(parent)
-        
-        self.parent_ = parent
-        self.notebook = notebook
-        self.name = name
-        
-        self.backup = notesdb.getBackup(notebook, name)
-        
-        self.setting_format = setting_format
-        
-        self.call_format = notesdb.getFormat(notebook, name)
-        if self.call_format == "global":
-            self.setting_format = setting_format
-        else:
-            self.setting_format = self.call_format
-        
-        self.output = QTextEdit(self)
-        self.output.setReadOnly(True)
-        
-        self.button = QPushButton(self, text=_("Restore content"))
-        self.button.clicked.connect(self.restoreContent)
-        
-        self.format = QComboBox(self)
-        self.format.addItems([
-            _("Format for this note: Follow global ({setting})").format(setting = setting_format),
-            _("Format for this note: Plain-text"), 
-            _("Format for this note: Markdown"), 
-            _("Format for this note: HTML")])
-        
-        if self.call_format == "global":
-            self.format.setCurrentIndex(0)
-        elif self.call_format == "plain-text":
-            self.format.setCurrentIndex(1)
-        elif self.call_format == "markdown":
-            self.format.setCurrentIndex(2)
-        elif self.call_format == "html":
-            self.format.setCurrentIndex(3)
-        
-        self.format.setEditable(False)
-        self.format.setStatusTip(_("Format changes may corrupt the document."))
-        self.format.currentIndexChanged.connect(self.setFormat)
-        
-        self.setLayout(QVBoxLayout(self))
-        self.layout().addWidget(self.output)
-        self.layout().addWidget(self.button)
-        self.layout().addWidget(self.format)
-        
-        self.updateOutput(self.backup)
-
-    def setFormat(self, index: int) -> None:
-        if index == 0:
-            setting = "global"
-        
-        elif index == 1:
-            setting = "plain-text"
-        
-        elif index == 2:
-            setting = "markdown"
-        
-        elif index == 3:
-            setting = "html"
-        
-        call = notesdb.setFormat(self.notebook, self.name, setting)
-        
-        if call:
-            if setting == "global":
-                self.setting_format = setting_format
-            else:
-                self.setting_format = setting
-        
-        else:
-            QMessageBox.critical(self, _("Error"), _("Failed to save new format setting for {note} note.").format(note = self.name))
-            
-    def updateOutput(self, text: str) -> None:
-        if self.setting_format == "plain-text":
-            self.output.setPlainText(text)
-        
-        elif self.setting_format == "markdown":
-            self.output.setMarkdown(text)
-        
-        elif self.setting_format == "html":
-            self.output.setHtml(text)
-            
-    def restoreContent(self):
-        notebook = self.notebook
-        name = self.name
-        
-        if notebook == "" or notebook == None or name == "" or name == None:
-            find_status, notebook, name = self.tryFindTheNoteInModel(notebook, name)
-            
-            if not find_status:
-                return False
-        
-        if not self.parent_.checkIfTheNoteExists(notebook, name):
-            return
-        
-        call = notesdb.restoreContent(notebook, name)
-        
-        if call:
-            QMessageBox.information(self, _("Successful"), _("Backup of {name} note restored.").format(name = name))
-            
-        elif not call:
-            QMessageBox.critical(self, _("Error"), _("Failed to restore backup of {name} note.").format(name = name))
+                QMessageBox.critical(self, _("Error"), _("Failed to set foreground color for {name} notebook.").format(name = name))
 
 
 class NotesTreeView(QTreeView):
@@ -1645,7 +1340,7 @@ class NotesTreeView(QTreeView):
             
         else:            
             notes_parent.dock.widget().addPage(f"{name} @ {notebook}", self.parent_)
-            notes[f"{name} @ {notebook}"] = NotesNotePage(self, notebook, name)
+            notes[f"{name} @ {notebook}"] = NormalPage(self, "notes", notebook, name, setting_autosave, setting_format, notesdb)
             self.parent_.addTab(notes[f"{name} @ {notebook}"], f"{name} @ {notebook}")
             self.parent_.setCurrentWidget(notes[f"{name} @ {notebook}"])
                 

@@ -15,6 +15,9 @@
 # You should have received a copy of the GNU General Public License
 # along with Nottodbox.  If not, see <https://www.gnu.org/licenses/>.
 
+# Credit for TextFormatter class: 
+# <https://invent.kde.org/office/marknote/-/blob/master/src/documenthandler.cpp>
+
 
 import sys
 sys.dont_write_bytecode = True
@@ -23,6 +26,8 @@ sys.dont_write_bytecode = True
 import getpass
 import sqlite3
 import datetime
+from widgets.dialogs import settingsdb, SettingsDialog
+from widgets.pages import NormalPage, BackupPage
 from gettext import gettext as _
 from PyQt6.QtGui import QMouseEvent, QPainter, QColor
 from PyQt6.QtCore import Qt, QDate, QRect, QPoint
@@ -30,82 +35,13 @@ from PyQt6.QtWidgets import *
 
 
 diaries = {}
+actions = {}
 today = QDate.currentDate()
 
 username = getpass.getuser()
 userdata = f"/home/{username}/.local/share/nottodbox/"
 
-
-class SettingsDB:
-    def __init__(self) -> None:
-        self.db = sqlite3.connect(f"{userdata}settings.db")
-        self.cur = self.db.cursor()
-    
-    def getSettings(self) -> tuple:
-        try:
-            self.cur.execute(f"select value from settings where setting = 'diaries-autosave'")
-            self.setting_autosave = self.cur.fetchone()[0]
-
-        except:
-            self.cur.execute(f"insert into settings (setting, value) values ('diaries-autosave', 'enabled')")
-            self.db.commit()
-            self.setting_autosave = "enabled"
-        
-        try:
-            self.cur.execute(f"select value from settings where setting = 'diaries-format'")
-            self.setting_format = self.cur.fetchone()[0]
-
-        except:
-            self.cur.execute(f"insert into settings (setting, value) values ('diaries-format', 'markdown')")
-            self.db.commit()
-            self.setting_format = "markdown"
-    
-        return self.setting_autosave, self.setting_format
-    
-    def setAutoSave(self, signal: Qt.CheckState | int) -> bool:
-        global setting_autosave
-        
-        if signal == Qt.CheckState.Unchecked or signal == 0:
-            setting_autosave = "disabled"
-
-        elif signal == Qt.CheckState.Checked or signal == 2:
-            setting_autosave = "enabled"
-            
-        self.cur.execute(f"update settings set value = '{setting_autosave}' where setting = 'diaries-autosave'")
-        self.db.commit()
-        
-        call = self.getSettings()
-        
-        if call[0] == setting_autosave:
-            return True
-        elif call[0] == setting_autosave:
-            return False
-                
-    def setFormat(self, index: int) -> bool:
-        global setting_format
-        
-        if index == 0:
-            setting_format = "plain-text"
-        
-        elif index == 1:
-            setting_format = "markdown"
-        
-        elif index == 2:
-            setting_format = "html"
-
-        self.cur.execute(f"update settings set value = '{setting_format}' where setting = 'diaries-format'")
-        self.db.commit()
-        
-        call = self.getSettings()
-        
-        if call[1] == setting_format:
-            return True
-        elif call[1] == setting_format:
-            return False
-    
-
-settingsdb = SettingsDB()
-setting_autosave, setting_format = settingsdb.getSettings()
+setting_autosave, setting_format = settingsdb.getSettings("diaries")
 
 
 class DiariesDB:
@@ -114,8 +50,8 @@ class DiariesDB:
         self.cur = self.db.cursor()
         self.widgets = {}
     
-    def checkIfTheDiaryExists(self, date: str) -> bool:
-        self.cur.execute(f"select * from diaries where date = '{date}'")
+    def checkIfTheDiaryExists(self, name: str) -> bool:
+        self.cur.execute("select * from __main__ where name = ?", (name,))
         
         try:
             self.cur.fetchone()[0]
@@ -126,20 +62,54 @@ class DiariesDB:
         
     def checkIfTheTableExists(self) -> bool:
         try:
-            self.cur.execute("select * from diaries")
+            self.cur.execute("select * from __main__")
             return True
         
         except sqlite3.OperationalError:
             return False
         
+    def clearContent(self, name: str) -> bool:
+        date = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+        
+        fetch_before = self.getContent(name)
+        
+        if QDate.fromString(name, "dd.MM.yyyy") != today:
+            self.cur.execute("select outdated from __main__ where name = ?", (name,))
+            check_outdated = self.cur.fetchone()[0]
+
+            if check_outdated == "yes":
+                self.cur.execute(
+                    "update __main__ set content = ?, modification = ?, outdated = ? where name = ?", 
+                    ("", date, "yes", name))
+                
+            elif check_outdated == "no":
+                self.cur.execute(
+                    "update __main__ set content = ?, backup = ?, modification = ?, outdated = ? where name = ?", 
+                    ("", fetch_before, date, "yes", name))
+
+        else:            
+            self.cur.execute("update __main__ set content = ?, backup = ?, modification = ?, outdated = ? where name = ?",
+                             ("", fetch_before, date, "no", name))
+        
+        self.db.commit()
+        
+        fetch_after = self.getContent(name)
+        
+        if fetch_after == "" or fetch_after == None:
+            return True
+        else:
+            return False
+        
     def createTable(self) -> bool:
         sql = """
-        CREATE TABLE IF NOT EXISTS diaries (
-            date TEXT NOT NULL PRIMARY KEY,
+        CREATE TABLE IF NOT EXISTS __main__ (
+            name TEXT NOT NULL PRIMARY KEY,
             content TEXT,
             backup TEXT,
-            edited TEXT NOT NULL,
-            outdated TEXT NOT NULL
+            modification TEXT NOT NULL,
+            outdated TEXT NOT NULL,
+            autosave TEXT NOT NULL,
+            format TEXT NOT NULL
         );"""
 
         self.cur.execute(sql)
@@ -147,77 +117,63 @@ class DiariesDB:
         
         return self.checkIfTheTableExists()
     
-    def deleteContent(self, date: str) -> bool:
-        date_time = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-        
-        fetch_before = self.getContent(date)
-        
-        if QDate.fromString(date, "dd.MM.yyyy") != today:
-            self.cur.execute(f"select outdated from diaries where date = '{date}'")
-            check_outdated = self.cur.fetchone()[0]
-
-            if check_outdated == "yes":
-                sql = f"""update diaries set content = '',
-                edited = '{date_time}', outdated = 'yes' where date = '{date}'"""
-            elif check_outdated == "no":
-                sql = f"""update diaries set content = '', backup = '{fetch_before}',
-                edited = '{date_time}', outdated = 'yes' where date = '{date}'"""
-
-        else:            
-            sql = f"""update diaries set content = '', backup = '{fetch_before}',
-            edited = '{date_time}', outdated = 'no' where date = '{date}'"""
-        
-        self.cur.execute(sql)
+    def deleteNote(self, name) -> bool:
+        self.cur.execute("delete from __main__ where name = ?", (name,))
         self.db.commit()
         
-        fetch_after = self.getContent(date)
-        
-        if fetch_after == "" or fetch_after == None:
-            return True
-        else:
-            return False
-    
-    def deleteOne(self, date) -> bool:
-        self.cur.execute(f"delete from diaries where date = '{date}'")
-        self.db.commit()
-        
-        call = self.checkIfTheDiaryExists(date)
+        call = self.checkIfTheDiaryExists(name)
         
         if call:
             return False
         else:
             return True
+        
+    def getAutosave(self, name: str) -> str:
+        self.cur.execute("select autosave from __main__ where name = ?", (name,))
+        try:
+            fetch = self.cur.fetchone()[0]
+        except TypeError:
+            fetch = "global"
+        return fetch
     
-    def getBackup(self, date: str) -> str:
-        self.cur.execute(f"select backup from diaries where date = '{date}'")
+    def getBackup(self, name: str) -> str:
+        self.cur.execute("select backup from __main__ where name = ?", (name,))
         try:
             fetch = self.cur.fetchone()[0]
         except TypeError:
             fetch = ""
         return fetch
 
-    def getContent(self, date: str) -> str:
-        self.cur.execute(f"select content from diaries where date = '{date}'")
+    def getContent(self, name: str) -> str:
+        self.cur.execute("select content from __main__ where name = ?", (name,))
         try:
             fetch = self.cur.fetchone()[0]
         except TypeError:
             fetch = ""
         return fetch
         
-    def getInformations(self, date: str) -> str:
-        self.cur.execute(f"select edited from diaries where date = '{date}'")
+    def getFormat(self, name: str) -> str:
+        self.cur.execute("select format from __main__ where name = ?", (name,))
+        try:
+            fetch = self.cur.fetchone()[0]
+        except TypeError:
+            fetch = "global"
+        return fetch
+        
+    def getInformations(self, name: str) -> str:
+        self.cur.execute("select modification from __main__ where name = ?", (name,))
         return self.cur.fetchone()
         
     def getNames(self) -> list:
-        self.cur.execute("select date from diaries")
+        self.cur.execute("select name from __main__")
         return self.cur.fetchall()
     
-    def renameDiary(self, date: str, newname: str) -> bool:
-        self.cur.execute(f"update diaries set date = '{newname}' where date = '{date}'")
+    def renameDiary(self, name: str, newname: str) -> bool:
+        self.cur.execute("update __main__ set name = ? where name = ?", (newname, name))
         self.db.commit()
 
         try:
-            self.cur.execute(f"select * from diaries where date = '{newname}'")
+            self.cur.execute("select * from __main__ where name = ?", (newname,))
             self.cur.fetchone()[0]
             return True
             
@@ -225,7 +181,7 @@ class DiariesDB:
             return False
         
     def recreateTable(self) -> bool:
-        self.cur.execute(f"DROP TABLE IF EXISTS diaries")
+        self.cur.execute("DROP TABLE IF EXISTS __main__")
         self.db.commit()
         
         call = self.checkIfTheTableExists()
@@ -235,34 +191,37 @@ class DiariesDB:
         else:
             return self.createTable()
     
-    def restoreContent(self, date: str) -> tuple:
-        date_time = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+    def restoreContent(self, name: str) -> tuple:
+        date = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
         
-        self.cur.execute(f"select content, backup from diaries where date = '{date}'")
+        self.cur.execute("select content, backup from __main__ where name = ?", (name,))
         fetch_before = self.cur.fetchone()
         
         if fetch_before[1] == None or fetch_before[1] == "":
             return "no-backup", False
         
-        if QDate.fromString(date, "dd.MM.yyyy") != today:
-            self.cur.execute(f"select outdated from diaries where date = '{date}'")
+        if QDate.fromString(name, "dd.MM.yyyy") != today:
+            self.cur.execute("select outdated from __main__ where name = ?", (name,))
             check_outdated = self.cur.fetchone()[0]
 
             if check_outdated == "yes":
-                sql = f"""update diaries set content = '{fetch_before[1]}',
-                edited = '{date_time}', outdated = 'yes' where date = '{date}'"""
+                self.cur.execute(
+                    "update __main__ set content = ?, modification = ?, outdated = ?, where name = ?", 
+                    (fetch_before[1], date, "yes", name))
+                
             elif check_outdated == "no":
-                sql = f"""update diaries set content = '{fetch_before[1]}', backup = '{fetch_before[0]}',
-                edited = '{date_time}', outdated = 'yes' where date = '{date}'"""
+                self.cur.execute(
+                    "update __main__ set content = ?, backup = ?, modification = ?, outdated = ?, where name = ?", 
+                    (fetch_before[1], fetch_before[0], date, "yes", name))
 
         else:            
-            sql = f"""update diaries set content = '{fetch_before[1]}', backup = '{fetch_before[0]}',
-            edited = '{date_time}', outdated = 'no' where date = '{date}'"""
+            self.cur.execute(
+                "update __main__ set content = ?, backup = ?, modification = ?, outdated = ?, where name = ?", 
+                (fetch_before[1], fetch_before[0], date, "no", name))
 
-        self.cur.execute(sql)
         self.db.commit()
         
-        self.cur.execute(f"select content, backup from diaries where date = '{date}'")
+        self.cur.execute("select content, backup from __main__ where name = ?", (name,))
         fetch_after = self.cur.fetchone()
         
         if fetch_before[1] == fetch_after[0]:
@@ -274,56 +233,103 @@ class DiariesDB:
         successful = True
         calls = {}
         
-        for date in diaries:
-            calls[date] = self.saveOne(date,
-                                       diaries[date].input.toPlainText(), 
-                                       diaries[date].content, 
+        for name in diaries:
+            fetch_format = self.getFormat(name)
+            
+            if fetch_format == "global":
+                fetch_format == setting_format
+            
+            if fetch_format == "plain-text":
+                text = diaries[name].input.toPlainText()
+                
+            elif fetch_format == "markdown":
+                text = diaries[name].input.toMarkdown()
+                
+            elif fetch_format == "html":
+                text = diaries[name].input.toHtml()
+            
+            calls[name] = self.saveNote(name,
+                                       text, 
+                                       diaries[name].content, 
                                        False)
             
-            if calls[date] == False:
+            if calls[name] == False:
                 successful = False
                 
         return successful
 
-    def saveOne(self, date: str, content: str, backup: str, autosave: bool) -> bool:        
-        date_time = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+    def saveNote(self, name: str, content: str, backup: str, autosave: bool) -> bool:        
+        date = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
         
-        check = self.checkIfTheDiaryExists(date)
+        check = self.checkIfTheDiaryExists(name)
         
         if check:
             if autosave:
-                sql = f"""update diaries set content = '{content}',
-                edited = '{date_time}' where date = '{date}'"""
+                self.cur.execute(
+                    "update __main__ set content = ?, modification = ? where name = ?", 
+                    (content, date, name))
             
-            elif QDate.fromString(date, "dd.MM.yyyy") != today:
-                self.cur.execute(f"select outdated from diaries where date = '{date}'")
+            elif QDate.fromString(name, "dd.MM.yyyy") != today:
+                self.cur.execute("select outdated from __main__ where name = ?", (name,))
                 check_outdated = self.cur.fetchone()[0]
     
                 if check_outdated == "yes":
-                    sql = f"""update diaries set content = '{content}',
-                    edited = '{date_time}', outdated = 'yes' where date = '{date}'"""
+                    self.cur.execute(
+                        "update __main__ set content = ?, modification = ?, outdated = ? where name = ?",
+                        (content, date, "yes", name)
+                    )
+                    
                 elif check_outdated == "no":
-                    sql = f"""update diaries set content = '{content}', backup = '{backup}',
-                    edited = '{date_time}', outdated = 'yes' where date = '{date}'"""
+                    self.cur.execute(
+                        "update __main__ set content = ?, backup = ?, modification = ?, outdated = ? where name = ?",
+                        (content, backup, date, "yes", name)
+                    )
             
-            else: 
-                sql = f"""update diaries set content = '{content}', backup = '{backup}',
-                edited = '{date_time}', outdated = 'no' where date = '{date}'"""
-            
-            self.cur.execute(sql)
-            self.db.commit()
+            else:
+                self.cur.execute(
+                    "update __main__ set content = ?, backup = ?, modification = ?, outdated = ? where name = ?",
+                    (content, backup, date, "no", name)
+                )
             
         else:
-            sql = f"""insert into diaries (date, content, backup, edited, outdated) 
-                    values ('{date}', '{content}', '', '{date_time}', 'no')"""
-
-            self.cur.execute(sql)
-            self.db.commit()
+            self.cur.execute(
+                """insert into __main__ (name, content, backup, modification, outdated, autosave, format) 
+                values (?, ?, ?, ?, ?, ?, ?)""",
+                (name, content, '', date, "no", "global", "global"))
+        self.db.commit()
                         
-        self.cur.execute(f"select content, edited from diaries where date = '{date}'")
+        self.cur.execute("select content, modification from __main__ where name = ?", (name,))
         control = self.cur.fetchone()
 
-        if control[0] == content and control[1] == date_time:             
+        if control[0] == content and control[1] == date:             
+            return True
+        else:
+            return False
+        
+    def setAutosave(self, name: str, setting: str) -> bool:
+        if not self.checkIfTheDiaryExists(name):
+            return False
+        
+        self.cur.execute("update __main__ set autosave = ? where name = ?", (setting, name))
+        self.db.commit()
+        
+        call = self.getAutosave(name)
+        
+        if call == setting:
+            return True
+        else:
+            return False
+        
+    def setFormat(self, name: str, setting: str) -> bool:
+        if not self.checkIfTheDiaryExists(name):
+            return False
+        
+        self.cur.execute("update __main__ set format = ? where name = ?", (setting, name))
+        self.db.commit()
+        
+        call = self.getFormat(name)
+        
+        if call == setting:
             return True
         else:
             return False
@@ -349,79 +355,56 @@ class DiariesTabWidget(QTabWidget):
         self.home = QWidget(self)
         self.home.setLayout(QGridLayout(self.home))
         
-        self.edited = QLabel(self.home, alignment=Qt.AlignmentFlag.AlignCenter, 
-                             text=_("Edited: "))
+        self.modification = QLabel(self.home, alignment=Qt.AlignmentFlag.AlignCenter, 
+                             text=_("Modification: "))
         
         self.calendar = DiariesCalendarWidget(self)
         
-        self.comeback_button = QPushButton(self.home, text=_("Come back to today"))
-        self.comeback_button.clicked.connect(lambda: self.calendar.setSelectedDate(today))
+        self.comeback = QPushButton(self.home, text=_("Come back to today"))
+        self.comeback.clicked.connect(lambda: self.calendar.setSelectedDate(today))
 
-        self.update_button = QPushButton(self.home,
-                                            text=_("Update today variable (it is {date})").format(date = today.toString("dd.MM.yyyy")))
-        self.update_button.clicked.connect(self.updateToday)
+        self.refresh = QPushButton(
+            self.home, text=_("Refresh today variable (it is {name})").format(name = today.toString("dd.MM.yyyy")))
+        self.refresh.clicked.connect(self.refreshToday)
 
         self.side = QWidget(self.home)
-        self.side.setFixedWidth(150)
+        self.side.setFixedWidth(160)
         self.side.setLayout(QVBoxLayout(self.side))
         
-        self.open_create_button = QPushButton(self.side, text=_("Open/create diary"))
-        self.open_create_button.clicked.connect(
-            lambda: self.openCreate(self.calendar.selectedDate().toString("dd.MM.yyyy")))
+        self.open_create = QPushButton(self.side, text=_("Open/create"))
+        self.open_create.clicked.connect(self.openCreate)
 
-        self.show_backup_button = QPushButton(self.side, text=_("Show backup"))
-        self.show_backup_button.clicked.connect(
-            lambda: self.showBackup(self.calendar.selectedDate().toString("dd.MM.yyyy")))
+        self.show_backup = QPushButton(self.side, text=_("Show backup"))
+        self.show_backup.clicked.connect(self.showBackup)
 
-        self.restore_button = QPushButton(self.side, text=_("Restore content"))
-        self.restore_button.clicked.connect(
-            lambda: self.restoreContent(self.calendar.selectedDate().toString("dd.MM.yyyy")))
+        self.restore = QPushButton(self.side, text=_("Restore content"))
+        self.restore.clicked.connect(self.restoreContent)
         
-        self.delete_content_button = QPushButton(self.side, text=_("Delete content"))
-        self.delete_content_button.clicked.connect(
-            lambda: self.deleteContent(self.calendar.selectedDate().toString("dd.MM.yyyy")))
+        self.clear_content = QPushButton(self.side, text=_("Clear content"))
+        self.clear_content.clicked.connect(self.clearContent)
         
-        self.delete_diary_button = QPushButton(self.side, text=_("Delete diary"))
-        self.delete_diary_button.clicked.connect(
-            lambda: self.deleteDiary(self.calendar.selectedDate().toString("dd.MM.yyyy")))
+        self.delete_diary = QPushButton(self.side, text=_("Delete diary"))
+        self.delete_diary.clicked.connect(self.deleteDiary)
         
-        self.delete_all_button = QPushButton(self.side, text=_("Delete all diaries"))
-        self.delete_all_button.clicked.connect(
-            self.deleteAll)
+        self.delete_all = QPushButton(self.side, text=_("Delete all"))
+        self.delete_all.clicked.connect(self.deleteAll)
         
-        self.format = QComboBox(self)
-        self.format.addItems([_("Format: Plain text"), _("Format: Markdown"), _("Format: HTML")])
-        self.format.setEditable(False)
-        if setting_format == "plain-text":
-            self.format.setCurrentIndex(0)
-        elif setting_format == "markdown":
-            self.format.setCurrentIndex(1)
-        elif setting_format == "html":
-            self.format.setCurrentIndex(2)
-        self.format.currentIndexChanged.connect(self.setFormat)        
+        self.set_settings = QPushButton(self, text=_("Set settings"))
+        self.set_settings.clicked.connect(self.setSettings)
         
-        self.autosave = QCheckBox(self, text=_("Enable auto-save"))
-        if setting_autosave == "enabled":
-            self.autosave.setChecked(True)
-        self.autosave.setStatusTip(_("Auto-saves do not change backups."))
-        try:
-            self.autosave.checkStateChanged.connect(self.setAutoSave)
-        except:
-            self.autosave.stateChanged.connect(self.setAutoSave)
-        
-        self.side.layout().addWidget(self.open_create_button)
-        self.side.layout().addWidget(self.show_backup_button)
-        self.side.layout().addWidget(self.restore_button)
-        self.side.layout().addWidget(self.delete_content_button)
-        self.side.layout().addWidget(self.delete_diary_button)
-        self.side.layout().addWidget(self.delete_all_button)
-        self.side.layout().addWidget(self.format)
-        self.side.layout().addWidget(self.autosave)
+        self.side.layout().addWidget(self.open_create)
+        self.side.layout().addWidget(self.show_backup)
+        self.side.layout().addWidget(self.restore)
+        self.side.layout().addWidget(self.clear_content)
+        self.side.layout().addWidget(self.delete_diary)
+        self.side.layout().addWidget(self.delete_all)
+        self.side.layout().addSpacing(self.set_settings.height())
+        self.side.layout().addWidget(self.set_settings)
         self.home.layout().addWidget(self.side, 1, 2, 2, 1)
-        self.home.layout().addWidget(self.edited, 0, 0, 1, 2)
+        self.home.layout().addWidget(self.modification, 0, 0, 1, 2)
         self.home.layout().addWidget(self.calendar, 1, 0, 1, 2)
-        self.home.layout().addWidget(self.comeback_button, 2, 0, 1, 1)
-        self.home.layout().addWidget(self.update_button, 2, 1, 1, 1)
+        self.home.layout().addWidget(self.comeback, 2, 0, 1, 1)
+        self.home.layout().addWidget(self.refresh, 2, 1, 1, 1)
         
         self.addTab(self.home, _("Home"))
         self.setTabsClosable(True)
@@ -432,13 +415,30 @@ class DiariesTabWidget(QTabWidget):
         
         self.tabCloseRequested.connect(self.closeTab)
         
-    def checkIfTheDiaryExists(self, date: str, mode: str = "normal") -> None:
-        call = diariesdb.checkIfTheDiaryExists(date)
+    def checkIfTheDiaryExists(self, name: str, mode: str = "normal") -> None:
+        call = diariesdb.checkIfTheDiaryExists(name)
         
         if call == False and mode == "normal":
-            QMessageBox.critical(self, _("Error"), _("There is no diary called {date}.").format(date = date))
+            QMessageBox.critical(self, _("Error"), _("There is no diary called {name}.").format(name = name))
         
         return call
+    
+    def clearContent(self) -> None:
+        name = self.calendar.selectedDate().toString("dd.MM.yyyy")
+        
+        if name == "" or name == None:
+            QMessageBox.critical(self, _("Error"), _("Diary name can not be blank."))
+            return        
+        
+        if self.checkIfTheDiaryExists(name) == False:
+            return
+        
+        call = diariesdb.clearContent(name)
+    
+        if call:
+            QMessageBox.information(self, _("Successful"), _("Content of {name} diary deleted.").format(name = name))
+        else:
+            QMessageBox.critical(self, _("Error"), _("Failed to clear content of {name} diary.").format(name = name))
          
     def closeTab(self, index: int) -> None:
         if index != self.indexOf(self.home):           
@@ -446,13 +446,13 @@ class DiariesTabWidget(QTabWidget):
                 if not diaries[self.tabText(index).replace("&", "")].closable:
                     self.question = QMessageBox.question(self, 
                                                          _("Question"),
-                                                         _("{date} diary not saved.\nDo you want to directly closing or closing after saving it or cancel?")
-                                                         .format(date = self.tabText(index).replace("&", "")),
+                                                         _("{name} diary not saved.\nDo you want to directly closing or closing after saving it or cancel?")
+                                                         .format(name = self.tabText(index).replace("&", "")),
                                                          QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.Save | QMessageBox.StandardButton.Cancel,
                                                          QMessageBox.StandardButton.Save)
                     
                     if self.question == QMessageBox.StandardButton.Save:
-                        call = diariesdb.saveOne(self.tabText(index).replace("&", ""),
+                        call = diariesdb.saveNote(self.tabText(index).replace("&", ""),
                                                  diaries[self.tabText(index).replace("&", "")].input.toPlainText(),
                                                  diaries[self.tabText(index).replace("&", "")].content, 
                                                  False)
@@ -460,7 +460,7 @@ class DiariesTabWidget(QTabWidget):
                         if call:
                             self.closable = True
                         else:
-                            QMessageBox.critical(self, _("Error"), _("Failed to save {date} diary.").format(date = self.tabText(index).replace("&", "")))
+                            QMessageBox.critical(self, _("Error"), _("Failed to save {name} diary.").format(name = self.tabText(index).replace("&", "")))
                     
                     elif self.question != QMessageBox.StandardButton.Yes:
                         return
@@ -480,88 +480,93 @@ class DiariesTabWidget(QTabWidget):
         
         if call:
             self.insertInformations("")
+            self.calendar.menu.clear()
+            actions.clear()
             
             QMessageBox.information(self, _("Successful"), _("All diaries deleted."))
 
         else:
             QMessageBox.critical(self, _("Error"), _("Failed to delete all diaries."))
-        
-    def deleteContent(self, date: str) -> None:
-        if date == "" or date == None:
-            QMessageBox.critical(self, _("Error"), _("Diary date can not be blank."))
-            return        
-        
-        if self.checkIfTheDiaryExists(date) == False:
-            return
-        
-        call = diariesdb.deleteContent(date)
-    
-        if call:
-            QMessageBox.information(self, _("Successful"), _("Content of {date} diary deleted.").format(date = date))
-        else:
-            QMessageBox.critical(self, _("Error"), _("Failed to delete content of {date} diary.").format(date = date))
                        
-    def deleteDiary(self, date: str) -> None:
-        if date == "" or date == None:
-            QMessageBox.critical(self, _("Error"), _("Diary date can not be blank."))
+    def deleteDiary(self) -> None:
+        name = self.calendar.selectedDate().toString("dd.MM.yyyy")
+        
+        if name == "" or name == None:
+            QMessageBox.critical(self, _("Error"), _("Diary name can not be blank."))
             return
         
-        if self.checkIfTheDiaryExists(date) == False:
+        if self.checkIfTheDiaryExists(name) == False:
             return
         
-        call = diariesdb.deleteOne(date)
+        call = diariesdb.deleteNote(name)
             
         if call:
             self.insertInformations("")
+            self.calendar.menu.removeAction(actions[name])
+            del actions[name]
             
-            QMessageBox.information(self, _("Successful"), _("{date} diary deleted.").format(date = date))
+            QMessageBox.information(self, _("Successful"), _("{name} diary deleted.").format(name = name))
             
         else:
-            QMessageBox.critical(self, _("Error"), _("Failed to delete {date} diary.").format(date = date))
+            QMessageBox.critical(self, _("Error"), _("Failed to delete {name} diary.").format(name = name))
         
-    def insertInformations(self, date: str) -> None: 
-        if date != "":
-            call = diariesdb.getInformations(date)
+    def insertInformations(self, name: str) -> None: 
+        if name != "":
+            call = diariesdb.getInformations(name)
         else:
             call = None
     
         try:
-            self.edited.setText(_("Edited: ") + call[0])
+            self.modification.setText(_("Modification: ") + call[0])
         except TypeError:
-            self.edited.setText(_("Edited: "))
+            self.modification.setText(_("Modification: "))
         
-    def openCreate(self, date: str) -> None:
-        if date == "" or date == None:
-            QMessageBox.critical(self, _("Error"), _("Diary date can not be blank."))
+    def openCreate(self) -> None:
+        name = self.calendar.selectedDate().toString("dd.MM.yyyy")
+        
+        if name == "" or name == None:
+            QMessageBox.critical(self, _("Error"), _("Diary name can not be blank."))
             return
         
-        call = diariesdb.checkIfTheDiaryExists(date)
+        call = diariesdb.checkIfTheDiaryExists(name)
 
-        if QDate().fromString(date, "dd.MM.yyyy") != today and not call:
+        if QDate().fromString(name, "dd.MM.yyyy") == today and not call:
+            actions[name] = self.calendar.menu.addAction(name, lambda name = name: self.calendar.openCreate(name))
+            
+        elif QDate().fromString(name, "dd.MM.yyyy") != today and not call:
             QMessageBox.critical(self, _("Error"), _("You can not create a diary for past."))
             return
         
         diaries_parent.tabwidget.setCurrentIndex(3)
         
-        if date in diaries:
-            self.setCurrentWidget(diaries[date])
+        if name in diaries:
+            self.setCurrentWidget(diaries[name])
             
         else:
-            diaries_parent.dock.widget().addPage(date, self)
+            diaries_parent.dock.widget().addPage(name, self)
 
-            diaries[date] = DiariesDiary(self, date, diariesdb)
-            self.addTab(diaries[date], date)
-            self.setCurrentWidget(diaries[date])
+            diaries[name] = NormalPage(self, "diaries", today, name, setting_autosave, setting_format, diariesdb)
+            self.addTab(diaries[name], name)
+            self.setCurrentWidget(diaries[name])
             
-    def restoreContent(self, date: str) -> None: 
-        if date == "" or date == None:
-            QMessageBox.critical(self, _("Error"), _("Diary date can not be blank."))
+    def refreshToday(self):
+        global today
+        
+        today = QDate.currentDate()
+        
+        self.refresh.setText(_("Refresh today variable (it is {name})").format(name = today.toString("dd.MM.yyyy")))
+            
+    def restoreContent(self) -> None:
+        name = self.calendar.selectedDate().toString("dd.MM.yyyy")
+         
+        if name == "" or name == None:
+            QMessageBox.critical(self, _("Error"), _("Diary name can not be blank."))
             return
         
-        if self.checkIfTheDiaryExists(date) == False:
+        if self.checkIfTheDiaryExists(name) == False:
             return
         
-        if QDate.fromString(date, "dd.MM.yyyy") != today:
+        if QDate.fromString(name, "dd.MM.yyyy") != today:
             question = QMessageBox.question(self, 
                                             _("Question"),
                                             _("Diaries are special for that day, editing an old diary can take away the meaning of the diary."
@@ -570,245 +575,41 @@ class DiariesTabWidget(QTabWidget):
             if question != QMessageBox.StandardButton.Yes:
                 return
         
-        status, call = diariesdb.restoreContent(date)
+        status, call = diariesdb.restoreContent(name)
         
         if status == "successful" and call:
-            QMessageBox.information(self, _("Successful"), _("Backup of {date} diary restored.").format(date = date))
+            QMessageBox.information(self, _("Successful"), _("Backup of {name} diary restored.").format(name = name))
         
         elif status == "no-backup" and not call:
-            QMessageBox.critical(self, _("Error"), _("There is no backup for {date} diary.").format(date = date))
+            QMessageBox.critical(self, _("Error"), _("There is no backup for {name} diary.").format(name = name))
             
         elif status == "failed" and not call:
-            QMessageBox.critical(self, _("Error"), _("Failed to restore backup of {date} diary.").format(date = date))
+            QMessageBox.critical(self, _("Error"), _("Failed to restore backup of {name} diary.").format(name = name))
             
-    def setAutoSave(self, signal: Qt.CheckState | int) -> None:
-        global setting_autosave
+    def setSettings(self) -> None:
+        global setting_autosave, setting_format
+    
+        autosave, format = SettingsDialog(self, "diaries", setting_autosave, setting_format).saveSettings()
         
-        if signal == Qt.CheckState.Unchecked or signal == 0:
-            setting_autosave = "disabled"
-
-        elif signal == Qt.CheckState.Checked or signal == 2:
-            setting_autosave = "enabled"
+        if autosave != "" and autosave != None and format != "" and format != None:
+            setting_autosave = autosave
+            setting_format = format
             
-        call = settingsdb.setAutoSave(signal)
+    def showBackup(self) -> None:
+        name = self.calendar.selectedDate().toString("dd.MM.yyyy")
         
-        if call == False:
-            QMessageBox.critical(self, _("Erorr"), _("Failed to set auto-save setting."))
-                
-    def setFormat(self, index: int) -> None:
-        global setting_format
-        
-        if index == 0:
-            setting_format = "plain-text"
-        
-        elif index == 1:
-            setting_format = "markdown"
-        
-        elif index == 2:
-            setting_format = "html"
-            
-        call = settingsdb.setFormat(index)
-        
-        if call == False:
-            QMessageBox.critical(self, _("Erorr"), _("Failed to set format setting."))
-            
-    def showBackup(self, date: str) -> None:
-        if date == "" or date == None:
-            QMessageBox.critical(self, _("Error"), _("Diary date can not be blank."))
+        if name == "" or name == None:
+            QMessageBox.critical(self, _("Error"), _("Diary name can not be blank."))
             return
 
-        if self.checkIfTheDiaryExists(date) == False:
+        if self.checkIfTheDiaryExists(name) == False:
             return
         
         diaries_parent.tabwidget.setCurrentIndex(3)
 
-        self.backups[date] = DiariesBackup(self, date)
-        self.addTab(self.backups[date], (date + " " + _("(Backup)")))
-        self.setCurrentWidget(self.backups[date])
-        
-    def updateToday(self):
-        global today
-        
-        today = QDate.currentDate()
-        
-        self.update_button.setText(_("Update today variable (it is {date})").format(date = today.toString("dd.MM.yyyy")))
-
-
-class DiariesDiary(QWidget):
-    def __init__(self, parent: DiariesTabWidget | QWidget, date: str, database: DiariesDB) -> None:
-        super().__init__(parent)
-        
-        self.parent_ = parent
-        self.date = date
-        self.database = database
-        self.content = self.database.getContent(date)
-        self.setting_autosave = setting_autosave
-        self.setting_format = setting_format
-        self.closable = True
-        
-        self.setLayout(QGridLayout(self))
-        self.setStatusTip(_("Auto-saves do not change backups."))
-        
-        self.autosave = QCheckBox(self)
-        if QDate().fromString(self.date, "dd.MM.yyyy") == today:
-            self.autosave.setText(_("Enable auto-save for this time"))
-            if setting_autosave == "enabled":
-                self.autosave.setChecked(True)
-            try:
-                self.autosave.checkStateChanged.connect(self.setAutoSave)
-            except:
-                self.autosave.stateChanged.connect(self.setAutoSave)
-        else:
-            self.autosave.setText(_("Auto-saves disabled for old diaries"))
-            self.autosave.setDisabled(True)
-            
-            self.setting_autosave = "disabled"
-        
-        self.input = QTextEdit(self)
-        self.input.setPlainText(self.content)
-        self.input.textChanged.connect(
-            lambda: self.updateOutput(self.input.toPlainText()))
-        self.input.textChanged.connect(lambda: self.saveDiary(True))
-        
-        self.format = QComboBox(self)
-        self.format.addItems([_("Format for this time: Plain text"), 
-                               _("Format for this time: Markdown"), 
-                               _("Format for this time: HTML")])
-        self.format.setEditable(False)
-        if self.setting_format == "plain-text":
-            self.format.setCurrentIndex(0)
-        elif self.setting_format == "markdown":
-            self.format.setCurrentIndex(1)
-        elif self.setting_format == "html":
-            self.format.setCurrentIndex(2)
-        self.format.currentIndexChanged.connect(self.setFormat)
-        
-        self.output = QTextEdit(self)
-        self.output.setReadOnly(True)
-        self.updateOutput(self.content)
-        
-        self.button = QPushButton(self, text=_("Save"))
-        self.button.clicked.connect(self.saveDiary)
-        
-        self.layout().addWidget(self.autosave, 0, 0, 1, 1)
-        self.layout().addWidget(self.input, 1, 0, 1, 1)
-        self.layout().addWidget(self.format, 0, 1, 1, 1)
-        self.layout().addWidget(self.output, 1, 1, 1, 1)
-        self.layout().addWidget(self.button, 2, 0, 1, 2)
-        
-    def saveDiary(self, autosave: bool = False) -> None:
-        self.closable = False
-        
-        if not autosave or (autosave and self.setting_autosave == "enabled"):
-            if QDate.fromString(self.date, "dd.MM.yyyy") != today:
-                question = QMessageBox.question(self, 
-                                                _("Question"),
-                                                _("Diaries are special for that day, editing an old diary can take away the meaning of the diary."
-                                                +"\nSo, are you sure you want to save it?"))
-
-                if question != QMessageBox.StandardButton.Yes:
-                    return
-            
-            call = self.database.saveOne(self.date,
-                                         self.input.toPlainText(),
-                                         self.content, 
-                                         autosave)
-
-            if call:
-                self.closable = True
-                
-                if not autosave:
-                    QMessageBox.information(self, _("Successful"), _("Diary {date} saved.").format(date = self.date))
-                
-            else:
-                QMessageBox.critical(self, _("Error"), _("Failed to save {date} diary.").format(date = self.date))
-                
-    def setAutoSave(self, signal: Qt.CheckState | int) -> None:
-        if signal == Qt.CheckState.Unchecked or signal == 0:
-            self.setting_autosave = "disabled"
-
-        elif signal == Qt.CheckState.Checked or signal == 2:
-            self.setting_autosave = "enabled"
-
-    def setFormat(self, index: int) -> None:
-        if index == 0:
-            self.setting_format = "plain-text"
-        
-        elif index == 1:
-            self.setting_format = "markdown"
-        
-        elif index == 2:
-            self.setting_format = "html"
-            
-        self.updateOutput(self.input.toPlainText())
-            
-    def updateOutput(self, text: str) -> None:
-        if self.setting_format == "plain-text":
-            self.output.setPlainText(text)
-        
-        elif self.setting_format == "markdown":
-            self.output.setMarkdown(text)
-        
-        elif self.setting_format == "html":
-            self.output.setHtml(text)
-            
-
-class DiariesBackup(QWidget):
-    def __init__(self, parent: DiariesTabWidget, date: str) -> None:
-        super().__init__(parent)
-        
-        self.backup = diariesdb.getBackup(date)
-        
-        self.setting_format = setting_format
-        
-        self.setLayout(QVBoxLayout(self))
-        self.setStatusTip(_("Auto-saves do not change backups."))
-            
-        self.format = QComboBox(self)
-        self.format.addItems([_("Format for this time: Plain text"), 
-                               _("Format for this time: Markdown"), 
-                               _("Format for this time: HTML")])
-        self.format.setEditable(False)
-        if self.setting_format == "plain-text":
-            self.format.setCurrentIndex(0)
-        elif self.setting_format == "markdown":
-            self.format.setCurrentIndex(1)
-        elif self.setting_format == "html":
-            self.format.setCurrentIndex(2)
-        self.format.currentIndexChanged.connect(self.setFormat)
-        
-        self.output = QTextEdit(self)
-        self.output.setReadOnly(True)
-        self.updateOutput(self.backup)
-        
-        self.button = QPushButton(self, text=_("Restore content"))
-        self.button.clicked.connect(lambda: parent.restoreContent(date))
-        
-        self.layout().addWidget(self.format)
-        self.layout().addWidget(self.output)
-        self.layout().addWidget(self.button)
-
-    def setFormat(self, index: int) -> None:
-        if index == 0:
-            self.setting_format = "plain-text"
-        
-        elif index == 1:
-            self.setting_format = "markdown"
-        
-        elif index == 2:
-            self.setting_format = "html"
-            
-        self.updateOutput(self.backup)
-            
-    def updateOutput(self, text: str) -> None:
-        if self.setting_format == "plain-text":
-            self.output.setPlainText(text)
-        
-        elif self.setting_format == "markdown":
-            self.output.setMarkdown(text)
-        
-        elif self.setting_format == "html":
-            self.output.setHtml(text)
+        self.backups[name] = BackupPage(self, "diaries", today, name, setting_format, diariesdb)
+        self.addTab(self.backups[name], (name + " " + _("(Backup)")))
+        self.setCurrentWidget(self.backups[name])
 
 
 class DiariesCalendarWidget(QCalendarWidget):
@@ -824,15 +625,41 @@ class DiariesCalendarWidget(QCalendarWidget):
 
         self.parent_.insertInformations(self.selectedDate().toString("dd.MM.yyyy"))
         
-        self.setMenu(diariesdb.getNames())
-        
-    def setMenu(self, call: list):
         if not hasattr(self, "menu"):
             self.menu = diaries_parent.menuBar().addMenu(_("Diaries"))
-        self.menu.clear()
         
-        for name in call:
-            self.menu.addAction(name[0], lambda name = name: self.parent_.openCreate(name[0]))
+        for name in diariesdb.getNames():
+            actions[name[0]] = self.menu.addAction(name[0], lambda name = name: self.openCreate(name[0]))
+
+    def mouseDoubleClickEvent(self, a0: QMouseEvent | None) -> None:
+        super().mouseDoubleClickEvent(a0)
+        self.openCreate(self.selectedDate().toString("dd.MM.yyyy"))
+        
+    def openCreate(self, name: str) -> None:
+        if name == "" or name == None:
+            QMessageBox.critical(self, _("Error"), _("Diary name can not be blank."))
+            return
+        
+        call = diariesdb.checkIfTheDiaryExists(name)
+
+        if QDate().fromString(name, "dd.MM.yyyy") == today and not call:
+            actions[name] = self.menu.addAction(name, lambda name = name: self.calendar.openCreate(name))
+            
+        elif QDate().fromString(name, "dd.MM.yyyy") != today and not call:
+            QMessageBox.critical(self, _("Error"), _("You can not create a diary for past."))
+            return
+        
+        diaries_parent.tabwidget.setCurrentIndex(3)
+        
+        if name in diaries:
+            self.parent_.setCurrentWidget(diaries[name])
+            
+        else:
+            diaries_parent.dock.widget().addPage(name, self.parent_)
+
+            diaries[name] = NormalPage(self, "diaries", today, name, setting_autosave, setting_format, diariesdb)
+            self.parent_.addTab(diaries[name], name)
+            self.parent_.setCurrentWidget(diaries[name])
     
     def paintCell(self, painter: QPainter | None, rect: QRect, date: QDate | datetime.date) -> None:
         super().paintCell(painter, rect, date)
@@ -842,7 +669,6 @@ class DiariesCalendarWidget(QCalendarWidget):
         
         for name in call:
             dates.append(QDate.fromString(name[0], "dd.MM.yyyy"))
-            self.menu.addAction(name[0], lambda name = name: self.parent_.openCreate(name[0]))
 
         if date in dates:
             painter.setBrush(QColor(55, 98, 150, 255))
@@ -850,9 +676,3 @@ class DiariesCalendarWidget(QCalendarWidget):
             
         if date >= today:
             painter.setOpacity(0)
-            
-        self.setMenu(call)
-    
-    def mouseDoubleClickEvent(self, a0: QMouseEvent | None) -> None:
-        super().mouseDoubleClickEvent(a0)
-        self.parent_.openCreate(self.selectedDate().toString("dd.MM.yyyy"))

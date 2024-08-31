@@ -276,7 +276,7 @@ class SidebarWidget(QWidget):
         elif key.startswith(_("Diary: ")):
             length = len(_("Diary: "))
             
-            self.diaries.openCreate(key[length:])
+            self.diaries.calendar.openCreate(key[length:])
         
     def insertPages(self) -> None:
         call = sidebardb.getNames()

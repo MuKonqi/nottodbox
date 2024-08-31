@@ -22,9 +22,10 @@ sys.dont_write_bytecode = True
 import getpass
 import os
 from gettext import gettext as _
+from widgets.pages import NormalPage
 from notes import NotesTabWidget, NotesTreeView
 from todos import TodosTabWidget, TodolistListView, TodosListView
-from diaries import DiariesDiary, diariesdb
+from diaries import diariesdb, setting_autosave, setting_format
 from PyQt6.QtCore import Qt, QDate
 from PyQt6.QtWidgets import *
 
@@ -44,8 +45,6 @@ class HomeScrollArea(QScrollArea):
         global home_parent
         home_parent = parent
     
-        self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
-        self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
         self.setWidgetResizable(True)
         self.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.setWidget(HomeWidget(self, todos, notes))
@@ -64,7 +63,7 @@ class HomeWidget(QWidget):
         self.label_diary = QLabel(self, alignment=Qt.AlignmentFlag.AlignCenter,
                                   text=_("Your Diary for {date}").format(date = today.toString("dd.MM.yyyy")))
         
-        self.diary = DiariesDiary(self, today.toString("dd.MM.yyyy"), diariesdb)
+        self.diary = NormalPage(self, "diaries", today, today.toString("dd.MM.yyyy"), setting_autosave, setting_format, diariesdb)
         
         self.label_maintodos = QLabel(self, alignment=Qt.AlignmentFlag.AlignCenter, 
                                   text=_("List of Your Main Todos"))
