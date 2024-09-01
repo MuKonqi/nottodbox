@@ -24,14 +24,14 @@ import os
 from gettext import gettext as _
 from widgets.pages import NormalPage
 from notes import NotesTabWidget, NotesTreeView
-from todos import TodosTabWidget, TodolistListView, TodosListView
+from todos import TodosTabWidget
 from diaries import diariesdb, setting_autosave, setting_format
 from PyQt6.QtCore import Qt, QDate
 from PyQt6.QtWidgets import *
 
 
 username = getpass.getuser()
-userdata = f"/home/{username}/.local/share/nottodbox/"
+userdata = f"/home/{username}/.config/nottodbox/"
 if not os.path.isdir(userdata):
     os.mkdir(userdata)
     
@@ -54,7 +54,7 @@ class HomeWidget(QWidget):
     def __init__(self, parent: HomeScrollArea, todos: TodosTabWidget, notes: NotesTabWidget):
         super().__init__(parent)
         
-        self.setLayout(QGridLayout(self))
+        self.setLayout(QVBoxLayout(self))
         
         self.label_welcome = QLabel(self, alignment=Qt.AlignmentFlag.AlignCenter,
                              text=_("Welcome {username}!").format(username = username))
@@ -65,29 +65,14 @@ class HomeWidget(QWidget):
         
         self.diary = NormalPage(self, "diaries", today, today.toString("dd.MM.yyyy"), setting_autosave, setting_format, diariesdb)
         
-        self.label_maintodos = QLabel(self, alignment=Qt.AlignmentFlag.AlignCenter, 
-                                  text=_("List of Your Main Todos"))
-        
-        self.maintodos = TodolistListView(todos.maintodos, "main", "home")
-        
-        self.label_todolist = QLabel(self, alignment=Qt.AlignmentFlag.AlignCenter, 
-                                  text=_("List of Your Todolists"))
-        
-        self.todolist = TodosListView(todos, "home")
-        self.todolist.doubleClicked.connect(lambda: home_parent.tabwidget.setCurrentWidget(home_parent.todos))
-        
         self.label_notes = QLabel(self, alignment=Qt.AlignmentFlag.AlignCenter, 
                                   text=_("List of Your Notes"))
         
         self.notes = NotesTreeView(notes, "home")
         self.notes.doubleClicked.connect(lambda: home_parent.tabwidget.setCurrentWidget(home_parent.notes))
         
-        self.layout().addWidget(self.label_welcome, 0, 0, 1, 2)
-        self.layout().addWidget(self.label_diary, 1, 0, 1, 2)
-        self.layout().addWidget(self.diary, 2, 0, 1, 2)
-        self.layout().addWidget(self.label_maintodos, 3, 0, 1, 1)
-        self.layout().addWidget(self.maintodos, 4, 0, 1, 1)
-        self.layout().addWidget(self.label_todolist, 3, 1, 1, 1)
-        self.layout().addWidget(self.todolist, 4, 1, 1, 1)
-        self.layout().addWidget(self.label_notes, 5, 0, 1, 2)
-        self.layout().addWidget(self.notes, 6, 0, 1, 2)
+        self.layout().addWidget(self.label_welcome)
+        self.layout().addWidget(self.label_diary)
+        self.layout().addWidget(self.diary)
+        self.layout().addWidget(self.label_notes)
+        self.layout().addWidget(self.notes)

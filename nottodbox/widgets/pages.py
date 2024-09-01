@@ -175,21 +175,6 @@ class TextFormatter(QToolBar):
             chrfmt.setFontFixedPitch(True)
             
         self.mergeFormat(cur, chrfmt)
-    
-    def setTextColor(self) -> None:
-        status, qcolor = ColorDialog(Qt.GlobalColor.white, self, _("Select color")).getColor()
-        
-        if status == "ok":
-            cur = self.input.textCursor()
-
-            chrfmt = cur.charFormat()
-            
-            if qcolor.isValid():
-                chrfmt.setForeground(qcolor)
-            else:
-                chrfmt.setForeground(QTextCharFormat().foreground())
-                
-            self.mergeFormat(cur, chrfmt)
         
     def setHeadingLevel(self, level: int) -> None:
         cur = self.input.textCursor()
@@ -283,6 +268,21 @@ class TextFormatter(QToolBar):
 
             else:
                 QMessageBox.critical(self, _("Error"), _("The row and column numbers are required, they can not be blank."))
+                
+    def setTextColor(self) -> None:
+        status, qcolor = ColorDialog(Qt.GlobalColor.white, self, _("Select color")).getColor()
+        
+        if status == "ok":
+            cur = self.input.textCursor()
+
+            chrfmt = cur.charFormat()
+            
+            if qcolor.isValid():
+                chrfmt.setForeground(qcolor)
+            else:
+                chrfmt.setForeground(QTextCharFormat().foreground())
+                
+            self.mergeFormat(cur, chrfmt)
     
     def setUnderline(self) -> None:
         cur = self.input.textCursor()

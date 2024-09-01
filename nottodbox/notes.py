@@ -39,7 +39,7 @@ notebook_counts = {}
 notebook_items = {}
 
 username = getpass.getuser()
-userdata = f"/home/{username}/.local/share/nottodbox/"
+userdata = f"/home/{username}/.config/nottodbox/"
 
 setting_autosave, setting_format = settingsdb.getSettings("notes")
 
@@ -665,253 +665,8 @@ class NotesNoneOptions(QWidget):
         self.layout().addWidget(self.create_notebook)
         self.layout().addWidget(self.delete_all)
         self.layout().addWidget(self.set_settings)
-
-
-class NotesNoteOptions(QWidget):
-    def __init__(self, parent: NotesTabWidget) -> None:
-        super().__init__(parent)
-
-        self.parent_ = parent
         
-        self.create_note = QPushButton(self, text=_("Create note"))
-        self.create_note.clicked.connect(self.createNote)
         
-        self.open_note = QPushButton(self, text=_("Open note"))
-        self.open_note.clicked.connect(self.openNote)
-        
-        self.rename = QPushButton(self, text=_("Rename note"))
-        self.rename.clicked.connect(self.renameNote)
-
-        self.show_backup = QPushButton(self, text=_("Show backup"))
-        self.show_backup.clicked.connect(self.showBackup)
-
-        self.restore_content = QPushButton(self, text=_("Restore content"))
-        self.restore_content.clicked.connect(self.restoreContent)
-        
-        self.clear_content = QPushButton(self, text=_("Clear content"))
-        self.clear_content.clicked.connect(self.clearContent)
-        
-        self.delete_note = QPushButton(self, text=_("Delete note"))
-        self.delete_note.clicked.connect(self.deleteNote)
-        
-        self.set_settings = QPushButton(self, text=_("Set settings"))
-        self.set_settings.clicked.connect(self.setSettings)
-
-        self.setLayout(QVBoxLayout(self))
-        self.setFixedWidth(160)
-        
-        self.layout().addWidget(self.create_note)
-        self.layout().addWidget(self.open_note)
-        self.layout().addWidget(self.rename)
-        self.layout().addWidget(self.show_backup)
-        self.layout().addWidget(self.restore_content)
-        self.layout().addWidget(self.clear_content)
-        self.layout().addWidget(self.delete_note)
-        self.layout().addSpacing(self.set_settings.height())
-        self.layout().addWidget(self.set_settings)
-
-    def checkIfTheNoteExists(self, notebook: str, name: str, mode: str = "normal") -> bool:
-        call = notesdb.checkIfTheNoteExists(notebook, name)
-        
-        if not call and mode == "normal":
-            QMessageBox.critical(self, _("Error"), _("There is no note called {name}.").format(name = name))
-        
-        return call
-    
-    def checkIfTheNoteBackupExists(self, notebook: str, name: str) -> bool:  
-        call = notesdb.checkIfTheNoteBackupExists(notebook, name)
-        
-        if not call:
-            QMessageBox.critical(self, _("Error"), _("There is no backup for note {name}.").format(name = name))
-        
-        return call
-    
-    def clearContent(self) -> None:
-        notebook = self.parent_.notebook
-        name = self.parent_.name
-        
-        if notebook == "" or notebook == None or name == "" or name == None:
-            QMessageBox.critical(self, _("Error"), _("Please select a note."))
-            return
-        
-        if not self.checkIfTheNoteExists(notebook, name):
-            return
-        
-        call = notesdb.clearContent(notebook, name)
-    
-        if call:
-            QMessageBox.information(self, _("Successful"), _("Content of {name} note cleared.").format(name = name))
-        else:
-            QMessageBox.critical(self, _("Error"), _("Failed to clear content of {name} note.").format(name = name))
-    
-    def createNote(self):
-        notebook = self.parent_.notebook
-        
-        if not notesdb.checkIfTheNotebookExists(notebook):
-            QMessageBox.critical(self, _("Error"), _("There is no notebook called {name}.").format(name = notebook))
-            
-            return
-        
-        name, topwindow = QInputDialog.getText(self, _("Type a Name"), _("Type a name for creating a note."))
-        
-        if "@" in name:
-            QMessageBox.critical(self, _("Error"), _('The note name cannot contain @ character.'))
-            
-            return
-        
-        elif name != "" and name != None and topwindow:
-            call = self.parent_.note_options.checkIfTheNoteExists(notebook, name, "inverted")
-        
-            if call:
-                QMessageBox.critical(self, _("Error"), _("{name} note already created.").format(name = name))
-        
-            else:
-                call = notesdb.createNote(notebook, name)
-                
-                if call:
-                    self.parent_.treeview.appendNote(notebook, name)
-                    self.parent_.insertInformations(notebook, name)
-                    
-                    QMessageBox.information(self, _("Successful"), _("{name} note created.").format(name = name))
-                    
-                else:
-                    QMessageBox.critical(self, _("Error"), _("Failed to create {name} note.").format(name = name))
-            
-    def deleteNote(self) -> None:
-        notebook = self.parent_.notebook
-        name = self.parent_.name
-        
-        if notebook == "" or notebook == None or name == "" or name == None:
-            QMessageBox.critical(self, _("Error"), _("Please select a note."))
-            return
-        
-        if not self.checkIfTheNoteExists(notebook, name):
-            return
-        
-        call = notesdb.deleteNote(notebook, name)
-            
-        if call:
-            self.parent_.treeview.deleteNote(notebook, name)
-            self.parent_.insertInformations(notebook, "")
-            
-            QMessageBox.information(self, _("Successful"), _("{name} note deleted.").format(name = name))
-            
-        else:
-            QMessageBox.critical(self, _("Error"), _("Failed to delete {name} note.").format(name = name))
-        
-    def openNote(self, notebook: str = "", name: str = "") -> None:
-        notebook = self.parent_.notebook
-        name = self.parent_.name
-        
-        if notebook == "" or notebook == None or name == "" or name == None:
-            QMessageBox.critical(self, _("Error"), _("Please select a note."))
-            return
-
-        if not self.checkIfTheNoteExists(notebook, name):
-            return
-        
-        notes_parent.tabwidget.setCurrentIndex(1)
-        
-        if f"{name} @ {notebook}" in notes:
-            self.parent_.setCurrentWidget(notes[f"{name} @ {notebook}"])
-            
-        else:            
-            notes_parent.dock.widget().addPage(f"{name} @ {notebook}", self.parent_)
-            notes[f"{name} @ {notebook}"] = NormalPage(self, "notes", notebook, name, setting_autosave, setting_format, notesdb)
-            self.parent_.addTab(notes[f"{name} @ {notebook}"], f"{name} @ {notebook}")
-            self.parent_.setCurrentWidget(notes[f"{name} @ {notebook}"])
-    
-    def renameNote(self) -> None:
-        notebook = self.parent_.notebook
-        name = self.parent_.name
-        
-        if notebook == "" or notebook == None or name == "" or name == None:
-            QMessageBox.critical(self, _("Error"), _("Please select a note."))
-            return
-        
-        if not self.checkIfTheNoteExists(notebook, name):
-            return
-        
-        newname, topwindow = QInputDialog.getText(self, 
-                                                  _("Rename {name} Note").format(name = name), 
-                                                  _("Please enter a new name for {name} below.").format(name = name))
-        
-        if newname != "" and newname != None and topwindow:
-            if not self.checkIfTheNoteExists(notebook, newname, "no-popup"):
-                call = notesdb.renameNote(notebook, name, newname)
-
-                self.parent_.treeview.updateNote(notebook, name, newname)
-                
-                if call:
-                    self.parent_.insertInformations(notebook, newname)
-                    
-                    QMessageBox.information(self, _("Successful"), _("{name} note renamed as {newname}.")
-                                            .format(name = name, newname = newname))
-    
-                else:
-                    QMessageBox.critical(self, _("Error"), _("Failed to rename {name} note.")
-                                        .format(name = name))
-            
-            else:
-                QMessageBox.critical(self, _("Error"), _("Already existing {newname} note, renaming {name} note cancalled.")
-                                     .format(newname = newname, name = name))
-                
-        else:
-            QMessageBox.critical(self, _("Error"), _("Failed to rename {name} note.")
-                                 .format(name = name))
-            
-    def restoreContent(self) -> None:
-        notebook = self.parent_.notebook
-        name = self.parent_.name
-        
-        if notebook == "" or notebook == None or name == "" or name == None:
-            QMessageBox.critical(self, _("Error"), _("Please select a note."))
-            return
-        
-        if not self.checkIfTheNoteExists(notebook, name):
-            return
-        
-        if not self.checkIfTheNoteBackupExists(notebook, name):
-            return
-        
-        call = notesdb.restoreContent(notebook, name)
-        
-        if call:
-            QMessageBox.information(self, _("Successful"), _("Backup of {name} note restored.").format(name = name))
-            
-        elif not call:
-            QMessageBox.critical(self, _("Error"), _("Failed to restore backup of {name} note.").format(name = name))
-            
-    def showBackup(self) -> None:
-        notebook = self.parent_.notebook
-        name = self.parent_.name
-        
-        if notebook == "" or notebook == None or name == "" or name == None:
-            QMessageBox.critical(self, _("Error"), _("Please select a note."))
-            return
-        
-        if not self.checkIfTheNoteExists(notebook, name):
-            return
-        
-        if not self.checkIfTheNoteBackupExists(notebook, name):
-            return
-        
-        notes_parent.tabwidget.setCurrentIndex(1)
-
-        self.parent_.backups[f'{name} @ {notebook}'] = BackupPage(self, "notes", notebook, name, setting_format, notesdb)
-        self.parent_.addTab(self.parent_.backups[f'{name} @ {notebook}'], f'{name} @ {notebook} {_("(Backup)")}')
-        self.parent_.setCurrentWidget(self.parent_.backups[f'{name} @ {notebook}'])
-        
-    def setSettings(self) -> None:
-        global setting_autosave, setting_format
-    
-        autosave, format = SettingsDialog(self, "notes", setting_autosave, setting_format).saveSettings()
-        
-        if autosave != "" and autosave != None and format != "" and format != None:
-            setting_autosave = autosave
-            setting_format = format
-            
-            
 class NotesNotebookOptions(QWidget):
     def __init__(self, parent: NotesTabWidget) -> None:
         super().__init__(parent)
@@ -924,8 +679,8 @@ class NotesNotebookOptions(QWidget):
         self.create_notebook = QPushButton(self, text=_("Create notebook"))
         self.create_notebook.clicked.connect(self.createNotebook)
         
-        self.renamebook = QPushButton(self, text=_("Rename notebook"))
-        self.renamebook.clicked.connect(self.renameNotebook)
+        self.rename_notebook = QPushButton(self, text=_("Rename notebook"))
+        self.rename_notebook.clicked.connect(self.renameNotebook)
         
         self.reset_notebook = QPushButton(self, text=_("Reset notebook"))
         self.reset_notebook.clicked.connect(self.resetNotebook)
@@ -950,7 +705,7 @@ class NotesNotebookOptions(QWidget):
         
         self.layout().addWidget(self.create_note)
         self.layout().addWidget(self.create_notebook)
-        self.layout().addWidget(self.renamebook)
+        self.layout().addWidget(self.rename_notebook)
         self.layout().addWidget(self.reset_notebook)
         self.layout().addWidget(self.delete_notebook)
         self.layout().addWidget(self.set_background)
@@ -968,10 +723,10 @@ class NotesNotebookOptions(QWidget):
         return call
                     
     def createNotebook(self) -> None:
-        name, topwindow = QInputDialog.getText(self, _("Type a Name"), _("Type a name for creating a notebook."))
+        name, topwindow = QInputDialog.getText(self, _("Type a name"), _("Type a name for creating a notebook."))
         
         if "@" in name or "'" in name:
-            QMessageBox.critical(self, _("Error"), _("The notebook name cannot contain these characters: @ and '"))
+            QMessageBox.critical(self, _("Error"), _("The notebook name can not contain these characters: @ and '"))
             
             return
         
@@ -1028,7 +783,7 @@ class NotesNotebookOptions(QWidget):
             return
         
         newname, topwindow = QInputDialog.getText(self, 
-                                                  _("Rename {name} Notebook").format(name = name), 
+                                                  _("Rename {name} notebook").format(name = name), 
                                                   _("Please enter a new name for {name} below.").format(name = name))
         
         if newname != "" and newname != None and topwindow:
@@ -1131,6 +886,248 @@ class NotesNotebookOptions(QWidget):
                 QMessageBox.critical(self, _("Error"), _("Failed to set foreground color for {name} notebook.").format(name = name))
 
 
+class NotesNoteOptions(QWidget):
+    def __init__(self, parent: NotesTabWidget) -> None:
+        super().__init__(parent)
+
+        self.parent_ = parent
+        
+        self.create_note = QPushButton(self, text=_("Create note"))
+        self.create_note.clicked.connect(self.createNote)
+        
+        self.open_note = QPushButton(self, text=_("Open note"))
+        self.open_note.clicked.connect(self.openNote)
+        
+        self.rename = QPushButton(self, text=_("Rename note"))
+        self.rename.clicked.connect(self.renameNote)
+
+        self.show_backup = QPushButton(self, text=_("Show backup"))
+        self.show_backup.clicked.connect(self.showBackup)
+
+        self.restore_content = QPushButton(self, text=_("Restore content"))
+        self.restore_content.clicked.connect(self.restoreContent)
+        
+        self.clear_content = QPushButton(self, text=_("Clear content"))
+        self.clear_content.clicked.connect(self.clearContent)
+        
+        self.delete_note = QPushButton(self, text=_("Delete note"))
+        self.delete_note.clicked.connect(self.deleteNote)
+        
+        self.set_settings = QPushButton(self, text=_("Set settings"))
+        self.set_settings.clicked.connect(self.setSettings)
+
+        self.setLayout(QVBoxLayout(self))
+        self.setFixedWidth(160)
+        
+        self.layout().addWidget(self.create_note)
+        self.layout().addWidget(self.open_note)
+        self.layout().addWidget(self.rename)
+        self.layout().addWidget(self.show_backup)
+        self.layout().addWidget(self.restore_content)
+        self.layout().addWidget(self.clear_content)
+        self.layout().addWidget(self.delete_note)
+        self.layout().addSpacing(self.set_settings.height())
+        self.layout().addWidget(self.set_settings)
+
+    def checkIfTheNoteExists(self, notebook: str, name: str, mode: str = "normal") -> bool:
+        call = notesdb.checkIfTheNoteExists(notebook, name)
+        
+        if not call and mode == "normal":
+            QMessageBox.critical(self, _("Error"), _("There is no note called {name}.").format(name = name))
+        
+        return call
+    
+    def checkIfTheNoteBackupExists(self, notebook: str, name: str) -> bool:  
+        call = notesdb.checkIfTheNoteBackupExists(notebook, name)
+        
+        if not call:
+            QMessageBox.critical(self, _("Error"), _("There is no backup for note {name}.").format(name = name))
+        
+        return call
+    
+    def clearContent(self) -> None:
+        notebook = self.parent_.notebook
+        name = self.parent_.name
+        
+        if notebook == "" or notebook == None or name == "" or name == None:
+            QMessageBox.critical(self, _("Error"), _("Please select a note."))
+            return
+        
+        if not self.checkIfTheNoteExists(notebook, name):
+            return
+        
+        call = notesdb.clearContent(notebook, name)
+    
+        if call:
+            QMessageBox.information(self, _("Successful"), _("Content of {name} note cleared.").format(name = name))
+        else:
+            QMessageBox.critical(self, _("Error"), _("Failed to clear content of {name} note.").format(name = name))
+    
+    def createNote(self):
+        notebook = self.parent_.notebook
+        
+        if not notesdb.checkIfTheNotebookExists(notebook):
+            QMessageBox.critical(self, _("Error"), _("There is no notebook called {name}.").format(name = notebook))
+            return
+        
+        name, topwindow = QInputDialog.getText(self, _("Type a name"), _("Type a name for creating a note."))
+        
+        if "@" in name:
+            QMessageBox.critical(self, _("Error"), _('The note name can not contain @ character.'))
+            return
+        
+        elif name != "" and name != None and topwindow:
+            call = self.checkIfTheNoteExists(notebook, name, "inverted")
+        
+            if call:
+                QMessageBox.critical(self, _("Error"), _("{name} note already created.").format(name = name))
+        
+            else:
+                call = notesdb.createNote(notebook, name)
+                
+                if call:
+                    self.parent_.treeview.appendNote(notebook, name)
+                    self.parent_.insertInformations(notebook, name)
+                    
+                    QMessageBox.information(self, _("Successful"), _("{name} note created.").format(name = name))
+                    
+                else:
+                    QMessageBox.critical(self, _("Error"), _("Failed to create {name} note.").format(name = name))
+            
+    def deleteNote(self) -> None:
+        notebook = self.parent_.notebook
+        name = self.parent_.name
+        
+        if notebook == "" or notebook == None or name == "" or name == None:
+            QMessageBox.critical(self, _("Error"), _("Please select a note."))
+            return
+        
+        if not self.checkIfTheNoteExists(notebook, name):
+            return
+        
+        call = notesdb.deleteNote(notebook, name)
+            
+        if call:
+            self.parent_.treeview.deleteNote(notebook, name)
+            self.parent_.insertInformations(notebook, "")
+            
+            QMessageBox.information(self, _("Successful"), _("{name} note deleted.").format(name = name))
+            
+        else:
+            QMessageBox.critical(self, _("Error"), _("Failed to delete {name} note.").format(name = name))
+        
+    def openNote(self, notebook: str = "", name: str = "") -> None:
+        notebook = self.parent_.notebook
+        name = self.parent_.name
+        
+        if notebook == "" or notebook == None or name == "" or name == None:
+            QMessageBox.critical(self, _("Error"), _("Please select a note."))
+            return
+
+        if not self.checkIfTheNoteExists(notebook, name):
+            return
+        
+        notes_parent.tabwidget.setCurrentIndex(1)
+        
+        if f"{name} @ {notebook}" in notes:
+            self.parent_.setCurrentWidget(notes[f"{name} @ {notebook}"])
+            
+        else:            
+            notes_parent.dock.widget().addPage(f"{name} @ {notebook}", self.parent_)
+            notes[f"{name} @ {notebook}"] = NormalPage(self, "notes", notebook, name, setting_autosave, setting_format, notesdb)
+            self.parent_.addTab(notes[f"{name} @ {notebook}"], f"{name} @ {notebook}")
+            self.parent_.setCurrentWidget(notes[f"{name} @ {notebook}"])
+    
+    def renameNote(self) -> None:
+        notebook = self.parent_.notebook
+        name = self.parent_.name
+        
+        if notebook == "" or notebook == None or name == "" or name == None:
+            QMessageBox.critical(self, _("Error"), _("Please select a note."))
+            return
+        
+        if not self.checkIfTheNoteExists(notebook, name):
+            return
+        
+        newname, topwindow = QInputDialog.getText(self, 
+                                                  _("Rename {name} note").format(name = name), 
+                                                  _("Please enter a new name for {name} below.").format(name = name))
+        
+        if newname != "" and newname != None and topwindow:
+            if not self.checkIfTheNoteExists(notebook, newname, "no-popup"):
+                call = notesdb.renameNote(notebook, name, newname)
+                
+                if call:
+                    self.parent_.treeview.updateNote(notebook, name, newname)
+                    self.parent_.insertInformations(notebook, newname)
+                    
+                    QMessageBox.information(self, _("Successful"), _("{name} note renamed as {newname}.")
+                                            .format(name = name, newname = newname))
+    
+                else:
+                    QMessageBox.critical(self, _("Error"), _("Failed to rename {name} note.")
+                                        .format(name = name))
+            
+            else:
+                QMessageBox.critical(self, _("Error"), _("Already existing {newname} note, renaming {name} note cancalled.")
+                                     .format(newname = newname, name = name))
+                
+        else:
+            QMessageBox.critical(self, _("Error"), _("Failed to rename {name} note.")
+                                 .format(name = name))
+            
+    def restoreContent(self) -> None:
+        notebook = self.parent_.notebook
+        name = self.parent_.name
+        
+        if notebook == "" or notebook == None or name == "" or name == None:
+            QMessageBox.critical(self, _("Error"), _("Please select a note."))
+            return
+        
+        if not self.checkIfTheNoteExists(notebook, name):
+            return
+        
+        if not self.checkIfTheNoteBackupExists(notebook, name):
+            return
+        
+        call = notesdb.restoreContent(notebook, name)
+        
+        if call:
+            QMessageBox.information(self, _("Successful"), _("Backup of {name} note restored.").format(name = name))
+            
+        elif not call:
+            QMessageBox.critical(self, _("Error"), _("Failed to restore backup of {name} note.").format(name = name))
+            
+    def showBackup(self) -> None:
+        notebook = self.parent_.notebook
+        name = self.parent_.name
+        
+        if notebook == "" or notebook == None or name == "" or name == None:
+            QMessageBox.critical(self, _("Error"), _("Please select a note."))
+            return
+        
+        if not self.checkIfTheNoteExists(notebook, name):
+            return
+        
+        if not self.checkIfTheNoteBackupExists(notebook, name):
+            return
+        
+        notes_parent.tabwidget.setCurrentIndex(1)
+
+        self.parent_.backups[f'{name} @ {notebook}'] = BackupPage(self, "notes", notebook, name, setting_format, notesdb)
+        self.parent_.addTab(self.parent_.backups[f'{name} @ {notebook}'], f'{name} @ {notebook} {_("(Backup)")}')
+        self.parent_.setCurrentWidget(self.parent_.backups[f'{name} @ {notebook}'])
+        
+    def setSettings(self) -> None:
+        global setting_autosave, setting_format
+    
+        autosave, format = SettingsDialog(self, "notes", setting_autosave, setting_format).saveSettings()
+        
+        if autosave != "" and autosave != None and format != "" and format != None:
+            setting_autosave = autosave
+            setting_format = format
+
+
 class NotesTreeView(QTreeView):
     def __init__(self, parent: NotesTabWidget, caller: str = "notes") -> None:
         super().__init__(parent)
@@ -1146,15 +1143,16 @@ class NotesTreeView(QTreeView):
             global notes_model
             
             notes_model = QStandardItemModel(self)
-            notes_model.setHorizontalHeaderLabels(["Name", "Creation date", "Modification date"])
+            notes_model.setHorizontalHeaderLabels([_("Name"), _("Creation"), _("Modification")])
             
         self.proxy.setSourceModel(notes_model)
         
+        self.setModel(self.proxy)
         self.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
         self.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.setStatusTip(_("Double-click to opening a note."))
-        self.setModel(self.proxy)
+        self.header().setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
 
         if self.caller == "notes":
             self.selectionModel().currentRowChanged.connect(
@@ -1351,7 +1349,7 @@ class NotesTreeView(QTreeView):
         
     def updateAll(self) -> None:
         notes_model.clear()
-        notes_model.setHorizontalHeaderLabels(["Name", "Creation date", "Modification date"])
+        notes_model.setHorizontalHeaderLabels([_("Name"), _("Creation"), _("Modification")])
         
         notes_menu.clear()
         

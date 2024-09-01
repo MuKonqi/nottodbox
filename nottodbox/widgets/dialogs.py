@@ -29,7 +29,7 @@ from PyQt6.QtWidgets import *
 
 
 username = getpass.getuser()
-userdata = f"/home/{username}/.local/share/nottodbox/"
+userdata = f"/home/{username}/.config/nottodbox/"
 
 
 class SettingsDB:

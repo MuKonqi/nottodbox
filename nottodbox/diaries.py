@@ -39,7 +39,7 @@ actions = {}
 today = QDate.currentDate()
 
 username = getpass.getuser()
-userdata = f"/home/{username}/.local/share/nottodbox/"
+userdata = f"/home/{username}/.config/nottodbox/"
 
 setting_autosave, setting_format = settingsdb.getSettings("diaries")
 
