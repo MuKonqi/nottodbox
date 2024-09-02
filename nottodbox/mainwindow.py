@@ -67,7 +67,7 @@ class MainWindow(QMainWindow):
         self.tabwidget.addTab(self.diaries, _("Diaries"))
         
         self.dock = QDockWidget(self)
-        self.dock.setFixedWidth(160)
+        self.dock.setFixedWidth(150)
         self.dock.setStyleSheet("margin: 0px")
         self.dock.setFeatures(QDockWidget.DockWidgetFeature.DockWidgetClosable |
                               QDockWidget.DockWidgetFeature.DockWidgetFloatable |
@@ -77,8 +77,6 @@ class MainWindow(QMainWindow):
         self.statusbar = QStatusBar(self)
         
         self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.dock)
-        self.setMinimumWidth(800)
-        self.setMinimumHeight(480)
         self.setStatusBar(self.statusbar)
         self.setStatusTip(_("Copyright (C) 2024 MuKonqi (Muhammed S.), licensed under GPLv3 or later"))
 

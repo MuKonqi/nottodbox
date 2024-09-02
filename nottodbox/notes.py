@@ -181,9 +181,9 @@ class NotesDB:
         calls = {}
         
         self.cur.execute("select name from __main__")
-        notebooks = self.cur.fetchall()
+        parents = self.cur.fetchall()
         
-        for notebook in notebooks:
+        for notebook in parents:
             notebook = notebook[0]
             
             calls[notebook] = self.deleteNotebook(notebook)
@@ -233,9 +233,9 @@ class NotesDB:
         all = {}
         
         self.cur.execute("select name, creation, modification, background, foreground from __main__")
-        notebooks = self.cur.fetchall()
+        parents = self.cur.fetchall()
         
-        for notebook, creation, modification, background, foreground in notebooks:
+        for notebook, creation, modification, background, foreground in parents:
             self.cur.execute(f"select name, creation, modification from '{notebook}'")
             all[(notebook, creation, modification, background, foreground)] = self.cur.fetchall()
             
@@ -659,7 +659,7 @@ class NotesNoneOptions(QWidget):
         self.set_settings.clicked.connect(self.parent_.note_options.setSettings)
         
         self.setLayout(QVBoxLayout(self))
-        self.setFixedWidth(160)
+        self.setFixedWidth(150)
         
         self.layout().addWidget(self.warning_label)
         self.layout().addWidget(self.create_notebook)
@@ -701,7 +701,7 @@ class NotesNotebookOptions(QWidget):
         self.set_settings.clicked.connect(self.parent_.note_options.setSettings)
         
         self.setLayout(QVBoxLayout(self))
-        self.setFixedWidth(160)
+        self.setFixedWidth(150)
         
         self.layout().addWidget(self.create_note)
         self.layout().addWidget(self.create_notebook)
@@ -723,11 +723,11 @@ class NotesNotebookOptions(QWidget):
         return call
                     
     def createNotebook(self) -> None:
-        name, topwindow = QInputDialog.getText(self, _("Type a name"), _("Type a name for creating a notebook."))
+        name, topwindow = QInputDialog.getText(
+            self, _("Create a notebook"), _("Please enter a name for creating a notebook."))
         
-        if "@" in name or "'" in name:
-            QMessageBox.critical(self, _("Error"), _("The notebook name can not contain these characters: @ and '"))
-            
+        if "__main__" in name or "'" in name or "@" in name :
+            QMessageBox.critical(self, _("Error"), _("The notebook name can not contain these: __main__, ' and @"))
             return
         
         elif name != "" and name != None and topwindow:
@@ -784,7 +784,7 @@ class NotesNotebookOptions(QWidget):
         
         newname, topwindow = QInputDialog.getText(self, 
                                                   _("Rename {name} notebook").format(name = name), 
-                                                  _("Please enter a new name for {name} below.").format(name = name))
+                                                  _("Please enter a new name for {name} notebook.").format(name = name))
         
         if newname != "" and newname != None and topwindow:
             if not self.checkIfTheNotebookExists(newname, "no-popup"):
@@ -917,7 +917,7 @@ class NotesNoteOptions(QWidget):
         self.set_settings.clicked.connect(self.setSettings)
 
         self.setLayout(QVBoxLayout(self))
-        self.setFixedWidth(160)
+        self.setFixedWidth(150)
         
         self.layout().addWidget(self.create_note)
         self.layout().addWidget(self.open_note)
@@ -941,7 +941,7 @@ class NotesNoteOptions(QWidget):
         call = notesdb.checkIfTheNoteBackupExists(notebook, name)
         
         if not call:
-            QMessageBox.critical(self, _("Error"), _("There is no backup for note {name}.").format(name = name))
+            QMessageBox.critical(self, _("Error"), _("There is no backup for {name} note.").format(name = name))
         
         return call
     
@@ -970,7 +970,8 @@ class NotesNoteOptions(QWidget):
             QMessageBox.critical(self, _("Error"), _("There is no notebook called {name}.").format(name = notebook))
             return
         
-        name, topwindow = QInputDialog.getText(self, _("Type a name"), _("Type a name for creating a note."))
+        name, topwindow = QInputDialog.getText(
+            self, _("Add a note"), _("Please enter a name for creating a note."))
         
         if "@" in name:
             QMessageBox.critical(self, _("Error"), _('The note name can not contain @ character.'))
@@ -1051,7 +1052,7 @@ class NotesNoteOptions(QWidget):
         
         newname, topwindow = QInputDialog.getText(self, 
                                                   _("Rename {name} note").format(name = name), 
-                                                  _("Please enter a new name for {name} below.").format(name = name))
+                                                  _("Please enter a new name for {name} note.").format(name = name))
         
         if newname != "" and newname != None and topwindow:
             if not self.checkIfTheNoteExists(notebook, newname, "no-popup"):
@@ -1152,7 +1153,8 @@ class NotesTreeView(QTreeView):
         self.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
         self.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.setStatusTip(_("Double-click to opening a note."))
-        self.header().setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
+        self.header().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
+        self.setRootIndex(self.proxy.index(0, 0))
 
         if self.caller == "notes":
             self.selectionModel().currentRowChanged.connect(
@@ -1200,8 +1202,8 @@ class NotesTreeView(QTreeView):
                     
                     note_counts[(notebook, name)] = notebook_count
                     note_items[(notebook, name)] = [QStandardItem(name), 
-                                                            QStandardItem(creation_note), 
-                                                            QStandardItem(modification_note)]
+                                                    QStandardItem(creation_note), 
+                                                    QStandardItem(modification_note)]
                 
                     notebook_items[notebook][0].appendRow(note_items[(notebook, name)])
                     
@@ -1212,20 +1214,18 @@ class NotesTreeView(QTreeView):
                 notes_model.appendRow(notebook_items[notebook])
             
     def appendNote(self, notebook: str, name: str) -> None:
-        creation, modification = notesdb.getNote(notebook, name)
-        
-        name_column = QStandardItem(name)
-        creation_column = QStandardItem(creation)
-        modification_column = QStandardItem(modification)
+        creation_note, modification_note = notesdb.getNote(notebook, name)
         
         note_counts[(notebook, name)] = notebook_items[notebook][0].rowCount()
-        note_items[(notebook, name)] = [name_column, creation_column, modification_column]
+        note_items[(notebook, name)] = [QStandardItem(name), 
+                                        QStandardItem(creation_note), 
+                                        QStandardItem(modification_note)]
+    
+        notebook_items[notebook][0].appendRow(note_items[(notebook, name)])
         
         if self.caller == "notes":
             note_menus[(notebook, name)] = notes_menu.addAction(
                 f"{name} @ {notebook}", lambda name = name, notebook = notebook: self.openNote(notebook, name))
-        
-        notebook_items[notebook][0].appendRow(note_items[(notebook, name)])
             
     def appendNotebook(self, notebook: str) -> None:
         creation, modification, background, foreground, notes = notesdb.getNotebook(notebook)
@@ -1249,8 +1249,8 @@ class NotesTreeView(QTreeView):
             
             note_counts[(notebook, name)] = notebook_count
             note_items[(notebook, name)] = [QStandardItem(name), 
-                                                      QStandardItem(creation_note), 
-                                                      QStandardItem(modification_note)]
+                                            QStandardItem(creation_note), 
+                                            QStandardItem(modification_note)]
         
             notebook_items[notebook][0].appendRow(note_items[(notebook, name)])
             

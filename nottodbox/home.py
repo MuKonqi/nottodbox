@@ -24,7 +24,7 @@ import os
 from gettext import gettext as _
 from widgets.pages import NormalPage
 from notes import NotesTabWidget, NotesTreeView
-from todos import TodosTabWidget
+from todos import TodosTabWidget, TodosTreeView
 from diaries import diariesdb, setting_autosave, setting_format
 from PyQt6.QtCore import Qt, QDate
 from PyQt6.QtWidgets import *
@@ -65,14 +65,20 @@ class HomeWidget(QWidget):
         
         self.diary = NormalPage(self, "diaries", today, today.toString("dd.MM.yyyy"), setting_autosave, setting_format, diariesdb)
         
+        self.label_todos = QLabel(self, alignment=Qt.AlignmentFlag.AlignCenter, 
+                                  text=_("List of Your Todo Lists & Todos"))
+        
+        self.todos = TodosTreeView(todos, "home")
+        
         self.label_notes = QLabel(self, alignment=Qt.AlignmentFlag.AlignCenter, 
                                   text=_("List of Your Notes"))
         
         self.notes = NotesTreeView(notes, "home")
-        self.notes.doubleClicked.connect(lambda: home_parent.tabwidget.setCurrentWidget(home_parent.notes))
         
         self.layout().addWidget(self.label_welcome)
         self.layout().addWidget(self.label_diary)
         self.layout().addWidget(self.diary)
+        self.layout().addWidget(self.label_todos)
+        self.layout().addWidget(self.todos)
         self.layout().addWidget(self.label_notes)
         self.layout().addWidget(self.notes)

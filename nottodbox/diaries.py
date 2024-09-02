@@ -60,6 +60,15 @@ class DiariesDB:
         except TypeError:
             return False
         
+    def checkIfTheDiaryBackupExists(self, name: str) -> bool:
+        self.cur.execute(f"select backup from __main__ where name = ?", (name,))
+        fetch = self.cur.fetchone()[0]
+        
+        if fetch == None or fetch == "":
+            return False
+        else:
+            return True
+        
     def checkIfTheTableExists(self) -> bool:
         try:
             self.cur.execute("select * from __main__")
@@ -253,7 +262,7 @@ class DiariesDB:
                                        diaries[name].content, 
                                        False)
             
-            if calls[name] == False:
+            if not calls[name]:
                 successful = False
                 
         return successful
@@ -368,7 +377,7 @@ class DiariesTabWidget(QTabWidget):
         self.refresh.clicked.connect(self.refreshToday)
 
         self.side = QWidget(self.home)
-        self.side.setFixedWidth(160)
+        self.side.setFixedWidth(150)
         self.side.setLayout(QVBoxLayout(self.side))
         
         self.open_create = QPushButton(self.side, text=_("Open/create"))
@@ -415,13 +424,21 @@ class DiariesTabWidget(QTabWidget):
         
         self.tabCloseRequested.connect(self.closeTab)
         
-    def checkIfTheDiaryExists(self, name: str, mode: str = "normal") -> None:
+    def checkIfTheDiaryExists(self, name: str, mode: str = "normal") -> bool:
         call = diariesdb.checkIfTheDiaryExists(name)
         
-        if call == False and mode == "normal":
+        if not call and mode == "normal":
             QMessageBox.critical(self, _("Error"), _("There is no diary called {name}.").format(name = name))
         
         return call
+    
+    def checkIfTheDiaryBackupExist(self, name: str, mode: str = "normal") -> bool:
+        call = diariesdb.checkIfTheDiaryBackupExists(name)
+        
+        if not call and mode == "normal":
+            QMessageBox.critical(self, _("Error"), _("There is no backup for diary {name}.").format(name = name))
+        
+        return call 
     
     def clearContent(self) -> None:
         name = self.calendar.selectedDate().toString("dd.MM.yyyy")
@@ -430,7 +447,7 @@ class DiariesTabWidget(QTabWidget):
             QMessageBox.critical(self, _("Error"), _("Diary name can not be blank."))
             return        
         
-        if self.checkIfTheDiaryExists(name) == False:
+        if not self.checkIfTheDiaryExists(name):
             return
         
         call = diariesdb.clearContent(name)
@@ -495,7 +512,7 @@ class DiariesTabWidget(QTabWidget):
             QMessageBox.critical(self, _("Error"), _("Diary name can not be blank."))
             return
         
-        if self.checkIfTheDiaryExists(name) == False:
+        if not self.checkIfTheDiaryExists(name):
             return
         
         call = diariesdb.deleteNote(name)
@@ -563,7 +580,10 @@ class DiariesTabWidget(QTabWidget):
             QMessageBox.critical(self, _("Error"), _("Diary name can not be blank."))
             return
         
-        if self.checkIfTheDiaryExists(name) == False:
+        if not self.checkIfTheDiaryExists(name):
+            return
+        
+        if not self.checkIfTheDiaryBackupExist(name):
             return
         
         if QDate.fromString(name, "dd.MM.yyyy") != today:
@@ -602,7 +622,10 @@ class DiariesTabWidget(QTabWidget):
             QMessageBox.critical(self, _("Error"), _("Diary name can not be blank."))
             return
 
-        if self.checkIfTheDiaryExists(name) == False:
+        if not self.checkIfTheDiaryExists(name):
+            return
+
+        if not self.checkIfTheDiaryBackupExist(name):
             return
         
         diaries_parent.tabwidget.setCurrentIndex(3)

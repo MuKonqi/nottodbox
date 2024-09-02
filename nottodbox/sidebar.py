@@ -160,7 +160,7 @@ class SidebarWidget(QWidget):
         self.listview1.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.listview1.setModel(self.proxy1)
         self.listview1.doubleClicked.connect(
-            lambda: self.goToPage(self.proxy1.itemData(self.listview1.currentIndex())[0]))
+            lambda: self.goToPage(self.proxy1.itemData(self.listview1.currentIndex())))
         
         self.model2 = QStringListModel(self)
 
@@ -177,14 +177,14 @@ class SidebarWidget(QWidget):
         self.listview2.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.listview2.setModel(self.proxy2)
         self.listview2.doubleClicked.connect(
-            lambda: self.goToPage(self.proxy2.itemData(self.listview2.currentIndex())[0]))
+            lambda: self.goToPage(self.proxy2.itemData(self.listview2.currentIndex())))
         
         self.label_2nd = QLabel(self, alignment=Qt.AlignmentFlag.AlignCenter,
                                 text=_('Only for 2nd list:'))
         
         self.button_delete = QPushButton(self, text=_("Delete"))
-        self.button_delete.clicked.connect(lambda: 
-            self.deletePage(self.proxy2.itemData(self.listview2.currentIndex())[0]))
+        self.button_delete.clicked.connect(
+            lambda: self.deletePage(self.proxy2.itemData(self.listview2.currentIndex())))
         
         self.button_clear = QPushButton(self, text=_("Clear"))
         self.button_clear.clicked.connect(self.clearList)
@@ -235,48 +235,64 @@ class SidebarWidget(QWidget):
         else:
             QMessageBox.critical(self, _("Error"), _("Failed to clear 2nd list."))
             
-    def deletePage(self, key: str) -> None:
-        if key.startswith(_("Note: ")):
+    def deletePage(self, key: list) -> None:
+        try:
+            text = key[0]
+            
+        except KeyError:
+            QMessageBox.critical(self, _("Error"), _("The selection is invalid."))
+            
+            return
+        
+        if text.startswith(_("Note: ")):
             length = len(_("Note: "))
             module = "notes"
                 
-        elif key.startswith(_("Todo list: ")):
+        elif text.startswith(_("Todo list: ")):
             length = len(_("Todo list: "))
             module = "todos"
 
-        elif key.startswith(_("Diary: ")):
+        elif text.startswith(_("Diary: ")):
             length = len(_("Diary: "))
             module = "diaries"
         
-        call = sidebardb.deletePage(key[length:], module)
+        call = sidebardb.deletePage(text[length:], module)
         
         self.insertPages()
         
         if call:
-            QMessageBox.information(self, _("Successful"), _("{page} deleted from 2nd list.").format(page = key[length:]))
+            QMessageBox.information(self, _("Successful"), _("{page} deleted from 2nd list.").format(page = text[length:]))
         else:
-            QMessageBox.critical(self, _("Error"), _("Failed to delete {page} from 2nd list.").format(page = key[length:]))
+            QMessageBox.critical(self, _("Error"), _("Failed to delete {page} from 2nd list.").format(page = text[length:]))
 
-    def goToPage(self, key: str) -> None:
-        if key.startswith(_("Note: ")):
+    def goToPage(self, key: list) -> None:
+        try:
+            text = key[0]
+            
+        except KeyError:
+            QMessageBox.critical(self, _("Error"), _("The selection is invalid."))
+            
+            return
+        
+        if text.startswith(_("Note: ")):
             length = len(_("Note: "))
             
             try:
-                notebook, name = str(key[length:]).split(" @ ")
+                notebook, name = str(text[length:]).split(" @ ")
                 self.notes.treeview.openNote(notebook, name)
             
             except ValueError:
-                QMessageBox.critical(self, _("Error"), _('Failed to open note via text "{text}".').format(text = key[length:]))
+                QMessageBox.critical(self, _("Error"), _('Failed to open note via text "{text}".').format(text = text[length:]))
                 
-        elif key.startswith(_("Todo list: ")):
+        elif text.startswith(_("Todo list: ")):
             length = len(_("Todo list: "))
             
-            self.todos.openCreate(key[length:])
+            self.todos.treeview.openTodolistOrSetStatus(text[length:], "")
 
-        elif key.startswith(_("Diary: ")):
+        elif text.startswith(_("Diary: ")):
             length = len(_("Diary: "))
             
-            self.diaries.calendar.openCreate(key[length:])
+            self.diaries.calendar.openCreate(text[length:])
         
     def insertPages(self) -> None:
         call = sidebardb.getNames()
