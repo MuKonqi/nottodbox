@@ -33,7 +33,7 @@ userdata = f"/home/{username}/.config/nottodbox/"
 from sidebar import SidebarWidget
 from home import HomeScrollArea
 from notes import NotesTabWidget, notesdb, notes
-from todos import TodosTabWidget
+from todos import TodosWidget
 from diaries import DiariesTabWidget, today, diariesdb, diaries
 
 
@@ -57,7 +57,7 @@ class MainWindow(QMainWindow):
         self.menu_sidebar.addAction(_("Close"), lambda: self.removeDockWidget(self.dock))
 
         self.notes = NotesTabWidget(self)
-        self.todos = TodosTabWidget(self)
+        self.todos = TodosWidget(self)
         self.diaries = DiariesTabWidget(self)
         self.home = HomeScrollArea(self, self.todos, self.notes)
 

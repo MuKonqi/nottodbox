@@ -24,7 +24,7 @@ import os
 from gettext import gettext as _
 from widgets.pages import NormalPage
 from notes import NotesTabWidget, NotesTreeView
-from todos import TodosTabWidget, TodosTreeView
+from todos import TodosWidget, TodosTreeView
 from diaries import diariesdb, setting_autosave, setting_format
 from PyQt6.QtCore import Qt, QDate
 from PyQt6.QtWidgets import *
@@ -51,7 +51,7 @@ class HomeScrollArea(QScrollArea):
 
 
 class HomeWidget(QWidget):
-    def __init__(self, parent: HomeScrollArea, todos: TodosTabWidget, notes: NotesTabWidget):
+    def __init__(self, parent: HomeScrollArea, todos: TodosWidget, notes: NotesTabWidget):
         super().__init__(parent)
         
         self.setLayout(QVBoxLayout(self))

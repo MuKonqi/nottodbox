@@ -1,4 +1,8 @@
+#!@PYTHON3@
+
 # SPDX-License-Identifier: GPL-3.0-or-later
+
+# Nottodbox (io.github.mukonqi.nottodbox)
 
 # Copyright (C) 2024 MuKonqi (Muhammed S.)
 
@@ -14,3 +18,63 @@
 
 # You should have received a copy of the GNU General Public License
 # along with Nottodbox.  If not, see <https://www.gnu.org/licenses/>.
+
+import sys
+sys.dont_write_bytecode = True
+
+
+import gettext
+import getpass
+import os
+from PyQt6.QtGui import QIcon
+from PyQt6.QtWidgets import QApplication
+
+
+gettext.bindtextdomain("nottodbox", "@LOCALEDIR@")
+gettext.textdomain("nottodbox")
+
+
+username = getpass.getuser()
+userdata = f"/home/{username}/.config/nottodbox/"
+if not os.path.isdir(userdata):
+    os.mkdir(userdata)
+
+
+sys.path.insert(1, '@APPDIR@')
+from mainwindow import MainWindow
+
+
+class Application(QApplication):
+    def __init__(self, argv: list, index: int = 0) -> None:
+        super().__init__(argv)
+
+        with open(f"@APPDIR@/style.qss") as style_file:
+            style = style_file.read()
+        
+        self.setApplicationVersion("@VERSION@")
+        self.setApplicationName("nottodbox")
+        self.setApplicationDisplayName("Nottodbox")
+        self.setDesktopFileName("@DESKTOPFILE@")
+        self.setWindowIcon(QIcon("@ICONFILE@"))
+        self.setStyleSheet(style)
+        
+        window = MainWindow()
+        window.tabwidget.setCurrentIndex(index)
+        window.show()
+
+if __name__ == "__main__":
+    if len(sys.argv[1:]) >= 1:
+        if sys.argv[1] == "--home":
+            application = Application(sys.argv, 0)
+        elif sys.argv[1] == "--notes":
+            application = Application(sys.argv, 1)
+        elif sys.argv[1] == "--todos":
+            application = Application(sys.argv, 2)
+        elif sys.argv[1] == "--settings":
+            application = Application(sys.argv, 3)
+        else:
+            application = Application(sys.argv)
+    else:
+        application = Application(sys.argv)
+
+    sys.exit(application.exec())

@@ -726,8 +726,12 @@ class NotesNotebookOptions(QWidget):
         name, topwindow = QInputDialog.getText(
             self, _("Create a notebook"), _("Please enter a name for creating a notebook."))
         
-        if "__main__" in name or "'" in name or "@" in name :
-            QMessageBox.critical(self, _("Error"), _("The notebook name can not contain these: __main__, ' and @"))
+        if "'" in name or "@" in name:
+            QMessageBox.critical(self, _("Error"), _("The notebook name can not contain these: ' and @"))
+            return
+        
+        elif "__main__" == name:
+            QMessageBox.critical(self, _("Error"), _("The notebook name can not be equal to __main__."))
             return
         
         elif name != "" and name != None and topwindow:

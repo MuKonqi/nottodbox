@@ -30,7 +30,6 @@ from PyQt6.QtGui import QStandardItem, QStandardItemModel, QMouseEvent, QColor
 from PyQt6.QtWidgets import *
 
 
-todolists = {}
 todo_counts = {}
 todo_items = {}
 todolist_counts = {}
@@ -343,7 +342,7 @@ if not create_table:
     sys.exit(2)
 
 
-class TodosTabWidget(QTabWidget): 
+class TodosWidget(QWidget): 
     def __init__(self, parent: QMainWindow) -> None:
         super().__init__(parent)
         
@@ -353,9 +352,6 @@ class TodosTabWidget(QTabWidget):
         self.todo = ""
         self.todolist = ""
         self.current_widget = None
-        
-        self.home = QWidget(self)
-        self.home.setLayout(QGridLayout(self))
         
         self.treeview = TodosTreeView(self)
         
@@ -377,27 +373,12 @@ class TodosTabWidget(QTabWidget):
         
         self.current_widget = self.none_options
         
-        self.home.layout().addWidget(self.entry, 0, 0, 1, 3)
-        self.home.layout().addWidget(self.todo_selected, 1, 0, 1, 1)
-        self.home.layout().addWidget(self.todolist_selected, 1, 1, 1, 1)
-        self.home.layout().addWidget(self.treeview, 2, 0, 1, 2)
-        self.home.layout().addWidget(self.none_options, 1, 2, 2, 1)
-        
-        self.addTab(self.home, _("Home"))
-        self.setTabsClosable(True)
-        self.setMovable(True)
-        self.setDocumentMode(True)
-        self.setTabBarAutoHide(True)
-        self.setUsesScrollButtons(True)
-        
-        self.tabCloseRequested.connect(self.closeTab)
-         
-    def closeTab(self, index: int) -> None:
-        if index != self.indexOf(self.home):           
-            del todolists[self.tabText(index).replace("&", "")]
-            
-            todos_parent.dock.widget().removePage(self.tabText(index).replace("&", ""), self)
-            self.removeTab(index)
+        self.setLayout(QGridLayout(self))
+        self.layout().addWidget(self.entry, 0, 0, 1, 3)
+        self.layout().addWidget(self.todo_selected, 1, 0, 1, 1)
+        self.layout().addWidget(self.todolist_selected, 1, 1, 1, 1)
+        self.layout().addWidget(self.treeview, 2, 0, 1, 2)
+        self.layout().addWidget(self.none_options, 1, 2, 2, 1)
             
     def insertInformations(self, todolist: str, todo: str) -> None:
         self.todolist = todolist
@@ -409,19 +390,19 @@ class TodosTabWidget(QTabWidget):
         
         if self.todolist == "":
             self.none_options.setVisible(True)
-            self.home.layout().replaceWidget(self.current_widget, self.none_options)
+            self.layout().replaceWidget(self.current_widget, self.none_options)
             
             self.current_widget = self.none_options
             
         elif self.todolist != "" and self.todo == "":
             self.todolist_options.setVisible(True)
-            self.home.layout().replaceWidget(self.current_widget, self.todolist_options)
+            self.layout().replaceWidget(self.current_widget, self.todolist_options)
             
             self.current_widget = self.todolist_options
             
         elif self.todolist != "" and self.todo != "":
             self.todo_options.setVisible(True)
-            self.home.layout().replaceWidget(self.current_widget, self.todo_options)
+            self.layout().replaceWidget(self.current_widget, self.todo_options)
             
             self.current_widget = self.todo_options
             
@@ -430,7 +411,7 @@ class TodosTabWidget(QTabWidget):
             
             
 class TodosNoneOptions(QWidget):
-    def __init__(self, parent: TodosTabWidget) -> None:
+    def __init__(self, parent: TodosWidget) -> None:
         super().__init__(parent)
         
         self.parent_ = parent
@@ -454,7 +435,7 @@ class TodosNoneOptions(QWidget):
         
         
 class TodosTodolistOptions(QWidget):
-    def __init__(self, parent: TodosTabWidget) -> None:
+    def __init__(self, parent: TodosWidget) -> None:
         super().__init__(parent)
         
         self.parent_ = parent
@@ -464,9 +445,6 @@ class TodosTodolistOptions(QWidget):
         
         self.create_todolist = QPushButton(self, text=_("Create todo list"))
         self.create_todolist.clicked.connect(self.createTodolist)
-        
-        self.open_todolist = QPushButton(self, text=_("Open todo list"))
-        self.open_todolist.clicked.connect(self.openTodolist)
         
         self.rename_todolist = QPushButton(self, text=_("Rename todo list"))
         self.rename_todolist.clicked.connect(self.renameTodolist)
@@ -491,7 +469,6 @@ class TodosTodolistOptions(QWidget):
         
         self.layout().addWidget(self.create_todo)
         self.layout().addWidget(self.create_todolist)
-        self.layout().addWidget(self.open_todolist)
         self.layout().addWidget(self.rename_todolist)
         self.layout().addWidget(self.reset_todolist)
         self.layout().addWidget(self.delete_todolist)
@@ -511,8 +488,12 @@ class TodosTodolistOptions(QWidget):
         name, topwindow = QInputDialog.getText(
             self, _("Add a todo list"), _("Please enter a name for creating a todo list."))
         
-        if "__main__" in name or "'" in name:
-            QMessageBox.critical(self, _("Error"), _("The todo list name can not contain these: __main__ and '"))
+        if "'" in name or "@" in name:
+            QMessageBox.critical(self, _("Error"), _("The todo list name can not contain these: ' and @"))
+            return
+        
+        elif "__main__" == name:
+            QMessageBox.critical(self, _("Error"), _("The todo list name can not be equal to __main__."))
             return
         
         elif name != "" and name != None and topwindow:
@@ -561,23 +542,6 @@ class TodosTodolistOptions(QWidget):
             
         else:
             QMessageBox.critical(self, _("Error"), _("Failed to delete {name} todo list.").format(name = name))
-        
-    def openTodolist(self) -> None:
-        name = self.parent_.todolist
-        
-        if not self.checkIfTheTodolistExists(name):
-            return
-        
-        todos_parent.tabwidget.setCurrentIndex(2)
-        
-        if name in todolists:
-            self.setCurrentWidget(todolists[name])
-            
-        else:
-            todos_parent.dock.widget().addPage(name, self.parent_)
-            todolists[name] = TodosPageWidget(self, name)
-            self.addTab(todolists[name], name)
-            self.setCurrentWidget(todolists[name])
     
     def renameTodolist(self) -> None:
         name = self.parent_.todolist
@@ -683,7 +647,7 @@ class TodosTodolistOptions(QWidget):
 
         
 class TodosTodoOptions(QWidget):
-    def __init__(self, parent: TodosTabWidget) -> None:
+    def __init__(self, parent: TodosWidget) -> None:
         super().__init__(parent)
         
         self.parent_ = parent
@@ -827,7 +791,7 @@ class TodosTodoOptions(QWidget):
             
             
 class TodosTreeView(QTreeView):
-    def __init__(self, parent: TodosTabWidget, caller: str = "todos") -> None:
+    def __init__(self, parent: TodosWidget, caller: str = "todos") -> None:
         super().__init__(parent)
         
         self.parent_ = parent
@@ -1034,19 +998,7 @@ class TodosTreeView(QTreeView):
         
     def openTodolistOrSetStatus(self, todolist: str, todo: str) -> None:
         if todo == "" or todo == None:
-            if not self.parent_.todolist_options.checkIfTheTodolistExists(todolist):
-                return
-            
-            todos_parent.tabwidget.setCurrentIndex(2)
-            
-            if todolist in todolists:
-                self.parent_.setCurrentWidget(todolists[todolist])
-                
-            else:
-                todos_parent.dock.widget().addPage(todolist, self.parent_)
-                todolists[todolist] = TodosPageWidget(self.parent_, todolist)
-                self.parent_.addTab(todolists[todolist], todolist)
-                self.parent_.setCurrentWidget(todolists[todolist])
+            QMessageBox.critical(self, _("Error"), _("Please select a todo."))
                 
         else:
             if not self.parent_.todo_options.checkIfTheTodoExists(todolist, todo):
@@ -1111,18 +1063,3 @@ class TodosTreeView(QTreeView):
         todolist_menus[newname] = todolist_menus.pop(name)
         
         todolist_items[newname][0].setText(newname)
-        
-
-class TodosPageWidget(QWidget):
-    def __init__(self, parent: TodosTabWidget, name: str) -> None:
-        super().__init__(parent)
-        
-        self.parent_ = parent
-        self.name = name
-        
-class TodosPageTreeView(QTreeView):
-    def __init__(self, parent: TodosTabWidget, name: str) -> None:
-        super().__init__(parent)
-        
-        self.parent_ = parent
-        self.name = name
