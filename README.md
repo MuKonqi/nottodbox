@@ -1,6 +1,6 @@
 # Nottodbox (pre-alpha)
 
-<p align="center"><img src="https://github.com/mukonqi/nottodbox/blob/main/data/icons/hicolor/scalable/apps/nottodbox.svg?raw=true" alt="Nottodbox Icon"></img></a></p>
+<p align="center"><img src="./data/io.github.mukonqi.nottodbox.svg" alt="Nottodbox Icon"></img></a></p>
 <p align="center"><img src="https://img.shields.io/badge/Edit notes, todo lists and diaries-376296" alt="Edit notes, todo lists and diaries"></img></p>
 <p align="center"><img src="https://img.shields.io/github/downloads/mukonqi/nottodbox/total?label=Downloads" alt="GitHub Downloads"></img></p>
 <p align="center"><img src="https://img.shields.io/github/v/release/mukonqi/nottodbox?label=Latest Release" alt="GitHub Release"></p>
@@ -14,7 +14,7 @@ TBA
 ### Dependencies
 - Python3
 - Python modules: sys, locale, gettext, getpass, os, sqlite3, datetime, PyQt6 (they are generally built-in except PyQt6)
-- git version control system (for downloading)
+- git version control system (for downloading this repository)
 - meson build system
 - ninja build system
 
