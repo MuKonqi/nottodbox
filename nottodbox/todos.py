@@ -47,7 +47,7 @@ class TodosDB:
         
     def checkIfTheTableExists(self, table: str) -> bool:
         try:
-            self.cur.execute(f"select * from {table}")
+            self.cur.execute(f"select * from '{table}'")
             return True
         
         except sqlite3.OperationalError:
