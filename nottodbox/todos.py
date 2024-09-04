@@ -427,7 +427,7 @@ class TodosNoneOptions(QWidget):
         self.delete_all.clicked.connect(self.parent_.todolist_options.deleteAll)
         
         self.setLayout(QVBoxLayout(self))
-        self.setFixedWidth(150)
+        self.setFixedWidth(180)
         
         self.layout().addWidget(self.warning_label)
         self.layout().addWidget(self.create_todolist)
@@ -465,7 +465,7 @@ class TodosTodolistOptions(QWidget):
         self.delete_all.clicked.connect(self.deleteAll)
         
         self.setLayout(QVBoxLayout(self))
-        self.setFixedWidth(150)
+        self.setFixedWidth(180)
         
         self.layout().addWidget(self.create_todo)
         self.layout().addWidget(self.create_todolist)
@@ -665,7 +665,7 @@ class TodosTodoOptions(QWidget):
         self.delete_todo.clicked.connect(self.deleteTodo)
         
         self.setLayout(QVBoxLayout(self))
-        self.setFixedWidth(150)
+        self.setFixedWidth(180)
         
         self.layout().addWidget(self.create_todo)
         self.layout().addWidget(self.set_status)
@@ -813,7 +813,7 @@ class TodosTreeView(QTreeView):
         self.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
         self.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
-        self.setStatusTip(_("Double-click to opening a todo list or setting status of a todo."))
+        self.setStatusTip(_("Double-click to setting status of a todo."))
         self.header().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
 
         if self.caller == "todos":

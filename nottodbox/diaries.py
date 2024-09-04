@@ -257,7 +257,7 @@ class DiariesDB:
             elif fetch_format == "html":
                 text = diaries[name].input.toHtml()
             
-            calls[name] = self.saveNote(name,
+            calls[name] = self.saveDocument(name,
                                        text, 
                                        diaries[name].content, 
                                        False)
@@ -267,7 +267,7 @@ class DiariesDB:
                 
         return successful
 
-    def saveNote(self, name: str, content: str, backup: str, autosave: bool) -> bool:        
+    def saveDocument(self, name: str, content: str, backup: str, autosave: bool) -> bool:        
         date = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
         
         check = self.checkIfTheDiaryExists(name)
@@ -377,7 +377,7 @@ class DiariesTabWidget(QTabWidget):
         self.refresh.clicked.connect(self.refreshToday)
 
         self.side = QWidget(self.home)
-        self.side.setFixedWidth(150)
+        self.side.setFixedWidth(180)
         self.side.setLayout(QVBoxLayout(self.side))
         
         self.open_create = QPushButton(self.side, text=_("Open/create"))
@@ -398,7 +398,7 @@ class DiariesTabWidget(QTabWidget):
         self.delete_all = QPushButton(self.side, text=_("Delete all"))
         self.delete_all.clicked.connect(self.deleteAll)
         
-        self.set_settings = QPushButton(self, text=_("Set settings"))
+        self.set_settings = QPushButton(self, text=_("Settings"))
         self.set_settings.clicked.connect(self.setSettings)
         
         self.side.layout().addWidget(self.open_create)
@@ -469,7 +469,7 @@ class DiariesTabWidget(QTabWidget):
                                                          QMessageBox.StandardButton.Save)
                     
                     if self.question == QMessageBox.StandardButton.Save:
-                        call = diariesdb.saveNote(self.tabText(index).replace("&", ""),
+                        call = diariesdb.saveDocument(self.tabText(index).replace("&", ""),
                                                  diaries[self.tabText(index).replace("&", "")].input.toPlainText(),
                                                  diaries[self.tabText(index).replace("&", "")].content, 
                                                  False)
@@ -694,7 +694,7 @@ class DiariesCalendarWidget(QCalendarWidget):
             dates.append(QDate.fromString(name[0], "dd.MM.yyyy"))
 
         if date in dates:
-            painter.setBrush(QColor(55, 98, 150, 255))
+            painter.setBrush(QColor(55, 98, 180, 255))
             painter.drawEllipse(rect.topLeft() + QPoint(10, 10), 5, 5)
             
         if date >= today:

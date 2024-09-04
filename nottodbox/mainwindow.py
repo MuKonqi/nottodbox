@@ -67,7 +67,7 @@ class MainWindow(QMainWindow):
         self.tabwidget.addTab(self.diaries, _("Diaries"))
         
         self.dock = QDockWidget(self)
-        self.dock.setFixedWidth(150)
+        self.dock.setFixedWidth(180)
         self.dock.setStyleSheet("margin: 0px")
         self.dock.setFeatures(QDockWidget.DockWidgetFeature.DockWidgetClosable |
                               QDockWidget.DockWidgetFeature.DockWidgetFloatable |
@@ -77,6 +77,7 @@ class MainWindow(QMainWindow):
         self.statusbar = QStatusBar(self)
         
         self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.dock)
+        self.setMinimumWidth(900)
         self.setStatusBar(self.statusbar)
         self.setStatusTip(_("Copyright (C) 2024 MuKonqi (Muhammed S.), licensed under GPLv3 or later"))
 
@@ -143,7 +144,7 @@ class MainWindow(QMainWindow):
                     call_diaries_save_all = diariesdb.saveAll()
                     
                 if is_main_diary_unsaved:
-                    call_diary_save_one = diariesdb.saveNote(today.toString("dd.MM.yyyy"),
+                    call_diary_save_one = diariesdb.saveDocument(today.toString("dd.MM.yyyy"),
                                                             self.home.widget().diary.input.toPlainText(),
                                                             self.home.widget().diary.content,
                                                             False)

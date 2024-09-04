@@ -381,7 +381,7 @@ class NotesDB:
             elif fetch_format == "html":
                 text = notes[item].input.toHtml()
             
-            calls[item] = self.saveNote(notebook,
+            calls[item] = self.saveDocument(notebook,
                                         name,
                                         text, 
                                         notes[item].content, 
@@ -392,7 +392,7 @@ class NotesDB:
                 
         return successful
 
-    def saveNote(self, notebook: str, name: str, content: str, backup: str, autosave: bool) -> bool:        
+    def saveDocument(self, notebook: str, name: str, content: str, backup: str, autosave: bool) -> bool:        
         if self.checkIfTheNoteExists(notebook, name):
             date = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
             
@@ -591,7 +591,7 @@ class NotesTabWidget(QTabWidget):
                                                          QMessageBox.StandardButton.Save)
                     
                     if self.question == QMessageBox.StandardButton.Save:
-                        call = notes[self.tabText(index).replace("&", "")].saveNote()
+                        call = notes[self.tabText(index).replace("&", "")].saveDocument()
                         
                         if call:
                             self.closable = True
@@ -655,11 +655,11 @@ class NotesNoneOptions(QWidget):
         self.delete_all = QPushButton(self, text=_("Delete all"))
         self.delete_all.clicked.connect(self.parent_.notebook_options.deleteAll)
         
-        self.set_settings = QPushButton(self, text=_("Set settings"))
+        self.set_settings = QPushButton(self, text=_("Settings"))
         self.set_settings.clicked.connect(self.parent_.note_options.setSettings)
         
         self.setLayout(QVBoxLayout(self))
-        self.setFixedWidth(150)
+        self.setFixedWidth(180)
         
         self.layout().addWidget(self.warning_label)
         self.layout().addWidget(self.create_notebook)
@@ -697,11 +697,11 @@ class NotesNotebookOptions(QWidget):
         self.delete_all = QPushButton(self, text=_("Delete all"))
         self.delete_all.clicked.connect(self.deleteAll)
         
-        self.set_settings = QPushButton(self, text=_("Set settings"))
+        self.set_settings = QPushButton(self, text=_("Settings"))
         self.set_settings.clicked.connect(self.parent_.note_options.setSettings)
         
         self.setLayout(QVBoxLayout(self))
-        self.setFixedWidth(150)
+        self.setFixedWidth(180)
         
         self.layout().addWidget(self.create_note)
         self.layout().addWidget(self.create_notebook)
@@ -917,11 +917,11 @@ class NotesNoteOptions(QWidget):
         self.delete_note = QPushButton(self, text=_("Delete note"))
         self.delete_note.clicked.connect(self.deleteNote)
         
-        self.set_settings = QPushButton(self, text=_("Set settings"))
+        self.set_settings = QPushButton(self, text=_("Settings"))
         self.set_settings.clicked.connect(self.setSettings)
 
         self.setLayout(QVBoxLayout(self))
-        self.setFixedWidth(150)
+        self.setFixedWidth(180)
         
         self.layout().addWidget(self.create_note)
         self.layout().addWidget(self.open_note)

@@ -71,7 +71,7 @@ class HomeWidget(QWidget):
         self.todos = TodosTreeView(todos, "home")
         
         self.label_notes = QLabel(self, alignment=Qt.AlignmentFlag.AlignCenter, 
-                                  text=_("List of Your Notes"))
+                                  text=_("List of Your Notebooks & Notes"))
         
         self.notes = NotesTreeView(notes, "home")
         

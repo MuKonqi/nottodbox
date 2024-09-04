@@ -47,9 +47,9 @@ class TextFormatter(QToolBar):
         self.underline_button.triggered.connect(self.setUnderline)
         self.underline_button.setCheckable(True)
         
-        self.strikeout_button = QAction(self, text=_("Strike out"))
-        self.strikeout_button.triggered.connect(self.setStrikeOut)
-        self.strikeout_button.setCheckable(True)
+        self.strikethrough_button = QAction(self, text=_("Strike through"))
+        self.strikethrough_button.triggered.connect(self.setStrikeThrough)
+        self.strikethrough_button.setCheckable(True)
         
         self.fixedspacing_button = QAction(self, text=_("Fixed spacing"))
         self.fixedspacing_button.triggered.connect(self.setFixedSpacing)
@@ -109,7 +109,7 @@ class TextFormatter(QToolBar):
         self.addAction(self.bold_button)
         self.addAction(self.italic_button)
         self.addAction(self.underline_button)
-        self.addAction(self.strikeout_button)
+        self.addAction(self.strikethrough_button)
         self.addAction(self.fixedspacing_button)
         self.addSeparator()
         self.addWidget(self.header_button)
@@ -247,7 +247,7 @@ class TextFormatter(QToolBar):
         cur = self.input.textCursor()
         cur.insertList(style)
     
-    def setStrikeOut(self) -> None:
+    def setStrikeThrough(self) -> None:
         cur = self.input.textCursor()
         chrfmt = cur.charFormat()
         
@@ -315,9 +315,9 @@ class TextFormatter(QToolBar):
             self.underline_button.setChecked(False)
             
         if chrfmt.fontStrikeOut():
-            self.strikeout_button.setChecked(True)
+            self.strikethrough_button.setChecked(True)
         else:
-            self.strikeout_button.setChecked(False)
+            self.strikethrough_button.setChecked(False)
             
         if chrfmt.fontFixedPitch():
             self.fixedspacing_button.setChecked(True)
@@ -395,11 +395,11 @@ class NormalPage(QWidget):
 
         self.formatter = TextFormatter(self, self.input, self.setting_format)
     
-        self.input.textChanged.connect(lambda: self.saveNote(True))
+        self.input.textChanged.connect(lambda: self.saveDocument(True))
         self.input.cursorPositionChanged.connect(self.formatter.updateButtons)
         
         self.save = QPushButton(self, text=_("Save"))
-        self.save.clicked.connect(self.saveNote)
+        self.save.clicked.connect(self.saveDocument)
               
         self.autosave = QComboBox(self)
         self.autosave.addItems([
@@ -449,8 +449,24 @@ class NormalPage(QWidget):
             self.autosave.setEnabled(False)
             self.autosave.setStatusTip(_("Auto-save feature disabled for old diaries."))
             self.setting_autosave = "disabled"
+            
+    def createDiary(self) -> bool:
+        check = self.database.checkIfTheDiaryExists(self.name)
+        
+        if check:
+            return True
+        
+        else:
+            create = self.database.saveDocument(self.name, "", "", False)
+            
+            if create:
+                return True
+            
+            else:
+                QMessageBox.critical(self, _("Error"), _("Failed to create {name} diary for changing settings."))
+                return False
                 
-    def saveNote(self, autosave: bool = False) -> bool:
+    def saveDocument(self, autosave: bool = False) -> bool:
         self.closable = False
         
         if self.setting_format == "plain-text":
@@ -471,14 +487,14 @@ class NormalPage(QWidget):
                     return
             
             if self.module == "notes":
-                call = self.database.saveNote(self.notebook,
+                call = self.database.saveDocument(self.notebook,
                                               self.name,
                                               text,
                                               self.content,
                                               autosave)
             
             elif self.module == "diaries":
-                call = self.database.saveNote(self.name,
+                call = self.database.saveDocument(self.name,
                                               text,
                                               self.content,
                                               autosave)
@@ -508,8 +524,12 @@ class NormalPage(QWidget):
         
         if self.module == "notes":
             call = self.database.setAutosave(self.notebook, self.name, setting)
+        
         elif self.module == "diaries":
-            call = self.database.setAutosave(self.name, setting)
+            if self.createDiary():
+                call = self.database.setAutosave(self.name, setting)
+            else:
+                return
         
         if call:
             if setting == "global":
@@ -542,8 +562,12 @@ class NormalPage(QWidget):
         
         if self.module == "notes":
             call = self.database.setFormat(self.notebook, self.name, setting)
+            
         elif self.module == "diaries":
-            call = self.database.setFormat(self.name, setting)
+            if self.createDiary():
+                call = self.database.setFormat(self.name, setting)
+            else:
+                return
         
         if call:
             if setting == "global":
