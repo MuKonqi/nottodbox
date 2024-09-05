@@ -282,7 +282,7 @@ class SidebarWidget(QWidget):
                 self.notes.treeview.openNote(notebook, name)
             
             except ValueError:
-                QMessageBox.critical(self, _("Error"), _('Failed to open note via text "{text}".').format(text = text[length:]))
+                QMessageBox.critical(self, _("Error"), _("Failed to open note via {text} text.").format(text = text[length:]))
                 
         elif text.startswith(_("Todo list: ")):
             length = len(_("Todo list: "))

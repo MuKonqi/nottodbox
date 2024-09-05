@@ -54,7 +54,7 @@ class MainWindow(QMainWindow):
         
         self.menu_sidebar = self.menuBar().addMenu(_("Sidebar"))
         self.menu_sidebar.addAction(_("Show"), self.restoreDockWidget)
-        self.menu_sidebar.addAction(_("Close"), lambda: self.removeDockWidget(self.dock))
+        self.menu_sidebar.addAction(_("Hide"), lambda: self.removeDockWidget(self.dock))
 
         self.notes = NotesTabWidget(self)
         self.todos = TodosWidget(self)

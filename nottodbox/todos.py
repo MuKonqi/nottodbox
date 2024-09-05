@@ -489,11 +489,11 @@ class TodosTodolistOptions(QWidget):
             self, _("Add a todo list"), _("Please enter a name for creating a todo list."))
         
         if "'" in name or "@" in name:
-            QMessageBox.critical(self, _("Error"), _("The todo list name can not contain these: ' and @"))
+            QMessageBox.critical(self, _("Error"), _("The todo list name can not contain these characters: ' and @"))
             return
         
         elif "__main__" == name:
-            QMessageBox.critical(self, _("Error"), _("The todo list name can not be equal to __main__."))
+            QMessageBox.critical(self, _("Error"), _("The todo list name can not be to __main__."))
             return
         
         elif name != "" and name != None and topwindow:

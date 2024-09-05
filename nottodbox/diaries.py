@@ -436,7 +436,7 @@ class DiariesTabWidget(QTabWidget):
         call = diariesdb.checkIfTheDiaryBackupExists(name)
         
         if not call and mode == "normal":
-            QMessageBox.critical(self, _("Error"), _("There is no backup for diary {name}.").format(name = name))
+            QMessageBox.critical(self, _("Error"), _("There is no backup for {name} diary.").format(name = name))
         
         return call 
     
@@ -587,10 +587,7 @@ class DiariesTabWidget(QTabWidget):
             return
         
         if QDate.fromString(name, "dd.MM.yyyy") != today:
-            question = QMessageBox.question(self, 
-                                            _("Question"),
-                                            _("Diaries are special for that day, editing an old diary can take away the meaning of the diary."
-                                            +"\nSo, are you sure you want to restoring content of it?"))
+            question = QMessageBox.question(self, _("Diaries are unique to the day they are written.\nSo, are you sure?"))
 
             if question != QMessageBox.StandardButton.Yes:
                 return
