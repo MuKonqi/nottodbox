@@ -55,7 +55,7 @@
     - Deleting all todo lists
 - For todos:
     - Creating a todo
-    - Setting status
+    - Changing status
     - Editing a todo
     - Deleting a todo
 

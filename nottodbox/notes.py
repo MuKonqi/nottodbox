@@ -646,7 +646,7 @@ class NotesNoneOptions(QWidget):
         self.parent_ = parent
         
         self.warning_label = QLabel(self, alignment=Qt.AlignmentFlag.AlignCenter,
-                                    text=_("You can select\na notebook or a note\non the left."))
+                                    text=_("You can select\na notebook\nor a note\non the left."))
         self.warning_label.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Maximum)
         
         self.create_notebook = QPushButton(self, text=_("Create notebook"))
@@ -953,10 +953,6 @@ class NotesNoteOptions(QWidget):
         notebook = self.parent_.notebook
         name = self.parent_.name
         
-        if notebook == "" or notebook == None or name == "" or name == None:
-            QMessageBox.critical(self, _("Error"), _("Please select a note."))
-            return
-        
         if not self.checkIfTheNoteExists(notebook, name):
             return
         
@@ -1003,10 +999,6 @@ class NotesNoteOptions(QWidget):
         notebook = self.parent_.notebook
         name = self.parent_.name
         
-        if notebook == "" or notebook == None or name == "" or name == None:
-            QMessageBox.critical(self, _("Error"), _("Please select a note."))
-            return
-        
         if not self.checkIfTheNoteExists(notebook, name):
             return
         
@@ -1025,10 +1017,6 @@ class NotesNoteOptions(QWidget):
         notebook = self.parent_.notebook
         name = self.parent_.name
         
-        if notebook == "" or notebook == None or name == "" or name == None:
-            QMessageBox.critical(self, _("Error"), _("Please select a note."))
-            return
-
         if not self.checkIfTheNoteExists(notebook, name):
             return
         
@@ -1046,10 +1034,6 @@ class NotesNoteOptions(QWidget):
     def renameNote(self) -> None:
         notebook = self.parent_.notebook
         name = self.parent_.name
-        
-        if notebook == "" or notebook == None or name == "" or name == None:
-            QMessageBox.critical(self, _("Error"), _("Please select a note."))
-            return
         
         if not self.checkIfTheNoteExists(notebook, name):
             return
@@ -1085,10 +1069,6 @@ class NotesNoteOptions(QWidget):
         notebook = self.parent_.notebook
         name = self.parent_.name
         
-        if notebook == "" or notebook == None or name == "" or name == None:
-            QMessageBox.critical(self, _("Error"), _("Please select a note."))
-            return
-        
         if not self.checkIfTheNoteExists(notebook, name):
             return
         
@@ -1106,10 +1086,6 @@ class NotesNoteOptions(QWidget):
     def showBackup(self) -> None:
         notebook = self.parent_.notebook
         name = self.parent_.name
-        
-        if notebook == "" or notebook == None or name == "" or name == None:
-            QMessageBox.critical(self, _("Error"), _("Please select a note."))
-            return
         
         if not self.checkIfTheNoteExists(notebook, name):
             return

@@ -282,7 +282,7 @@ class TodosDB:
         else:
             return False
         
-    def setStatus(self, todolist: str, todo: str) -> tuple:
+    def changeStatus(self, todolist: str, todo: str) -> tuple:
         date = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
         
         status = self.getStatus(todolist, todo)
@@ -303,12 +303,10 @@ class TodosDB:
         control = self.cur.fetchone()[0]
         
         if control == newstatus:
-            todolist_items[todolist][2].setText(date)
-            
-            return newstatus, True
+            return True
         
         else:
-            return newstatus, False
+            return False
     
     def updateTodolistModificationDate(self, name: str, date: str) -> bool:
         if self.checkIfTheTableExists("__main__"):
@@ -361,7 +359,7 @@ class TodosWidget(QWidget):
         self.entry.textChanged.connect(self.treeview.setFilter)
 
         self.todo_selected = QLabel(self, alignment=Qt.AlignmentFlag.AlignCenter, text=_("Todo: "))
-        self.todolist_selected = QLabel(self, alignment=Qt.AlignmentFlag.AlignCenter, text=_("Todolist: "))
+        self.todolist_selected = QLabel(self, alignment=Qt.AlignmentFlag.AlignCenter, text=_("Todo list: "))
         
         self.todo_options = TodosTodoOptions(self)
         self.todo_options.setVisible(False)
@@ -406,7 +404,7 @@ class TodosWidget(QWidget):
             
             self.current_widget = self.todo_options
             
-        self.todolist_selected.setText(_("Todolist: ") + todolist)
+        self.todolist_selected.setText(_("Todo list: ") + todolist)
         self.todo_selected.setText(_("Todo: ") + todo)
             
             
@@ -417,7 +415,7 @@ class TodosNoneOptions(QWidget):
         self.parent_ = parent
         
         self.warning_label = QLabel(self, alignment=Qt.AlignmentFlag.AlignCenter,
-                                    text=_("You can select\na todo list or a todo\non the left."))
+                                    text=_("You can select\na todo list\nor a todo\non the left."))
         self.warning_label.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Maximum)
         
         self.create_todolist = QPushButton(self, text=_("Create todo list"))
@@ -486,7 +484,7 @@ class TodosTodolistOptions(QWidget):
     
     def createTodolist(self) -> None:
         name, topwindow = QInputDialog.getText(
-            self, _("Add a todo list"), _("Please enter a name for creating a todo list."))
+            self, _("Create a todo list"), _("Please enter a name for creating a todo list."))
         
         if "'" in name or "@" in name:
             QMessageBox.critical(self, _("Error"), _("The todo list name can not contain these characters: ' and @"))
@@ -554,17 +552,22 @@ class TodosTodolistOptions(QWidget):
                                                   _("Please enter a new name for {name} todo list.").format(name = name))
         
         if newname != "" and newname != None and topwindow:
-            call = todosdb.renameTodolist(name, newname)
-            
-            if call:
-                self.insertInformations(newname, "")
-                self.parent_.treeview.updateTodolist(name, newname)
+            if not self.checkIfTheTodolistExists(newname, "no-popup"):
+                call = todosdb.renameTodolist(name, newname)
                 
-                QMessageBox.information(self, _("Successful"), _("{name} todo list renamed as {newname}.")
-                                        .format(name = name, newname = newname))
+                if call:
+                    self.insertInformations(newname, "")
+                    self.parent_.treeview.updateTodolist(name, newname)
+                    
+                    QMessageBox.information(self, _("Successful"), _("{name} todo list renamed as {newname}.")
+                                            .format(name = name, newname = newname))
+                else:
+                    QMessageBox.critical(self, _("Error"), _("Failed to rename {name} todo list.")
+                                        .format(name = name))
+                    
             else:
-                QMessageBox.critical(self, _("Error"), _("Failed to rename {name} todo list.")
-                                     .format(name = name))
+                QMessageBox.critical(self, _("Error"), _("{newname} todo list already created."))
+                
         else:
             QMessageBox.critical(self, _("Error"), _("Failed to rename {name} todo list.")
                                  .format(name = name))
@@ -655,8 +658,8 @@ class TodosTodoOptions(QWidget):
         self.create_todo = QPushButton(self, text=_("Create todo"))
         self.create_todo.clicked.connect(self.createTodo)
         
-        self.set_status = QPushButton(self, text=_("Set status"))
-        self.set_status.clicked.connect(self.setStatus)
+        self.change_status = QPushButton(self, text=_("Change status"))
+        self.change_status.clicked.connect(self.changeStatus)
         
         self.edit_todo = QPushButton(self, text=_("Edit todo"))
         self.edit_todo.clicked.connect(self.editTodo)
@@ -668,7 +671,7 @@ class TodosTodoOptions(QWidget):
         self.setFixedWidth(180)
         
         self.layout().addWidget(self.create_todo)
-        self.layout().addWidget(self.set_status)
+        self.layout().addWidget(self.change_status)
         self.layout().addWidget(self.edit_todo)
         self.layout().addWidget(self.delete_todo)
         
@@ -680,6 +683,23 @@ class TodosTodoOptions(QWidget):
         
         return call
     
+    def changeStatus(self) -> None:
+        todolist = self.parent_.todolist
+        todo = self.parent_.todo
+        
+        if not self.checkIfTheTodoExists(todolist, todo):
+            return
+        
+        call = todosdb.changeStatus(todolist, todo)
+        
+        if call:
+            self.parent_.treeview.updateTodo(todolist, todo, todo)
+            
+            QMessageBox.information(self, _("Successful"), _("{todo} todo's status changed.").format(todo = todo))
+    
+        else:
+            QMessageBox.critical(self, _("Error"), _("Failed to change {todo}'s status.").format(todo = todo))
+    
     def createTodo(self) -> None:
         todolist = self.parent_.todolist
         
@@ -690,11 +710,7 @@ class TodosTodoOptions(QWidget):
         todo, topwindow = QInputDialog.getText(
             self, _("Add a todo"), _("Please enter anything for creating a todo."))
         
-        if "@" in todo:
-            QMessageBox.critical(self, _("Error"), _('The todo can not contain @ character.'))
-            return
-        
-        elif todo != "" and todo != None and topwindow:
+        if todo != "" and todo != None and topwindow:
             call = self.checkIfTheTodoExists(todolist, todo, "inverted")
         
             if call:
@@ -716,10 +732,6 @@ class TodosTodoOptions(QWidget):
         todolist = self.parent_.todolist
         todo = self.parent_.todo
         
-        if todolist == "" or todolist == None or todo == "" or todo == None:
-            QMessageBox.critical(self, _("Error"), _("Please select a todo."))
-            return
-        
         if not self.checkIfTheTodoExists(todolist, todo):
             return
         
@@ -737,10 +749,6 @@ class TodosTodoOptions(QWidget):
     def editTodo(self) -> None:
         todolist = self.parent_.todolist
         todo = self.parent_.todo
-        
-        if todolist == "" or todo == None or todo == "" or todo == None:
-            QMessageBox.critical(self, _("Error"), _("Please select a todo."))
-            return
         
         if not self.checkIfTheTodoExists(todolist, todo):
             return
@@ -772,23 +780,6 @@ class TodosTodoOptions(QWidget):
             QMessageBox.critical(self, _("Error"), _("Failed to edit {todo} todo.")
                                  .format(todo = todo))
             
-    def setStatus(self) -> None:
-        todolist = self.parent_.todolist
-        todo = self.parent_.todo
-        
-        if not self.checkIfTheTodoExists(todolist, todo):
-            return
-        
-        status, call = todosdb.setStatus(todolist, todo)
-        
-        if call:
-            self.parent_.treeview.updateTodo(todolist, todo, todo)
-            
-            QMessageBox.information(self, _("Successful"), _("{todo} todo maded {status}.").format(todo = todo, status = _(status)))
-    
-        else:
-            QMessageBox.critical(self, _("Error"), _("Failed to make {todo} todo {status}.").format(todo = todo, status = _(status)))
-            
             
 class TodosTreeView(QTreeView):
     def __init__(self, parent: TodosWidget, caller: str = "todos") -> None:
@@ -813,14 +804,14 @@ class TodosTreeView(QTreeView):
         self.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
         self.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
-        self.setStatusTip(_("Double-click to setting status of a todo."))
+        self.setStatusTip(_("Double-click to changing status of a todo."))
         self.header().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
 
         if self.caller == "todos":
             self.selectionModel().currentRowChanged.connect(
                 lambda: self.parent_.insertInformations(self.getParentText(), self.getCurrentText()))
             
-        self.doubleClicked.connect(lambda: self.openTodolistOrSetStatus(self.getParentText(), self.getCurrentText()))
+        self.doubleClicked.connect(lambda: self.changeStatus(self.getParentText(), self.getCurrentText()))
         
         self.appendAll()
 
@@ -948,6 +939,25 @@ class TodosTreeView(QTreeView):
                 todolist, lambda todolist = todolist: self.openTodolist(todolist))
         
         todos_model.appendRow(todolist_items[todolist])
+
+    def changeStatus(self, todolist: str, todo: str) -> None:
+        if todo == "" or todo == None:
+            QMessageBox.critical(self, _("Error"), _("Please select a todo."))
+            return
+                
+        else:
+            if not self.parent_.todo_options.checkIfTheTodoExists(todolist, todo):
+                return
+            
+        call = todosdb.changeStatus(todolist, todo)
+            
+        if call:
+            self.updateTodo(todolist, todo, todo)
+            
+            QMessageBox.information(self, _("Successful"), _("{todo} todo's status changed.").format(todo = todo))
+    
+        else:
+            QMessageBox.critical(self, _("Error"), _("Failed to change {todo}'s status.").format(todo = todo))
         
     def deleteTodo(self, todolist: str, todo: str) -> None:
         todolist_items[todolist][0].removeRow(todo_counts[(todolist, todo)])
@@ -995,24 +1005,6 @@ class TodosTreeView(QTreeView):
             
         except KeyError:
             return ""
-        
-    def openTodolistOrSetStatus(self, todolist: str, todo: str) -> None:
-        if todo == "" or todo == None:
-            QMessageBox.critical(self, _("Error"), _("Please select a todo."))
-                
-        else:
-            if not self.parent_.todo_options.checkIfTheTodoExists(todolist, todo):
-                return
-            
-            status, call = todosdb.setStatus(todolist, todo)
-            
-            if call:
-                self.updateTodo(todolist, todo, todo)
-                
-                QMessageBox.information(self, _("Successful"), _("{todo} todo maded {status}.").format(todo = todo, status = _(status)))
-            
-            else:
-                QMessageBox.critical(self, _("Error"), _("Failed to make {todo} todo {status}.").format(todo = todo, status = _(status)))
                 
     def mousePressEvent(self, e: QMouseEvent | None) -> None:
         index = self.indexAt(e.pos())

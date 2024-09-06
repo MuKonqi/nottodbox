@@ -95,7 +95,7 @@ class TextFormatter(QToolBar):
         self.alignment_menu.addAction(
             _("Left"), lambda: self.setAlignment(Qt.AlignmentFlag.AlignLeft))
         self.alignment_menu.addAction(
-            _("Normal"), lambda: self.setAlignment(Qt.AlignmentFlag.AlignCenter))
+            _("Center"), lambda: self.setAlignment(Qt.AlignmentFlag.AlignCenter))
         self.alignment_menu.addAction(
             _("Right"), lambda: self.setAlignment(Qt.AlignmentFlag.AlignRight))
         self.alignment_menu.setStatusTip(_("Setting alignment is only available in HTML format."))
@@ -370,6 +370,18 @@ class NormalPage(QWidget):
                 self.outdated = "no"
             else:
                 self.outdated = "yes"
+                
+        if self.global_autosave == "enabled":
+            self.pretty_autosave = _("enabled")
+        elif self.global_autosave == "disabled":
+            self.pretty_autosave = _("disabled")
+            
+        if self.global_format == "plain-text":
+            self.pretty_format = _("plain-text")
+        elif self.global_format == "markdown":
+            self.pretty_format = _("Markdown")
+        elif self.global_format == "html":
+            self.pretty_format == _("HTML")
 
         if self.call_autosave == "global":
             self.setting_autosave = self.global_autosave
@@ -677,7 +689,7 @@ class BackupPage(QWidget):
                 self.setting_format = setting
         
         else:
-            QMessageBox.critical(self, _("Error"), _("Failed to save new format setting for {note} document.").format(note = self.name))
+            QMessageBox.critical(self, _("Error"), _("Failed to save new format setting for {name} document.").format(note = self.name))
             
     def restoreContent(self):
         if self.outdated == "yes":
