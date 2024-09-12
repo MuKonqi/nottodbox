@@ -96,10 +96,11 @@
 ## Building
 ### Dependencies
 - Python3
-- Python modules: sys, locale, gettext, getpass, os, sqlite3, datetime, PyQt6 (they are generally built-in except PyQt6)
-- git version control system (for downloading this repository)
-- meson build system
-- ninja build system
+- Python modules: sys, locale, gettext, getpass, os, sqlite3, datetime, webbrowser, PyQt6 (they are generally built-in except PyQt6)
+- Qt
+- git
+- meson
+- ninja
 
 ### Commands
 - Note: Do not forget to install dependencies.

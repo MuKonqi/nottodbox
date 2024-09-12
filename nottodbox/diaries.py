@@ -26,7 +26,7 @@ sys.dont_write_bytecode = True
 import getpass
 import sqlite3
 import datetime
-from widgets.dialogs import settingsdb, SettingsDialog
+from settings import settingsdb
 from widgets.pages import NormalPage, BackupPage
 from gettext import gettext as _
 from PyQt6.QtGui import QMouseEvent, QPainter, QColor
@@ -398,17 +398,12 @@ class DiariesTabWidget(QTabWidget):
         self.delete_all = QPushButton(self.side, text=_("Delete all"))
         self.delete_all.clicked.connect(self.deleteAll)
         
-        self.set_settings = QPushButton(self, text=_("Settings"))
-        self.set_settings.clicked.connect(self.setSettings)
-        
         self.side.layout().addWidget(self.open_create)
         self.side.layout().addWidget(self.show_backup)
         self.side.layout().addWidget(self.restore)
         self.side.layout().addWidget(self.clear_content)
         self.side.layout().addWidget(self.delete_diary)
         self.side.layout().addWidget(self.delete_all)
-        self.side.layout().addSpacing(self.set_settings.height())
-        self.side.layout().addWidget(self.set_settings)
         self.home.layout().addWidget(self.side, 1, 2, 3, 1)
         self.home.layout().addWidget(self.modification, 0, 0, 1, 2)
         self.home.layout().addWidget(self.calendar, 1, 0, 1, 2)
@@ -602,15 +597,6 @@ class DiariesTabWidget(QTabWidget):
             
         elif status == "failed" and not call:
             QMessageBox.critical(self, _("Error"), _("Failed to restore backup of {name} diary.").format(name = name))
-            
-    def setSettings(self) -> None:
-        global setting_autosave, setting_format
-    
-        autosave, format = SettingsDialog(self, "diaries", setting_autosave, setting_format).saveSettings()
-        
-        if autosave != "" and autosave != None and format != "" and format != None:
-            setting_autosave = autosave
-            setting_format = format
             
     def showBackup(self) -> None:
         name = self.calendar.selectedDate().toString("dd.MM.yyyy")

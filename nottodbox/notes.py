@@ -23,7 +23,8 @@ sys.dont_write_bytecode = True
 import getpass
 import sqlite3
 import datetime
-from widgets.dialogs import settingsdb, ColorDialog, SettingsDialog
+from settings import settingsdb
+from widgets.dialogs import ColorDialog
 from widgets.pages import NormalPage, BackupPage
 from gettext import gettext as _
 from PyQt6.QtGui import QStandardItem, QStandardItemModel, QMouseEvent, QColor
@@ -655,16 +656,12 @@ class NotesNoneOptions(QWidget):
         self.delete_all = QPushButton(self, text=_("Delete all"))
         self.delete_all.clicked.connect(self.parent_.notebook_options.deleteAll)
         
-        self.set_settings = QPushButton(self, text=_("Settings"))
-        self.set_settings.clicked.connect(self.parent_.note_options.setSettings)
-        
         self.setLayout(QVBoxLayout(self))
         self.setFixedWidth(180)
         
         self.layout().addWidget(self.warning_label)
         self.layout().addWidget(self.create_notebook)
         self.layout().addWidget(self.delete_all)
-        self.layout().addWidget(self.set_settings)
         
         
 class NotesNotebookOptions(QWidget):
@@ -697,9 +694,6 @@ class NotesNotebookOptions(QWidget):
         self.delete_all = QPushButton(self, text=_("Delete all"))
         self.delete_all.clicked.connect(self.deleteAll)
         
-        self.set_settings = QPushButton(self, text=_("Settings"))
-        self.set_settings.clicked.connect(self.parent_.note_options.setSettings)
-        
         self.setLayout(QVBoxLayout(self))
         self.setFixedWidth(180)
         
@@ -711,8 +705,6 @@ class NotesNotebookOptions(QWidget):
         self.layout().addWidget(self.set_background)
         self.layout().addWidget(self.set_foreground)
         self.layout().addWidget(self.delete_all)
-        self.layout().addSpacing(self.set_settings.height())
-        self.layout().addWidget(self.set_settings)
         
     def checkIfTheNotebookExists(self, name: str, mode: str = "normal") -> bool:
         call = notesdb.checkIfTheNotebookExists(name)
@@ -916,9 +908,6 @@ class NotesNoteOptions(QWidget):
         
         self.delete_note = QPushButton(self, text=_("Delete note"))
         self.delete_note.clicked.connect(self.deleteNote)
-        
-        self.set_settings = QPushButton(self, text=_("Settings"))
-        self.set_settings.clicked.connect(self.setSettings)
 
         self.setLayout(QVBoxLayout(self))
         self.setFixedWidth(180)
@@ -930,8 +919,6 @@ class NotesNoteOptions(QWidget):
         self.layout().addWidget(self.restore_content)
         self.layout().addWidget(self.clear_content)
         self.layout().addWidget(self.delete_note)
-        self.layout().addSpacing(self.set_settings.height())
-        self.layout().addWidget(self.set_settings)
 
     def checkIfTheNoteExists(self, notebook: str, name: str, mode: str = "normal") -> bool:
         call = notesdb.checkIfTheNoteExists(notebook, name)
@@ -1098,15 +1085,6 @@ class NotesNoteOptions(QWidget):
         self.parent_.backups[f'{name} @ {notebook}'] = BackupPage(self, "notes", notebook, name, setting_format, notesdb)
         self.parent_.addTab(self.parent_.backups[f'{name} @ {notebook}'], f'{name} @ {notebook} {_("(Backup)")}')
         self.parent_.setCurrentWidget(self.parent_.backups[f'{name} @ {notebook}'])
-        
-    def setSettings(self) -> None:
-        global setting_autosave, setting_format
-    
-        autosave, format = SettingsDialog(self, "notes", setting_autosave, setting_format).saveSettings()
-        
-        if autosave != "" and autosave != None and format != "" and format != None:
-            setting_autosave = autosave
-            setting_format = format
 
 
 class NotesTreeView(QTreeView):

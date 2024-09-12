@@ -1,15 +1,14 @@
 project (
-    'nottodbox',
-    version: '0.0.7',
-    license: 'GPL-3.0-or-later'
+  'nottodbox',
+  version: '0.0.7',
+  license: 'GPL-3.0-or-later'
 )
 
 
 project_id = 'io.github.mukonqi.nottodbox'
+project_name = meson.project_name()
 project_version = meson.project_version()
-project_name = 'Nottodbox'
-project_url = 'https://github.com/mukonqi/nottodbox'
-project_copyright = 'Copyright (C) 2024 MuKonqi (Muhammed S.)'
+project_commit = run_command(find_program('git'), 'rev-parse', '--short', 'HEAD', capture: true, check: true).stdout().replace('\n', '')
 
 
 python = import('python')
@@ -18,11 +17,11 @@ gnome = import('gnome')
 
 
 python_bin = python.find_installation('python3',
-    modules: ['sys', 'locale', 'gettext', 'getpass', 'os', 'sqlite3', 'datetime', 'PyQt6'])
+  modules: ['sys', 'locale', 'gettext', 'getpass', 'os', 'sqlite3', 'datetime', 'webbrowser', 'PyQt6'])
 
 
 if not python_bin.found()
-    error('Python3 or required modules can not found!')
+  error('Python3 or required modules can not found!')
 endif
 
 
@@ -31,7 +30,13 @@ subdir('nottodbox')
 subdir('po')
 
 
+install_data(
+  'LICENSE.txt',
+  install_dir: join_paths(get_option('prefix'), get_option('datadir'), 'nottodbox')
+)
+
+
 gnome.post_install(
-    gtk_update_icon_cache: true,
-    update_desktop_database: true
+  gtk_update_icon_cache: true,
+  update_desktop_database: true
 )

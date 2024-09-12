@@ -381,7 +381,7 @@ class NormalPage(QWidget):
         elif self.global_format == "markdown":
             self.pretty_format = _("Markdown")
         elif self.global_format == "html":
-            self.pretty_format == _("HTML")
+            self.pretty_format = _("HTML")
 
         if self.call_autosave == "global":
             self.setting_autosave = self.global_autosave
@@ -415,7 +415,7 @@ class NormalPage(QWidget):
               
         self.autosave = QComboBox(self)
         self.autosave.addItems([
-            _("Auto-save: Follow global ({setting})").format(setting = self.global_autosave),
+            _("Auto-save: Follow global ({setting})").format(setting = self.pretty_autosave),
             _("Auto-save: Enabled"), 
             _("Auto-save: Disabled")])
         
@@ -432,7 +432,7 @@ class NormalPage(QWidget):
         
         self.format = QComboBox(self)
         self.format.addItems([
-            _("Format: Follow global ({setting})").format(setting = self.global_format),
+            _("Format: Follow global ({setting})").format(setting = self.pretty_format),
             _("Format: Plain-text"), 
             _("Format: Markdown"), 
             _("Format: HTML")])

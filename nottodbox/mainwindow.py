@@ -35,6 +35,8 @@ from home import HomeScrollArea
 from notes import NotesTabWidget, notesdb, notes
 from todos import TodosWidget
 from diaries import DiariesTabWidget, today, diariesdb, diaries
+from about import AboutWidget
+from settings import SettingsWidget
 
 
 class MainWindow(QMainWindow):
@@ -60,11 +62,15 @@ class MainWindow(QMainWindow):
         self.todos = TodosWidget(self)
         self.diaries = DiariesTabWidget(self)
         self.home = HomeScrollArea(self, self.todos, self.notes)
+        self.settings = SettingsWidget(self)
+        self.about = AboutWidget(self)   
 
         self.tabwidget.addTab(self.home, _("Home"))
         self.tabwidget.addTab(self.notes, _("Notes"))
         self.tabwidget.addTab(self.todos, _("Todos"))
         self.tabwidget.addTab(self.diaries, _("Diaries"))
+        self.tabwidget.addTab(self.settings, _("Settings"))
+        self.tabwidget.addTab(self.about, _("About"))
         
         self.dock = QDockWidget(self)
         self.dock.setFixedWidth(180)
@@ -79,7 +85,6 @@ class MainWindow(QMainWindow):
         self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.dock)
         self.setMinimumWidth(900)
         self.setStatusBar(self.statusbar)
-        self.setStatusTip(_("Copyright (C) 2024 MuKonqi (Muhammed S.), licensed under GPLv3 or later"))
 
     def restoreDockWidget(self):
         self.dock.show()

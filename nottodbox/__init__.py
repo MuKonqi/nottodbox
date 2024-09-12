@@ -48,7 +48,7 @@ class Application(QApplication):
     def __init__(self, argv: list, index: int = 0) -> None:
         super().__init__(argv)
 
-        with open(f"@APPDIR@/style.qss") as style_file:
+        with open("@APPDIR@/style.qss") as style_file:
             style = style_file.read()
         
         self.setApplicationVersion("@VERSION@")
@@ -63,17 +63,8 @@ class Application(QApplication):
         window.show()
 
 if __name__ == "__main__":
-    if len(sys.argv[1:]) >= 1:
-        if sys.argv[1] == "--home":
-            application = Application(sys.argv, 0)
-        elif sys.argv[1] == "--notes":
-            application = Application(sys.argv, 1)
-        elif sys.argv[1] == "--todos":
-            application = Application(sys.argv, 2)
-        elif sys.argv[1] == "--settings":
-            application = Application(sys.argv, 3)
-        else:
-            application = Application(sys.argv)
+    if len(sys.argv[1:]) >= 1 and 0 <= int(sys.argv[1]) <= 5:
+        application = Application(sys.argv, int(sys.argv[1]))
     else:
         application = Application(sys.argv)
 

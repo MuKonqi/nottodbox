@@ -9,20 +9,28 @@ Icon=io.github.mukonqi.nottodbox
 StartupWMClass=nottodbox
 
 Categories=Utility;TextEditor;Qt;
-Actions=Home;Notes;Todos;Diaries;Settings;
+Actions=Home;Notes;Todos;Diaries;Settings;About;
 
 [Desktop Action Home]
-Exec=nottodbox --home
+Exec=nottodbox 0
 Name=Home
 
 [Desktop Action Notes]
-Exec=nottodbox --notes
+Exec=nottodbox 1
 Name=Notes
 
 [Desktop Action Todos]
-Exec=nottodbox --todos
+Exec=nottodbox 2
 Name=Todos
 
 [Desktop Action Diaries]
-Exec=nottodbox --diaries
+Exec=nottodbox 3
 Name=Diaries
+
+[Desktop Action Settings]
+Exec=nottodbox 4
+Name=Settings
+
+[Desktop Action About]
+Exec=nottodbox 5
+Name=About
