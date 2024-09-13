@@ -36,7 +36,7 @@ from notes import NotesTabWidget, notesdb, notes
 from todos import TodosWidget
 from diaries import DiariesTabWidget, today, diariesdb, diaries
 from about import AboutWidget
-from settings import SettingsWidget
+from settings import SettingsWidget, settingsdb
 
 
 class MainWindow(QMainWindow):
@@ -55,8 +55,8 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self.widget)
         
         self.menu_sidebar = self.menuBar().addMenu(_("Sidebar"))
-        self.menu_sidebar.addAction(_("Show"), self.restoreDockWidget)
-        self.menu_sidebar.addAction(_("Hide"), lambda: self.removeDockWidget(self.dock))
+        self.menu_sidebar.addAction(_("Show"), self.addDockWidget)
+        self.menu_sidebar.addAction(_("Hide"), self.removeDockWidget)
 
         self.notes = NotesTabWidget(self)
         self.todos = TodosWidget(self)
@@ -76,19 +76,36 @@ class MainWindow(QMainWindow):
         self.dock.setFixedWidth(180)
         self.dock.setStyleSheet("margin: 0px")
         self.dock.setFeatures(QDockWidget.DockWidgetFeature.DockWidgetClosable |
-                              QDockWidget.DockWidgetFeature.DockWidgetFloatable |
-                              QDockWidget.DockWidgetFeature.DockWidgetMovable)
+                            QDockWidget.DockWidgetFeature.DockWidgetFloatable |
+                            QDockWidget.DockWidgetFeature.DockWidgetMovable)
         self.dock.setWidget(SidebarWidget(self, self.notes, self.todos, self.diaries))
         
         self.statusbar = QStatusBar(self)
         
-        self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.dock)
         self.setMinimumWidth(900)
+        self.setMinimumHeight(540)
         self.setStatusBar(self.statusbar)
-
-    def restoreDockWidget(self):
+        if settingsdb.getDockStatus() == "enabled":
+            self.addDockWidget()
+        else:
+            self.removeDockWidget()
+        
+    def addDockWidget(self):
+        call = settingsdb.saveDockStatus("enabled")
+        
+        if not call:
+            QMessageBox.critical(self, _("Error"), _("Can not save new sidebar setting."))
+        
         self.dock.show()
-        self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.dock)
+        super().addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.dock)
+        
+    def removeDockWidget(self):
+        call = settingsdb.saveDockStatus("disabled")
+        
+        if not call:
+            QMessageBox.critical(self, _("Error"), _("Can not save new sidebar setting."))
+        
+        super().removeDockWidget(self.dock)
 
     def closeEvent(self, a0: QCloseEvent | None):
         stringlist = self.dock.widget().model1.stringList()

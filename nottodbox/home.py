@@ -73,7 +73,7 @@ class HomeWidget(QWidget):
         
         self.label_notes = QLabel(self, alignment=Qt.AlignmentFlag.AlignCenter, 
                                   text=_("List of Your Notebooks & Notes"))
-        self.label_todos.setStyleSheet("margin-top: 10px")
+        self.label_notes.setStyleSheet("margin-top: 10px")
         
         self.notes = NotesTreeView(notes, "home")
         

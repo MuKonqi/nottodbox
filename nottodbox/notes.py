@@ -42,7 +42,7 @@ notebook_items = {}
 username = getpass.getuser()
 userdata = f"/home/{username}/.config/nottodbox/"
 
-setting_autosave, setting_format = settingsdb.getSettings("notes")
+setting_autosave, setting_format = settingsdb.getAutosaveAndFormat("notes")
 
 
 class NotesDB:

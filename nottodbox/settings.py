@@ -59,7 +59,7 @@ class SettingsDB:
         
         return self.checkIfTheTableExists()
     
-    def getSettings(self, module: str) -> tuple:
+    def getAutosaveAndFormat(self, module: str) -> tuple:
         if not self.createTable():
             print("[2] Failed to create table")
             sys.exit(2)
@@ -103,17 +103,44 @@ class SettingsDB:
                 format = "markdown"
                 
         return autosave, format
+    
+    def getDockStatus(self) -> str:
+        if not self.createTable():
+            print("[2] Failed to create table")
+            sys.exit(2)
             
-    def saveSettings(self, module: str, autosave: str, format: str) -> bool:
+        try:
+            self.cur.execute(f"select value from __main__ where setting = 'mainwindow-dock'")
+            status = str(self.cur.fetchone()[0])
+
+        except TypeError:
+            self.cur.execute(f"insert into __main__ (setting, value) values ('mainwindow-dock', 'enabled')")
+            self.db.commit()
+            status = "enabled"
+                
+        return status
+            
+    def saveAutosaveAndFormat(self, module: str, autosave: str, format: str) -> bool:
         self.cur.execute(f"update __main__ set value = '{autosave}' where setting = '{module}-autosave'")
         self.db.commit()
         
         self.cur.execute(f"update __main__ set value = '{format}' where setting = '{module}-format'")
         self.db.commit()
         
-        call_autosave, call_format = self.getSettings(module)
+        call_autosave, call_format = self.getAutosaveAndFormat(module)
         
         if call_autosave == autosave and call_format == format:
+            return True
+        else:
+            return False
+        
+    def saveDockStatus(self, status: str) -> bool:
+        self.cur.execute(f"update __main__ set value = '{status}' where setting = 'mainwindow-dock'")
+        self.db.commit()
+        
+        call_status = self.getDockStatus()
+        
+        if call_status == status:
             return True
         else:
             return False
@@ -129,15 +156,18 @@ class SettingsWidget(QWidget):
     def __init__(self, parent: QMainWindow) -> None:        
         super().__init__(parent)
         
+        self.parent_ = parent
+        self.menu = self.parent_.menuBar().addMenu(_("Settings"))
+        
         self.setLayout(QHBoxLayout(self))
         
         self.stacked = QStackedWidget(self)
-        self.stacked.addWidget(SettingsPage(self, "notes"))
-        self.stacked.addWidget(SettingsPage(self, "diaries"))
+        self.stacked.addWidget(SettingsAutosaveAndFormatPage(self, "notes", _("Notes"), 0))
+        self.stacked.addWidget(SettingsAutosaveAndFormatPage(self, "diaries", _("Diaries"), 1))
         
         self.list = QListWidget(self)
         self.list.setCurrentRow(0)
-        self.list.setFixedWidth(150)
+        self.list.setFixedWidth(90)
         self.list.currentRowChanged.connect(lambda: self.stacked.setCurrentIndex(self.list.currentRow()))
         
         self.list_notes = QListWidgetItem(_("Notes"), self.list)
@@ -154,17 +184,17 @@ class SettingsWidget(QWidget):
         self.layout().addWidget(self.list)
         self.layout().addWidget(self.stacked)
         
-    def showPage(self, index: int) -> None:
-        self.stacked.setCurrentIndex(index)
         
-        
-class SettingsPage(QWidget):
-    def __init__(self, parent: QWidget, module: str) -> None:
+class SettingsAutosaveAndFormatPage(QWidget):
+    def __init__(self, parent: SettingsWidget, module: str, pretty: str, index: int) -> None:
         super().__init__(parent)
         
         self.parent_ = parent
         self.module = module
-        self.autosave, self.format = settingsdb.getSettings(self.module)
+        self.index = index
+        self.autosave, self.format = settingsdb.getAutosaveAndFormat(self.module)
+        
+        self.parent_.menu.addAction(pretty, self.setIndexes)
         
         self.inputs = QWidget(self)
         self.inputs.setLayout(QFormLayout(self))
@@ -204,7 +234,7 @@ class SettingsPage(QWidget):
         self.reset.clicked.connect(self.resetSettings)
         
         self.save = QPushButton(self.buttons, text=_("Save"))
-        self.save.clicked.connect(self.saveSettings)
+        self.save.clicked.connect(self.saveAutosaveAndFormat)
         
         self.buttons.layout().addStretch()
         self.buttons.layout().addWidget(self.reset)
@@ -214,6 +244,27 @@ class SettingsPage(QWidget):
         self.layout().addWidget(self.inputs)
         self.layout().addStretch()
         self.layout().addWidget(self.buttons)
+        
+    def resetSettings(self) -> None:
+        call = settingsdb.saveAutosaveAndFormat(self.module, "enabled", "markdown")
+        
+        if call:
+            self.checkbox.setChecked(True)
+            self.combobox.setCurrentIndex(1)
+            
+            QMessageBox.information(self.parent_, _("Successful"), _("Settings are reset."))
+        
+        else:
+            QMessageBox.critical(self.parent_, _("Error"), _("Failed to reset settings."))
+            
+    def saveAutosaveAndFormat(self) -> None:
+        call = settingsdb.saveAutosaveAndFormat(self.module, self.autosave, self.format)
+        
+        if call:
+            QMessageBox.information(self.parent_, _("Successful"), _("New settings are saved."))
+        
+        else:
+            QMessageBox.critical(self.parent_, _("Error"), _("Failed to save settings."))
             
     def setAutoSave(self, signal: Qt.CheckState | int) -> None:
         if signal == Qt.CheckState.Unchecked or signal == 0:
@@ -232,23 +283,6 @@ class SettingsPage(QWidget):
         elif index == 2:
             self.format = "html"
             
-    def resetSettings(self) -> None:
-        call = settingsdb.saveSettings(self.module, "enabled", "markdown")
-        
-        if call:
-            self.checkbox.setChecked(True)
-            self.combobox.setCurrentIndex(1)
-            
-            QMessageBox.information(self.parent_, _("Successful"), _("Settings are reset."))
-        
-        else:
-            QMessageBox.critical(self.parent_, _("Error"), _("Failed to reset settings."))
-
-    def saveSettings(self) -> None:
-        call = settingsdb.saveSettings(self.module, self.autosave, self.format)
-        
-        if call:
-            QMessageBox.information(self.parent_, _("Successful"), _("New settings are saved."))
-        
-        else:
-            QMessageBox.critical(self.parent_, _("Error"), _("Failed to save settings."))
+    def setIndexes(self) -> None:
+        self.parent_.parent_.tabwidget.setCurrentIndex(4)
+        self.parent_.list.setCurrentRow(self.index)
