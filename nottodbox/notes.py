@@ -716,7 +716,7 @@ class NotesNotebookOptions(QWidget):
                     
     def createNotebook(self) -> None:
         name, topwindow = QInputDialog.getText(
-            self, _("Create a notebook"), _("Please enter a name for creating a notebook."))
+            self, _("Create Notebook"), _("Please enter a name for creating a notebook."))
         
         if "'" in name or "@" in name:
             QMessageBox.critical(self, _("Error"), _("The notebook name can not contain these characters: ' and @"))
@@ -779,7 +779,7 @@ class NotesNotebookOptions(QWidget):
             return
         
         newname, topwindow = QInputDialog.getText(self, 
-                                                  _("Rename {name} notebook").format(name = name), 
+                                                  _("Rename {name} Notebook").format(name = name.title()), 
                                                   _("Please enter a new name for {name} notebook.").format(name = name))
         
         if newname != "" and newname != None and topwindow:
@@ -831,7 +831,7 @@ class NotesNotebookOptions(QWidget):
         
         background = notesdb.getBackground(name)
         
-        status, qcolor = ColorDialog(QColor(background), self, _("Select color").format(name = name)).getColor()
+        status, qcolor = ColorDialog(QColor(background), self, _("Select Color").format(name = name)).getColor()
         
         if status == "ok":
             if qcolor.isValid():
@@ -860,7 +860,7 @@ class NotesNotebookOptions(QWidget):
         
         foreground = notesdb.getForeground(name)
         
-        status, qcolor = ColorDialog(QColor(foreground), self, _("Select color").format(name = name)).getColor()
+        status, qcolor = ColorDialog(QColor(foreground), self, _("Select Color").format(name = name)).getColor()
         
         if status == "ok":
             if qcolor.isValid():
@@ -958,7 +958,7 @@ class NotesNoteOptions(QWidget):
             return
         
         name, topwindow = QInputDialog.getText(
-            self, _("Add a note"), _("Please enter a name for creating a note."))
+            self, _("Create Note"), _("Please enter a name for creating a note."))
         
         if "@" in name:
             QMessageBox.critical(self, _("Error"), _('The note name can not contain @ character.'))
@@ -1026,7 +1026,7 @@ class NotesNoteOptions(QWidget):
             return
         
         newname, topwindow = QInputDialog.getText(self, 
-                                                  _("Rename {name} note").format(name = name), 
+                                                  _("Rename {name} Note").format(name = name.title()), 
                                                   _("Please enter a new name for {name} note.").format(name = name))
         
         if newname != "" and newname != None and topwindow:
@@ -1279,7 +1279,7 @@ class NotesTreeView(QTreeView):
             super().mousePressEvent(e)
             
         else:
-            QMessageBox.warning(self, _("Warning"), _("Please select a note only by clicking on the first column."))
+            QMessageBox.warning(self, _("Warning"), _("Please select a note or a notebook only by clicking on the first column."))
     
     def openNote(self, notebook: str = "", name: str = "") -> None:
         if notebook == "" or notebook == None or name == "" or name == None:

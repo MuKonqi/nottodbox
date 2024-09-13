@@ -140,7 +140,7 @@ class TextFormatter(QToolBar):
         cur.mergeBlockFormat(blkfmt)
         
     def setBackgroundColor(self) -> None:
-        status, qcolor = ColorDialog(Qt.GlobalColor.white, self, _("Select color")).getColor()
+        status, qcolor = ColorDialog(Qt.GlobalColor.white, self, _("Select Color")).getColor()
         
         if status == "ok":
             cur = self.input.textCursor()
@@ -222,7 +222,7 @@ class TextFormatter(QToolBar):
         self.mergeFormat(cur, chrfmt)
         
     def setLink(self) -> None:
-        status, text, url = GetTwoDialog(self, "text", _("Add link"), _("Link text:"), _("Link URL:"), _("Not required"), _("Required")).getItems()
+        status, text, url = GetTwoDialog(self, "text", _("Add Link"), _("Link text:"), _("Link URL:"), _("Not required"), _("Required")).getItems()
         
         if status == "ok":
             if url != "" and url != None:
@@ -259,7 +259,7 @@ class TextFormatter(QToolBar):
         self.mergeFormat(cur, chrfmt)
         
     def setTable(self) -> None:
-        status, row, column = GetTwoDialog(self, "number", _("Add table"), _("Row number:"), _("Column number:"), 1, 1).getItems()
+        status, row, column = GetTwoDialog(self, "number", _("Add Table"), _("Row number:"), _("Column number:"), 1, 1).getItems()
         
         if status == "ok":
             if row != None and column != None:
@@ -270,7 +270,7 @@ class TextFormatter(QToolBar):
                 QMessageBox.critical(self, _("Error"), _("The row and column numbers are required, they can not be blank."))
                 
     def setTextColor(self) -> None:
-        status, qcolor = ColorDialog(Qt.GlobalColor.white, self, _("Select color")).getColor()
+        status, qcolor = ColorDialog(Qt.GlobalColor.white, self, _("Select Color")).getColor()
         
         if status == "ok":
             cur = self.input.textCursor()

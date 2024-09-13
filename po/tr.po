@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.0.7\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-13 21:13+0300\n"
-"PO-Revision-Date: 2024-09-12 21:56+0300\n"
+"POT-Creation-Date: 2024-09-13 21:39+0300\n"
+"PO-Revision-Date: 2024-09-13 21:39+0300\n"
 "Last-Translator: Muhammed S. <mukonqi@gmail.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: tr\n"
@@ -468,8 +468,8 @@ msgid "There is no notebook called {name}."
 msgstr "{name} adında bir not defteri yok."
 
 #: nottodbox/notes.py:719
-msgid "Create a notebook"
-msgstr "Not defteri oluştur"
+msgid "Create Notebook"
+msgstr "Not Defteri Oluştur"
 
 #: nottodbox/notes.py:719
 msgid "Please enter a name for creating a notebook."
@@ -518,8 +518,8 @@ msgstr "{name} not defteri silinemedi."
 
 #: nottodbox/notes.py:782
 #, python-brace-format
-msgid "Rename {name} notebook"
-msgstr "{name} not defterini yeniden adlandır"
+msgid "Rename {name} Notebook"
+msgstr "{name} Not Defterini Yeniden Adlandır"
 
 #: nottodbox/notes.py:783
 #, python-brace-format
@@ -557,8 +557,8 @@ msgstr "{name} not defteri sıfırlanamadı."
 #: nottodbox/notes.py:834 nottodbox/notes.py:863 nottodbox/todos.py:601
 #: nottodbox/todos.py:630 nottodbox/widgets/pages.py:143
 #: nottodbox/widgets/pages.py:273
-msgid "Select color"
-msgstr "Renk seçin"
+msgid "Select Color"
+msgstr "Renk Seçin"
 
 #: nottodbox/notes.py:848
 #, python-brace-format
@@ -623,8 +623,8 @@ msgid "Failed to clear content of {name} note."
 msgstr "{name} notunun içeriği temizlenemedi."
 
 #: nottodbox/notes.py:961
-msgid "Add a note"
-msgstr "Bir not ekle"
+msgid "Create Note"
+msgstr "Not Oluştur"
 
 #: nottodbox/notes.py:961
 msgid "Please enter a name for creating a note."
@@ -661,8 +661,8 @@ msgstr "{name} notu silinemedi."
 
 #: nottodbox/notes.py:1029
 #, python-brace-format
-msgid "Rename {name} note"
-msgstr "{name} notunu yeniden adlandır"
+msgid "Rename {name} Note"
+msgstr "{name} Notunu Yeniden Adlandır"
 
 #: nottodbox/notes.py:1030
 #, python-brace-format
@@ -713,7 +713,8 @@ msgid "Double-click to opening a note."
 msgstr "Bir not açmak için çift tıklayın."
 
 #: nottodbox/notes.py:1282
-msgid "Please select a note only by clicking on the first column."
+msgid ""
+"Please select a note or a notebook only by clicking on the first column."
 msgstr "Lütfen sadece birinci sütüne tıklayarak bir not seçin."
 
 #: nottodbox/notes.py:1286
@@ -833,7 +834,7 @@ msgid "The selection is invalid."
 msgstr "Seçim geçersiz."
 
 #: nottodbox/sidebar.py:251 nottodbox/sidebar.py:252 nottodbox/sidebar.py:287
-#: nottodbox/sidebar.py:288 nottodbox/todos.py:362 nottodbox/todos.py:407
+#: nottodbox/sidebar.py:288
 msgid "Todo list: "
 msgstr "Yapılacaklar listesi: "
 
@@ -872,14 +873,18 @@ msgid "Search in the list below"
 msgstr "Aşağıdaki listede arayın"
 
 #: nottodbox/todos.py:361 nottodbox/todos.py:408
-msgid "Todo: "
+msgid "To-do: "
 msgstr "Yapılacak: "
+
+#: nottodbox/todos.py:362 nottodbox/todos.py:407
+msgid "To-do list: "
+msgstr "Yapılacaklar listesi: "
 
 #: nottodbox/todos.py:418
 msgid ""
 "You can select\n"
-"a todo list\n"
-"or a todo\n"
+"a to-do list\n"
+"or a to-do\n"
 "on the left."
 msgstr ""
 "Solda\n"
@@ -888,7 +893,7 @@ msgstr ""
 "seçebilirsiniz."
 
 #: nottodbox/todos.py:421 nottodbox/todos.py:444
-msgid "Create todo list"
+msgid "Create to-do list"
 msgstr "Yapılacaklar l. oluştur"
 
 #: nottodbox/todos.py:441 nottodbox/todos.py:658
@@ -896,137 +901,137 @@ msgid "Create todo"
 msgstr "Yapılacak oluştur"
 
 #: nottodbox/todos.py:447
-msgid "Rename todo list"
+msgid "Rename to-do list"
 msgstr "Yapılacaklar l. y. adlandır"
 
 #: nottodbox/todos.py:450
-msgid "Reset todo list"
+msgid "Reset to-do list"
 msgstr "Yapılacaklar l. sıfırla"
 
 #: nottodbox/todos.py:453
-msgid "Delete todo list"
+msgid "Delete to-do list"
 msgstr "Yapılacaklar l. sil"
 
 #: nottodbox/todos.py:481 nottodbox/todos.py:707
 #, python-brace-format
-msgid "There is no todo list called {name}."
+msgid "There is no to-do list called {name}."
 msgstr "{name} adında bir yapılacaklar listesi yok."
 
 #: nottodbox/todos.py:487
-msgid "Create a todo list"
+msgid "Create To-do List"
 msgstr "Yapılacaklar listesi oluştur"
 
 #: nottodbox/todos.py:487
-msgid "Please enter a name for creating a todo list."
+msgid "Please enter a name for creating a to-do list."
 msgstr "Lütfen yapılacaklar listesi oluşturmak için bir isim girin."
 
 #: nottodbox/todos.py:490
-msgid "The todo list name can not contain these characters: ' and @"
+msgid "The to-do list name can not contain these characters: ' and @"
 msgstr "Yapılacaklar listesi adı şu karakterleri içeremez: ' ve @"
 
 #: nottodbox/todos.py:494
-msgid "The todo list name can not be to __main__."
+msgid "The to-do list name can not be to __main__."
 msgstr "Yapılacaklar listesi adı __main__ olamaz."
 
 #: nottodbox/todos.py:501
 #, python-brace-format
-msgid "{name} todo list already created."
+msgid "{name} to-do list already created."
 msgstr "{name} yapılacaklar listesi zaten oluşturulmuş."
 
 #: nottodbox/todos.py:510
 #, python-brace-format
-msgid "{name} todo list created."
+msgid "{name} to-do list created."
 msgstr "{name} yapılacaklar listesi oluşturuldu."
 
 #: nottodbox/todos.py:513
 #, python-brace-format
-msgid "Failed to create {name} todo list."
+msgid "Failed to create {name} to-do list."
 msgstr "{name} yapılacaklar listesi oluşturulamadı."
 
 #: nottodbox/todos.py:522
-msgid "All todo lists deleted."
+msgid "All to-do lists deleted."
 msgstr "Tüm yapılacaklar listeleri silindi."
 
 #: nottodbox/todos.py:525
-msgid "Failed to delete all todo lists."
+msgid "Failed to delete all to-do lists."
 msgstr "Tüm yapılacaklar listeleri silinemedi."
 
 #: nottodbox/todos.py:539
 #, python-brace-format
-msgid "{name} todo list deleted."
+msgid "{name} to-do list deleted."
 msgstr "{name} yapılacaklar listesi silindi."
 
 #: nottodbox/todos.py:542
 #, python-brace-format
-msgid "Failed to delete {name} todo list."
+msgid "Failed to delete {name} to-do list."
 msgstr "{name} yapılacaklar listesi silinemedi."
 
 #: nottodbox/todos.py:551
 #, python-brace-format
-msgid "Rename {name} todo list"
+msgid "Rename {name} To-do List"
 msgstr "{name} yapılacaklar listesini yeniden adlandır"
 
 #: nottodbox/todos.py:552
 #, python-brace-format
-msgid "Please enter a new name for {name} todo list."
+msgid "Please enter a new name for {name} to-do list."
 msgstr "Lütfen {name} yapılacaklar listesi için yeni bir ad girin."
 
 #: nottodbox/todos.py:562
 #, python-brace-format
-msgid "{name} todo list renamed as {newname}."
+msgid "{name} to-do list renamed as {newname}."
 msgstr "{name} yapılacaklar listesi {newname} olarak yeniden adlandırıldı."
 
 #: nottodbox/todos.py:565 nottodbox/todos.py:572
 #, python-brace-format
-msgid "Failed to rename {name} todo list."
+msgid "Failed to rename {name} to-do list."
 msgstr "{name} yapılacaklar listesi yeniden adlandırılamadı."
 
 #: nottodbox/todos.py:569
 #, python-brace-format
-msgid "{newname} todo list already created."
+msgid "{newname} to-do list already created."
 msgstr "{name} yapılacaklar listesi zaten oluşturulmuş."
 
 #: nottodbox/todos.py:588
 #, python-brace-format
-msgid "{name} todo list reset."
+msgid "{name} to-do list reset."
 msgstr "{name} yapılacaklar listesi sıfırlandı."
 
 #: nottodbox/todos.py:591
 #, python-brace-format
-msgid "Failed to reset {name} todo list."
+msgid "Failed to reset {name} to-do list."
 msgstr "{name} yapılacaklar listesi sıfırlanamadı."
 
 #: nottodbox/todos.py:615
 #, python-brace-format
-msgid "Background color setted to {color} for {name} todo list."
+msgid "Background color setted to {color} for {name} to-do list."
 msgstr ""
 "Arka plan rengi, {name} yapılacaklar listesi için {color} olarak ayarlandı."
 
 #: nottodbox/todos.py:617
 #, python-brace-format
-msgid "Background color setted to default for {name} todo list."
+msgid "Background color setted to default for {name} to-do list."
 msgstr ""
 "Arka plan rengi, {name} yapılacaklar listesi için varsayılana ayarlandı."
 
 #: nottodbox/todos.py:620
 #, python-brace-format
-msgid "Failed to set background color for {name} todo list."
+msgid "Failed to set background color for {name} to-do list."
 msgstr "Arka plan rengi {name} yapılacaklar listesi için ayarlanamadı."
 
 #: nottodbox/todos.py:644
 #, python-brace-format
-msgid "Foreground color setted to {color} for {name} todo list."
+msgid "Foreground color setted to {color} for {name} to-do list."
 msgstr ""
 "Metin rengi, {name} yapılacaklar listesi için {color} olarak ayarlandı."
 
 #: nottodbox/todos.py:646
 #, python-brace-format
-msgid "Foreground color setted to default for {name} todo list."
+msgid "Foreground color setted to default for {name} to-do list."
 msgstr "Metin rengi, {name} yapılacaklar listesi için varsayılana ayarlandı."
 
 #: nottodbox/todos.py:649
 #, python-brace-format
-msgid "Failed to set foreground color for {name} todo list."
+msgid "Failed to set foreground color for {name} to-do list."
 msgstr "Metin rengi {name} yapılacaklar listesi için ayarlanamadı."
 
 #: nottodbox/todos.py:661
@@ -1043,7 +1048,7 @@ msgstr "Yapılacağı sil"
 
 #: nottodbox/todos.py:682
 #, python-brace-format
-msgid "There is no todo called {todo}."
+msgid "There is no to-do called {todo}."
 msgstr "{todo} yapılacağı yok."
 
 #: nottodbox/todos.py:698 nottodbox/todos.py:957
@@ -1057,61 +1062,61 @@ msgid "Failed to change {todo}'s status."
 msgstr "{todo} yapılacağı oluşturulamadı."
 
 #: nottodbox/todos.py:711
-msgid "Add a todo"
-msgstr "Bir yapılacak ekle"
+msgid "Create To-do"
+msgstr "Yapılacak oluştur"
 
 #: nottodbox/todos.py:711
-msgid "Please enter anything for creating a todo."
+msgid "Please enter anything for creating a to-do."
 msgstr "Lütfen bir yapılacak oluşturmak için herhangi bir şey girin."
 
 #: nottodbox/todos.py:717
 #, python-brace-format
-msgid "{todo} todo already created."
+msgid "{todo} to-do already created."
 msgstr "{todo} yapılacağı zaten oluşturulmuş."
 
 #: nottodbox/todos.py:726
 #, python-brace-format
-msgid "{todo} todo created."
+msgid "{todo} to-do created."
 msgstr "{todo} yapılacağı oluşturuldu."
 
 #: nottodbox/todos.py:729
 #, python-brace-format
-msgid "Failed to create {todo} todo."
+msgid "Failed to create {todo} to-do."
 msgstr "{todo} yapılacağı oluşturulamadı."
 
 #: nottodbox/todos.py:744
 #, python-brace-format
-msgid "{todo} todo deleted."
+msgid "{todo} to-do deleted."
 msgstr "{todo} yapılacağı silindi."
 
 #: nottodbox/todos.py:747
 #, python-brace-format
-msgid "Failed to delete {todo} todo."
+msgid "Failed to delete {todo} to-do."
 msgstr "{todo} yapılacağı silinemedi."
 
 #: nottodbox/todos.py:757
 #, python-brace-format
-msgid "Edit {todo} todo"
+msgid "Edit {todo} To-do"
 msgstr "{todo} yapılacağını düzenle"
 
 #: nottodbox/todos.py:758
 #, python-brace-format
-msgid "Please enter anything for editing {todo} todo."
+msgid "Please enter anything for editing {todo} to-do."
 msgstr "Lütfen {todo} yapılacağını düzenlemek için herhangi bir şey girin."
 
 #: nottodbox/todos.py:768
 #, python-brace-format
-msgid "{todo} todo edited as {newtodo}."
+msgid "{todo} to-do edited as {newtodo}."
 msgstr "{todo} yapılacağı {newtodo} olarak düzenlendi."
 
 #: nottodbox/todos.py:772 nottodbox/todos.py:780
 #, python-brace-format
-msgid "Failed to edit {todo} todo."
+msgid "Failed to edit {todo} to-do."
 msgstr "{todo} yapılacağı düzenlemedi."
 
 #: nottodbox/todos.py:776
 #, python-brace-format
-msgid "Already existing {newtodo} todo, editing {todo} todo cancalled."
+msgid "Already existing {newtodo} todo, editing {todo} to-do cancalled."
 msgstr ""
 "{newtodo} yapılacağı zaten mevcut, {todo} yapılacağını düzenleme vazgeçildi."
 
@@ -1120,7 +1125,7 @@ msgid "Modification / Completion"
 msgstr "Değiştirilme / Tamamlanma"
 
 #: nottodbox/todos.py:807
-msgid "Double-click to changing status of a todo."
+msgid "Double-click to changing status of a to-do."
 msgstr "Bir yapılacağın durumunu değiştirmek için çift tıklayın."
 
 #: nottodbox/todos.py:862 nottodbox/todos.py:889 nottodbox/todos.py:927
@@ -1128,11 +1133,12 @@ msgid "Not completed"
 msgstr "Tamamlanmamış"
 
 #: nottodbox/todos.py:945
-msgid "Please select a todo."
+msgid "Please select a to-do."
 msgstr "Lütfen bir yapılacak seçin."
 
 #: nottodbox/todos.py:1016
-msgid "Please select a todo only by clicking on the first column."
+msgid ""
+"Please select a to-do or a to-do list only by clicking on the first column."
 msgstr "Lütfen sadece birinci sütuna tıklayarak bir yapılacak seçin."
 
 #: nottodbox/widgets/dialogs.py:42
@@ -1261,8 +1267,8 @@ msgstr ""
 "Metin biçimlendiricisi sadece Markdown ile HTMl biçimlerinde mevcuttur."
 
 #: nottodbox/widgets/pages.py:225
-msgid "Add link"
-msgstr "Bağlantı ekle"
+msgid "Add Link"
+msgstr "Bağlantı Ekle"
 
 #: nottodbox/widgets/pages.py:225
 msgid "Link text:"
@@ -1285,8 +1291,8 @@ msgid "The URL is required, it can not be blank."
 msgstr "Bağlantı gerekli, o boş olamaz."
 
 #: nottodbox/widgets/pages.py:262
-msgid "Add table"
-msgstr "Tablo ekle"
+msgid "Add Table"
+msgstr "Tablo Ekle"
 
 #: nottodbox/widgets/pages.py:262
 msgid "Row number:"
@@ -1388,3 +1394,9 @@ msgstr "{name} belgesinin yedeği geri yüklendi."
 #, python-brace-format
 msgid "Failed to restore backup of {name} document."
 msgstr "{name} belgesinin yedeği geri yüklenemedi."
+
+#~ msgid "Add a note"
+#~ msgstr "Bir not ekle"
+
+#~ msgid "Add a todo"
+#~ msgstr "Bir yapılacak ekle"
