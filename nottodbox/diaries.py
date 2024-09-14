@@ -566,6 +566,8 @@ class DiariesTabWidget(QTabWidget):
         
         today = QDate.currentDate()
         
+        self.calendar.setMaximumDate(today)
+        
         self.refresh.setText(_("Refresh today variable (it is {name})").format(name = today.toString("dd.MM.yyyy")))
             
     def restoreContent(self) -> None:

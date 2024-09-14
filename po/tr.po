@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.0.7\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-14 17:59+0300\n"
-"PO-Revision-Date: 2024-09-13 21:39+0300\n"
+"POT-Creation-Date: 2024-09-14 18:05+0300\n"
+"PO-Revision-Date: 2024-09-14 18:05+0300\n"
 "Last-Translator: Muhammed S. <mukonqi@gmail.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: tr\n"
@@ -40,7 +40,7 @@ msgstr "Notlar"
 msgid "Todos"
 msgstr "Yapılacaklar"
 
-#: data/io.github.mukonqi.nottodbox.desktop.in.in:29 nottodbox/diaries.py:635
+#: data/io.github.mukonqi.nottodbox.desktop.in.in:29 nottodbox/diaries.py:637
 #: nottodbox/mainwindow.py:72 nottodbox/settings.py:191
 #: nottodbox/settings.py:201
 msgid "Diaries"
@@ -102,7 +102,7 @@ msgstr "Değiştirilme: "
 msgid "Come back to today"
 msgstr "Günümüze geri dön"
 
-#: nottodbox/diaries.py:376 nottodbox/diaries.py:569
+#: nottodbox/diaries.py:376 nottodbox/diaries.py:571
 #, python-brace-format
 msgid "Refresh today variable (it is {name})"
 msgstr "Gün değişkenini yenile (şu anda {name})"
@@ -136,9 +136,9 @@ msgstr "Her şeyi sil"
 #: nottodbox/diaries.py:426 nottodbox/diaries.py:434 nottodbox/diaries.py:442
 #: nottodbox/diaries.py:453 nottodbox/diaries.py:475 nottodbox/diaries.py:501
 #: nottodbox/diaries.py:507 nottodbox/diaries.py:523 nottodbox/diaries.py:540
-#: nottodbox/diaries.py:549 nottodbox/diaries.py:575 nottodbox/diaries.py:596
-#: nottodbox/diaries.py:599 nottodbox/diaries.py:605 nottodbox/diaries.py:646
-#: nottodbox/diaries.py:655 nottodbox/mainwindow.py:179
+#: nottodbox/diaries.py:549 nottodbox/diaries.py:577 nottodbox/diaries.py:598
+#: nottodbox/diaries.py:601 nottodbox/diaries.py:607 nottodbox/diaries.py:648
+#: nottodbox/diaries.py:657 nottodbox/mainwindow.py:179
 #: nottodbox/mainwindow.py:185 nottodbox/mainwindow.py:191
 #: nottodbox/mainwindow.py:197 nottodbox/mainwindow.py:214
 #: nottodbox/mainwindow.py:225 nottodbox/mainwindow.py:237
@@ -174,18 +174,18 @@ msgstr "Hata"
 msgid "There is no diary called {name}."
 msgstr "{name} adında bir günlük yok."
 
-#: nottodbox/diaries.py:434 nottodbox/diaries.py:596
+#: nottodbox/diaries.py:434 nottodbox/diaries.py:598
 #, python-brace-format
 msgid "There is no backup for {name} diary."
 msgstr "{name} günlüğü için yedek yok."
 
 #: nottodbox/diaries.py:442 nottodbox/diaries.py:507 nottodbox/diaries.py:540
-#: nottodbox/diaries.py:575 nottodbox/diaries.py:605 nottodbox/diaries.py:646
+#: nottodbox/diaries.py:577 nottodbox/diaries.py:607 nottodbox/diaries.py:648
 msgid "Diary name can not be blank."
 msgstr "Günlük adı boş olamaz."
 
 #: nottodbox/diaries.py:451 nottodbox/diaries.py:498 nottodbox/diaries.py:520
-#: nottodbox/diaries.py:593 nottodbox/mainwindow.py:173
+#: nottodbox/diaries.py:595 nottodbox/mainwindow.py:173
 #: nottodbox/mainwindow.py:183 nottodbox/mainwindow.py:189
 #: nottodbox/mainwindow.py:195 nottodbox/notes.py:742 nottodbox/notes.py:754
 #: nottodbox/notes.py:771 nottodbox/notes.py:793 nottodbox/notes.py:821
@@ -251,11 +251,11 @@ msgstr "{name} günlüğü silindi."
 msgid "Failed to delete {name} diary."
 msgstr "{name} günlüğü silinemedi."
 
-#: nottodbox/diaries.py:549 nottodbox/diaries.py:655
+#: nottodbox/diaries.py:549 nottodbox/diaries.py:657
 msgid "You can not create a diary for past."
 msgstr "Geçmiş için bir günlük oluşturamazsınız."
 
-#: nottodbox/diaries.py:585 nottodbox/widgets/pages.py:496
+#: nottodbox/diaries.py:587 nottodbox/widgets/pages.py:496
 #: nottodbox/widgets/pages.py:570 nottodbox/widgets/pages.py:675
 #: nottodbox/widgets/pages.py:697
 msgid ""
@@ -265,21 +265,21 @@ msgstr ""
 "Günlükler yazıldığı güne özellerdir.\n"
 "Yani, emin misiniz?"
 
-#: nottodbox/diaries.py:593
+#: nottodbox/diaries.py:595
 #, python-brace-format
 msgid "Backup of {name} diary restored."
 msgstr "{name} günlüğünün yedeği geri yüklendi."
 
-#: nottodbox/diaries.py:599
+#: nottodbox/diaries.py:601
 #, python-brace-format
 msgid "Failed to restore backup of {name} diary."
 msgstr "{name} günlüğünün yedeği geri yüklenemedi."
 
-#: nottodbox/diaries.py:617
+#: nottodbox/diaries.py:619
 msgid "(Backup)"
 msgstr "(Yedek)"
 
-#: nottodbox/diaries.py:628
+#: nottodbox/diaries.py:630
 msgid "Double-click on top to opening a diary."
 msgstr "Üstte bir günlüğü açmak için çift tıklayın."
 
