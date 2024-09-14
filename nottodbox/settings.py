@@ -104,21 +104,39 @@ class SettingsDB:
                 
         return autosave, format
     
-    def getDockStatus(self) -> str:
+    def getDockSettings(self) -> tuple:
         if not self.createTable():
             print("[2] Failed to create table")
             sys.exit(2)
             
         try:
-            self.cur.execute(f"select value from __main__ where setting = 'mainwindow-dock'")
+            self.cur.execute(f"select value from __main__ where setting = 'sidebar-status'")
             status = str(self.cur.fetchone()[0])
 
         except TypeError:
-            self.cur.execute(f"insert into __main__ (setting, value) values ('mainwindow-dock', 'enabled')")
+            self.cur.execute(f"insert into __main__ (setting, value) values ('sidebar-status', 'enabled')")
             self.db.commit()
             status = "enabled"
+            
+        try:
+            self.cur.execute(f"select value from __main__ where setting = 'sidebar-area'")
+            area = str(self.cur.fetchone()[0])
+
+        except TypeError:
+            self.cur.execute(f"insert into __main__ (setting, value) values ('sidebar-area', 'left')")
+            self.db.commit()
+            area = "left"
+            
+        try:
+            self.cur.execute(f"select value from __main__ where setting = 'sidebar-mode'")
+            mode = str(self.cur.fetchone()[0])
+
+        except TypeError:
+            self.cur.execute(f"insert into __main__ (setting, value) values ('sidebar-mode', 'fixed')")
+            self.db.commit()
+            mode = "fixed"
                 
-        return status
+        return status, area, mode
             
     def saveAutosaveAndFormat(self, module: str, autosave: str, format: str) -> bool:
         self.cur.execute(f"update __main__ set value = '{autosave}' where setting = '{module}-autosave'")
@@ -134,13 +152,20 @@ class SettingsDB:
         else:
             return False
         
-    def saveDockStatus(self, status: str) -> bool:
-        self.cur.execute(f"update __main__ set value = '{status}' where setting = 'mainwindow-dock'")
+    def saveDockSettings(self, status: str, area: str, mode: str) -> bool:
+        self.cur.execute(f"update __main__ set value = '{status}' where setting = 'sidebar-status'")
         self.db.commit()
         
-        call_status = self.getDockStatus()
+        self.cur.execute(f"update __main__ set value = '{area}' where setting = 'sidebar-area'")
+        self.db.commit()
         
-        if call_status == status:
+        self.cur.execute(f"update __main__ set value = '{mode}' where setting = 'sidebar-mode'")
+        self.db.commit()
+        
+        call_status, call_area, call_mode = self.getDockSettings()
+        
+        
+        if call_status == status and call_area == area and call_mode == mode:
             return True
         else:
             return False

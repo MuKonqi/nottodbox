@@ -43,20 +43,21 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         
+        self.setMinimumWidth(900)
+        self.setMinimumHeight(630)
+        
         self.widget = QWidget(self)
         self.widget.setLayout(QVBoxLayout(self.widget))
+        self.setCentralWidget(self.widget)
         
         self.tabwidget = QTabWidget(self)
         self.tabwidget.setUsesScrollButtons(True)
         
         self.widget.layout().addWidget(self.tabwidget)
         
-        self.setWindowTitle("Nottodbox")
-        self.setCentralWidget(self.widget)
-        
         self.menu_sidebar = self.menuBar().addMenu(_("Sidebar"))
-        self.menu_sidebar.addAction(_("Show"), self.addDockWidget)
-        self.menu_sidebar.addAction(_("Hide"), self.removeDockWidget)
+        self.menu_sidebar.addAction(_("Show"), lambda: self.dock.setVisible(True))
+        self.menu_sidebar.addAction(_("Hide"), lambda: self.dock.setVisible(False))
 
         self.notes = NotesTabWidget(self)
         self.todos = TodosWidget(self)
@@ -72,42 +73,37 @@ class MainWindow(QMainWindow):
         self.tabwidget.addTab(self.settings, _("Settings"))
         self.tabwidget.addTab(self.about, _("About"))
         
+        self.statusbar = QStatusBar(self)
+        self.setStatusBar(self.statusbar)
+        
         self.dock = QDockWidget(self)
         self.dock.setFixedWidth(180)
         self.dock.setStyleSheet("margin: 0px")
         self.dock.setFeatures(QDockWidget.DockWidgetFeature.DockWidgetClosable |
-                            QDockWidget.DockWidgetFeature.DockWidgetFloatable |
-                            QDockWidget.DockWidgetFeature.DockWidgetMovable)
+                              QDockWidget.DockWidgetFeature.DockWidgetFloatable |
+                              QDockWidget.DockWidgetFeature.DockWidgetMovable)
+        self.dock.setAllowedAreas(Qt.DockWidgetArea.LeftDockWidgetArea |
+                                  Qt.DockWidgetArea.RightDockWidgetArea)
         self.dock.setWidget(SidebarWidget(self, self.notes, self.todos, self.diaries))
         
-        self.statusbar = QStatusBar(self)
+        self.dock_closed = False
+        self.dock_status, self.dock_area, self.dock_mode = settingsdb.getDockSettings()
+        if self.dock_area == "left":
+            self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.dock)
+        elif self.dock_area == "right":
+            self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.dock)
+            
+        if self.dock_mode == "floating":
+            self.dock.setFloating(True)
         
-        self.setMinimumWidth(900)
-        self.setMinimumHeight(540)
-        self.setStatusBar(self.statusbar)
-        if settingsdb.getDockStatus() == "enabled":
-            self.addDockWidget()
-        else:
-            self.removeDockWidget()
-        
-    def addDockWidget(self):
-        call = settingsdb.saveDockStatus("enabled")
-        
-        if not call:
-            QMessageBox.critical(self, _("Error"), _("Can not save new sidebar setting."))
-        
-        self.dock.show()
-        super().addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.dock)
-        
-    def removeDockWidget(self):
-        call = settingsdb.saveDockStatus("disabled")
-        
-        if not call:
-            QMessageBox.critical(self, _("Error"), _("Can not save new sidebar setting."))
-        
-        super().removeDockWidget(self.dock)
+        if self.dock_status == "disabled":
+            self.dock.setVisible(False)
+            
+        self.dock.dockLocationChanged.connect(self.dockAreaChanged)
+        self.dock.topLevelChanged.connect(self.dockModeChanged)
+        self.dock.visibilityChanged.connect(self.dockStatusChanged)
 
-    def closeEvent(self, a0: QCloseEvent | None):
+    def closeEvent(self, a0: QCloseEvent | None):        
         stringlist = self.dock.widget().model1.stringList()
         
         are_there_unsaved_notes = False
@@ -144,6 +140,7 @@ class MainWindow(QMainWindow):
 
 
         if not are_there_unsaved_notes and not are_there_unsaved_diaries and not is_main_diary_unsaved:
+            self.dock_closed = True
             return super().closeEvent(a0)
         
         else:
@@ -199,7 +196,42 @@ class MainWindow(QMainWindow):
                     elif not call_diary_save_one:
                         QMessageBox.critical(self, _("Error"), _("Failed to save diary {date}.").format(date = today.toString("dd.MM.yyyy")))
                         
+                self.dock_closed = True
                 return super().closeEvent(a0)
             
             else:
                 a0.ignore()
+                
+    def dockAreaChanged(self, area: Qt.DockWidgetArea) -> None:
+        if area == Qt.DockWidgetArea.LeftDockWidgetArea:
+            self.dock_area = "left"
+        elif area == Qt.DockWidgetArea.RightDockWidgetArea:
+            self.dock_area = "right"
+            
+        call = settingsdb.saveDockSettings(self.dock_status, self.dock_area, self.dock_mode)
+        
+        if not call:
+            QMessageBox.critical(self, _("Error"), _("Can not save new sidebar setting.")) 
+    
+    def dockModeChanged(self, floating: bool) -> None:
+        if floating:
+            self.dock_mode = "floating"
+        else:
+            self.dock_mode = "fixed"
+            
+        call = settingsdb.saveDockSettings(self.dock_status, self.dock_area, self.dock_mode)
+        
+        if not call:
+            QMessageBox.critical(self, _("Error"), _("Can not save new sidebar setting.")) 
+    
+    def dockStatusChanged(self, visible: bool) -> None:
+        if not self.dock_closed:
+            if visible:
+                self.dock_status = "enabled"
+            else:
+                self.dock_status = "disabled"
+                        
+            call = settingsdb.saveDockSettings(self.dock_status, self.dock_area, self.dock_mode)
+            
+            if not call:
+                QMessageBox.critical(self, _("Error"), _("Can not save new sidebar setting.")) 
