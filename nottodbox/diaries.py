@@ -27,6 +27,7 @@ import getpass
 import sqlite3
 import datetime
 from settings import settingsdb
+from widgets.dialogs import ColorDialog
 from widgets.pages import NormalPage, BackupPage
 from gettext import gettext as _
 from PyQt6.QtGui import QMouseEvent, QPainter, QColor
@@ -42,6 +43,8 @@ username = getpass.getuser()
 userdata = f"/home/{username}/.config/nottodbox/"
 
 setting_autosave, setting_format, setting_highlight = settingsdb.getModuleSettings("diaries")
+if setting_highlight == "default":
+    setting_highlight = "#376296"
 
 
 class DiariesDB:
@@ -110,7 +113,7 @@ class DiariesDB:
             return False
         
     def createTable(self) -> bool:
-        sql = """
+        self.cur.execute("""
         CREATE TABLE IF NOT EXISTS __main__ (
             name TEXT NOT NULL PRIMARY KEY,
             content TEXT,
@@ -118,10 +121,9 @@ class DiariesDB:
             modification TEXT NOT NULL,
             outdated TEXT NOT NULL,
             autosave TEXT NOT NULL,
-            format TEXT NOT NULL
-        );"""
-
-        self.cur.execute(sql)
+            format TEXT NOT NULL,
+            highlight TEXT NOT NULL
+        );""")
         self.db.commit()
         
         return self.checkIfTheTableExists()
@@ -168,13 +170,21 @@ class DiariesDB:
         except TypeError:
             fetch = "global"
         return fetch
+    
+    def getHighlight(self, name: str) -> str:
+        self.cur.execute("select highlight from __main__ where name = ?", (name,))
+        try:
+            fetch = self.cur.fetchone()[0]
+        except TypeError:
+            fetch = "global"
+        return fetch
         
     def getInformations(self, name: str) -> str:
         self.cur.execute("select modification from __main__ where name = ?", (name,))
         return self.cur.fetchone()
         
     def getNames(self) -> list:
-        self.cur.execute("select name from __main__")
+        self.cur.execute("select name, highlight from __main__")
         return self.cur.fetchall()
     
     def renameDiary(self, name: str, newname: str) -> bool:
@@ -302,9 +312,9 @@ class DiariesDB:
             
         else:
             self.cur.execute(
-                """insert into __main__ (name, content, backup, modification, outdated, autosave, format) 
-                values (?, ?, ?, ?, ?, ?, ?)""",
-                (name, content, '', date, "no", "global", "global"))
+                """insert into __main__ (name, content, backup, modification, outdated, autosave, format, highlight) 
+                values (?, ?, ?, ?, ?, ?, ?, ?)""",
+                (name, content, '', date, "no", "global", "global", "global"))
         self.db.commit()
                         
         self.cur.execute("select content, modification from __main__ where name = ?", (name,))
@@ -337,6 +347,20 @@ class DiariesDB:
         self.db.commit()
         
         call = self.getFormat(name)
+        
+        if call == setting:
+            return True
+        else:
+            return False
+        
+    def setHighlight(self, name: str, setting: str) -> bool:
+        if not self.checkIfTheDiaryExists(name):
+            return False
+        
+        self.cur.execute("update __main__ set highlight = ? where name = ?", (setting, name))
+        self.db.commit()
+        
+        call = self.getHighlight(name)
         
         if call == setting:
             return True
@@ -392,6 +416,9 @@ class DiariesTabWidget(QTabWidget):
         self.clear_content = QPushButton(self.side, text=_("Clear content"))
         self.clear_content.clicked.connect(self.clearContent)
         
+        self.set_highlight = QPushButton(self.side, text=_("Set highlight"))
+        self.set_highlight.clicked.connect(self.setHighlight)
+        
         self.delete_diary = QPushButton(self.side, text=_("Delete diary"))
         self.delete_diary.clicked.connect(self.deleteDiary)
         
@@ -402,13 +429,14 @@ class DiariesTabWidget(QTabWidget):
         self.side.layout().addWidget(self.show_backup)
         self.side.layout().addWidget(self.restore)
         self.side.layout().addWidget(self.clear_content)
+        self.side.layout().addWidget(self.set_highlight)
         self.side.layout().addWidget(self.delete_diary)
         self.side.layout().addWidget(self.delete_all)
         self.home.layout().addWidget(self.side, 1, 2, 3, 1)
-        self.home.layout().addWidget(self.modification, 0, 0, 1, 2)
-        self.home.layout().addWidget(self.calendar, 1, 0, 1, 2)
-        self.home.layout().addWidget(self.comeback, 2, 0, 1, 2)
-        self.home.layout().addWidget(self.refresh, 3, 0, 1, 2)
+        self.home.layout().addWidget(self.modification, 0, 0, 1, 1)
+        self.home.layout().addWidget(self.calendar, 1, 0, 1, 1)
+        self.home.layout().addWidget(self.comeback, 2, 0, 1, 1)
+        self.home.layout().addWidget(self.refresh, 3, 0, 1, 1)
         
         self.addTab(self.home, _("Home"))
         self.setTabsClosable(True)
@@ -561,7 +589,14 @@ class DiariesTabWidget(QTabWidget):
             self.addTab(diaries[name], name)
             self.setCurrentWidget(diaries[name])
             
-    def refreshToday(self):
+    def refreshSettings(self) -> None:
+        global setting_autosave, setting_format, setting_highlight
+
+        setting_autosave, setting_format, setting_highlight = settingsdb.getModuleSettings("diaries")
+        if setting_highlight == "default":
+            setting_highlight = "#376296"
+            
+    def refreshToday(self) -> None:
         global today
         
         today = QDate.currentDate()
@@ -600,6 +635,44 @@ class DiariesTabWidget(QTabWidget):
         elif status == "failed" and not call:
             QMessageBox.critical(self, _("Error"), _("Failed to restore backup of {name} diary.").format(name = name))
             
+    def setHighlight(self) -> None:
+        name = self.calendar.selectedDate().toString("dd.MM.yyyy")
+        
+        if name == "" or name == None:
+            QMessageBox.critical(self, _("Error"), _("Diary name can not be blank."))
+            return
+
+        if not self.checkIfTheDiaryExists(name):
+            return
+        
+        highlight = diariesdb.getHighlight(name)
+        
+        ok, status, qcolor = ColorDialog(self, True, 
+            QColor(highlight if highlight != "global" and highlight != "default" 
+                   else setting_highlight if highlight == "global" else "#376296"),
+            _("Select Highlight Color for {name} Diary").format(name = name.title())).getColor()
+        
+        if ok:
+            if status == "new":
+                color = qcolor.name()
+                
+            elif status == "global":
+                color = "global"
+                
+            elif status == "default":
+                color = "default"
+                
+            call = diariesdb.setHighlight(name, color)
+                    
+            if call:
+                QMessageBox.information(
+                    self, _("Successful"), _("Highlight color setted to {color} for {name} diary.")
+                    .format(color = color if (status == "new")
+                            else (_("global") if status == "global" else _("default")), name = name))
+                
+            else:
+                QMessageBox.critical(self, _("Error"), _("Failed to set highlight color for {name} diary.").format(name = name))
+            
     def showBackup(self) -> None:
         name = self.calendar.selectedDate().toString("dd.MM.yyyy")
         
@@ -636,8 +709,8 @@ class DiariesCalendarWidget(QCalendarWidget):
         if not hasattr(self, "menu"):
             self.menu = diaries_parent.menuBar().addMenu(_("Diaries"))
         
-        for name in diariesdb.getNames():
-            actions[name[0]] = self.menu.addAction(name[0], lambda name = name: self.openCreate(name[0]))
+        for name, highlight in diariesdb.getNames():
+            actions[name] = self.menu.addAction(name, lambda name = name: self.openCreate(name))
 
     def mouseDoubleClickEvent(self, a0: QMouseEvent | None) -> None:
         super().mouseDoubleClickEvent(a0)
@@ -674,12 +747,20 @@ class DiariesCalendarWidget(QCalendarWidget):
         
         call = diariesdb.getNames()
         dates = []
+        highlights = {}
         
-        for name in call:
-            dates.append(QDate.fromString(name[0], "dd.MM.yyyy"))
+        for name, highlight in call:
+            dates.append(QDate.fromString(name, "dd.MM.yyyy"))
+            highlights[QDate.fromString(name, "dd.MM.yyyy")] = highlight
 
         if date in dates:
-            painter.setBrush(QColor("#376296"))
+            if highlights[date] == "global":
+                painter.setBrush(QColor(setting_highlight))
+            elif highlights[date] == "default":
+                painter.setBrush(QColor("#376296"))
+            else:
+                painter.setBrush(QColor(highlights[date]))
+            
             painter.drawEllipse(rect.topLeft() + QPoint(10, 10), 5, 5)
             
         if date >= today:

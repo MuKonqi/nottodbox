@@ -107,9 +107,9 @@ class SettingsDB:
                 highlight = str(self.cur.fetchone()[0])
 
             except TypeError:
-                self.cur.execute(f"insert into __main__ (setting, value) values ('{module}-highlight', '#376296')")
+                self.cur.execute(f"insert into __main__ (setting, value) values ('{module}-highlight', 'default')")
                 self.db.commit()
-                highlight = "#FFFFFF"
+                highlight = "default"
                 
         if module == "notes":        
             return autosave, format, background, foreground
@@ -222,7 +222,7 @@ if not settingsdb.createTable():
 
 
 class SettingsWidget(QWidget):
-    def __init__(self, parent: QMainWindow) -> None:        
+    def __init__(self, parent: QMainWindow, notes, todos, diaries) -> None:        
         super().__init__(parent)
         
         self.parent_ = parent
@@ -231,9 +231,9 @@ class SettingsWidget(QWidget):
         self.setLayout(QHBoxLayout(self))
         
         self.stacked = QStackedWidget(self)
-        self.stacked.addWidget(SettingsPage(self, "notes", _("Notes"), 0))
-        self.stacked.addWidget(SettingsPage(self, "todos", _("To-dos"), 1))
-        self.stacked.addWidget(SettingsPage(self, "diaries", _("Diaries"), 2))
+        self.stacked.addWidget(SettingsPage(self, "notes", _("Notes"), notes, 0))
+        self.stacked.addWidget(SettingsPage(self, "todos", _("To-dos"), todos, 1))
+        self.stacked.addWidget(SettingsPage(self, "diaries", _("Diaries"), diaries, 2))
         
         self.list = QListWidget(self)
         self.list.setCurrentRow(0)
@@ -259,11 +259,12 @@ class SettingsWidget(QWidget):
         
         
 class SettingsPage(QWidget):
-    def __init__(self, parent: SettingsWidget, module: str, pretty: str, index: int) -> None:
+    def __init__(self, parent: SettingsWidget, module: str, pretty: str, target, index: int) -> None:
         super().__init__(parent)
         
         self.parent_ = parent
         self.module = module
+        self.target = target
         self.index = index
         
         if self.module == "notes":
@@ -358,7 +359,7 @@ class SettingsPage(QWidget):
         
         elif self.module == "diaries":
             call = settingsdb.saveModuleSettings(
-                self.module, "enabled", "markdown", None, None, "#376296")
+                self.module, "enabled", "markdown", None, None, "default")
         
         if call:
             if self.module == "notes":
@@ -380,14 +381,16 @@ class SettingsPage(QWidget):
                                             .format(color = _("default") if self.background == "default" else self.background))
                 self.foreground_button.setText(_("Select color (it is {color})")
                                                .format(color = _("default") if self.foreground == "default" else self.foreground))
-
             
             elif self.module == "diaries":
+                self.highlight = "default"
+                
                 self.autosave_checkbox.setChecked(True)
                 self.format_combobox.setCurrentIndex(1)
                 self.highlight_button.setText(_("Select color (it is {color})")
                                               .format(color = _("default") if self.highlight == "default" else self.highlight))
-                self.highlight = "#FFFFFF"
+                
+            self.target.refreshSettings()
             
             QMessageBox.information(self.parent_, _("Successful"), _("Settings are reset."))
         
@@ -408,6 +411,8 @@ class SettingsPage(QWidget):
                 self.module, self.autosave, self.format, None, None, self.highlight)
         
         if call:
+            self.target.refreshSettings()
+            
             QMessageBox.information(self.parent_, _("Successful"), _("New settings are saved."))
         
         else:
@@ -423,23 +428,23 @@ class SettingsPage(QWidget):
             self.autosave_checkbox.setText(_("Enabled"))
             
     def setBackground(self) -> None:
-        status, qcolor = ColorDialog(
-            QColor(self.background if self.background != "default" else "#FFFFFF"), 
-            self, _("Select Background Color")).getColor()
+        ok, status, qcolor = ColorDialog(self, False, 
+            QColor(self.background if self.background != "default" else "#FFFFFFF"), 
+            _("Select Background Color")).getColor()
         
-        if status == "ok":
-            self.background = qcolor.name() if qcolor.isValid() else "default"
+        if ok:
+            self.background = qcolor.name() if status == "new" else "default"
             
             self.background_button.setText(_("Select color (it is {color})")
                                            .format(color = _("default") if self.background == "default" else self.background))
             
     def setForeground(self) -> None:
-        status, qcolor = ColorDialog(
+        ok, status, qcolor = ColorDialog(self, False, 
             QColor(self.foreground if self.foreground != "default" else "#FFFFFF"), 
-            self, _("Select Text Color")).getColor()
+            _("Select Text Color")).getColor()
         
-        if status == "ok":
-            self.foreground = qcolor.name() if qcolor.isValid() else "default"
+        if ok:
+            self.foreground = qcolor.name() if status == "new" else "default"
             
             self.foreground_button.setText(_("Select color (it is {color})")
                                            .format(color = _("default") if self.foreground == "default" else self.foreground))
@@ -453,13 +458,13 @@ class SettingsPage(QWidget):
             self.format = "html"
             
     def setHighlight(self) -> None:
-        status, qcolor = ColorDialog(
-            QColor(self.highlight if self.highlight != "default" else "#FFFFFF"), 
-            self, _("Select Highlight Color")).getColor()
+        ok, status, qcolor = ColorDialog(self, False, 
+            QColor(self.highlight if self.highlight != "default" else "#376296"), 
+            _("Select Highlight Color")).getColor()
         
-        if status == "ok":
-            self.highlight = qcolor.name() if qcolor.isValid() else "default"
-            
+        if ok:
+            self.highlight = qcolor.name() if status == "new" else "default"
+                    
             self.highlight_button.setText(_("Select color (it is {color})")
                                            .format(color = _("default") if self.highlight == "default" else self.highlight))
             

@@ -31,9 +31,7 @@ class AboutWidget(QWidget):
         super().__init__(parent)
         
         self.parent_ = parent
-        
-        self.menu = self.parent_.menuBar().addMenu(_("About"))
-        self.menu.addAction(_("About"), lambda: self.parent_.tabwidget.setCurrentIndex(5))
+        self.parent_.menuBar().addAction(_("About"), lambda: self.parent_.tabwidget.setCurrentIndex(5))
         
         self.version_label = QLabel(self, alignment=Qt.AlignmentFlag.AlignCenter,
                               text=_("Version: {version}").format(version = "@VERSION@"))

@@ -63,7 +63,7 @@ class MainWindow(QMainWindow):
         self.todos = TodosWidget(self)
         self.diaries = DiariesTabWidget(self)
         self.home = HomeScrollArea(self, self.todos, self.notes)
-        self.settings = SettingsWidget(self)
+        self.settings = SettingsWidget(self, self.notes, self.todos, self.diaries)
         self.about = AboutWidget(self)   
 
         self.tabwidget.addTab(self.home, _("Home"))

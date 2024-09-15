@@ -33,14 +33,20 @@ userdata = f"/home/{username}/.config/nottodbox/"
 
 
 class ColorDialog(QColorDialog):
-    def __init__(self, color: QColor | Qt.GlobalColor | int, parent: QWidget, title: str) -> None:
+    def __init__(self, parent: QWidget, show_global: bool, color: QColor | Qt.GlobalColor | int, title: str) -> None:
         super().__init__(color, parent)
         self.setWindowTitle(title)
         
         self.buttonbox = self.findChild(QDialogButtonBox)
         
+        if show_global:
+            self.set_to_global = QPushButton(self.buttonbox, text=_("Set to global"))
+            self.set_to_global.clicked.connect(lambda: self.done(2))
+            
+            self.buttonbox.addButton(self.set_to_global, QDialogButtonBox.ButtonRole.DestructiveRole)
+        
         self.set_to_default = QPushButton(self.buttonbox, text=_("Set to default"))
-        self.set_to_default.clicked.connect(lambda: self.done(2))
+        self.set_to_default.clicked.connect(lambda: self.done(3))
         
         self.buttonbox.addButton(self.set_to_default, QDialogButtonBox.ButtonRole.DestructiveRole)
         
@@ -48,13 +54,16 @@ class ColorDialog(QColorDialog):
 
     def getColor(self) -> tuple:
         if self.result() == 1:
-            return "ok", self.selectedColor()
+            return True, "new", self.selectedColor()
         
         elif self.result() == 2:
-            return "ok", QColor()
+            return True, "global", None
+        
+        elif self.result() == 3:
+            return True, "default", None
         
         else:
-            return "cancel", QColor()
+            return False, None, None
 
 
 class GetTwoDialog(QDialog):
