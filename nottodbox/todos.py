@@ -1048,18 +1048,18 @@ class TodosTreeView(QTreeView):
         for item in todolist_items[name]:
             if color == "global" and setting_background != "default":
                 item.setBackground(QColor(setting_background))    
-            elif color != "default":
+            elif color != "global" and color != "default":
                 item.setBackground(QColor(color))
-            elif color == "default":
+            else:
                 item.setData(QVariant(), Qt.ItemDataRole.BackgroundRole)
                 
     def updateForeground(self, name: str, color: str | None) -> None:
         for item in todolist_items[name]:
             if color == "global" and setting_foreground != "default":
                 item.setForeground(QColor(setting_foreground))
-            elif color != "default":
+            elif color != "global" and color != "default":
                 item.setForeground(QColor(color))
-            elif color == "default":
+            else:
                 item.setData(QVariant(), Qt.ItemDataRole.ForegroundRole)
                 
     def updateTodo(self, todolist: str, todo: str, newtodo: str) -> None:
