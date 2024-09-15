@@ -140,7 +140,7 @@ class TextFormatter(QToolBar):
         cur.mergeBlockFormat(blkfmt)
         
     def setBackgroundColor(self) -> None:
-        status, qcolor = ColorDialog(Qt.GlobalColor.white, self, _("Select Color")).getColor()
+        status, qcolor = ColorDialog(Qt.GlobalColor.white, self, _("Select Background Color")).getColor()
         
         if status == "ok":
             cur = self.input.textCursor()
@@ -270,7 +270,7 @@ class TextFormatter(QToolBar):
                 QMessageBox.critical(self, _("Error"), _("The row and column numbers are required, they can not be blank."))
                 
     def setTextColor(self) -> None:
-        status, qcolor = ColorDialog(Qt.GlobalColor.white, self, _("Select Color")).getColor()
+        status, qcolor = ColorDialog(Qt.GlobalColor.white, self, _("Select Text Color")).getColor()
         
         if status == "ok":
             cur = self.input.textCursor()

@@ -17,14 +17,13 @@
 
 
 import sys
-
-from PyQt6.QtWidgets import QWidget
 sys.dont_write_bytecode = True
 
 
 import getpass
 import sqlite3
 from gettext import gettext as _
+from widgets.dialogs import ColorDialog
 from PyQt6.QtGui import QColor
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import *
@@ -59,50 +58,67 @@ class SettingsDB:
         
         return self.checkIfTheTableExists()
     
-    def getAutosaveAndFormat(self, module: str) -> tuple:
+    def getModuleSettings(self, module: str) -> tuple:
         if not self.createTable():
             print("[2] Failed to create table")
             sys.exit(2)
             
-        if module == "notes":
+        if module == "notes" or module == "diaries":
             try:
-                self.cur.execute(f"select value from __main__ where setting = 'notes-autosave'")
+                self.cur.execute(f"select value from __main__ where setting = '{module}-autosave'")
                 autosave = str(self.cur.fetchone()[0])
 
             except TypeError:
-                self.cur.execute(f"insert into __main__ (setting, value) values ('notes-autosave', 'enabled')")
+                self.cur.execute(f"insert into __main__ (setting, value) values ('{module}-autosave', 'enabled')")
                 self.db.commit()
                 autosave = "enabled"
             
             try:
-                self.cur.execute(f"select value from __main__ where setting = 'notes-format'")
+                self.cur.execute(f"select value from __main__ where setting = '{module}-format'")
                 format = str(self.cur.fetchone()[0])
 
             except TypeError:
-                self.cur.execute(f"insert into __main__ (setting, value) values ('notes-format', 'markdown')")
-                self.db.commit()
-                format = "markdown"
-        
-        elif module == "diaries":
-            try:
-                self.cur.execute(f"select value from __main__ where setting = 'diaries-autosave'")
-                autosave = str(self.cur.fetchone()[0])
-
-            except TypeError:
-                self.cur.execute(f"insert into __main__ (setting, value) values ('diaries-autosave', 'enabled')")
-                self.db.commit()
-                autosave = "enabled"
-            
-            try:
-                self.cur.execute(f"select value from __main__ where setting = 'diaries-format'")
-                format = str(self.cur.fetchone()[0])
-
-            except TypeError:
-                self.cur.execute(f"insert into __main__ (setting, value) values ('diaries-format', 'markdown')")
+                self.cur.execute(f"insert into __main__ (setting, value) values ('{module}-format', 'markdown')")
                 self.db.commit()
                 format = "markdown"
                 
-        return autosave, format
+        if module == "notes" or module == "todos":
+            try:
+                self.cur.execute(f"select value from __main__ where setting = '{module}-background'")
+                background = str(self.cur.fetchone()[0])
+
+            except TypeError:
+                self.cur.execute(f"insert into __main__ (setting, value) values ('{module}-background', 'default')")
+                self.db.commit()
+                background = "default"
+            
+            try:
+                self.cur.execute(f"select value from __main__ where setting = '{module}-foreground'")
+                foreground = str(self.cur.fetchone()[0])
+
+            except TypeError:
+                self.cur.execute(f"insert into __main__ (setting, value) values ('{module}-foreground', 'default')")
+                self.db.commit()
+                foreground = "default"
+        
+        if module == "diaries": 
+            try:
+                self.cur.execute(f"select value from __main__ where setting = '{module}-highlight'")
+                highlight = str(self.cur.fetchone()[0])
+
+            except TypeError:
+                self.cur.execute(f"insert into __main__ (setting, value) values ('{module}-highlight', '#376296')")
+                self.db.commit()
+                highlight = "#FFFFFF"
+                
+        if module == "notes":        
+            return autosave, format, background, foreground
+        
+        elif module == "todos":
+            return background, foreground
+        
+        elif module == "diaries":
+            return autosave, format, highlight
     
     def getDockSettings(self) -> tuple:
         if not self.createTable():
@@ -138,19 +154,48 @@ class SettingsDB:
                 
         return status, area, mode
             
-    def saveAutosaveAndFormat(self, module: str, autosave: str, format: str) -> bool:
-        self.cur.execute(f"update __main__ set value = '{autosave}' where setting = '{module}-autosave'")
-        self.db.commit()
-        
-        self.cur.execute(f"update __main__ set value = '{format}' where setting = '{module}-format'")
-        self.db.commit()
-        
-        call_autosave, call_format = self.getAutosaveAndFormat(module)
-        
-        if call_autosave == autosave and call_format == format:
-            return True
-        else:
-            return False
+    def saveModuleSettings(self, module: str, autosave: str | None, format: str | None, background: str | None, foreground: str | None, highlight: str | None) -> bool:
+        if module == "notes" or module == "diaries":
+            self.cur.execute(f"update __main__ set value = '{autosave}' where setting = '{module}-autosave'")
+            self.db.commit()
+            
+            self.cur.execute(f"update __main__ set value = '{format}' where setting = '{module}-format'")
+            self.db.commit()
+            
+        if module == "notes" or module == "todos":
+            self.cur.execute(f"update __main__ set value = '{background}' where setting = '{module}-background'")
+            self.db.commit()
+            
+            self.cur.execute(f"update __main__ set value = '{foreground}' where setting = '{module}-foreground'")
+            self.db.commit()
+
+        if module == "diaries":
+            self.cur.execute(f"update __main__ set value = '{highlight}' where setting = '{module}-highlight'")
+            self.db.commit()
+            
+        if module == "notes":
+            call_autosave, call_format, call_background, call_foreground = self.getModuleSettings(module)
+            
+            if call_autosave == autosave and call_format == format and call_background == background and call_foreground == foreground:
+                return True
+            else:
+                return False
+            
+        elif module == "todos":
+            call_background, call_foreground = self.getModuleSettings(module)
+            
+            if call_background == background and call_foreground == foreground:
+                return True
+            else:
+                return False
+            
+        elif module == "diaries":
+            call_autosave, call_format, call_highlight = self.getModuleSettings(module)
+            
+            if call_autosave == autosave and call_format == format and call_highlight == highlight:
+                return True
+            else:
+                return False
         
     def saveDockSettings(self, status: str, area: str, mode: str) -> bool:
         self.cur.execute(f"update __main__ set value = '{status}' where setting = 'sidebar-status'")
@@ -163,7 +208,6 @@ class SettingsDB:
         self.db.commit()
         
         call_status, call_area, call_mode = self.getDockSettings()
-        
         
         if call_status == status and call_area == area and call_mode == mode:
             return True
@@ -187,8 +231,9 @@ class SettingsWidget(QWidget):
         self.setLayout(QHBoxLayout(self))
         
         self.stacked = QStackedWidget(self)
-        self.stacked.addWidget(SettingsAutosaveAndFormatPage(self, "notes", _("Notes"), 0))
-        self.stacked.addWidget(SettingsAutosaveAndFormatPage(self, "diaries", _("Diaries"), 1))
+        self.stacked.addWidget(SettingsPage(self, "notes", _("Notes"), 0))
+        self.stacked.addWidget(SettingsPage(self, "todos", _("To-dos"), 1))
+        self.stacked.addWidget(SettingsPage(self, "diaries", _("Diaries"), 2))
         
         self.list = QListWidget(self)
         self.list.setCurrentRow(0)
@@ -197,6 +242,9 @@ class SettingsWidget(QWidget):
         
         self.list_notes = QListWidgetItem(_("Notes"), self.list)
         self.list_notes.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+        
+        self.list_todos = QListWidgetItem(_("To-dos"), self.list)
+        self.list_todos.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
         
         self.list_diaries = QListWidgetItem(_("Diaries"), self.list)
         self.list_diaries.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -210,60 +258,89 @@ class SettingsWidget(QWidget):
         self.layout().addWidget(self.stacked)
         
         
-class SettingsAutosaveAndFormatPage(QWidget):
+class SettingsPage(QWidget):
     def __init__(self, parent: SettingsWidget, module: str, pretty: str, index: int) -> None:
         super().__init__(parent)
         
         self.parent_ = parent
         self.module = module
         self.index = index
-        self.autosave, self.format = settingsdb.getAutosaveAndFormat(self.module)
+        
+        if self.module == "notes":
+            self.autosave, self.format, self.background, self.foreground = settingsdb.getModuleSettings("notes")
+            
+        elif self.module == "todos":
+            self.background, self.foreground = settingsdb.getModuleSettings("todos")
+            
+        elif self.module == "diaries":
+            self.autosave, self.format, self.highlight = settingsdb.getModuleSettings("diaries")
         
         self.parent_.menu.addAction(pretty, self.setIndexes)
         
         self.inputs = QWidget(self)
         self.inputs.setLayout(QFormLayout(self))
-        
-        self.checkbox = QCheckBox(self.inputs)
-        self.checkbox.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
-        if self.autosave == "enabled":
-            self.checkbox.setText(_("Enabled"))
-            self.checkbox.setChecked(True)
-        elif self.autosave == "disabled":
-            self.checkbox.setText(_("Disabled"))
-            self.checkbox.setChecked(False)
-        try:
-            self.checkbox.checkStateChanged.connect(self.setAutoSave)
-        except:
-            self.checkbox.stateChanged.connect(self.setAutoSave)
-        
-        self.combobox = QComboBox(self.inputs)
-        self.combobox.addItems([_("Plain-text"), _("Markdown"), _("HTML")])
-        self.combobox.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
-        if self.format == "plain-text":
-            self.combobox.setCurrentIndex(0)
-        elif self.format == "markdown":
-            self.combobox.setCurrentIndex(1)
-        elif self.format == "html":
-            self.combobox.setCurrentIndex(2)
-        self.combobox.setEditable(False)
-        self.combobox.currentIndexChanged.connect(self.setFormat)
             
-        self.inputs.layout().addRow(_("Auto-save:"), self.checkbox)
-        self.inputs.layout().addRow(_("Format:"), self.combobox)
+        if self.module == "notes" or self.module == "diaries":    
+            self.autosave_checkbox = QCheckBox(self.inputs)
+            self.autosave_checkbox.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
+            if self.autosave == "enabled":
+                self.autosave_checkbox.setText(_("Enabled"))
+                self.autosave_checkbox.setChecked(True)
+            elif self.autosave == "disabled":
+                self.autosave_checkbox.setText(_("Disabled"))
+                self.autosave_checkbox.setChecked(False)
+            try:
+                self.autosave_checkbox.checkStateChanged.connect(self.setAutoSave)
+            except:
+                self.autosave_checkbox.stateChanged.connect(self.setAutoSave)
             
-        self.buttons = QWidget(self)
-        self.buttons.setLayout(QHBoxLayout(self))
+            self.format_combobox = QComboBox(self.inputs)
+            self.format_combobox.addItems([_("Plain-text"), _("Markdown"), _("HTML")])
+            self.format_combobox.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
+            if self.format == "plain-text":
+                self.format_combobox.setCurrentIndex(0)
+            elif self.format == "markdown":
+                self.format_combobox.setCurrentIndex(1)
+            elif self.format == "html":
+                self.format_combobox.setCurrentIndex(2)
+            self.format_combobox.setEditable(False)
+            self.format_combobox.currentIndexChanged.connect(self.setFormat)
+                
+            self.inputs.layout().addRow(_("Auto-save:"), self.autosave_checkbox)
+            self.inputs.layout().addRow(_("Format:"), self.format_combobox)
+        
+        if self.module == "notes" or self.module == "todos":
+            self.background_button = QPushButton(self, 
+                                                 text=_("Select color (it is {color})")
+                                                 .format(color = _("default") if self.background == "default" else self.background))
+            self.background_button.clicked.connect(self.setBackground)
+            
+            self.foreground_button = QPushButton(self, 
+                                                 text=_("Select color (it is {color})")
+                                                 .format(color = _("default") if self.foreground == "default" else self.foreground))
+            self.foreground_button.clicked.connect(self.setForeground)
+            
+            self.inputs.layout().addRow(_("Background color:"), self.background_button)
+            self.inputs.layout().addRow(_("Text color:"), self.foreground_button)
+            
+        if self.module == "diaries":
+            self.highlight_button = QPushButton(self, 
+                                                 text=_("Select color (it is {color})")
+                                                 .format(color = _("default") if self.highlight == "default" else self.highlight))
+            self.highlight_button.clicked.connect(self.setHighlight)
+            
+            self.inputs.layout().addRow(_("Highlight color:"), self.highlight_button)
+                
+        self.buttons = QDialogButtonBox(self)
+        
+        self.save = QPushButton(self.buttons, text=_("Save"))
+        self.save.clicked.connect(self.saveSettings)
         
         self.reset = QPushButton(self.buttons, text=_("Reset"))
         self.reset.clicked.connect(self.resetSettings)
         
-        self.save = QPushButton(self.buttons, text=_("Save"))
-        self.save.clicked.connect(self.saveAutosaveAndFormat)
-        
-        self.buttons.layout().addStretch()
-        self.buttons.layout().addWidget(self.reset)
-        self.buttons.layout().addWidget(self.save)
+        self.buttons.addButton(self.save, QDialogButtonBox.ButtonRole.ApplyRole)
+        self.buttons.addButton(self.reset, QDialogButtonBox.ButtonRole.ApplyRole)
             
         self.setLayout(QVBoxLayout(self))
         self.layout().addWidget(self.inputs)
@@ -271,19 +348,64 @@ class SettingsAutosaveAndFormatPage(QWidget):
         self.layout().addWidget(self.buttons)
         
     def resetSettings(self) -> None:
-        call = settingsdb.saveAutosaveAndFormat(self.module, "enabled", "markdown")
+        if self.module == "notes":
+            call = settingsdb.saveModuleSettings(
+                self.module, "enabled", "markdown", "default", "default", None)
+        
+        elif self.module == "todos":
+            call = settingsdb.saveModuleSettings(
+                self.module, None, None, "default", "default", None)
+        
+        elif self.module == "diaries":
+            call = settingsdb.saveModuleSettings(
+                self.module, "enabled", "markdown", None, None, "#376296")
         
         if call:
-            self.checkbox.setChecked(True)
-            self.combobox.setCurrentIndex(1)
+            if self.module == "notes":
+                self.background = "default"
+                self.foreground = "default"
+                
+                self.autosave_checkbox.setChecked(True)
+                self.format_combobox.setCurrentIndex(1)
+                self.background_button.setText(_("Select color (it is {color})")
+                                               .format(color = _("default") if self.background == "default" else self.background))
+                self.foreground_button.setText(_("Select color (it is {color})")
+                                               .format(color = _("default") if self.foreground == "default" else self.foreground))
+                
+            elif self.module == "todos":
+                self.background = "default"
+                self.foreground = "default"
+                
+                self.background_button.setText(_("Select color (it is {color})")
+                                            .format(color = _("default") if self.background == "default" else self.background))
+                self.foreground_button.setText(_("Select color (it is {color})")
+                                               .format(color = _("default") if self.foreground == "default" else self.foreground))
+
+            
+            elif self.module == "diaries":
+                self.autosave_checkbox.setChecked(True)
+                self.format_combobox.setCurrentIndex(1)
+                self.highlight_button.setText(_("Select color (it is {color})")
+                                              .format(color = _("default") if self.highlight == "default" else self.highlight))
+                self.highlight = "#FFFFFF"
             
             QMessageBox.information(self.parent_, _("Successful"), _("Settings are reset."))
         
         else:
             QMessageBox.critical(self.parent_, _("Error"), _("Failed to reset settings."))
             
-    def saveAutosaveAndFormat(self) -> None:
-        call = settingsdb.saveAutosaveAndFormat(self.module, self.autosave, self.format)
+    def saveSettings(self) -> None:
+        if self.module == "notes":
+            call = settingsdb.saveModuleSettings(
+                self.module, self.autosave, self.format, self.background, self.foreground, None)
+        
+        elif self.module == "todos":
+            call = settingsdb.saveModuleSettings(
+                self.module, None, None, self.background, self.foreground, None)
+        
+        elif self.module == "diaries":
+            call = settingsdb.saveModuleSettings(
+                self.module, self.autosave, self.format, None, None, self.highlight)
         
         if call:
             QMessageBox.information(self.parent_, _("Successful"), _("New settings are saved."))
@@ -294,11 +416,33 @@ class SettingsAutosaveAndFormatPage(QWidget):
     def setAutoSave(self, signal: Qt.CheckState | int) -> None:
         if signal == Qt.CheckState.Unchecked or signal == 0:
             self.autosave = "disabled"
-            self.checkbox.setText(_("Disabled"))
+            self.autosave_checkbox.setText(_("Disabled"))
         
         elif signal == Qt.CheckState.Checked or signal == 2:
             self.autosave = "enabled"
-            self.checkbox.setText(_("Enabled"))
+            self.autosave_checkbox.setText(_("Enabled"))
+            
+    def setBackground(self) -> None:
+        status, qcolor = ColorDialog(
+            QColor(self.background if self.background != "default" else "#FFFFFF"), 
+            self, _("Select Background Color")).getColor()
+        
+        if status == "ok":
+            self.background = qcolor.name() if qcolor.isValid() else "default"
+            
+            self.background_button.setText(_("Select color (it is {color})")
+                                           .format(color = _("default") if self.background == "default" else self.background))
+            
+    def setForeground(self) -> None:
+        status, qcolor = ColorDialog(
+            QColor(self.foreground if self.foreground != "default" else "#FFFFFF"), 
+            self, _("Select Text Color")).getColor()
+        
+        if status == "ok":
+            self.foreground = qcolor.name() if qcolor.isValid() else "default"
+            
+            self.foreground_button.setText(_("Select color (it is {color})")
+                                           .format(color = _("default") if self.foreground == "default" else self.foreground))
                 
     def setFormat(self, index: int) -> None:
         if index == 0:
@@ -307,6 +451,17 @@ class SettingsAutosaveAndFormatPage(QWidget):
             self.format = "markdown"
         elif index == 2:
             self.format = "html"
+            
+    def setHighlight(self) -> None:
+        status, qcolor = ColorDialog(
+            QColor(self.highlight if self.highlight != "default" else "#FFFFFF"), 
+            self, _("Select Highlight Color")).getColor()
+        
+        if status == "ok":
+            self.highlight = qcolor.name() if qcolor.isValid() else "default"
+            
+            self.highlight_button.setText(_("Select color (it is {color})")
+                                           .format(color = _("default") if self.highlight == "default" else self.highlight))
             
     def setIndexes(self) -> None:
         self.parent_.parent_.tabwidget.setCurrentIndex(4)

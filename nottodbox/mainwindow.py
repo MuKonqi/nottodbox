@@ -68,7 +68,7 @@ class MainWindow(QMainWindow):
 
         self.tabwidget.addTab(self.home, _("Home"))
         self.tabwidget.addTab(self.notes, _("Notes"))
-        self.tabwidget.addTab(self.todos, _("Todos"))
+        self.tabwidget.addTab(self.todos, _("To-dos"))
         self.tabwidget.addTab(self.diaries, _("Diaries"))
         self.tabwidget.addTab(self.settings, _("Settings"))
         self.tabwidget.addTab(self.about, _("About"))

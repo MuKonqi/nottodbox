@@ -66,7 +66,7 @@ class HomeWidget(QWidget):
         self.diary = NormalPage(self, "diaries", today, today.toString("dd.MM.yyyy"), setting_autosave, setting_format, diariesdb)
         
         self.label_todos = QLabel(self, alignment=Qt.AlignmentFlag.AlignCenter, 
-                                  text=_("List of Your Todo Lists & Todos"))
+                                  text=_("List of Your To-do Lists & To-dos"))
         self.label_todos.setStyleSheet("margin-top: 10px")
         
         self.todos = TodosTreeView(todos, "home")

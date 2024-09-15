@@ -13,6 +13,7 @@
 - A list for last opened pages (when double-clicked it opens or focuses selected)
 - Deleting item from 2nd list
 - Clearing 2nd list
+- Remember's it's status (visible / invisible), area in window (left / right), mode (fixed / floating)
 
 ### Home
 - A shortcut for keeping today's diary
@@ -27,8 +28,8 @@
     - Creating a notebook
     - Renaming a notebook
     - Resetting a notebook
-    - Setting background
-    - Setting foreground
+    - Setting background color
+    - Setting text color
     - Deleting a notebook
     - Deleting all notebooks
 - For notes:
@@ -39,9 +40,8 @@
     - Restoring content via backup (old content will be new backup)
     - Clearing content (old content will be new backup)
     - Deleting a note
-- Setting auto-save and format settings (plain-text, Markdown or HTML) for global or each note (they can follow global setting)
 
-### Todos
+### To-dos
 - A entry for searcing in list
 - Two labels for showing selected notebook and note
 - Listing todo lists & todos with creation (for both), modification (only todo lists), status (only todo), completion (only todo) informations
@@ -49,8 +49,8 @@
     - Creating a todo list
     - Renaming a todo list
     - Resetting a todo list
-    - Setting background
-    - Setting foreground
+    - Setting background color
+    - Setting text color
     - Deleting a todo list
     - Deleting all todo lists
 - For todos:
@@ -69,9 +69,8 @@
 - Restoring content via backup (old content will be new backup)
 - Clearing content (old content will be new backup)
 - Deleting a diary
-- Setting auto-save and format settings (plain-text, Markdown or HTML) for global or each diary (they can follow global setting)
 
-### Note and diary pages
+### Note and Diary Pages
 - Text formatter (plain-text format does not supported):
     - Formatting selected section via cursor
     - Formatting word under cursor

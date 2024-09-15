@@ -42,7 +42,7 @@ notebook_items = {}
 username = getpass.getuser()
 userdata = f"/home/{username}/.config/nottodbox/"
 
-setting_autosave, setting_format = settingsdb.getAutosaveAndFormat("notes")
+setting_autosave, setting_format, setting_background, setting_foreground = settingsdb.getModuleSettings("notes")
 
 
 class NotesDB:
@@ -142,7 +142,7 @@ class NotesDB:
         values (?, ?, ?, ?, ?)
         """
         
-        self.cur.execute(sql_insert, (name, date, date, "", ""))
+        self.cur.execute(sql_insert, (name, date, date, "defalt", "default"))
         self.db.commit()
         
         sql_create = f"""
@@ -167,8 +167,8 @@ class NotesDB:
             name TEXT NOT NULL PRIMARY KEY,
             creation TEXT NOT NULL,
             modification TEXT NOT NULL,
-            background TEXT,
-            foreground TEXT
+            background TEXT NOT NULL,
+            foreground TEXT NOT NULL
         )
         """
         
@@ -435,7 +435,7 @@ class NotesDB:
         else:
             return False
         
-    def setBackground(self, name: str, color: str | None) -> bool:
+    def setBackground(self, name: str, color: str) -> bool:
         self.cur.execute("update __main__ set background = ? where name = ?", (color, name))
         self.db.commit()
         
@@ -446,7 +446,7 @@ class NotesDB:
         else:
             return False
         
-    def setForeground(self, name: str, color: str | None) -> bool:
+    def setForeground(self, name: str, color: str) -> bool:
         self.cur.execute("update __main__ set foreground = ? where name = ?", (color, name))
         self.db.commit()
         
@@ -685,10 +685,10 @@ class NotesNotebookOptions(QWidget):
         self.delete_notebook = QPushButton(self, text=_("Delete notebook"))
         self.delete_notebook.clicked.connect(self.deleteNotebook)
         
-        self.set_background = QPushButton(self, text=_("Set background"))
+        self.set_background = QPushButton(self, text=_("Set background color"))
         self.set_background.clicked.connect(self.setBackground)
         
-        self.set_foreground = QPushButton(self, text=_("Set foreground"))
+        self.set_foreground = QPushButton(self, text=_("Set text color"))
         self.set_foreground.clicked.connect(self.setForeground)
         
         self.delete_all = QPushButton(self, text=_("Delete all"))
@@ -831,23 +831,21 @@ class NotesNotebookOptions(QWidget):
         
         background = notesdb.getBackground(name)
         
-        status, qcolor = ColorDialog(QColor(background), self, _("Select Color").format(name = name)).getColor()
+        status, qcolor = ColorDialog(
+            QColor(background if background != "default" else "#FFFFFF"), 
+            self, _("Select Background Color for {name} Notebook").format(name = name.title())).getColor()
         
         if status == "ok":
-            if qcolor.isValid():
-                color = qcolor.name()
-            else:
-                color = ""
+            color = qcolor.name() if qcolor.isValid() else "default"
             
             call = notesdb.setBackground(name, color)
 
             if call:
                 self.parent_.treeview.updateBackground(name, color)
                 
-                if qcolor.isValid():
-                    QMessageBox.information(self, _("Successful"), _("Background color setted to {color} for {name} notebook.").format(color = color, name = name))
-                else:
-                    QMessageBox.information(self, _("Successful"), _("Background color setted to default for {name} notebook.").format(name = name))
+                QMessageBox.information(
+                    self, _("Successful"), _("Background color setted to {color} for {name} notebook.")
+                    .format(color = color if color != "default" else _("default"), name = name))
                 
             else:
                 QMessageBox.critical(self, _("Error"), _("Failed to set background color for {name} notebook.").format(name = name))
@@ -860,26 +858,24 @@ class NotesNotebookOptions(QWidget):
         
         foreground = notesdb.getForeground(name)
         
-        status, qcolor = ColorDialog(QColor(foreground), self, _("Select Color").format(name = name)).getColor()
+        status, qcolor = ColorDialog(
+            QColor(foreground if foreground != "default" else "#FFFFFF"), self, 
+            _("Select Text Color for {name} Notebook").format(name = name.title())).getColor()
         
         if status == "ok":
-            if qcolor.isValid():
-                color = qcolor.name()
-            else:
-                color = ""
+            color = qcolor.name() if qcolor.isValid() else "default"
             
             call = notesdb.setForeground(name, color)
                 
             if call:
                 self.parent_.treeview.updateForeground(name, color)
                 
-                if qcolor.isValid():
-                    QMessageBox.information(self, _("Successful"), _("Foreground color setted to {color} for {name} notebook.").format(color = color, name = name))
-                else:
-                    QMessageBox.information(self, _("Successful"), _("Foreground color setted to default for {name} notebook.").format(name = name))
+                QMessageBox.information(
+                    self, _("Successful"), _("Text color setted to {color} for {name} notebook.")
+                    .format(color = color if color != "default" else _("default"), name = name))
                 
             else:
-                QMessageBox.critical(self, _("Error"), _("Failed to set foreground color for {name} notebook.").format(name = name))
+                QMessageBox.critical(self, _("Error"), _("Failed to set text color for {name} notebook.").format(name = name))
 
 
 class NotesNoteOptions(QWidget):
@@ -1148,9 +1144,9 @@ class NotesTreeView(QTreeView):
                                             QStandardItem(modification)]
                 
                 for item in notebook_items[notebook]:
-                    if background != "" and background != None:
+                    if background != "default":
                         item.setBackground(QColor(background))
-                    if foreground != "" and foreground != None:
+                    if foreground != "default":
                         item.setForeground(QColor(foreground))
                 
                 for name, creation_note, modification_note in call[notebook,
@@ -1197,9 +1193,9 @@ class NotesTreeView(QTreeView):
                                     QStandardItem(modification)]
         
         for item in notebook_items[notebook]:
-            if background != "" and background != None:
+            if background != "default":
                 item.setBackground(QColor(background))
-            if foreground != "" and foreground != None:
+            if foreground != "default":
                 item.setForeground(QColor(foreground))
         
         for name, creation_note, modification_note in notes:

@@ -83,8 +83,8 @@ class TodosDB:
             name TEXT NOT NULL PRIMARY KEY,
             creation TEXT NOT NULL,
             modification TEXT NOT NULL,
-            background TEXT,
-            foreground TEXT
+            background TEXT NOT NULL,
+            foreground TEXT NOT NULL
         );""")
         self.db.commit()
         
@@ -114,7 +114,7 @@ class TodosDB:
         
         self.cur.execute(
             """insert into __main__ (name, creation, modification, background, foreground) 
-            values (?, ?, ?, ?, ?)""", (name, date, date, "", ""))
+            values (?, ?, ?, ?, ?)""", (name, date, date, "default", "default"))
         self.db.commit()
             
         self.cur.execute(f"""
@@ -260,7 +260,7 @@ class TodosDB:
         
         return self.checkIfTheTodolistExists(newname)
     
-    def setBackground(self, name: str, color: str | None) -> bool:
+    def setBackground(self, name: str, color: str) -> bool:
         self.cur.execute("update __main__ set background = ? where name = ?", (color, name))
         self.db.commit()
         
@@ -271,7 +271,7 @@ class TodosDB:
         else:
             return False
         
-    def setForeground(self, name: str, color: str | None) -> bool:
+    def setForeground(self, name: str, color: str) -> bool:
         self.cur.execute("update __main__ set foreground = ? where name = ?", (color, name))
         self.db.commit()
         
@@ -453,10 +453,10 @@ class TodosTodolistOptions(QWidget):
         self.delete_todolist = QPushButton(self, text=_("Delete to-do list"))
         self.delete_todolist.clicked.connect(self.deleteTodolist)
         
-        self.set_background = QPushButton(self, text=_("Set background"))
+        self.set_background = QPushButton(self, text=_("Set background color"))
         self.set_background.clicked.connect(self.setBackground)
         
-        self.set_foreground = QPushButton(self, text=_("Set foreground"))
+        self.set_foreground = QPushButton(self, text=_("Set text color"))
         self.set_foreground.clicked.connect(self.setForeground)
         
         self.delete_all = QPushButton(self, text=_("Delete all"))
@@ -598,23 +598,21 @@ class TodosTodolistOptions(QWidget):
         
         background = todosdb.getBackground(name)
         
-        status, qcolor = ColorDialog(QColor(background), self, _("Select Color").format(name = name)).getColor()
+        status, qcolor = ColorDialog(
+            QColor(background if background != "default" else "#FFFFFF"), 
+            self, _("Select Background Color for {name} To-do List").format(name = name.title())).getColor()
         
         if status == "ok":
-            if qcolor.isValid():
-                color = qcolor.name()
-            else:
-                color = ""
+            color = qcolor.name() if qcolor.isValid() else "default"
             
             call = todosdb.setBackground(name, color)
 
             if call:
                 self.parent_.treeview.updateBackground(name, color)
                 
-                if qcolor.isValid():
-                    QMessageBox.information(self, _("Successful"), _("Background color setted to {color} for {name} to-do list.").format(color = color, name = name))
-                else:
-                    QMessageBox.information(self, _("Successful"), _("Background color setted to default for {name} to-do list.").format(name = name))
+                QMessageBox.information(
+                    self, _("Successful"), _("Background color setted to {color} for {name} to-do list.")
+                    .format(color = color if color != "default" else _("default"), name = name))
                 
             else:
                 QMessageBox.critical(self, _("Error"), _("Failed to set background color for {name} to-do list.").format(name = name))
@@ -627,23 +625,21 @@ class TodosTodolistOptions(QWidget):
         
         foreground = todosdb.getForeground(name)
         
-        status, qcolor = ColorDialog(QColor(foreground), self, _("Select Color").format(name = name)).getColor()
+        status, qcolor = ColorDialog(
+            QColor(foreground if foreground != "default" else "#FFFFFF"), 
+            self, _("Select Text Color for {name} To-do List").format(name = name.title())).getColor()
         
         if status == "ok":
-            if qcolor.isValid():
-                color = qcolor.name()
-            else:
-                color = ""
+            color = qcolor.name() if qcolor.isValid() else "default"
             
             call = todosdb.setForeground(name, color)
                 
             if call:
                 self.parent_.treeview.updateForeground(name, color)
                 
-                if qcolor.isValid():
-                    QMessageBox.information(self, _("Successful"), _("Foreground color setted to {color} for {name} to-do list.").format(color = color, name = name))
-                else:
-                    QMessageBox.information(self, _("Successful"), _("Foreground color setted to default for {name} to-do list.").format(name = name))
+                QMessageBox.information(
+                    self, _("Successful"), _("Text color setted to {color} for {name} to-do list.")
+                    .format(color = color if color != "default" else _("default"), name = name))
                 
             else:
                 QMessageBox.critical(self, _("Error"), _("Failed to set foreground color for {name} to-do list.").format(name = name))
@@ -822,7 +818,7 @@ class TodosTreeView(QTreeView):
         
         if self.caller == "todos":
             if not "todos_menu" in globals():
-                todos_menu = todos_parent.menuBar().addMenu(_("Todos"))
+                todos_menu = todos_parent.menuBar().addMenu(_("To-dos"))
             
             todos_menu.clear() 
         
@@ -841,9 +837,9 @@ class TodosTreeView(QTreeView):
                                             QStandardItem(modification)]
                 
                 for item in todolist_items[todolist]:
-                    if background != "" and background != None:
+                    if background != "default":
                         item.setBackground(QColor(background))
-                    if foreground != "" and foreground != None:
+                    if foreground != "default":
                         item.setForeground(QColor(foreground))
                 
                 for todo, status_todo, creation_todo, completion_todo in call[todolist,
@@ -908,9 +904,9 @@ class TodosTreeView(QTreeView):
                                     QStandardItem(modification)]
         
         for item in todolist_items[todolist]:
-            if background != "" and background != None:
+            if background != "default":
                 item.setBackground(QColor(background))
-            if foreground != "" and foreground != None:
+            if foreground != "default":
                 item.setForeground(QColor(foreground))
         
         for todo, status_todo, creation_todo, completion_todo in todos:

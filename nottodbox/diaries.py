@@ -41,7 +41,7 @@ today = QDate.currentDate()
 username = getpass.getuser()
 userdata = f"/home/{username}/.config/nottodbox/"
 
-setting_autosave, setting_format = settingsdb.getAutosaveAndFormat("diaries")
+setting_autosave, setting_format, setting_highlight = settingsdb.getModuleSettings("diaries")
 
 
 class DiariesDB:
@@ -679,7 +679,7 @@ class DiariesCalendarWidget(QCalendarWidget):
             dates.append(QDate.fromString(name[0], "dd.MM.yyyy"))
 
         if date in dates:
-            painter.setBrush(QColor(55, 98, 200, 255))
+            painter.setBrush(QColor("#376296"))
             painter.drawEllipse(rect.topLeft() + QPoint(10, 10), 5, 5)
             
         if date >= today:
