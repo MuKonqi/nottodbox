@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.0.7\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-15 13:51+0300\n"
-"PO-Revision-Date: 2024-09-15 13:17+0300\n"
+"POT-Creation-Date: 2024-09-16 18:26+0300\n"
+"PO-Revision-Date: 2024-09-16 18:26+0300\n"
 "Last-Translator: Muhammed S. <mukonqi@gmail.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: tr\n"
@@ -31,7 +31,7 @@ msgid "Home"
 msgstr "Ev"
 
 #: data/io.github.mukonqi.nottodbox.desktop.in.in:21 nottodbox/mainwindow.py:70
-#: nottodbox/notes.py:1144 nottodbox/settings.py:234 nottodbox/settings.py:243
+#: nottodbox/notes.py:1143 nottodbox/settings.py:234 nottodbox/settings.py:243
 msgid "Notes"
 msgstr "Notlar"
 
@@ -153,7 +153,7 @@ msgstr "Her şeyi sil"
 #: nottodbox/notes.py:947 nottodbox/notes.py:963 nottodbox/notes.py:969
 #: nottodbox/notes.py:976 nottodbox/notes.py:983 nottodbox/notes.py:995
 #: nottodbox/notes.py:1013 nottodbox/notes.py:1056 nottodbox/notes.py:1060
-#: nottodbox/notes.py:1064 nottodbox/notes.py:1083 nottodbox/notes.py:1308
+#: nottodbox/notes.py:1064 nottodbox/notes.py:1083 nottodbox/notes.py:1307
 #: nottodbox/settings.py:398 nottodbox/settings.py:419 nottodbox/sidebar.py:222
 #: nottodbox/sidebar.py:236 nottodbox/sidebar.py:243 nottodbox/sidebar.py:266
 #: nottodbox/sidebar.py:273 nottodbox/sidebar.py:285 nottodbox/todos.py:491
@@ -403,7 +403,7 @@ msgid "All open notes and open diaries saved."
 msgstr "Tüm açık sayfalar ve notlar kaydedildi."
 
 #: nottodbox/mainwindow.py:175 nottodbox/mainwindow.py:177
-#: nottodbox/notes.py:1304 nottodbox/todos.py:1034
+#: nottodbox/notes.py:1303 nottodbox/todos.py:1034
 msgid "Warning"
 msgstr "Uyarı"
 
@@ -733,17 +733,17 @@ msgstr "{name} notunun yedeği geri yüklendi."
 msgid "Failed to restore backup of {name} note."
 msgstr "{name} notunun yedeği geri yüklenemedi."
 
-#: nottodbox/notes.py:1117 nottodbox/notes.py:1332 nottodbox/todos.py:825
+#: nottodbox/notes.py:1117 nottodbox/notes.py:1331 nottodbox/todos.py:825
 #: nottodbox/todos.py:1043
 msgid "Name"
 msgstr "Ad"
 
-#: nottodbox/notes.py:1117 nottodbox/notes.py:1332 nottodbox/todos.py:825
+#: nottodbox/notes.py:1117 nottodbox/notes.py:1331 nottodbox/todos.py:825
 #: nottodbox/todos.py:1043
 msgid "Creation"
 msgstr "Oluşturulma"
 
-#: nottodbox/notes.py:1117 nottodbox/notes.py:1332
+#: nottodbox/notes.py:1117 nottodbox/notes.py:1331
 msgid "Modification"
 msgstr "Değiştirilme"
 
@@ -751,12 +751,12 @@ msgstr "Değiştirilme"
 msgid "Double-click to opening a note."
 msgstr "Bir not açmak için çift tıklayın."
 
-#: nottodbox/notes.py:1304
+#: nottodbox/notes.py:1303
 msgid ""
 "Please select a note or a notebook only by clicking on the first column."
 msgstr "Lütfen sadece birinci sütüne tıklayarak bir not seçin."
 
-#: nottodbox/notes.py:1308
+#: nottodbox/notes.py:1307
 msgid "Please select a note."
 msgstr "Lütfen bir not seçin."
 
@@ -1209,11 +1209,11 @@ msgid ""
 "Please select a to-do or a to-do list only by clicking on the first column."
 msgstr "Lütfen sadece birinci sütuna tıklayarak bir yapılacak seçin."
 
-#: nottodbox/widgets/dialogs.py:43
+#: nottodbox/widgets/dialogs.py:44
 msgid "Set to global"
 msgstr "Küresele ayarla"
 
-#: nottodbox/widgets/dialogs.py:48
+#: nottodbox/widgets/dialogs.py:49
 msgid "Set to default"
 msgstr "Varsayılana ayarla"
 
