@@ -456,11 +456,6 @@ class NormalPage(QWidget):
         self.layout().addWidget(self.save, 2, 0, 1, 2)
         self.layout().addWidget(self.autosave, 3, 0, 1, 1)
         self.layout().addWidget(self.format, 3, 1, 1, 1)
-        
-        if self.outdated == "yes":
-            self.autosave.setEnabled(False)
-            self.autosave.setStatusTip(_("Auto-save feature disabled for old diaries."))
-            self.setting_autosave = "disabled"
             
     def createDiary(self) -> bool:
         check = self.database.checkIfTheDiaryExists(self.name)
@@ -491,25 +486,18 @@ class NormalPage(QWidget):
             text = self.input.toHtml()
         
         if not autosave or (autosave and self.setting_autosave == "enabled"):
-            if self.outdated == "yes":
-                question = QMessageBox.question(
-                    self, _("Question"), _("Diaries are unique to the day they are written.\nSo, are you sure?"))
-                
-                if question != QMessageBox.StandardButton.Yes:
-                    return
-            
             if self.module == "notes":
                 call = self.database.saveDocument(self.notebook,
-                                              self.name,
-                                              text,
-                                              self.content,
-                                              autosave)
+                                                  self.name,
+                                                  text,
+                                                  self.content,
+                                                  autosave)
             
             elif self.module == "diaries":
                 call = self.database.saveDocument(self.name,
-                                              text,
-                                              self.content,
-                                              autosave)
+                                                  text,
+                                                  self.content,
+                                                  autosave)
 
             if call:
                 self.closable = True
@@ -617,6 +605,11 @@ class BackupPage(QWidget):
                 self.outdated = "no"
             else:
                 self.outdated = "yes"
+                
+        if self.call_format == "global":
+            self.setting_format = self.global_format
+        else:
+            self.setting_format = self.call_format
         
         self.input = QTextEdit(self)
         

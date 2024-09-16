@@ -465,10 +465,10 @@ class NotesDB:
     def updateNoteModificationDate(self, notebook: str, name: str, date: str) -> bool:
         if self.checkIfTheNoteExists(notebook, name):
             if self.updateNotebookModificationDate(notebook, date):
-                self.cur.execute(f"update {notebook} set modification = ? where name = ?", (date, name))
+                self.cur.execute(f"update '{notebook}' set modification = ? where name = ?", (date, name))
                 self.db.commit()
                 
-                self.cur.execute(f"select modification from {notebook} where name = ?", (name,))
+                self.cur.execute(f"select modification from '{notebook}' where name = ?", (name,))
                 
                 try:
                     fetch = self.cur.fetchone()[0]
@@ -722,7 +722,7 @@ class NotesNotebookOptions(QWidget):
             QMessageBox.critical(self, _("Error"), _("The notebook name can not be to __main__."))
             return
         
-        elif name != "" and name != None and topwindow:
+        elif topwindow and name != "":
             call = self.checkIfTheNotebookExists(name, "inverted")
         
             if call:
@@ -778,7 +778,15 @@ class NotesNotebookOptions(QWidget):
                                                   _("Rename {name} Notebook").format(name = name.title()), 
                                                   _("Please enter a new name for {name} notebook.").format(name = name))
         
-        if newname != "" and newname != None and topwindow:
+        if "'" in newname or "@" in newname:
+            QMessageBox.critical(self, _("Error"), _("The notebook name can not contain these characters: ' and @"))
+            return
+        
+        elif "__main__" == newname:
+            QMessageBox.critical(self, _("Error"), _("The notebook name can not be to __main__."))
+            return
+        
+        elif topwindow and newname != "":
             if not self.checkIfTheNotebookExists(newname, "no-popup"):
                 call = notesdb.renameNotebook(name, newname)
                 
@@ -976,7 +984,7 @@ class NotesNoteOptions(QWidget):
             QMessageBox.critical(self, _("Error"), _('The note name can not contain @ character.'))
             return
         
-        elif name != "" and name != None and topwindow:
+        elif topwindow and name != "":
             call = self.checkIfTheNoteExists(notebook, name, "inverted")
         
             if call:
@@ -1041,7 +1049,11 @@ class NotesNoteOptions(QWidget):
                                                   _("Rename {name} Note").format(name = name.title()), 
                                                   _("Please enter a new name for {name} note.").format(name = name))
         
-        if newname != "" and newname != None and topwindow:
+        if "'" in newname or "@" in newname:
+            QMessageBox.critical(self, _("Error"), _("The notebook name can not contain these characters: ' and @"))
+            return
+        
+        elif topwindow and newname != "":
             if not self.checkIfTheNoteExists(notebook, newname, "no-popup"):
                 call = notesdb.renameNote(notebook, name, newname)
                 
@@ -1303,23 +1315,33 @@ class NotesTreeView(QTreeView):
             QMessageBox.warning(self, _("Warning"), _("Please select a note or a notebook only by clicking on the first column."))
     
     def openNote(self, notebook: str = "", name: str = "") -> None:
-        if notebook == "" or notebook == None or name == "" or name == None:
-            QMessageBox.critical(self, _("Error"), _("Please select a note."))
-            return
-
-        if not self.parent_.note_options.checkIfTheNoteExists(notebook, name):
-            return
-        
-        notes_parent.tabwidget.setCurrentIndex(1)
-        
-        if f"{name} @ {notebook}" in notes:
-            self.parent_.setCurrentWidget(notes[f"{name} @ {notebook}"])
+        if notebook != "":
+            if name == "":
+                try:
+                    name = next(iter(notebook_items.values()))[0].text()
+                
+                except:
+                    QMessageBox.critical(self, _("Error"), _("{notebook} notebook is empty. Please create a note."))
+                
+                    return
+                
+            if not self.parent_.note_options.checkIfTheNoteExists(notebook, name):
+                return
+                
+            notes_parent.tabwidget.setCurrentIndex(1)
             
-        else:            
-            notes_parent.dock.widget().addPage(f"{name} @ {notebook}", self.parent_)
-            notes[f"{name} @ {notebook}"] = NormalPage(self, "notes", notebook, name, setting_autosave, setting_format, notesdb)
-            self.parent_.addTab(notes[f"{name} @ {notebook}"], f"{name} @ {notebook}")
-            self.parent_.setCurrentWidget(notes[f"{name} @ {notebook}"])
+            if f"{name} @ {notebook}" in notes:
+                self.parent_.setCurrentWidget(notes[f"{name} @ {notebook}"])
+                
+            else:            
+                notes_parent.dock.widget().addPage(f"{name} @ {notebook}", self.parent_)
+                notes[f"{name} @ {notebook}"] = NormalPage(self, "notes", notebook, name, setting_autosave, setting_format, notesdb)
+                self.parent_.addTab(notes[f"{name} @ {notebook}"], f"{name} @ {notebook}")
+                self.parent_.setCurrentWidget(notes[f"{name} @ {notebook}"])
+                
+        else:
+            QMessageBox.critical(self, _("Error"), _("Please select a note or a notebook."))
+            return
                 
     def setFilter(self, text: str) -> None:
         self.proxy.beginResetModel()

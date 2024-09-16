@@ -504,7 +504,7 @@ class TodosTodolistOptions(QWidget):
             QMessageBox.critical(self, _("Error"), _("The to-do list name can not be to __main__."))
             return
         
-        elif name != "" and name != None and topwindow:
+        elif topwindow and name != "":
             call = self.checkIfTheTodolistExists(name, "inverted")
         
             if call:
@@ -561,7 +561,15 @@ class TodosTodolistOptions(QWidget):
                                                   _("Rename {name} To-do List").format(name = name.title()), 
                                                   _("Please enter a new name for {name} to-do list.").format(name = name))
         
-        if newname != "" and newname != None and topwindow:
+        if "'" in newname or "@" in newname:
+            QMessageBox.critical(self, _("Error"), _("The to-do list name can not contain these characters: ' and @"))
+            return
+        
+        elif "__main__" == newname:
+            QMessageBox.critical(self, _("Error"), _("The to-do list name can not be to __main__."))
+            return
+        
+        elif topwindow and newname != "":
             if not self.checkIfTheTodolistExists(newname, "no-popup"):
                 call = todosdb.renameTodolist(name, newname)
                 
@@ -736,7 +744,7 @@ class TodosTodoOptions(QWidget):
         todo, topwindow = QInputDialog.getText(
             self, _("Create To-do"), _("Please enter anything for creating a to-do."))
         
-        if todo != "" and todo != None and topwindow:
+        if topwindow and todo != "":
             call = self.checkIfTheTodoExists(todolist, todo, "inverted")
         
             if call:
@@ -783,7 +791,7 @@ class TodosTodoOptions(QWidget):
                                                   _("Edit {todo} To-do").format(todo = todo.title()), 
                                                   _("Please enter anything for editing {todo} to-do.").format(todo = todo))
         
-        if newtodo != "" and newtodo != None and topwindow:
+        if topwindow and newtodo != "":
             if not self.checkIfTheTodoExists(todolist, newtodo, "no-popup"):
                 call = todosdb.editTodo(todolist, todo, newtodo)
 

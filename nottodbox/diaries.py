@@ -268,9 +268,9 @@ class DiariesDB:
                 text = diaries[name].input.toHtml()
             
             calls[name] = self.saveDocument(name,
-                                       text, 
-                                       diaries[name].content, 
-                                       False)
+                                            text, 
+                                            diaries[name].content, 
+                                            False)
             
             if not calls[name]:
                 successful = False
@@ -311,10 +311,16 @@ class DiariesDB:
                 )
             
         else:
-            self.cur.execute(
-                """insert into __main__ (name, content, backup, modification, outdated, autosave, format, highlight) 
-                values (?, ?, ?, ?, ?, ?, ?, ?)""",
-                (name, content, '', date, "no", "global", "global", "global"))
+            if QDate.fromString(name, "dd.MM.yyyy") == today:
+                self.cur.execute(
+                    """insert into __main__ (name, content, backup, modification, outdated, autosave, format, highlight) 
+                    values (?, ?, ?, ?, ?, ?, ?, ?)""",
+                    (name, content, '', date, "no", "global", "global", "global"))
+            else:
+                self.cur.execute(
+                    """insert into __main__ (name, content, backup, modification, outdated, autosave, format, highlight) 
+                    values (?, ?, ?, ?, ?, ?, ?, ?)""",
+                    (name, content, '', date, "yes", "global", "global", "global"))
         self.db.commit()
                         
         self.cur.execute("select content, modification from __main__ where name = ?", (name,))
@@ -466,7 +472,7 @@ class DiariesTabWidget(QTabWidget):
     def clearContent(self) -> None:
         name = self.calendar.selectedDate().toString("dd.MM.yyyy")
         
-        if name == "" or name == None:
+        if name == "":
             QMessageBox.critical(self, _("Error"), _("Diary name can not be blank."))
             return        
         
@@ -493,9 +499,9 @@ class DiariesTabWidget(QTabWidget):
                     
                     if self.question == QMessageBox.StandardButton.Save:
                         call = diariesdb.saveDocument(self.tabText(index).replace("&", ""),
-                                                 diaries[self.tabText(index).replace("&", "")].input.toPlainText(),
-                                                 diaries[self.tabText(index).replace("&", "")].content, 
-                                                 False)
+                                                      diaries[self.tabText(index).replace("&", "")].input.toPlainText(),
+                                                      diaries[self.tabText(index).replace("&", "")].content, 
+                                                      False)
                         
                         if call:
                             self.closable = True
@@ -531,7 +537,7 @@ class DiariesTabWidget(QTabWidget):
     def deleteDiary(self) -> None:
         name = self.calendar.selectedDate().toString("dd.MM.yyyy")
         
-        if name == "" or name == None:
+        if name == "":
             QMessageBox.critical(self, _("Error"), _("Diary name can not be blank."))
             return
         
@@ -564,18 +570,14 @@ class DiariesTabWidget(QTabWidget):
     def openCreate(self) -> None:
         name = self.calendar.selectedDate().toString("dd.MM.yyyy")
         
-        if name == "" or name == None:
+        if name == "":
             QMessageBox.critical(self, _("Error"), _("Diary name can not be blank."))
             return
         
         call = diariesdb.checkIfTheDiaryExists(name)
 
-        if QDate().fromString(name, "dd.MM.yyyy") == today and not call:
+        if not call:
             actions[name] = self.calendar.menu.addAction(name, lambda name = name: self.calendar.openCreate(name))
-            
-        elif QDate().fromString(name, "dd.MM.yyyy") != today and not call:
-            QMessageBox.critical(self, _("Error"), _("You can not create a diary for past."))
-            return
         
         diaries_parent.tabwidget.setCurrentIndex(3)
         
@@ -608,7 +610,7 @@ class DiariesTabWidget(QTabWidget):
     def restoreContent(self) -> None:
         name = self.calendar.selectedDate().toString("dd.MM.yyyy")
          
-        if name == "" or name == None:
+        if name == "":
             QMessageBox.critical(self, _("Error"), _("Diary name can not be blank."))
             return
         
@@ -638,7 +640,7 @@ class DiariesTabWidget(QTabWidget):
     def setHighlight(self) -> None:
         name = self.calendar.selectedDate().toString("dd.MM.yyyy")
         
-        if name == "" or name == None:
+        if name == "":
             QMessageBox.critical(self, _("Error"), _("Diary name can not be blank."))
             return
 
@@ -676,7 +678,7 @@ class DiariesTabWidget(QTabWidget):
     def showBackup(self) -> None:
         name = self.calendar.selectedDate().toString("dd.MM.yyyy")
         
-        if name == "" or name == None:
+        if name == "":
             QMessageBox.critical(self, _("Error"), _("Diary name can not be blank."))
             return
 
@@ -717,18 +719,14 @@ class DiariesCalendarWidget(QCalendarWidget):
         self.openCreate(self.selectedDate().toString("dd.MM.yyyy"))
         
     def openCreate(self, name: str) -> None:
-        if name == "" or name == None:
+        if name == "":
             QMessageBox.critical(self, _("Error"), _("Diary name can not be blank."))
             return
         
         call = diariesdb.checkIfTheDiaryExists(name)
 
-        if QDate().fromString(name, "dd.MM.yyyy") == today and not call:
+        if not call:
             actions[name] = self.menu.addAction(name, lambda name = name: self.calendar.openCreate(name))
-            
-        elif QDate().fromString(name, "dd.MM.yyyy") != today and not call:
-            QMessageBox.critical(self, _("Error"), _("You can not create a diary for past."))
-            return
         
         diaries_parent.tabwidget.setCurrentIndex(3)
         
