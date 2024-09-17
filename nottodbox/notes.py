@@ -1318,12 +1318,20 @@ class NotesTreeView(QTreeView):
         if notebook != "":
             if name == "":
                 try:
-                    name = next(iter(notebook_items.values()))[0].text()
-                
+                    name = next(name_ for notebook_, name_ in note_items.keys() if str(notebook_).startswith(notebook))
+
                 except:
-                    QMessageBox.critical(self, _("Error"), _("{notebook} notebook is empty. Please create a note."))
-                
-                    return
+                    call = notesdb.createNote(notebook, _("Unnamed"))
+                    
+                    if call:
+                        name = _("Unnamed")
+                        
+                        self.parent_.treeview.appendNote(notebook, name)
+                        self.parent_.insertInformations(notebook, name)
+                    
+                    else:
+                        QMessageBox.critical(self, _("Error"), _("Failed to create {name} note.").format(name = _("Unnamed")))
+                        return
                 
             if not self.parent_.note_options.checkIfTheNoteExists(notebook, name):
                 return
@@ -1341,7 +1349,6 @@ class NotesTreeView(QTreeView):
                 
         else:
             QMessageBox.critical(self, _("Error"), _("Please select a note or a notebook."))
-            return
                 
     def setFilter(self, text: str) -> None:
         self.proxy.beginResetModel()

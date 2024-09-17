@@ -78,12 +78,10 @@ class SidebarDB:
             return False
         
     def createTable(self) -> bool:
-        sql = """
+        self.cur.execute("""
         CREATE TABLE IF NOT EXISTS pages (
             page TEXT NOT NULL PRIMARY KEY
-        );"""
-        
-        self.cur.execute(sql)
+        );""")
         self.db.commit()
         
         return self.checkIfTheTableExists()
