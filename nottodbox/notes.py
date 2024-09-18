@@ -118,10 +118,10 @@ class NotesDB:
         if not self.checkIfTheNoteExists(notebook, name):
             date = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
                 
-            self.cur.execute(f"""
-            insert into '{notebook}' (name, content, backup, creation, modification, autosave, format) 
-            values (?, ?, ?, ?, ?, ?, ?)
-            """, (name, "", "", date, date, "global", "global"))
+            self.cur.execute(f"""insert into '{notebook}' 
+                             (name, content, backup, creation, modification, background, foreground, autosave, format) 
+                             values (?, ?, ?, ?, ?, ?, ?, ?, ?)""", 
+                             (name, "", "", date, date, "global", "global", "global", "global"))
             self.db.commit()
         
             if not self.updateNotebookModificationDate(notebook, date):
@@ -147,6 +147,8 @@ class NotesDB:
             backup TEXT, 
             creation TEXT NOT NULL,
             modification TEXT NOT NULL,
+            background TEXT NOT NULL,
+            foreground TEXT NOT NULL,
             autosave TEXT NOT NULL,
             format TEXT NOT NULL
         );""")
@@ -228,7 +230,7 @@ class NotesDB:
         parents = self.cur.fetchall()
         
         for notebook, creation, modification, background, foreground in parents:
-            self.cur.execute(f"select name, creation, modification from '{notebook}'")
+            self.cur.execute(f"select name, creation, modification, background, foreground from '{notebook}'")
             all[(notebook, creation, modification, background, foreground)] = self.cur.fetchall()
             
         return all
@@ -239,14 +241,6 @@ class NotesDB:
             fetch = self.cur.fetchone()[0]
         except TypeError:
             fetch = "global"
-        return fetch
-    
-    def getBackground(self, name: str) -> str | None:
-        self.cur.execute(f"select background from __main__ where name = ?", (name,))
-        try:
-            fetch = self.cur.fetchone()[0]
-        except TypeError:
-            fetch = ""
         return fetch
     
     def getBackup(self, notebook: str, name: str) -> str:
@@ -265,14 +259,6 @@ class NotesDB:
             fetch = ""
         return fetch
         
-    def getForeground(self, name: str) -> str | None:
-        self.cur.execute(f"select foreground from __main__ where name = ?", (name,))
-        try:
-            fetch = self.cur.fetchone()[0]
-        except TypeError:
-            fetch = ""
-        return fetch
-        
     def getFormat(self, notebook: str, name: str) -> str:
         self.cur.execute(f"select format from '{notebook}' where name = ?", (name,))
         try:
@@ -282,15 +268,50 @@ class NotesDB:
         return fetch
     
     def getNote(self, notebook: str, name: str) -> list:
-        self.cur.execute(f"select creation, modification from '{notebook}' where name = ?", (name,))
+        self.cur.execute(f"""select creation, modification, 
+                         background, foreground from '{notebook}' where name = ?""", (name,))
         return self.cur.fetchone()
     
+    def getNoteBackground(self, notebook: str, name: str) -> str:
+        self.cur.execute(f"select background from '{notebook}' where name = ?", (name,))
+        try:
+            fetch = self.cur.fetchone()[0]
+        except TypeError:
+            fetch = "global"
+        return fetch
+    
     def getNotebook(self, name: str) -> tuple:
-        self.cur.execute(f"select creation, modification, background, foreground from __main__ where name = ?", (name,))
+        self.cur.execute(f"""select creation, modification, 
+                         background, foreground from __main__ where name = ?""", (name,))
         creation, modification, background, foreground = self.cur.fetchone()
         
-        self.cur.execute(f"select name, creation, modification from '{name}'")
+        self.cur.execute(f"""select name, creation, modification, 
+                         background, foreground from '{name}'""")
         return creation, modification, background, foreground, self.cur.fetchall()
+    
+    def getNotebookBackground(self, name: str) -> str:
+        self.cur.execute(f"select background from __main__ where name = ?", (name,))
+        try:
+            fetch = self.cur.fetchone()[0]
+        except TypeError:
+            fetch = "global"
+        return fetch
+    
+    def getNotebookForeground(self, name: str) -> str:
+        self.cur.execute(f"select foreground from __main__ where name = ?", (name,))
+        try:
+            fetch = self.cur.fetchone()[0]
+        except TypeError:
+            fetch = "global"
+        return fetch
+    
+    def getNoteForeground(self, notebook: str, name: str) -> str:
+        self.cur.execute(f"select foreground from '{notebook}' where name = ?", (name,))
+        try:
+            fetch = self.cur.fetchone()[0]
+        except TypeError:
+            fetch = "global"
+        return fetch
     
     def renameNote(self, notebook: str, name: str, newname: str) -> bool:
         date = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
@@ -333,8 +354,8 @@ class NotesDB:
         self.cur.execute(f"select content, backup from '{notebook}' where name = ?", (name,))
         fetch_before = self.cur.fetchone()
         
-        self.cur.execute(
-                         f"update '{notebook}' set content = ?, backup = ? where name = ?", (fetch_before[1], fetch_before[0], name))
+        self.cur.execute(f"update '{notebook}' set content = ?, backup = ? where name = ?", 
+                         (fetch_before[1], fetch_before[0], name))
         self.db.commit()
         
         if not self.updateNoteModificationDate(notebook, name, date):
@@ -389,12 +410,12 @@ class NotesDB:
             date = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
             
             if autosave:
-                self.cur.execute(
-                    f"update '{notebook}' set content = ? where name = ?", (content, name))
+                self.cur.execute(f"update '{notebook}' set content = ? where name = ?", 
+                                 (content, name))
                         
             else:     
-                self.cur.execute(
-                    f"update '{notebook}' set content = ?, backup = ? where name = ?", (content, backup, name))
+                self.cur.execute(f"update '{notebook}' set content = ?, backup = ? where name = ?", 
+                                 (content, backup, name))
             
             self.db.commit()
             
@@ -426,28 +447,6 @@ class NotesDB:
         else:
             return False
         
-    def setBackground(self, name: str, color: str) -> bool:
-        self.cur.execute("update __main__ set background = ? where name = ?", (color, name))
-        self.db.commit()
-        
-        call = self.getBackground(name)
-        
-        if call == color:
-            return True
-        else:
-            return False
-        
-    def setForeground(self, name: str, color: str) -> bool:
-        self.cur.execute("update __main__ set foreground = ? where name = ?", (color, name))
-        self.db.commit()
-        
-        call = self.getForeground(name)
-        
-        if call == color:
-            return True
-        else:
-            return False
-        
     def setFormat(self, notebook: str, name: str, setting: str) -> bool:
         if not self.checkIfTheNoteExists(notebook, name):
             return False
@@ -458,6 +457,50 @@ class NotesDB:
         call = self.getFormat(notebook, name)
         
         if call == setting:
+            return True
+        else:
+            return False
+        
+    def setNoteBackground(self, notebook: str, name: str, color: str) -> bool:
+        self.cur.execute(f"update '{notebook}' set background = ? where name = ?", (color, name))
+        self.db.commit()
+        
+        call = self.getNoteBackground(notebook, name)
+        
+        if call == color:
+            return True
+        else:
+            return False
+
+    def setNotebookBackground(self, name: str, color: str) -> bool:
+        self.cur.execute("update __main__ set background = ? where name = ?", (color, name))
+        self.db.commit()
+        
+        call = self.getNotebookBackground(name)
+        
+        if call == color:
+            return True
+        else:
+            return False
+        
+    def setNotebookForeground(self, name: str, color: str) -> bool:
+        self.cur.execute("update __main__ set foreground = ? where name = ?", (color, name))
+        self.db.commit()
+        
+        call = self.getNotebookForeground(name)
+        
+        if call == color:
+            return True
+        else:
+            return False
+        
+    def setNoteForeground(self, notebook: str, name: str, color: str) -> bool:
+        self.cur.execute(f"update '{notebook}' set foreground = ? where name = ?", (color, name))
+        self.db.commit()
+        
+        call = self.getNoteForeground(notebook, name)
+        
+        if call == color:
             return True
         else:
             return False
@@ -672,6 +715,12 @@ class NotesNotebookOptions(QWidget):
         self.create_notebook = QPushButton(self, text=_("Create notebook"))
         self.create_notebook.clicked.connect(self.createNotebook)
         
+        self.set_background = QPushButton(self, text=_("Set background color"))
+        self.set_background.clicked.connect(self.setNotebookBackground)
+        
+        self.set_foreground = QPushButton(self, text=_("Set text color"))
+        self.set_foreground.clicked.connect(self.setNotebookForeground)
+        
         self.rename_notebook = QPushButton(self, text=_("Rename notebook"))
         self.rename_notebook.clicked.connect(self.renameNotebook)
         
@@ -681,12 +730,6 @@ class NotesNotebookOptions(QWidget):
         self.delete_notebook = QPushButton(self, text=_("Delete notebook"))
         self.delete_notebook.clicked.connect(self.deleteNotebook)
         
-        self.set_background = QPushButton(self, text=_("Set background color"))
-        self.set_background.clicked.connect(self.setBackground)
-        
-        self.set_foreground = QPushButton(self, text=_("Set text color"))
-        self.set_foreground.clicked.connect(self.setForeground)
-        
         self.delete_all = QPushButton(self, text=_("Delete all"))
         self.delete_all.clicked.connect(self.deleteAll)
         
@@ -695,11 +738,11 @@ class NotesNotebookOptions(QWidget):
         
         self.layout().addWidget(self.create_note)
         self.layout().addWidget(self.create_notebook)
+        self.layout().addWidget(self.set_background)
+        self.layout().addWidget(self.set_foreground)
         self.layout().addWidget(self.rename_notebook)
         self.layout().addWidget(self.reset_notebook)
         self.layout().addWidget(self.delete_notebook)
-        self.layout().addWidget(self.set_background)
-        self.layout().addWidget(self.set_foreground)
         self.layout().addWidget(self.delete_all)
         
     def checkIfTheNotebookExists(self, name: str, mode: str = "normal") -> bool:
@@ -827,13 +870,13 @@ class NotesNotebookOptions(QWidget):
         else:
             QMessageBox.critical(self, _("Error"), _("Failed to reset {name} notebook.").format(name = name))
             
-    def setBackground(self) -> None:
+    def setNotebookBackground(self) -> None:
         name = self.parent_.notebook
         
         if not self.checkIfTheNotebookExists(name):
             return
         
-        background = notesdb.getBackground(name)
+        background = notesdb.getNotebookBackground(name)
         
         ok, status, qcolor = ColorDialog(self, True, 
             QColor(background if background != "global" and background != "default"
@@ -851,10 +894,10 @@ class NotesNotebookOptions(QWidget):
             elif status == "default":
                 color = "default"
                 
-            call = notesdb.setBackground(name, color)
+            call = notesdb.setNotebookBackground(name, color)
                     
             if call:
-                self.parent_.treeview.updateBackground(name, color)
+                self.parent_.treeview.updateNotebookBackground(name, color)
                 
                 QMessageBox.information(
                     self, _("Successful"), _("Background color setted to {color} for {name} notebook.")
@@ -864,13 +907,13 @@ class NotesNotebookOptions(QWidget):
             else:
                 QMessageBox.critical(self, _("Error"), _("Failed to set background color for {name} notebook.").format(name = name))
         
-    def setForeground(self) -> None:
+    def setNotebookForeground(self) -> None:
         name = self.parent_.notebook
 
         if not self.checkIfTheNotebookExists(name):
             return
         
-        foreground = notesdb.getForeground(name)
+        foreground = notesdb.getNotebookForeground(name)
         
         ok, status, qcolor = ColorDialog(self, True, 
             QColor(foreground if foreground != "global" and foreground != "default"
@@ -888,10 +931,10 @@ class NotesNotebookOptions(QWidget):
             elif status == "default":
                 color = "default"
                 
-            call = notesdb.setForeground(name, color)
+            call = notesdb.setNotebookForeground(name, color)
                     
             if call:
-                self.parent_.treeview.updateForeground(name, color)
+                self.parent_.treeview.updateNotebookForeground(name, color)
                 
                 QMessageBox.information(
                     self, _("Successful"), _("Text color setted to {color} for {name} notebook.")
@@ -914,6 +957,12 @@ class NotesNoteOptions(QWidget):
         self.open_note = QPushButton(self, text=_("Open note"))
         self.open_note.clicked.connect(self.openNote)
         
+        self.set_background = QPushButton(self, text=_("Set background color"))
+        self.set_background.clicked.connect(self.setNoteBackground)
+        
+        self.set_foreground = QPushButton(self, text=_("Set text color"))
+        self.set_foreground.clicked.connect(self.setNoteForeground)
+        
         self.rename = QPushButton(self, text=_("Rename note"))
         self.rename.clicked.connect(self.renameNote)
 
@@ -934,6 +983,8 @@ class NotesNoteOptions(QWidget):
         
         self.layout().addWidget(self.create_note)
         self.layout().addWidget(self.open_note)
+        self.layout().addWidget(self.set_background)
+        self.layout().addWidget(self.set_foreground)
         self.layout().addWidget(self.rename)
         self.layout().addWidget(self.show_backup)
         self.layout().addWidget(self.restore_content)
@@ -1094,6 +1145,82 @@ class NotesNoteOptions(QWidget):
         elif not call:
             QMessageBox.critical(self, _("Error"), _("Failed to restore backup of {name} note.").format(name = name))
             
+    def setNoteBackground(self) -> None:
+        notebook = self.parent_.notebook
+        name = self.parent_.name
+        
+        if not self.checkIfTheNoteExists(notebook, name):
+            return
+        
+        background = notesdb.getNoteBackground(notebook, name)
+        
+        ok, status, qcolor = ColorDialog(self, True, 
+            QColor(background if background != "global" and background != "default"
+                   else (setting_background if background == "global" and setting_background != "default" 
+                         else "#FFFFFF")),
+            _("Select Background Color for {name} Note").format(name = name.title())).getColor()
+        
+        if ok:
+            if status == "new":
+                color = qcolor.name()
+                
+            elif status == "global":
+                color = "global"
+                
+            elif status == "default":
+                color = "default"
+                
+            call = notesdb.setNoteBackground(notebook, name, color)
+                    
+            if call:
+                self.parent_.treeview.updateNoteBackground(notebook, name, color)
+                
+                QMessageBox.information(
+                    self, _("Successful"), _("Background color setted to {color} for {name} note.")
+                    .format(color = color if (status == "new")
+                            else (_("global") if status == "global" else _("default")), name = name))
+                
+            else:
+                QMessageBox.critical(self, _("Error"), _("Failed to set background color for {name} note.").format(name = name))
+        
+    def setNoteForeground(self) -> None:
+        notebook = self.parent_.notebook
+        name = self.parent_.name
+
+        if not self.checkIfTheNoteExists(notebook, name):
+            return
+        
+        foreground = notesdb.getNoteForeground(notebook, name)
+        
+        ok, status, qcolor = ColorDialog(self, True, 
+            QColor(foreground if foreground != "global" and foreground != "default"
+                   else (setting_foreground if foreground == "global" and setting_foreground != "default" 
+                         else "#FFFFFF")),
+            _("Select Text Color for {name} Note").format(name = name.title())).getColor()
+        
+        if ok:
+            if status == "new":
+                color = qcolor.name()
+                
+            elif status == "global":
+                color = "global"
+                
+            elif status == "default":
+                color = "default"
+                
+            call = notesdb.setNoteForeground(notebook, name, color)
+                    
+            if call:
+                self.parent_.treeview.updateNoteForeground(notebook, name, color)
+                
+                QMessageBox.information(
+                    self, _("Successful"), _("Text color setted to {color} for {name} note.")
+                    .format(color = color if (status == "new")
+                            else (_("global") if status == "global" else _("default")), name = name))
+                
+            else:
+                QMessageBox.critical(self, _("Error"), _("Failed to set text color for {name} note.").format(name = name))
+            
     def showBackup(self) -> None:
         notebook = self.parent_.notebook
         name = self.parent_.name
@@ -1161,35 +1288,47 @@ class NotesTreeView(QTreeView):
             
             all = [*call]
             
-            for notebook, creation, modification, background, foreground in all:
+            for (notebook, creation_notebook, modification_notebook, 
+                 background_notebook, foreground_notebook) in all:
                 model_count += 1
                 notebook_count = -1
                 
                 notebook_counts[notebook] = model_count
                 notebook_items[notebook] = [QStandardItem(notebook),
-                                            QStandardItem(creation),
-                                            QStandardItem(modification)]
+                                            QStandardItem(creation_notebook),
+                                            QStandardItem(modification_notebook)]
                 
                 for item in notebook_items[notebook]:
-                    if background == "global" and setting_background != "default":
+                    if background_notebook == "global" and setting_background != "default":
                         item.setBackground(QColor(setting_background))
-                    elif background != "global" and background != "default":
-                        item.setBackground(QColor(background))
+                    elif background_notebook != "global" and background_notebook != "default":
+                        item.setBackground(QColor(background_notebook))
                     
-                    if foreground == "global" and setting_foreground != "default":
+                    if foreground_notebook == "global" and setting_foreground != "default":
                         item.setForeground(QColor(setting_foreground))
-                    elif foreground != "global" and foreground != "default":
-                        item.setForeground(QColor(foreground))
+                    elif foreground_notebook != "global" and foreground_notebook != "default":
+                        item.setForeground(QColor(foreground_notebook))
                 
-                for name, creation_note, modification_note in call[notebook,
-                                                                   creation, modification,
-                                                                   background, foreground]:
+                for (name, creation_note, modification_note, 
+                     background_note, foreground_note) in call[notebook, creation_notebook, modification_notebook, 
+                                                               background_notebook, foreground_notebook]:
                     notebook_count += 1
                     
                     note_counts[(notebook, name)] = notebook_count
                     note_items[(notebook, name)] = [QStandardItem(name), 
                                                     QStandardItem(creation_note), 
                                                     QStandardItem(modification_note)]
+                    
+                    for item in note_items[(notebook, name)]:
+                        if background_note == "global" and setting_background != "default":
+                            item.setBackground(QColor(setting_background))
+                        elif background_note != "global" and background_note != "default":
+                            item.setBackground(QColor(background_note))
+                        
+                        if foreground_note == "global" and setting_foreground != "default":
+                            item.setForeground(QColor(setting_foreground))
+                        elif foreground_note != "global" and foreground_note != "default":
+                            item.setForeground(QColor(foreground_note))
                 
                     notebook_items[notebook][0].appendRow(note_items[(notebook, name)])
                     
@@ -1200,12 +1339,23 @@ class NotesTreeView(QTreeView):
                 notes_model.appendRow(notebook_items[notebook])
             
     def appendNote(self, notebook: str, name: str) -> None:
-        creation_note, modification_note = notesdb.getNote(notebook, name)
+        creation_note, modification_note, background_note, foreground_note = notesdb.getNote(notebook, name)
         
         note_counts[(notebook, name)] = notebook_items[notebook][0].rowCount()
         note_items[(notebook, name)] = [QStandardItem(name), 
                                         QStandardItem(creation_note), 
                                         QStandardItem(modification_note)]
+        
+        for item in note_items[(notebook, name)]:
+            if background_note == "global" and setting_background != "default":
+                item.setBackground(QColor(setting_background))
+            elif background_note != "global" and background_note != "default":
+                item.setBackground(QColor(background_note))
+            
+            if foreground_note == "global" and setting_foreground != "default":
+                item.setForeground(QColor(setting_foreground))
+            elif foreground_note != "global" and foreground_note != "default":
+                item.setForeground(QColor(foreground_note))
     
         notebook_items[notebook][0].appendRow(note_items[(notebook, name)])
         
@@ -1214,34 +1364,46 @@ class NotesTreeView(QTreeView):
                 f"{name} @ {notebook}", lambda name = name, notebook = notebook: self.openNote(notebook, name))
             
     def appendNotebook(self, notebook: str) -> None:
-        creation, modification, background, foreground, notes = notesdb.getNotebook(notebook)
+        (creation_notebook, modification_notebook, 
+         background_notebook, foreground_notebook, notes) = notesdb.getNotebook(notebook)
         
         model_count = notes_model.rowCount()
         notebook_count = -1
         
         notebook_counts[notebook] = model_count
         notebook_items[notebook] = [QStandardItem(notebook),
-                                    QStandardItem(creation),
-                                    QStandardItem(modification)]
+                                    QStandardItem(creation_notebook),
+                                    QStandardItem(modification_notebook)]
         
         for item in notebook_items[notebook]:
-            if background == "global" and setting_background != "default":
+            if background_notebook == "global" and setting_background != "default":
                 item.setBackground(QColor(setting_background))
-            elif background != "global" and background != "default":
-                item.setBackground(QColor(background))
+            elif background_notebook != "global" and background_notebook != "default":
+                item.setBackground(QColor(background_notebook))
             
-            if foreground == "global" and setting_foreground != "default":
+            if foreground_notebook == "global" and setting_foreground != "default":
                 item.setForeground(QColor(setting_foreground))
-            elif foreground != "global" and foreground != "default":
-                item.setForeground(QColor(foreground))
+            elif foreground_notebook != "global" and foreground_notebook != "default":
+                item.setForeground(QColor(foreground_notebook))
         
-        for name, creation_note, modification_note in notes:
+        for name, creation_note, modification_note, background_note, foreground_note in notes:
             notebook_count += 1
             
             note_counts[(notebook, name)] = notebook_count
             note_items[(notebook, name)] = [QStandardItem(name), 
                                             QStandardItem(creation_note), 
                                             QStandardItem(modification_note)]
+            
+            for item in note_items[(notebook, name)]:
+                if background_note == "global" and setting_background != "default":
+                    item.setBackground(QColor(setting_background))
+                elif background_note != "global" and background_note != "default":
+                    item.setBackground(QColor(background_note))
+                
+                if foreground_note == "global" and setting_foreground != "default":
+                    item.setForeground(QColor(setting_foreground))
+                elif foreground_note != "global" and foreground_note != "default":
+                    item.setForeground(QColor(foreground_note))
         
             notebook_items[notebook][0].appendRow(note_items[(notebook, name)])
             
@@ -1318,7 +1480,8 @@ class NotesTreeView(QTreeView):
         if notebook != "":
             if name == "":
                 try:
-                    name = next(name_ for notebook_, name_ in note_items.keys() if str(notebook_).startswith(notebook))
+                    name = next(name_range for notebook_range, name_range in note_items.keys() 
+                                if str(notebook_range).startswith(notebook))
 
                 except:
                     call = notesdb.createNote(notebook, _("Unnamed"))
@@ -1363,7 +1526,29 @@ class NotesTreeView(QTreeView):
         
         self.appendAll()
         
-    def updateBackground(self, name: str, color: str | None) -> None:
+    def updateNote(self, notebook: str, name: str, newname: str) -> None:
+        note_counts[(notebook, newname)] = note_counts.pop((notebook, name))
+        note_items[(notebook, newname)] = note_items.pop((notebook, name))
+        note_menus[(notebook, newname)] = note_menus.pop((notebook, name))
+        
+        note_items[(notebook, newname)][0].setText(newname)
+        
+    def updateNoteBackground(self, notebook: str, name: str, color: str) -> None:
+        for item in note_items[(notebook, name)]:
+            if color == "global" and setting_background != "default":
+                item.setBackground(QColor(setting_background))    
+            elif color != "global" and color != "default":
+                item.setBackground(QColor(color))
+            else:
+                item.setData(QVariant(), Qt.ItemDataRole.BackgroundRole)
+                
+    def updateNotebook(self, name: str, newname: str) -> None:
+        notebook_counts[newname] = notebook_counts.pop(name)
+        notebook_items[newname] = notebook_items.pop(name)
+        
+        notebook_items[newname][0].setText(newname)
+        
+    def updateNotebookBackground(self, name: str, color: str) -> None:
         for item in notebook_items[name]:
             if color == "global" and setting_background != "default":
                 item.setBackground(QColor(setting_background))    
@@ -1372,7 +1557,7 @@ class NotesTreeView(QTreeView):
             else:
                 item.setData(QVariant(), Qt.ItemDataRole.BackgroundRole)
                 
-    def updateForeground(self, name: str, color: str | None) -> None:
+    def updateNotebookForeground(self, name: str, color: str) -> None:
         for item in notebook_items[name]:
             if color == "global" and setting_foreground != "default":
                 item.setForeground(QColor(setting_foreground))
@@ -1381,15 +1566,11 @@ class NotesTreeView(QTreeView):
             else:
                 item.setData(QVariant(), Qt.ItemDataRole.ForegroundRole)
                 
-    def updateNote(self, notebook: str, name: str, newname: str) -> None:
-        note_counts[(notebook, newname)] = note_counts.pop((notebook, name))
-        note_items[(notebook, newname)] = note_items.pop((notebook, name))
-        note_menus[(notebook, newname)] = note_menus.pop((notebook, name))
-        
-        note_items[(notebook, newname)][0].setText(newname)
-        
-    def updateNotebook(self, name: str, newname: str) -> None:
-        notebook_counts[newname] = notebook_counts.pop(name)
-        notebook_items[newname] = notebook_items.pop(name)
-        
-        notebook_items[newname][0].setText(newname)
+    def updateNoteForeground(self, notebook: str, name: str, color: str) -> None:
+        for item in note_items[(notebook, name)]:
+            if color == "global" and setting_foreground != "default":
+                item.setForeground(QColor(setting_foreground))
+            elif color != "global" and color != "default":
+                item.setForeground(QColor(color))
+            else:
+                item.setData(QVariant(), Qt.ItemDataRole.ForegroundRole)
