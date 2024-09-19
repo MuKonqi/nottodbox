@@ -342,24 +342,55 @@ class SettingsPage(QWidget):
         
         self.buttons.addButton(self.save, QDialogButtonBox.ButtonRole.ApplyRole)
         self.buttons.addButton(self.reset, QDialogButtonBox.ButtonRole.ApplyRole)
+        
+        self.format_changed = False
             
         self.setLayout(QVBoxLayout(self))
         self.layout().addWidget(self.inputs)
         self.layout().addStretch()
         self.layout().addWidget(self.buttons)
         
+    def askFormatChange(self) -> bool:
+        if self.format_changed:
+            accepted = QMessageBox.question(
+                self, _("Question"), _("If you have documents with the format setting set to global," +
+                                       " this change may corrupt them.\nAre you sure?"))
+            
+            if accepted == QMessageBox.StandardButton.Yes:
+                self.format_changed = False
+                
+                return True
+            
+            else:
+                return False
+            
+        else:
+            return True
+        
     def resetSettings(self) -> None:
         if self.module == "notes":
-            call = settingsdb.saveModuleSettings(
-                self.module, "enabled", "markdown", "default", "default", None)
+            format_change_acceptted = self.askFormatChange()
+            
+            if format_change_acceptted:
+                call = settingsdb.saveModuleSettings(
+                    self.module, "enabled", "markdown", "default", "default", None)
+                
+            else:
+                return
         
         elif self.module == "todos":
             call = settingsdb.saveModuleSettings(
                 self.module, None, None, "default", "default", None)
         
         elif self.module == "diaries":
-            call = settingsdb.saveModuleSettings(
-                self.module, "enabled", "markdown", None, None, "default")
+            format_change_acceptted = self.askFormatChange()
+            
+            if format_change_acceptted:
+                call = settingsdb.saveModuleSettings(
+                    self.module, "enabled", "markdown", None, None, "default")
+            
+            else:
+                return
         
         if call:
             if self.module == "notes":
@@ -399,16 +430,28 @@ class SettingsPage(QWidget):
             
     def saveSettings(self) -> None:
         if self.module == "notes":
-            call = settingsdb.saveModuleSettings(
-                self.module, self.autosave, self.format, self.background, self.foreground, None)
+            format_change_acceptted = self.askFormatChange()
+                
+            if format_change_acceptted:
+                call = settingsdb.saveModuleSettings(
+                    self.module, self.autosave, self.format, self.background, self.foreground, None)
+                
+            else:
+                return
         
         elif self.module == "todos":
             call = settingsdb.saveModuleSettings(
                 self.module, None, None, self.background, self.foreground, None)
         
         elif self.module == "diaries":
-            call = settingsdb.saveModuleSettings(
-                self.module, self.autosave, self.format, None, None, self.highlight)
+            format_change_acceptted = self.askFormatChange()
+            
+            if format_change_acceptted:
+                call = settingsdb.saveModuleSettings(
+                    self.module, self.autosave, self.format, None, None, self.highlight)
+            
+            else:
+                return
         
         if call:
             self.target.refreshSettings()
@@ -450,6 +493,8 @@ class SettingsPage(QWidget):
                                            .format(color = _("default") if self.foreground == "default" else self.foreground))
                 
     def setFormat(self, index: int) -> None:
+        self.format_changed = True
+        
         if index == 0:
             self.format = "plain-text"
         elif index == 1:

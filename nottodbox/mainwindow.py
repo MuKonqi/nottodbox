@@ -164,9 +164,9 @@ class MainWindow(QMainWindow):
                     
                 if is_main_diary_unsaved:
                     call_diary_save_one = diariesdb.saveDocument(today.toString("dd.MM.yyyy"),
-                                                            self.home.widget().diary.input.toPlainText(),
-                                                            self.home.widget().diary.content,
-                                                            False)
+                                                                 self.home.widget().diary.input.toPlainText(),
+                                                                 self.home.widget().diary.content,
+                                                                 False)
                 
                 if are_there_unsaved_notes and are_there_unsaved_diaries:
                     if call_notes_save_all and call_diaries_save_all:

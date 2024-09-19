@@ -311,16 +311,10 @@ class DiariesDB:
                 )
             
         else:
-            if QDate.fromString(name, "dd.MM.yyyy") == today:
-                self.cur.execute(
-                    """insert into __main__ (name, content, backup, modification, outdated, autosave, format, highlight) 
-                    values (?, ?, ?, ?, ?, ?, ?, ?)""",
-                    (name, content, '', date, "no", "global", "global", "global"))
-            else:
-                self.cur.execute(
-                    """insert into __main__ (name, content, backup, modification, outdated, autosave, format, highlight) 
-                    values (?, ?, ?, ?, ?, ?, ?, ?)""",
-                    (name, content, '', date, "yes", "global", "global", "global"))
+            self.cur.execute(
+                """insert into __main__ (name, content, backup, modification, outdated, autosave, format, highlight) 
+                values (?, ?, ?, ?, ?, ?, ?, ?)""",
+                (name, content, '', date, "no", "global", "global", "global"))
         self.db.commit()
                         
         self.cur.execute("select content, modification from __main__ where name = ?", (name,))

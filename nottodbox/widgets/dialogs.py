@@ -21,7 +21,6 @@ sys.dont_write_bytecode = True
 
 
 import getpass
-import sqlite3
 from gettext import gettext as _
 from PyQt6.QtGui import QColor
 from PyQt6.QtCore import Qt
