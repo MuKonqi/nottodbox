@@ -26,8 +26,8 @@ from widgets.pages import NormalPage
 from notes import NotesTabWidget, NotesTreeView
 from todos import TodosWidget, TodosTreeView
 from diaries import diariesdb, setting_autosave, setting_format
-from PyQt6.QtCore import Qt, QDate
-from PyQt6.QtWidgets import *
+from PySide6.QtCore import Qt, QDate
+from PySide6.QtWidgets import *
 
 
 username = getpass.getuser()
@@ -54,8 +54,6 @@ class HomeWidget(QWidget):
     def __init__(self, parent: HomeScrollArea, todos: TodosWidget, notes: NotesTabWidget):
         super().__init__(parent)
         
-        self.setLayout(QVBoxLayout(self))
-        
         self.label_welcome = QLabel(self, alignment=Qt.AlignmentFlag.AlignCenter,
                              text=_("Welcome {username}!").format(username = username))
         self.label_welcome.setStyleSheet("font-size: 12pt")
@@ -77,6 +75,7 @@ class HomeWidget(QWidget):
         
         self.notes = NotesTreeView(notes, "home")
         
+        self.setLayout(QVBoxLayout(self))
         self.layout().addWidget(self.label_welcome)
         self.layout().addWidget(self.label_diary)
         self.layout().addWidget(self.diary)

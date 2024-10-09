@@ -24,8 +24,8 @@ import getpass
 import os
 import sqlite3
 from gettext import gettext as _
-from PyQt6.QtCore import Qt, QStringListModel, QSortFilterProxyModel
-from PyQt6.QtWidgets import *
+from PySide6.QtCore import Qt, QStringListModel, QSortFilterProxyModel
+from PySide6.QtWidgets import *
 
 
 username = getpass.getuser()
@@ -131,8 +131,6 @@ class SidebarWidget(QWidget):
     def __init__(self, parent: QMainWindow, notes: QTabWidget, todos: QTabWidget, diaries: QTabWidget):
         super().__init__(parent)
         
-        self.setLayout(QGridLayout(self))
-        
         self.parent_ = parent
         self.notes = notes
         self.todos = todos
@@ -187,6 +185,9 @@ class SidebarWidget(QWidget):
         self.button_clear = QPushButton(self, text=_("Clear"))
         self.button_clear.clicked.connect(self.clearList)
         
+        self.insertPages()
+        
+        self.setLayout(QGridLayout(self))
         self.layout().addWidget(self.entry, 0, 0, 1, 2)
         self.layout().addWidget(self.label1, 1, 0, 1, 2)
         self.layout().addWidget(self.listview1, 2, 0, 1, 2)
@@ -195,8 +196,6 @@ class SidebarWidget(QWidget):
         self.layout().addWidget(self.label_2nd, 5, 0, 1, 2)
         self.layout().addWidget(self.button_delete, 6, 0, 1, 1)
         self.layout().addWidget(self.button_clear, 6, 1, 1, 1)
-        
-        self.insertPages()
         
     def addPage(self, text: str, target: QTabWidget) -> None:
         stringlist = self.model1.stringList()

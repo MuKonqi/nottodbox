@@ -26,9 +26,9 @@ import datetime
 from settings import settingsdb
 from gettext import gettext as _
 from widgets.dialogs import ColorDialog
-from PyQt6.QtCore import Qt, QVariant, QSortFilterProxyModel
-from PyQt6.QtGui import QStandardItem, QStandardItemModel, QMouseEvent, QColor
-from PyQt6.QtWidgets import *
+from PySide6.QtCore import Qt, QSortFilterProxyModel
+from PySide6.QtGui import QStandardItem, QStandardItemModel, QMouseEvent, QColor
+from PySide6.QtWidgets import *
 
 
 todo_counts = {}
@@ -479,9 +479,8 @@ class TodosNoneOptions(QWidget):
         self.delete_all = QPushButton(self, text=_("Delete all"))
         self.delete_all.clicked.connect(self.parent_.todolist_options.deleteAll)
         
-        self.setLayout(QVBoxLayout(self))
         self.setFixedWidth(180)
-        
+        self.setLayout(QVBoxLayout(self))
         self.layout().addWidget(self.warning_label)
         self.layout().addWidget(self.create_todolist)
         self.layout().addWidget(self.delete_all)
@@ -517,9 +516,8 @@ class TodosTodolistOptions(QWidget):
         self.delete_all = QPushButton(self, text=_("Delete all"))
         self.delete_all.clicked.connect(self.deleteAll)
         
-        self.setLayout(QVBoxLayout(self))
         self.setFixedWidth(180)
-        
+        self.setLayout(QVBoxLayout(self))
         self.layout().addWidget(self.create_todo)
         self.layout().addWidget(self.create_todolist)
         self.layout().addWidget(self.set_background)
@@ -752,9 +750,8 @@ class TodosTodoOptions(QWidget):
         self.delete_todo = QPushButton(self, text=_("Delete todo"))
         self.delete_todo.clicked.connect(self.deleteTodo)
         
-        self.setLayout(QVBoxLayout(self))
         self.setFixedWidth(180)
-        
+        self.setLayout(QVBoxLayout(self))
         self.layout().addWidget(self.create_todo)
         self.layout().addWidget(self.set_background)
         self.layout().addWidget(self.set_foreground)
@@ -1235,7 +1232,7 @@ class TodosTreeView(QTreeView):
             elif color != "global" and color != "default":
                 item.setBackground(QColor(color))
             else:
-                item.setData(QVariant(), Qt.ItemDataRole.BackgroundRole)
+                item.setData(None, Qt.ItemDataRole.BackgroundRole)
                 
     def updateTodoForeground(self, todolist: str, todo: str, color: str) -> None:
         for item in todo_items[(todolist, todo)]:
@@ -1244,7 +1241,7 @@ class TodosTreeView(QTreeView):
             elif color != "global" and color != "default":
                 item.setForeground(QColor(color))
             else:
-                item.setData(QVariant(), Qt.ItemDataRole.ForegroundRole)
+                item.setData(None, Qt.ItemDataRole.ForegroundRole)
             
     def updateTodolist(self, name: str, newname: str) -> None:
         todolist_counts[newname] = todolist_counts.pop(name)
@@ -1260,7 +1257,7 @@ class TodosTreeView(QTreeView):
             elif color != "global" and color != "default":
                 item.setBackground(QColor(color))
             else:
-                item.setData(QVariant(), Qt.ItemDataRole.BackgroundRole)
+                item.setData(None, Qt.ItemDataRole.BackgroundRole)
                 
     def updateTodolistForeground(self, name: str, color: str) -> None:
         for item in todolist_items[name]:
@@ -1269,4 +1266,4 @@ class TodosTreeView(QTreeView):
             elif color != "global" and color != "default":
                 item.setForeground(QColor(color))
             else:
-                item.setData(QVariant(), Qt.ItemDataRole.ForegroundRole)
+                item.setData(None, Qt.ItemDataRole.ForegroundRole)

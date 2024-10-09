@@ -30,9 +30,9 @@ from settings import settingsdb
 from widgets.dialogs import ColorDialog
 from widgets.pages import NormalPage, BackupPage
 from gettext import gettext as _
-from PyQt6.QtGui import QMouseEvent, QPainter, QColor
-from PyQt6.QtCore import Qt, QDate, QRect, QPoint
-from PyQt6.QtWidgets import *
+from PySide6.QtGui import QMouseEvent, QPainter, QColor
+from PySide6.QtCore import Qt, QDate, QRect, QPoint
+from PySide6.QtWidgets import *
 
 
 diaries = {}
@@ -386,7 +386,6 @@ class DiariesTabWidget(QTabWidget):
         self.backups = {}
         
         self.home = QWidget(self)
-        self.home.setLayout(QGridLayout(self.home))
         
         self.modification = QLabel(self.home, alignment=Qt.AlignmentFlag.AlignCenter, 
                              text=_("Modification: "))
@@ -402,7 +401,6 @@ class DiariesTabWidget(QTabWidget):
 
         self.side = QWidget(self.home)
         self.side.setFixedWidth(180)
-        self.side.setLayout(QVBoxLayout(self.side))
         
         self.open_create = QPushButton(self.side, text=_("Open/create"))
         self.open_create.clicked.connect(self.openCreate)
@@ -425,6 +423,7 @@ class DiariesTabWidget(QTabWidget):
         self.delete_all = QPushButton(self.side, text=_("Delete all"))
         self.delete_all.clicked.connect(self.deleteAll)
         
+        self.side.setLayout(QVBoxLayout(self.side))
         self.side.layout().addWidget(self.open_create)
         self.side.layout().addWidget(self.show_backup)
         self.side.layout().addWidget(self.restore)
@@ -432,6 +431,8 @@ class DiariesTabWidget(QTabWidget):
         self.side.layout().addWidget(self.set_highlight)
         self.side.layout().addWidget(self.delete_diary)
         self.side.layout().addWidget(self.delete_all)
+        
+        self.home.setLayout(QGridLayout(self.home))
         self.home.layout().addWidget(self.side, 1, 2, 3, 1)
         self.home.layout().addWidget(self.modification, 0, 0, 1, 1)
         self.home.layout().addWidget(self.calendar, 1, 0, 1, 1)
@@ -444,7 +445,6 @@ class DiariesTabWidget(QTabWidget):
         self.setDocumentMode(True)
         self.setTabBarAutoHide(True)
         self.setUsesScrollButtons(True)
-        
         self.tabCloseRequested.connect(self.closeTab)
         
     def checkIfTheDiaryExists(self, name: str, mode: str = "normal") -> bool:

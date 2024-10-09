@@ -21,9 +21,9 @@ sys.dont_write_bytecode = True
 
 import getpass
 from gettext import gettext as _
-from PyQt6.QtGui import QCloseEvent
-from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import *
+from PySide6.QtGui import QCloseEvent
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import *
 
 
 username = getpass.getuser()
@@ -43,17 +43,10 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         
-        self.setMinimumWidth(900)
-        self.setMinimumHeight(630)
-        
         self.widget = QWidget(self)
-        self.widget.setLayout(QVBoxLayout(self.widget))
-        self.setCentralWidget(self.widget)
         
-        self.tabwidget = QTabWidget(self)
+        self.tabwidget = QTabWidget(self.widget)
         self.tabwidget.setUsesScrollButtons(True)
-        
-        self.widget.layout().addWidget(self.tabwidget)
         
         self.menu_sidebar = self.menuBar().addMenu(_("Sidebar"))
         self.menu_sidebar.addAction(_("Show"), lambda: self.dock.setVisible(True))
@@ -99,6 +92,12 @@ class MainWindow(QMainWindow):
         if self.dock_status == "disabled":
             self.dock.setVisible(False)
             
+        self.setCentralWidget(self.widget)
+        self.widget.setLayout(QVBoxLayout(self.widget))
+        self.widget.layout().addWidget(self.tabwidget)
+            
+        self.setMinimumWidth(900)
+        self.setMinimumHeight(630)
         self.dock.dockLocationChanged.connect(self.dockAreaChanged)
         self.dock.topLevelChanged.connect(self.dockModeChanged)
         self.dock.visibilityChanged.connect(self.dockStatusChanged)

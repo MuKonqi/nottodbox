@@ -24,9 +24,9 @@ import getpass
 import sqlite3
 from gettext import gettext as _
 from widgets.dialogs import ColorDialog
-from PyQt6.QtGui import QColor
-from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import *
+from PySide6.QtGui import QColor
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import *
 
 
 username = getpass.getuser()
@@ -228,8 +228,6 @@ class SettingsWidget(QWidget):
         self.parent_ = parent
         self.menu = self.parent_.menuBar().addMenu(_("Settings"))
         
-        self.setLayout(QHBoxLayout(self))
-        
         self.stacked = QStackedWidget(self)
         self.stacked.addWidget(SettingsPage(self, "notes", _("Notes"), notes, 0))
         self.stacked.addWidget(SettingsPage(self, "todos", _("To-dos"), todos, 1))
@@ -254,6 +252,7 @@ class SettingsWidget(QWidget):
         
         self.list.setCurrentRow(0)
         
+        self.setLayout(QHBoxLayout(self))
         self.layout().addWidget(self.list)
         self.layout().addWidget(self.stacked)
         

@@ -17,7 +17,7 @@ gnome = import('gnome')
 
 
 python_bin = python.find_installation('python3',
-  modules: ['sys', 'locale', 'gettext', 'getpass', 'os', 'sqlite3', 'datetime', 'webbrowser', 'PyQt6'])
+  modules: ['sys', 'locale', 'gettext', 'getpass', 'os', 'sqlite3', 'datetime', 'webbrowser', 'PySide6'])
 
 
 if not python_bin.found()

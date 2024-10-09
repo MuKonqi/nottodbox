@@ -22,9 +22,9 @@ sys.dont_write_bytecode = True
 
 import getpass
 from gettext import gettext as _
-from PyQt6.QtGui import QColor
-from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import *
+from PySide6.QtGui import QColor
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import *
 
 
 username = getpass.getuser()
@@ -34,8 +34,6 @@ userdata = f"/home/{username}/.config/nottodbox/"
 class ColorDialog(QColorDialog):
     def __init__(self, parent: QWidget, show_global: bool, color: QColor | Qt.GlobalColor | int, title: str) -> None:
         super().__init__(color, parent)
-        self.setWindowTitle(title)
-        self.setOption(QColorDialog.ColorDialogOption.DontUseNativeDialog)
         
         self.buttonbox = self.findChild(QDialogButtonBox)
         
@@ -50,6 +48,8 @@ class ColorDialog(QColorDialog):
         
         self.buttonbox.addButton(self.set_to_default, QDialogButtonBox.ButtonRole.DestructiveRole)
         
+        self.setWindowTitle(title)
+        self.setOption(QColorDialog.ColorDialogOption.DontUseNativeDialog)
         self.exec()
 
     def getColor(self) -> tuple:
@@ -103,10 +103,11 @@ class GetTwoDialog(QDialog):
         self.buttons.rejected.connect(lambda: self.done(0))
         self.buttons.accepted.connect(lambda: self.done(1))
         
-        self.setWindowTitle(window_title)
         self.setLayout(QVBoxLayout(self))
         self.layout().addWidget(self.inputs)
         self.layout().addWidget(self.buttons)
+        
+        self.setWindowTitle(window_title)
         self.exec()
         
     def getItems(self) -> tuple:

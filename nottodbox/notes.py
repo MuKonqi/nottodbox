@@ -27,9 +27,9 @@ from settings import settingsdb
 from widgets.dialogs import ColorDialog
 from widgets.pages import NormalPage, BackupPage
 from gettext import gettext as _
-from PyQt6.QtGui import QStandardItem, QStandardItemModel, QMouseEvent, QColor
-from PyQt6.QtCore import Qt, QVariant, QSortFilterProxyModel
-from PyQt6.QtWidgets import *
+from PySide6.QtGui import QStandardItem, QStandardItemModel, QMouseEvent, QColor
+from PySide6.QtCore import Qt, QSortFilterProxyModel
+from PySide6.QtWidgets import *
 
 
 notes = {}
@@ -65,7 +65,7 @@ class NotesDB:
             return False
         
     def checkIfTheNoteBackupExists(self, notebook: str, name: str) -> bool:
-        if self.checkIfTheNotebookExists(notebook):
+        if self.checkIfTheNoteExists(notebook):
             self.cur.execute(f"select backup from '{notebook}' where name = ?", (name,))
             fetch = self.cur.fetchone()[0]
             
@@ -567,6 +567,7 @@ if not notesdb.createMainTable():
 class NotesTabWidget(QTabWidget):
     def __init__(self, parent: QMainWindow) -> None:
         super().__init__(parent)
+        self.tabCloseRequested.connect(self.closeTab)
         
         global notes_parent
         
@@ -577,7 +578,6 @@ class NotesTabWidget(QTabWidget):
         self.current_widget = None
         
         self.home = QWidget(self)
-        self.home.setLayout(QGridLayout(self.home))
         
         self.treeview = NotesTreeView(self)
         
@@ -599,6 +599,7 @@ class NotesTabWidget(QTabWidget):
         
         self.current_widget = self.none_options
         
+        self.home.setLayout(QGridLayout(self.home))
         self.home.layout().addWidget(self.entry, 0, 0, 1, 3)
         self.home.layout().addWidget(self.note_selected, 1, 0, 1, 1)
         self.home.layout().addWidget(self.notebook_selected, 1, 1, 1, 1)
@@ -611,8 +612,6 @@ class NotesTabWidget(QTabWidget):
         self.setDocumentMode(True)
         self.setTabBarAutoHide(True)
         self.setUsesScrollButtons(True)
-        
-        self.tabCloseRequested.connect(self.closeTab)
          
     def closeTab(self, index: int) -> None:
         if index != self.indexOf(self.home):           
@@ -695,9 +694,8 @@ class NotesNoneOptions(QWidget):
         self.delete_all = QPushButton(self, text=_("Delete all"))
         self.delete_all.clicked.connect(self.parent_.notebook_options.deleteAll)
         
-        self.setLayout(QVBoxLayout(self))
         self.setFixedWidth(180)
-        
+        self.setLayout(QVBoxLayout(self))
         self.layout().addWidget(self.warning_label)
         self.layout().addWidget(self.create_notebook)
         self.layout().addWidget(self.delete_all)
@@ -733,9 +731,8 @@ class NotesNotebookOptions(QWidget):
         self.delete_all = QPushButton(self, text=_("Delete all"))
         self.delete_all.clicked.connect(self.deleteAll)
         
-        self.setLayout(QVBoxLayout(self))
         self.setFixedWidth(180)
-        
+        self.setLayout(QVBoxLayout(self))
         self.layout().addWidget(self.create_note)
         self.layout().addWidget(self.create_notebook)
         self.layout().addWidget(self.set_background)
@@ -978,9 +975,8 @@ class NotesNoteOptions(QWidget):
         self.delete_note = QPushButton(self, text=_("Delete note"))
         self.delete_note.clicked.connect(self.deleteNote)
 
-        self.setLayout(QVBoxLayout(self))
         self.setFixedWidth(180)
-        
+        self.setLayout(QVBoxLayout(self))
         self.layout().addWidget(self.create_note)
         self.layout().addWidget(self.open_note)
         self.layout().addWidget(self.set_background)
@@ -1540,7 +1536,7 @@ class NotesTreeView(QTreeView):
             elif color != "global" and color != "default":
                 item.setBackground(QColor(color))
             else:
-                item.setData(QVariant(), Qt.ItemDataRole.BackgroundRole)
+                item.setData(None, Qt.ItemDataRole.BackgroundRole)
                 
     def updateNotebook(self, name: str, newname: str) -> None:
         notebook_counts[newname] = notebook_counts.pop(name)
@@ -1555,7 +1551,7 @@ class NotesTreeView(QTreeView):
             elif color != "global" and color != "default":
                 item.setBackground(QColor(color))
             else:
-                item.setData(QVariant(), Qt.ItemDataRole.BackgroundRole)
+                item.setData(None, Qt.ItemDataRole.BackgroundRole)
                 
     def updateNotebookForeground(self, name: str, color: str) -> None:
         for item in notebook_items[name]:
@@ -1564,7 +1560,7 @@ class NotesTreeView(QTreeView):
             elif color != "global" and color != "default":
                 item.setForeground(QColor(color))
             else:
-                item.setData(QVariant(), Qt.ItemDataRole.ForegroundRole)
+                item.setData(None, Qt.ItemDataRole.ForegroundRole)
                 
     def updateNoteForeground(self, notebook: str, name: str, color: str) -> None:
         for item in note_items[(notebook, name)]:
@@ -1573,4 +1569,4 @@ class NotesTreeView(QTreeView):
             elif color != "global" and color != "default":
                 item.setForeground(QColor(color))
             else:
-                item.setData(QVariant(), Qt.ItemDataRole.ForegroundRole)
+                item.setData(None, Qt.ItemDataRole.ForegroundRole)

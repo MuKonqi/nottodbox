@@ -22,9 +22,9 @@ sys.dont_write_bytecode = True
 
 from gettext import gettext as _
 from .dialogs import ColorDialog, GetTwoDialog
-from PyQt6.QtGui import QTextCursor, QTextFormat, QTextBlockFormat, QTextCharFormat, QTextListFormat, QAction
-from PyQt6.QtCore import Qt, QDate
-from PyQt6.QtWidgets import *
+from PySide6.QtGui import QTextCursor, QTextFormat, QTextBlockFormat, QTextCharFormat, QTextListFormat, QAction
+from PySide6.QtCore import Qt, QDate
+from PySide6.QtWidgets import *
 
 
 class TextFormatter(QToolBar):
@@ -112,14 +112,18 @@ class TextFormatter(QToolBar):
         self.addAction(self.strikethrough_button)
         self.addAction(self.fixedspacing_button)
         self.addSeparator()
+        
         self.addWidget(self.header_button)
         self.addWidget(self.list_button)
         self.addWidget(self.alignment_button)
         self.addSeparator()
+        
         self.addAction(_("Table"), self.setTable)
         self.addAction(_("Link"), self.setLink)
+        
         self.text_color = self.addAction(_("Text color"), self.setTextColor)
         self.text_color.setStatusTip(_("Setting text color is only available in HTML format."))
+        
         self.background_color = self.addAction(_("Background color"), self.setBackgroundColor)
         self.background_color.setStatusTip(_("Setting background color is only available in HTML format."))
         
@@ -433,6 +437,11 @@ class NormalPage(QWidget):
         self.autosave.setStatusTip(_("Auto-saves do not change backups."))
         self.autosave.currentIndexChanged.connect(self.setAutoSave)
         
+        if self.outdated == "yes":
+            self.autosave.setEnabled(False)
+            self.autosave.setStatusTip(_("Auto-save feature disabled for old diaries."))
+            self.setting_autosave = "disabled"
+        
         self.format = QComboBox(self)
         self.format.addItems([
             _("Format: Follow global ({setting})").format(setting = self.pretty_format),
@@ -459,11 +468,6 @@ class NormalPage(QWidget):
         self.layout().addWidget(self.save, 2, 0, 1, 2)
         self.layout().addWidget(self.autosave, 3, 0, 1, 1)
         self.layout().addWidget(self.format, 3, 1, 1, 1)
-        
-        if self.outdated == "yes":
-            self.autosave.setEnabled(False)
-            self.autosave.setStatusTip(_("Auto-save feature disabled for old diaries."))
-            self.setting_autosave = "disabled"
             
     def createDiary(self) -> bool:
         check = self.database.checkIfTheDiaryExists(self.name)

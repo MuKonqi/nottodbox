@@ -21,9 +21,9 @@ sys.dont_write_bytecode = True
 
 import webbrowser as wb
 from gettext import gettext as _
-from PyQt6.QtGui import QFontDatabase
-from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import *
+from PySide6.QtGui import QFontDatabase
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import *
 
 
 class AboutWidget(QWidget):

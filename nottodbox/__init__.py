@@ -26,8 +26,8 @@ sys.dont_write_bytecode = True
 import gettext
 import getpass
 import os
-from PyQt6.QtGui import QIcon
-from PyQt6.QtWidgets import QApplication
+from PySide6.QtGui import QIcon
+from PySide6.QtWidgets import QApplication
 
 
 gettext.bindtextdomain("nottodbox", "@LOCALEDIR@")
