@@ -28,10 +28,11 @@ import sqlite3
 import datetime
 from settings import settingsdb
 from widgets.dialogs import ColorDialog
+from widgets.other import Label, PushButton, VSeperator
 from widgets.pages import NormalPage, BackupPage
 from gettext import gettext as _
 from PySide6.QtGui import QMouseEvent, QPainter, QColor
-from PySide6.QtCore import Qt, QDate, QRect, QPoint
+from PySide6.QtCore import QDate, QRect, QPoint
 from PySide6.QtWidgets import *
 
 
@@ -380,64 +381,68 @@ class DiariesTabWidget(QTabWidget):
     def __init__(self, parent: QMainWindow) -> None:
         super().__init__(parent)
         
+        self.tabCloseRequested.connect(self.closeTab)
+        
         global diaries_parent
         
         diaries_parent = parent
         self.backups = {}
         
         self.home = QWidget(self)
+        self.main_layout = QGridLayout(self.home)
         
-        self.modification = QLabel(self.home, alignment=Qt.AlignmentFlag.AlignCenter, 
-                             text=_("Modification: "))
+        self.modification = Label(self.home, _("Modification: "))
         
         self.calendar = DiariesCalendarWidget(self)
         
-        self.comeback = QPushButton(self.home, text=_("Come back to today"))
+        self.comeback = PushButton(self.home, _("Come back to today"))
         self.comeback.clicked.connect(lambda: self.calendar.setSelectedDate(today))
 
-        self.refresh = QPushButton(
-            self.home, text=_("Refresh today variable (it is {name})").format(name = today.toString("dd.MM.yyyy")))
+        self.refresh = PushButton(
+            self.home, _("Refresh today variable (it is {name})").format(name = today.toString("dd.MM.yyyy")))
         self.refresh.clicked.connect(self.refreshToday)
 
         self.side = QWidget(self.home)
         self.side.setFixedWidth(180)
+        self.side_layout = QVBoxLayout(self.side)
         
-        self.open_create = QPushButton(self.side, text=_("Open/create"))
+        self.open_create = PushButton(self.side, _("Open/create"))
         self.open_create.clicked.connect(self.openCreate)
 
-        self.show_backup = QPushButton(self.side, text=_("Show backup"))
+        self.show_backup = PushButton(self.side, _("Show backup"))
         self.show_backup.clicked.connect(self.showBackup)
 
-        self.restore = QPushButton(self.side, text=_("Restore content"))
+        self.restore = PushButton(self.side, _("Restore content"))
         self.restore.clicked.connect(self.restoreContent)
         
-        self.clear_content = QPushButton(self.side, text=_("Clear content"))
+        self.clear_content = PushButton(self.side, _("Clear content"))
         self.clear_content.clicked.connect(self.clearContent)
         
-        self.set_highlight = QPushButton(self.side, text=_("Set highlight"))
+        self.set_highlight = PushButton(self.side, _("Set highlight"))
         self.set_highlight.clicked.connect(self.setHighlight)
         
-        self.delete_diary = QPushButton(self.side, text=_("Delete diary"))
+        self.delete_diary = PushButton(self.side, _("Delete diary"))
         self.delete_diary.clicked.connect(self.deleteDiary)
         
-        self.delete_all = QPushButton(self.side, text=_("Delete all"))
+        self.delete_all = PushButton(self.side, _("Delete all"))
         self.delete_all.clicked.connect(self.deleteAll)
         
-        self.side.setLayout(QVBoxLayout(self.side))
-        self.side.layout().addWidget(self.open_create)
-        self.side.layout().addWidget(self.show_backup)
-        self.side.layout().addWidget(self.restore)
-        self.side.layout().addWidget(self.clear_content)
-        self.side.layout().addWidget(self.set_highlight)
-        self.side.layout().addWidget(self.delete_diary)
-        self.side.layout().addWidget(self.delete_all)
+        self.side.setLayout(self.side_layout)
+        self.side_layout.addWidget(self.open_create)
+        self.side_layout.addWidget(self.show_backup)
+        self.side_layout.addWidget(self.restore)
+        self.side_layout.addWidget(self.clear_content)
+        self.side_layout.addWidget(self.set_highlight)
+        self.side_layout.addWidget(self.delete_diary)
+        self.side_layout.addWidget(self.delete_all)
         
-        self.home.setLayout(QGridLayout(self.home))
-        self.home.layout().addWidget(self.side, 1, 2, 3, 1)
-        self.home.layout().addWidget(self.modification, 0, 0, 1, 1)
-        self.home.layout().addWidget(self.calendar, 1, 0, 1, 1)
-        self.home.layout().addWidget(self.comeback, 2, 0, 1, 1)
-        self.home.layout().addWidget(self.refresh, 3, 0, 1, 1)
+        self.home.setLayout(self.main_layout)
+        self.main_layout.addWidget(self.modification, 0, 0, 1, 1)
+        self.main_layout.addWidget(self.calendar, 1, 0, 1, 1)
+        self.main_layout.addWidget(self.comeback, 2, 0, 1, 1)
+        self.main_layout.addWidget(self.refresh, 3, 0, 1, 1)
+        self.main_layout.addWidget(VSeperator(self), 0, 2, 4, 1)
+        self.main_layout.addWidget(self.side, 0, 3, 4, 1)
         
         self.addTab(self.home, _("Home"))
         self.setTabsClosable(True)
@@ -445,7 +450,6 @@ class DiariesTabWidget(QTabWidget):
         self.setDocumentMode(True)
         self.setTabBarAutoHide(True)
         self.setUsesScrollButtons(True)
-        self.tabCloseRequested.connect(self.closeTab)
         
     def checkIfTheDiaryExists(self, name: str, mode: str = "normal") -> bool:
         call = diariesdb.checkIfTheDiaryExists(name)

@@ -23,9 +23,9 @@ import sys
 sys.dont_write_bytecode = True
 
 
-import gettext
 import getpass
 import os
+import gettext
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QApplication
 
@@ -55,7 +55,7 @@ class Application(QApplication):
         self.setApplicationName("nottodbox")
         self.setApplicationDisplayName("Nottodbox")
         self.setDesktopFileName("@DESKTOPFILE@")
-        self.setWindowIcon(QIcon("@ICONFILE@"))
+        self.setWindowIcon(QIcon("@ICONFILE_SVG@"))
         self.setStyleSheet(style)
         
         window = MainWindow()

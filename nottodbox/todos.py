@@ -26,6 +26,7 @@ import datetime
 from settings import settingsdb
 from gettext import gettext as _
 from widgets.dialogs import ColorDialog
+from widgets.other import HSeperator, Label, PushButton, VSeperator
 from PySide6.QtCore import Qt, QSortFilterProxyModel
 from PySide6.QtGui import QStandardItem, QStandardItemModel, QMouseEvent, QColor
 from PySide6.QtWidgets import *
@@ -401,15 +402,20 @@ class TodosWidget(QWidget):
         
         todos_parent.menuBar().addAction(_("To-dos"), lambda: todos_parent.tabwidget.setCurrentIndex(2))
         
+        self.layout_ = QGridLayout(self)
+        
+        self.selecteds = QWidget(self)
+        self.selecteds_layout = QHBoxLayout(self.selecteds)
+        
+        self.todo_selected = Label(self, _("To-do: "))
+        self.todolist_selected = Label(self, _("To-do list: "))
+        
         self.treeview = TodosTreeView(self)
         
         self.entry = QLineEdit(self)
         self.entry.setPlaceholderText(_("Search in the list below"))
         self.entry.setClearButtonEnabled(True)
         self.entry.textChanged.connect(self.treeview.setFilter)
-
-        self.todo_selected = QLabel(self, alignment=Qt.AlignmentFlag.AlignCenter, text=_("To-do: "))
-        self.todolist_selected = QLabel(self, alignment=Qt.AlignmentFlag.AlignCenter, text=_("To-do list: "))
         
         self.todo_options = TodosTodoOptions(self)
         self.todo_options.setVisible(False)
@@ -421,12 +427,17 @@ class TodosWidget(QWidget):
         
         self.current_widget = self.none_options
         
-        self.setLayout(QGridLayout(self))
-        self.layout().addWidget(self.entry, 0, 0, 1, 3)
-        self.layout().addWidget(self.todo_selected, 1, 0, 1, 1)
-        self.layout().addWidget(self.todolist_selected, 1, 1, 1, 1)
-        self.layout().addWidget(self.treeview, 2, 0, 1, 2)
-        self.layout().addWidget(self.none_options, 1, 2, 2, 1)
+        self.selecteds.setLayout(self.selecteds_layout)
+        self.selecteds_layout.addWidget(self.todolist_selected)
+        self.selecteds_layout.addWidget(self.todo_selected)
+        
+        self.setLayout(self.layout_)
+        self.layout_.addWidget(self.selecteds, 0, 0, 1, 3)
+        self.layout_.addWidget(HSeperator(self), 1, 0, 1, 3)
+        self.layout_.addWidget(self.entry, 2, 0, 1, 1)
+        self.layout_.addWidget(self.treeview, 3, 0, 1, 1)
+        self.layout_.addWidget(VSeperator(self), 2, 1, 2, 1)
+        self.layout_.addWidget(self.none_options, 2, 2, 2, 1)
             
     def insertInformations(self, todolist: str, todo: str) -> None:
         self.todolist = todolist
@@ -438,19 +449,19 @@ class TodosWidget(QWidget):
         
         if self.todolist == "":
             self.none_options.setVisible(True)
-            self.layout().replaceWidget(self.current_widget, self.none_options)
+            self.layout_.replaceWidget(self.current_widget, self.none_options)
             
             self.current_widget = self.none_options
             
         elif self.todolist != "" and self.todo == "":
             self.todolist_options.setVisible(True)
-            self.layout().replaceWidget(self.current_widget, self.todolist_options)
+            self.layout_.replaceWidget(self.current_widget, self.todolist_options)
             
             self.current_widget = self.todolist_options
             
         elif self.todolist != "" and self.todo != "":
             self.todo_options.setVisible(True)
-            self.layout().replaceWidget(self.current_widget, self.todo_options)
+            self.layout_.replaceWidget(self.current_widget, self.todo_options)
             
             self.current_widget = self.todo_options
             
@@ -469,21 +480,22 @@ class TodosNoneOptions(QWidget):
         
         self.parent_ = parent
         
-        self.warning_label = QLabel(self, alignment=Qt.AlignmentFlag.AlignCenter,
-                                    text=_("You can select\na to-do list\nor a to-do\non the left."))
+        self.layout_ = QVBoxLayout(self)
+        
+        self.warning_label = Label(self, _("You can select\na to-do list\nor a to-do\non the left."))
         self.warning_label.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Maximum)
         
-        self.create_todolist = QPushButton(self, text=_("Create to-do list"))
+        self.create_todolist = PushButton(self, _("Create to-do list"))
         self.create_todolist.clicked.connect(self.parent_.todolist_options.createTodolist)
         
-        self.delete_all = QPushButton(self, text=_("Delete all"))
+        self.delete_all = PushButton(self, _("Delete all"))
         self.delete_all.clicked.connect(self.parent_.todolist_options.deleteAll)
         
         self.setFixedWidth(180)
-        self.setLayout(QVBoxLayout(self))
-        self.layout().addWidget(self.warning_label)
-        self.layout().addWidget(self.create_todolist)
-        self.layout().addWidget(self.delete_all)
+        self.setLayout(self.layout_)
+        self.layout_.addWidget(self.warning_label)
+        self.layout_.addWidget(self.create_todolist)
+        self.layout_.addWidget(self.delete_all)
         
         
 class TodosTodolistOptions(QWidget):
@@ -492,40 +504,42 @@ class TodosTodolistOptions(QWidget):
         
         self.parent_ = parent
         
-        self.create_todo = QPushButton(self, text=_("Create todo"))
+        self.layout_ = QVBoxLayout(self)
+        
+        self.create_todo = PushButton(self, _("Create todo"))
         self.create_todo.clicked.connect(self.parent_.todo_options.createTodo)
         
-        self.create_todolist = QPushButton(self, text=_("Create to-do list"))
+        self.create_todolist = PushButton(self, _("Create to-do list"))
         self.create_todolist.clicked.connect(self.createTodolist)
         
-        self.set_background = QPushButton(self, text=_("Set background color"))
+        self.set_background = PushButton(self, _("Set background color"))
         self.set_background.clicked.connect(self.setTodolistBackground)
         
-        self.set_foreground = QPushButton(self, text=_("Set text color"))
+        self.set_foreground = PushButton(self, _("Set text color"))
         self.set_foreground.clicked.connect(self.setTodolistForeground)
         
-        self.rename_todolist = QPushButton(self, text=_("Rename to-do list"))
+        self.rename_todolist = PushButton(self, _("Rename to-do list"))
         self.rename_todolist.clicked.connect(self.renameTodolist)
         
-        self.reset_todolist = QPushButton(self, text=_("Reset to-do list"))
+        self.reset_todolist = PushButton(self, _("Reset to-do list"))
         self.reset_todolist.clicked.connect(self.resetTodolist)
         
-        self.delete_todolist = QPushButton(self, text=_("Delete to-do list"))
+        self.delete_todolist = PushButton(self, _("Delete to-do list"))
         self.delete_todolist.clicked.connect(self.deleteTodolist)
         
-        self.delete_all = QPushButton(self, text=_("Delete all"))
+        self.delete_all = PushButton(self, _("Delete all"))
         self.delete_all.clicked.connect(self.deleteAll)
         
         self.setFixedWidth(180)
-        self.setLayout(QVBoxLayout(self))
-        self.layout().addWidget(self.create_todo)
-        self.layout().addWidget(self.create_todolist)
-        self.layout().addWidget(self.set_background)
-        self.layout().addWidget(self.set_foreground)
-        self.layout().addWidget(self.rename_todolist)
-        self.layout().addWidget(self.reset_todolist)
-        self.layout().addWidget(self.delete_todolist)
-        self.layout().addWidget(self.delete_all)
+        self.setLayout(self.layout_)
+        self.layout_.addWidget(self.create_todo)
+        self.layout_.addWidget(self.create_todolist)
+        self.layout_.addWidget(self.set_background)
+        self.layout_.addWidget(self.set_foreground)
+        self.layout_.addWidget(self.rename_todolist)
+        self.layout_.addWidget(self.reset_todolist)
+        self.layout_.addWidget(self.delete_todolist)
+        self.layout_.addWidget(self.delete_all)
         
     def checkIfTheTodolistExists(self, name: str, mode: str = "normal") -> None:
         call = todosdb.checkIfTheTodolistExists(name)
@@ -732,32 +746,34 @@ class TodosTodoOptions(QWidget):
         
         self.parent_ = parent
         
-        self.create_todo = QPushButton(self, text=_("Create todo"))
+        self.layout_ = QVBoxLayout(self)
+        
+        self.create_todo = PushButton(self, _("Create todo"))
         self.create_todo.clicked.connect(self.createTodo)
         
-        self.set_background = QPushButton(self, text=_("Set background color"))
+        self.set_background = PushButton(self, _("Set background color"))
         self.set_background.clicked.connect(self.setTodoBackground)
         
-        self.set_foreground = QPushButton(self, text=_("Set text color"))
+        self.set_foreground = PushButton(self, _("Set text color"))
         self.set_foreground.clicked.connect(self.setTodoForeground)
         
-        self.change_status = QPushButton(self, text=_("Change status"))
+        self.change_status = PushButton(self, _("Change status"))
         self.change_status.clicked.connect(self.changeStatus)
         
-        self.edit_todo = QPushButton(self, text=_("Edit todo"))
+        self.edit_todo = PushButton(self, _("Edit todo"))
         self.edit_todo.clicked.connect(self.editTodo)
         
-        self.delete_todo = QPushButton(self, text=_("Delete todo"))
+        self.delete_todo = PushButton(self, _("Delete todo"))
         self.delete_todo.clicked.connect(self.deleteTodo)
         
         self.setFixedWidth(180)
-        self.setLayout(QVBoxLayout(self))
-        self.layout().addWidget(self.create_todo)
-        self.layout().addWidget(self.set_background)
-        self.layout().addWidget(self.set_foreground)
-        self.layout().addWidget(self.change_status)
-        self.layout().addWidget(self.edit_todo)
-        self.layout().addWidget(self.delete_todo)
+        self.setLayout(self.layout_)
+        self.layout_.addWidget(self.create_todo)
+        self.layout_.addWidget(self.set_background)
+        self.layout_.addWidget(self.set_foreground)
+        self.layout_.addWidget(self.change_status)
+        self.layout_.addWidget(self.edit_todo)
+        self.layout_.addWidget(self.delete_todo)
         
     def checkIfTheTodoExists(self, todolist: str, todo: str, mode: str = "normal") -> bool:
         call = todosdb.checkIfTheTodoExists(todolist, todo)

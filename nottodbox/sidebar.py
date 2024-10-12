@@ -24,7 +24,8 @@ import getpass
 import os
 import sqlite3
 from gettext import gettext as _
-from PySide6.QtCore import Qt, QStringListModel, QSortFilterProxyModel
+from widgets.other import Label, PushButton
+from PySide6.QtCore import QStringListModel, QSortFilterProxyModel
 from PySide6.QtWidgets import *
 
 
@@ -136,6 +137,8 @@ class SidebarWidget(QWidget):
         self.todos = todos
         self.diaries = diaries
         
+        self.layout_ = QGridLayout(self)
+        
         self.entry = QLineEdit(self)
         self.entry.setClearButtonEnabled(True)
         self.entry.setPlaceholderText(_("Search in lists"))
@@ -146,8 +149,7 @@ class SidebarWidget(QWidget):
         self.proxy1 = QSortFilterProxyModel(self)
         self.proxy1.setSourceModel(self.model1)
         
-        self.label1 = QLabel(self, alignment=Qt.AlignmentFlag.AlignCenter,
-                             text=_("Currently Open Pages"))
+        self.label1 = Label(self, _("Currently Open Pages"))
         
         self.listview1 = QListView(self)
         self.listview1.setStatusTip(_("Double-click to going to selected page."))
@@ -163,8 +165,7 @@ class SidebarWidget(QWidget):
         self.proxy2 = QSortFilterProxyModel(self)
         self.proxy2.setSourceModel(self.model2)
         
-        self.label2 = QLabel(self, alignment=Qt.AlignmentFlag.AlignCenter,
-                             text=_("Last Opened Pages"))
+        self.label2 = Label(self, _("Last Opened Pages"))
         
         self.listview2 = QListView(self)
         self.listview2.setStatusTip(_("Double-click to going to selected page."))
@@ -175,27 +176,32 @@ class SidebarWidget(QWidget):
         self.listview2.doubleClicked.connect(
             lambda: self.goToPage(self.proxy2.itemData(self.listview2.currentIndex())))
         
-        self.label_2nd = QLabel(self, alignment=Qt.AlignmentFlag.AlignCenter,
-                                text=_('Only for 2nd list:'))
+        self.label_2nd = Label(self, _('Only for 2nd list:'))
         
-        self.button_delete = QPushButton(self, text=_("Delete"))
-        self.button_delete.clicked.connect(
+        self.buttons = QWidget(self)
+        self.buttons_layout = QHBoxLayout(self.buttons)
+        
+        self.delete_button = PushButton(self.buttons, _("Delete"))
+        self.delete_button.clicked.connect(
             lambda: self.deletePage(self.proxy2.itemData(self.listview2.currentIndex())))
         
-        self.button_clear = QPushButton(self, text=_("Clear"))
-        self.button_clear.clicked.connect(self.clearList)
+        self.clear_button = PushButton(self.buttons, _("Clear"))
+        self.clear_button.clicked.connect(self.clearList)
+        
+        self.buttons.setLayout(self.buttons_layout)
+        self.buttons_layout.addWidget(self.delete_button)
+        self.buttons_layout.addWidget(self.clear_button)
+        
+        self.setLayout(self.layout_)
+        self.layout_.addWidget(self.entry)
+        self.layout_.addWidget(self.label1)
+        self.layout_.addWidget(self.listview1)
+        self.layout_.addWidget(self.label2)
+        self.layout_.addWidget(self.listview2)
+        self.layout_.addWidget(self.label_2nd)
+        self.layout_.addWidget(self.buttons)
         
         self.insertPages()
-        
-        self.setLayout(QGridLayout(self))
-        self.layout().addWidget(self.entry, 0, 0, 1, 2)
-        self.layout().addWidget(self.label1, 1, 0, 1, 2)
-        self.layout().addWidget(self.listview1, 2, 0, 1, 2)
-        self.layout().addWidget(self.label2, 3, 0, 1, 2)
-        self.layout().addWidget(self.listview2, 4, 0, 1, 2)
-        self.layout().addWidget(self.label_2nd, 5, 0, 1, 2)
-        self.layout().addWidget(self.button_delete, 6, 0, 1, 1)
-        self.layout().addWidget(self.button_clear, 6, 1, 1, 1)
         
     def addPage(self, text: str, target: QTabWidget) -> None:
         stringlist = self.model1.stringList()

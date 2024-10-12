@@ -24,6 +24,7 @@ import getpass
 import sqlite3
 from gettext import gettext as _
 from widgets.dialogs import ColorDialog
+from widgets.other import HSeperator, PushButton
 from PySide6.QtGui import QColor
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import *
@@ -226,6 +227,8 @@ class SettingsWidget(QWidget):
         super().__init__(parent)
         
         self.parent_ = parent
+        self.layout_ = QHBoxLayout(self)
+        
         self.menu = self.parent_.menuBar().addMenu(_("Settings"))
         
         self.stacked = QStackedWidget(self)
@@ -252,9 +255,9 @@ class SettingsWidget(QWidget):
         
         self.list.setCurrentRow(0)
         
-        self.setLayout(QHBoxLayout(self))
-        self.layout().addWidget(self.list)
-        self.layout().addWidget(self.stacked)
+        self.setLayout(self.layout_)
+        self.layout_.addWidget(self.list)
+        self.layout_.addWidget(self.stacked)
         
         
 class SettingsPage(QWidget):
@@ -265,6 +268,8 @@ class SettingsPage(QWidget):
         self.module = module
         self.target = target
         self.index = index
+        
+        self.layout_ = QVBoxLayout(self)
         
         if self.module == "notes":
             self.autosave, self.format, self.background, self.foreground = settingsdb.getModuleSettings("notes")
@@ -278,7 +283,8 @@ class SettingsPage(QWidget):
         self.parent_.menu.addAction(pretty, self.setIndexes)
         
         self.inputs = QWidget(self)
-        self.inputs.setLayout(QFormLayout(self))
+        self.form = QFormLayout(self.inputs)
+        self.inputs.setLayout(self.form)
             
         if self.module == "notes" or self.module == "diaries":    
             self.autosave_checkbox = QCheckBox(self.inputs)
@@ -306,37 +312,37 @@ class SettingsPage(QWidget):
             self.format_combobox.setEditable(False)
             self.format_combobox.currentIndexChanged.connect(self.setFormat)
                 
-            self.inputs.layout().addRow(_("Auto-save:"), self.autosave_checkbox)
-            self.inputs.layout().addRow(_("Format:"), self.format_combobox)
+            self.form.addRow(_("Auto-save:"), self.autosave_checkbox)
+            self.form.addRow(_("Format:"), self.format_combobox)
         
         if self.module == "notes" or self.module == "todos":
-            self.background_button = QPushButton(self, 
-                                                 text=_("Select color (it is {color})")
+            self.background_button = PushButton(self, 
+                                                 _("Select color (it is {color})")
                                                  .format(color = _("default") if self.background == "default" else self.background))
             self.background_button.clicked.connect(self.setBackground)
             
-            self.foreground_button = QPushButton(self, 
-                                                 text=_("Select color (it is {color})")
+            self.foreground_button = PushButton(self, 
+                                                 _("Select color (it is {color})")
                                                  .format(color = _("default") if self.foreground == "default" else self.foreground))
             self.foreground_button.clicked.connect(self.setForeground)
             
-            self.inputs.layout().addRow(_("Background color:"), self.background_button)
-            self.inputs.layout().addRow(_("Text color:"), self.foreground_button)
+            self.form.addRow(_("Background color:"), self.background_button)
+            self.form.addRow(_("Text color:"), self.foreground_button)
             
         if self.module == "diaries":
-            self.highlight_button = QPushButton(self, 
-                                                 text=_("Select color (it is {color})")
+            self.highlight_button = PushButton(self, 
+                                                 _("Select color (it is {color})")
                                                  .format(color = _("default") if self.highlight == "default" else self.highlight))
             self.highlight_button.clicked.connect(self.setHighlight)
             
-            self.inputs.layout().addRow(_("Highlight color:"), self.highlight_button)
+            self.form.addRow(_("Highlight color:"), self.highlight_button)
                 
         self.buttons = QDialogButtonBox(self)
         
-        self.save = QPushButton(self.buttons, text=_("Save"))
+        self.save = PushButton(self.buttons, _("Save"))
         self.save.clicked.connect(self.saveSettings)
         
-        self.reset = QPushButton(self.buttons, text=_("Reset"))
+        self.reset = PushButton(self.buttons, _("Reset"))
         self.reset.clicked.connect(self.resetSettings)
         
         self.buttons.addButton(self.save, QDialogButtonBox.ButtonRole.ApplyRole)
@@ -344,10 +350,11 @@ class SettingsPage(QWidget):
         
         self.format_changed = False
             
-        self.setLayout(QVBoxLayout(self))
-        self.layout().addWidget(self.inputs)
-        self.layout().addStretch()
-        self.layout().addWidget(self.buttons)
+        self.setLayout(self.layout_)
+        self.layout_.addWidget(self.inputs)
+        self.layout_.addStretch()
+        self.layout_.addWidget(HSeperator(self))
+        self.layout_.addWidget(self.buttons)
         
     def askFormatChange(self) -> bool:
         if self.format_changed:

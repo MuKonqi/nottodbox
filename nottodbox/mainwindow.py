@@ -44,6 +44,7 @@ class MainWindow(QMainWindow):
         super().__init__()
         
         self.widget = QWidget(self)
+        self.layout_ = QVBoxLayout(self.widget)
         
         self.tabwidget = QTabWidget(self.widget)
         self.tabwidget.setUsesScrollButtons(True)
@@ -92,15 +93,15 @@ class MainWindow(QMainWindow):
         if self.dock_status == "disabled":
             self.dock.setVisible(False)
             
-        self.setCentralWidget(self.widget)
-        self.widget.setLayout(QVBoxLayout(self.widget))
-        self.widget.layout().addWidget(self.tabwidget)
-            
-        self.setMinimumWidth(900)
-        self.setMinimumHeight(630)
+        self.widget.setLayout(self.layout_)
+        self.layout_.addWidget(self.tabwidget)
         self.dock.dockLocationChanged.connect(self.dockAreaChanged)
         self.dock.topLevelChanged.connect(self.dockModeChanged)
         self.dock.visibilityChanged.connect(self.dockStatusChanged)
+            
+        self.setMinimumWidth(1000)
+        self.setMinimumHeight(700)
+        self.setCentralWidget(self.widget)
 
     def closeEvent(self, a0: QCloseEvent | None):        
         stringlist = self.dock.widget().model1.stringList()

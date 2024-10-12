@@ -23,6 +23,12 @@ install_data(
 )
 
 
+install_data(
+  project_id + '.png',
+  install_dir: join_paths(get_option('prefix'), get_option('datadir'), 'icons/hicolor/64x64/apps')
+)
+
+
 desktop_file_validater = find_program('desktop-file-validate', required: false)
 
 if desktop_file_validater.found()

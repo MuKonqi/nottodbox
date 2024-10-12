@@ -25,6 +25,7 @@ import sqlite3
 import datetime
 from settings import settingsdb
 from widgets.dialogs import ColorDialog
+from widgets.other import HSeperator, Label, PushButton, VSeperator
 from widgets.pages import NormalPage, BackupPage
 from gettext import gettext as _
 from PySide6.QtGui import QStandardItem, QStandardItemModel, QMouseEvent, QColor
@@ -567,6 +568,7 @@ if not notesdb.createMainTable():
 class NotesTabWidget(QTabWidget):
     def __init__(self, parent: QMainWindow) -> None:
         super().__init__(parent)
+        
         self.tabCloseRequested.connect(self.closeTab)
         
         global notes_parent
@@ -578,6 +580,13 @@ class NotesTabWidget(QTabWidget):
         self.current_widget = None
         
         self.home = QWidget(self)
+        self.layout_ = QGridLayout(self.home)
+        
+        self.selecteds = QWidget(self)
+        self.selecteds_layout = QHBoxLayout(self.selecteds)
+        
+        self.notebook_selected = Label(self.selecteds, _("Notebook: "))
+        self.note_selected = Label(self.selecteds, _("Note: "))
         
         self.treeview = NotesTreeView(self)
         
@@ -585,9 +594,6 @@ class NotesTabWidget(QTabWidget):
         self.entry.setPlaceholderText(_("Search in the list below"))
         self.entry.setClearButtonEnabled(True)
         self.entry.textEdited.connect(self.treeview.setFilter)
-        
-        self.notebook_selected = QLabel(self, alignment=Qt.AlignmentFlag.AlignCenter, text=_("Notebook: "))
-        self.note_selected = QLabel(self, alignment=Qt.AlignmentFlag.AlignCenter, text=_("Note: "))
         
         self.note_options = NotesNoteOptions(self)
         self.note_options.setVisible(False)
@@ -599,12 +605,17 @@ class NotesTabWidget(QTabWidget):
         
         self.current_widget = self.none_options
         
-        self.home.setLayout(QGridLayout(self.home))
-        self.home.layout().addWidget(self.entry, 0, 0, 1, 3)
-        self.home.layout().addWidget(self.note_selected, 1, 0, 1, 1)
-        self.home.layout().addWidget(self.notebook_selected, 1, 1, 1, 1)
-        self.home.layout().addWidget(self.treeview, 2, 0, 1, 2)
-        self.home.layout().addWidget(self.none_options, 1, 2, 2, 1)
+        self.selecteds.setLayout(self.selecteds_layout)
+        self.selecteds_layout.addWidget(self.notebook_selected)
+        self.selecteds_layout.addWidget(self.note_selected)
+        
+        self.home.setLayout(self.layout_)
+        self.layout_.addWidget(self.selecteds, 0, 0, 1, 3)
+        self.layout_.addWidget(HSeperator(self), 1, 0, 1, 3)
+        self.layout_.addWidget(self.entry, 2, 0, 1, 1)
+        self.layout_.addWidget(self.treeview, 3, 0, 1, 1)
+        self.layout_.addWidget(VSeperator(self), 2, 1, 2, 1)
+        self.layout_.addWidget(self.none_options, 2, 2, 2, 1)
         
         self.addTab(self.home, _("Home"))
         self.setTabsClosable(True)
@@ -653,19 +664,19 @@ class NotesTabWidget(QTabWidget):
         
         if self.notebook == "":
             self.none_options.setVisible(True)
-            self.home.layout().replaceWidget(self.current_widget, self.none_options)
+            self.layout_.replaceWidget(self.current_widget, self.none_options)
             
             self.current_widget = self.none_options
             
         elif self.notebook != "" and self.name == "":
             self.notebook_options.setVisible(True)
-            self.home.layout().replaceWidget(self.current_widget, self.notebook_options)
+            self.layout_.replaceWidget(self.current_widget, self.notebook_options)
             
             self.current_widget = self.notebook_options
             
         elif self.notebook != "" and self.name != "":
             self.note_options.setVisible(True)
-            self.home.layout().replaceWidget(self.current_widget, self.note_options)
+            self.layout_.replaceWidget(self.current_widget, self.note_options)
             
             self.current_widget = self.note_options
             
@@ -684,21 +695,22 @@ class NotesNoneOptions(QWidget):
         
         self.parent_ = parent
         
-        self.warning_label = QLabel(self, alignment=Qt.AlignmentFlag.AlignCenter,
-                                    text=_("You can select\na notebook\nor a note\non the left."))
+        self.layout_ = QVBoxLayout(self)
+        
+        self.warning_label = Label(self, _("You can select\na notebook\nor a note\non the left."))
         self.warning_label.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Maximum)
         
-        self.create_notebook = QPushButton(self, text=_("Create notebook"))
+        self.create_notebook = PushButton(self, _("Create notebook"))
         self.create_notebook.clicked.connect(self.parent_.notebook_options.createNotebook)
         
-        self.delete_all = QPushButton(self, text=_("Delete all"))
+        self.delete_all = PushButton(self, _("Delete all"))
         self.delete_all.clicked.connect(self.parent_.notebook_options.deleteAll)
         
         self.setFixedWidth(180)
-        self.setLayout(QVBoxLayout(self))
-        self.layout().addWidget(self.warning_label)
-        self.layout().addWidget(self.create_notebook)
-        self.layout().addWidget(self.delete_all)
+        self.setLayout(self.layout_)
+        self.layout_.addWidget(self.warning_label)
+        self.layout_.addWidget(self.create_notebook)
+        self.layout_.addWidget(self.delete_all)
         
         
 class NotesNotebookOptions(QWidget):
@@ -706,41 +718,43 @@ class NotesNotebookOptions(QWidget):
         super().__init__(parent)
         
         self.parent_ = parent
+        
+        self.layout_ = QVBoxLayout(self)
 
-        self.create_note = QPushButton(self, text=_("Create note"))
+        self.create_note = PushButton(self, _("Create note"))
         self.create_note.clicked.connect(self.parent_.note_options.createNote)
         
-        self.create_notebook = QPushButton(self, text=_("Create notebook"))
+        self.create_notebook = PushButton(self, _("Create notebook"))
         self.create_notebook.clicked.connect(self.createNotebook)
         
-        self.set_background = QPushButton(self, text=_("Set background color"))
+        self.set_background = PushButton(self, _("Set background color"))
         self.set_background.clicked.connect(self.setNotebookBackground)
         
-        self.set_foreground = QPushButton(self, text=_("Set text color"))
+        self.set_foreground = PushButton(self, _("Set text color"))
         self.set_foreground.clicked.connect(self.setNotebookForeground)
         
-        self.rename_notebook = QPushButton(self, text=_("Rename notebook"))
+        self.rename_notebook = PushButton(self, _("Rename notebook"))
         self.rename_notebook.clicked.connect(self.renameNotebook)
         
-        self.reset_notebook = QPushButton(self, text=_("Reset notebook"))
+        self.reset_notebook = PushButton(self, _("Reset notebook"))
         self.reset_notebook.clicked.connect(self.resetNotebook)
         
-        self.delete_notebook = QPushButton(self, text=_("Delete notebook"))
+        self.delete_notebook = PushButton(self, _("Delete notebook"))
         self.delete_notebook.clicked.connect(self.deleteNotebook)
         
-        self.delete_all = QPushButton(self, text=_("Delete all"))
+        self.delete_all = PushButton(self, _("Delete all"))
         self.delete_all.clicked.connect(self.deleteAll)
         
         self.setFixedWidth(180)
-        self.setLayout(QVBoxLayout(self))
-        self.layout().addWidget(self.create_note)
-        self.layout().addWidget(self.create_notebook)
-        self.layout().addWidget(self.set_background)
-        self.layout().addWidget(self.set_foreground)
-        self.layout().addWidget(self.rename_notebook)
-        self.layout().addWidget(self.reset_notebook)
-        self.layout().addWidget(self.delete_notebook)
-        self.layout().addWidget(self.delete_all)
+        self.setLayout(self.layout_)
+        self.layout_.addWidget(self.create_note)
+        self.layout_.addWidget(self.create_notebook)
+        self.layout_.addWidget(self.set_background)
+        self.layout_.addWidget(self.set_foreground)
+        self.layout_.addWidget(self.rename_notebook)
+        self.layout_.addWidget(self.reset_notebook)
+        self.layout_.addWidget(self.delete_notebook)
+        self.layout_.addWidget(self.delete_all)
         
     def checkIfTheNotebookExists(self, name: str, mode: str = "normal") -> bool:
         call = notesdb.checkIfTheNotebookExists(name)
@@ -948,44 +962,46 @@ class NotesNoteOptions(QWidget):
 
         self.parent_ = parent
         
-        self.create_note = QPushButton(self, text=_("Create note"))
+        self.layout_ = QVBoxLayout(self)
+        
+        self.create_note = PushButton(self, _("Create note"))
         self.create_note.clicked.connect(self.createNote)
         
-        self.open_note = QPushButton(self, text=_("Open note"))
+        self.open_note = PushButton(self, _("Open note"))
         self.open_note.clicked.connect(self.openNote)
         
-        self.set_background = QPushButton(self, text=_("Set background color"))
+        self.set_background = PushButton(self, _("Set background color"))
         self.set_background.clicked.connect(self.setNoteBackground)
         
-        self.set_foreground = QPushButton(self, text=_("Set text color"))
+        self.set_foreground = PushButton(self, _("Set text color"))
         self.set_foreground.clicked.connect(self.setNoteForeground)
         
-        self.rename = QPushButton(self, text=_("Rename note"))
+        self.rename = PushButton(self, _("Rename note"))
         self.rename.clicked.connect(self.renameNote)
 
-        self.show_backup = QPushButton(self, text=_("Show backup"))
+        self.show_backup = PushButton(self, _("Show backup"))
         self.show_backup.clicked.connect(self.showBackup)
 
-        self.restore_content = QPushButton(self, text=_("Restore content"))
+        self.restore_content = PushButton(self, _("Restore content"))
         self.restore_content.clicked.connect(self.restoreContent)
         
-        self.clear_content = QPushButton(self, text=_("Clear content"))
+        self.clear_content = PushButton(self, _("Clear content"))
         self.clear_content.clicked.connect(self.clearContent)
         
-        self.delete_note = QPushButton(self, text=_("Delete note"))
+        self.delete_note = PushButton(self, _("Delete note"))
         self.delete_note.clicked.connect(self.deleteNote)
 
         self.setFixedWidth(180)
-        self.setLayout(QVBoxLayout(self))
-        self.layout().addWidget(self.create_note)
-        self.layout().addWidget(self.open_note)
-        self.layout().addWidget(self.set_background)
-        self.layout().addWidget(self.set_foreground)
-        self.layout().addWidget(self.rename)
-        self.layout().addWidget(self.show_backup)
-        self.layout().addWidget(self.restore_content)
-        self.layout().addWidget(self.clear_content)
-        self.layout().addWidget(self.delete_note)
+        self.setLayout(self.layout_)
+        self.layout_.addWidget(self.create_note)
+        self.layout_.addWidget(self.open_note)
+        self.layout_.addWidget(self.set_background)
+        self.layout_.addWidget(self.set_foreground)
+        self.layout_.addWidget(self.rename)
+        self.layout_.addWidget(self.show_backup)
+        self.layout_.addWidget(self.restore_content)
+        self.layout_.addWidget(self.clear_content)
+        self.layout_.addWidget(self.delete_note)
 
     def checkIfTheNoteExists(self, notebook: str, name: str, mode: str = "normal") -> bool:
         call = notesdb.checkIfTheNoteExists(notebook, name)

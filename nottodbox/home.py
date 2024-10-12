@@ -22,6 +22,7 @@ sys.dont_write_bytecode = True
 import getpass
 import os
 from gettext import gettext as _
+from widgets.other import HSeperator, Label
 from widgets.pages import NormalPage
 from notes import NotesTabWidget, NotesTreeView
 from todos import TodosWidget, TodosTreeView
@@ -54,32 +55,28 @@ class HomeWidget(QWidget):
     def __init__(self, parent: HomeScrollArea, todos: TodosWidget, notes: NotesTabWidget):
         super().__init__(parent)
         
-        self.label_welcome = QLabel(self, alignment=Qt.AlignmentFlag.AlignCenter,
-                             text=_("Welcome {username}!").format(username = username))
+        self.layout_ = QVBoxLayout(self)
+        
+        self.label_welcome = Label(self, _("Welcome {username}!").format(username = username))
         self.label_welcome.setStyleSheet("font-size: 12pt")
         
-        self.label_diary = QLabel(self, alignment=Qt.AlignmentFlag.AlignCenter,
-                                  text=_("Your Diary for {date}").format(date = today.toString("dd.MM.yyyy")))
-        
+        self.label_diary = Label(self, _("Your Diary for {date}").format(date = today.toString("dd.MM.yyyy")))
         self.diary = NormalPage(self, "diaries", today, today.toString("dd.MM.yyyy"), setting_autosave, setting_format, diariesdb)
         
-        self.label_todos = QLabel(self, alignment=Qt.AlignmentFlag.AlignCenter, 
-                                  text=_("List of Your To-do Lists & To-dos"))
-        self.label_todos.setStyleSheet("margin-top: 10px")
-        
+        self.label_todos = Label(self, _("List of Your To-do Lists & To-dos"))
         self.todos = TodosTreeView(todos, "home")
         
-        self.label_notes = QLabel(self, alignment=Qt.AlignmentFlag.AlignCenter, 
-                                  text=_("List of Your Notebooks & Notes"))
-        self.label_notes.setStyleSheet("margin-top: 10px")
-        
+        self.label_notes = Label(self, _("List of Your Notebooks & Notes"))
         self.notes = NotesTreeView(notes, "home")
         
-        self.setLayout(QVBoxLayout(self))
-        self.layout().addWidget(self.label_welcome)
-        self.layout().addWidget(self.label_diary)
-        self.layout().addWidget(self.diary)
-        self.layout().addWidget(self.label_todos)
-        self.layout().addWidget(self.todos)
-        self.layout().addWidget(self.label_notes)
-        self.layout().addWidget(self.notes)
+        self.setLayout(self.layout_)
+        self.layout_.addWidget(self.label_welcome)
+        self.layout_.addWidget(HSeperator(self))
+        self.layout_.addWidget(self.label_diary)
+        self.layout_.addWidget(self.diary)
+        self.layout_.addWidget(HSeperator(self))
+        self.layout_.addWidget(self.label_todos)
+        self.layout_.addWidget(self.todos)
+        self.layout_.addWidget(HSeperator(self))
+        self.layout_.addWidget(self.label_notes)
+        self.layout_.addWidget(self.notes)

@@ -22,6 +22,7 @@ sys.dont_write_bytecode = True
 
 import getpass
 from gettext import gettext as _
+from .other import PushButton
 from PySide6.QtGui import QColor
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import *
@@ -38,12 +39,12 @@ class ColorDialog(QColorDialog):
         self.buttonbox = self.findChild(QDialogButtonBox)
         
         if show_global:
-            self.set_to_global = QPushButton(self.buttonbox, text=_("Set to global"))
+            self.set_to_global = PushButton(self.buttonbox, _("Set to global"))
             self.set_to_global.clicked.connect(lambda: self.done(2))
             
             self.buttonbox.addButton(self.set_to_global, QDialogButtonBox.ButtonRole.DestructiveRole)
         
-        self.set_to_default = QPushButton(self.buttonbox, text=_("Set to default"))
+        self.set_to_default = PushButton(self.buttonbox, _("Set to default"))
         self.set_to_default.clicked.connect(lambda: self.done(3))
         
         self.buttonbox.addButton(self.set_to_default, QDialogButtonBox.ButtonRole.DestructiveRole)
@@ -73,8 +74,11 @@ class GetTwoDialog(QDialog):
         
         self.mode = mode
         
+        self.layout_ = QVBoxLayout(self)
+        
         self.inputs = QWidget(self)
-        self.inputs.setLayout(QFormLayout(self.inputs))
+        self.form = QFormLayout(self)
+        self.inputs.setLayout(self.form)
         
         if self.mode == "text":
             self.top_widget = QLineEdit(self.inputs)
@@ -94,8 +98,8 @@ class GetTwoDialog(QDialog):
             self.bottom_widget.setValue(bottom_extra)
             self.bottom_widget.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
             
-        self.inputs.layout().addRow(top_text, self.top_widget)
-        self.inputs.layout().addRow(bottom_text, self.bottom_widget)
+        self.form.addRow(top_text, self.top_widget)
+        self.form.addRow(bottom_text, self.bottom_widget)
         
         self.buttons = QDialogButtonBox(self)
         self.buttons.addButton(QDialogButtonBox.StandardButton.Cancel)
@@ -103,9 +107,9 @@ class GetTwoDialog(QDialog):
         self.buttons.rejected.connect(lambda: self.done(0))
         self.buttons.accepted.connect(lambda: self.done(1))
         
-        self.setLayout(QVBoxLayout(self))
-        self.layout().addWidget(self.inputs)
-        self.layout().addWidget(self.buttons)
+        self.setLayout(self.layout_)
+        self.layout_.addWidget(self.inputs)
+        self.layout_.addWidget(self.buttons)
         
         self.setWindowTitle(window_title)
         self.exec()

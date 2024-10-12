@@ -22,36 +22,55 @@ sys.dont_write_bytecode = True
 
 from gettext import gettext as _
 from .dialogs import ColorDialog, GetTwoDialog
-from PySide6.QtGui import QTextCursor, QTextFormat, QTextBlockFormat, QTextCharFormat, QTextListFormat, QAction
+from .other import PushButton, Action
+from PySide6.QtGui import QTextCursor, QTextFormat, QTextBlockFormat, QTextCharFormat, QTextListFormat, QDesktopServices, QPalette
 from PySide6.QtCore import Qt, QDate
 from PySide6.QtWidgets import *
 
 
+class TextEdit(QTextEdit):
+    def mousePressEvent(self, e):
+        self.anchor = self.anchorAt(e.pos())
+        
+        if self.anchor:
+            QApplication.setOverrideCursor(Qt.CursorShape.PointingHandCursor)
+            
+        super().mousePressEvent(e)
+            
+    def mouseReleaseEvent(self, e):
+        if self.anchor:
+            QDesktopServices.openUrl(self.anchor)
+            QApplication.setOverrideCursor(Qt.CursorShape.ArrowCursor)
+            self.anchor = None
+            
+        super().mouseReleaseEvent(e)
+
+
 class TextFormatter(QToolBar):
-    def __init__(self, parent: QWidget, input: QTextEdit, format: str) -> None:
+    def __init__(self, parent: QWidget, input: TextEdit, format: str) -> None:
         super().__init__(parent)
         
         self.parent_ = parent
         self.input = input
         self.page = self.parent_.parent()
         
-        self.bold_button = QAction(self, text=_("Bold"))
+        self.bold_button = Action(self, _("Bold"))
         self.bold_button.triggered.connect(self.setBold)
         self.bold_button.setCheckable(True)
         
-        self.italic_button = QAction(self, text=_("Italic"))
+        self.italic_button = Action(self, _("Italic"))
         self.italic_button.triggered.connect(self.setItalic)
         self.italic_button.setCheckable(True)
         
-        self.underline_button = QAction(self, text=_("Underline"))
+        self.underline_button = Action(self, _("Underline"))
         self.underline_button.triggered.connect(self.setUnderline)
         self.underline_button.setCheckable(True)
         
-        self.strikethrough_button = QAction(self, text=_("Strike through"))
+        self.strikethrough_button = Action(self, _("Strike through"))
         self.strikethrough_button.triggered.connect(self.setStrikeThrough)
         self.strikethrough_button.setCheckable(True)
         
-        self.fixedspacing_button = QAction(self, text=_("Fixed spacing"))
+        self.fixedspacing_button = Action(self, _("Fixed spacing"))
         self.fixedspacing_button.triggered.connect(self.setFixedSpacing)
         self.fixedspacing_button.setCheckable(True)
         
@@ -128,7 +147,6 @@ class TextFormatter(QToolBar):
         self.background_color.setStatusTip(_("Setting background color is only available in HTML format."))
         
         self.updateStatus(format)
-        self.setStatusTip(_("Text formatter is only available in Markdown and HTML formats."))
         
     def mergeFormat(self, cur: QTextCursor, format: QTextCharFormat) -> None:
         if not cur.hasSelection():
@@ -236,12 +254,12 @@ class TextFormatter(QToolBar):
                 chrfmt = cur.charFormat()
                 chrfmt.setAnchor(True)
                 chrfmt.setAnchorHref(url)
-                chrfmt.setFontUnderline(True)
+                chrfmt.setForeground(QApplication.palette().color(QPalette.ColorRole.Link))
 
                 if text == "" or text == None:
                     text = url
                     
-                cur.insertText(url, chrfmt)
+                cur.insertText(text, chrfmt)
                 cur.endEditBlock()
                     
             else:
@@ -331,6 +349,8 @@ class TextFormatter(QToolBar):
     def updateStatus(self, format: str) -> None:
         if format == "plain-text":
             self.setEnabled(False)
+    
+            self.setStatusTip(_("Text formatter is only available in Markdown and HTML formats.")),
             
         elif format == "markdown":
             self.setEnabled(True)
@@ -339,12 +359,16 @@ class TextFormatter(QToolBar):
             self.text_color.setEnabled(False)
             self.background_color.setEnabled(False)
             
+            self.setStatusTip(_("To close an open formatting, type a word and then click on it."))
+            
         elif format == "html":
             self.setEnabled(True)
             self.alignment_menu.setEnabled(True)
             self.alignment_button.setEnabled(True)
             self.text_color.setEnabled(True)
             self.background_color.setEnabled(True)
+            
+            self.setStatusTip(_("To close an open formatting, type a word and then click on it."))
 
 
 class NormalPage(QWidget):
@@ -356,7 +380,10 @@ class NormalPage(QWidget):
         self.database = database
         self.global_autosave = global_autosave
         self.global_format = global_format
+        
         self.closable = True
+        
+        self.layout_ = QGridLayout(self)
         
         if self.module == "notes":
             self.notebook = notebook_or_today
@@ -400,7 +427,7 @@ class NormalPage(QWidget):
         else:
             self.setting_format = self.call_format
         
-        self.input = QTextEdit(self)
+        self.input = TextEdit(self)
         self.input.setAcceptRichText(True)
         
         if self.setting_format == "plain-text":
@@ -417,7 +444,7 @@ class NormalPage(QWidget):
         self.input.textChanged.connect(lambda: self.saveDocument(True))
         self.input.cursorPositionChanged.connect(self.formatter.updateButtons)
         
-        self.save = QPushButton(self, text=_("Save"))
+        self.save = PushButton(self, _("Save"))
         self.save.clicked.connect(self.saveDocument)
               
         self.autosave = QComboBox(self)
@@ -462,12 +489,12 @@ class NormalPage(QWidget):
         self.format.setStatusTip(_("Format changes may corrupt the document."))
         self.format.currentIndexChanged.connect(self.setFormat)
         
-        self.setLayout(QGridLayout(self))
-        self.layout().addWidget(self.formatter, 0, 0, 1, 2)
-        self.layout().addWidget(self.input, 1, 0, 1, 2)
-        self.layout().addWidget(self.save, 2, 0, 1, 2)
-        self.layout().addWidget(self.autosave, 3, 0, 1, 1)
-        self.layout().addWidget(self.format, 3, 1, 1, 1)
+        self.setLayout(self.layout_)
+        self.layout_.addWidget(self.formatter, 0, 0, 1, 2)
+        self.layout_.addWidget(self.input, 1, 0, 1, 2)
+        self.layout_.addWidget(self.save, 2, 0, 1, 2)
+        self.layout_.addWidget(self.autosave, 3, 0, 1, 1)
+        self.layout_.addWidget(self.format, 3, 1, 1, 1)
             
     def createDiary(self) -> bool:
         check = self.database.checkIfTheDiaryExists(self.name)
@@ -609,7 +636,10 @@ class BackupPage(QWidget):
         self.name = name
         self.database = database
         self.global_format = global_format
+        
         self.closable = True
+        
+        self.layout_ = QVBoxLayout(self)
         
         if self.module == "notes":
             self.notebook = notebook_or_today
@@ -631,7 +661,7 @@ class BackupPage(QWidget):
         else:
             self.setting_format = self.call_format
         
-        self.input = QTextEdit(self)
+        self.input = TextEdit(self)
         
         if self.setting_format == "plain-text":
             self.input.setPlainText(self.content)
@@ -642,7 +672,7 @@ class BackupPage(QWidget):
         elif self.setting_format == "html":
             self.input.setHtml(self.content)
         
-        self.button = QPushButton(self, text=_("Restore content"))
+        self.button = PushButton(self, _("Restore content"))
         self.button.clicked.connect(self.restoreContent)
         
         self.format = QComboBox(self)
@@ -665,10 +695,10 @@ class BackupPage(QWidget):
         self.format.setStatusTip(_("Format changes may corrupt the document."))
         self.format.currentIndexChanged.connect(self.setFormat)
         
-        self.setLayout(QVBoxLayout(self))
-        self.layout().addWidget(self.input)
-        self.layout().addWidget(self.button)
-        self.layout().addWidget(self.format)
+        self.setLayout(self.layout_)
+        self.layout_.addWidget(self.input)
+        self.layout_.addWidget(self.button)
+        self.layout_.addWidget(self.format)
 
     def setFormat(self, index: int) -> None:
         if index == 0:
