@@ -42,12 +42,12 @@ class ColorDialog(QColorDialog):
             self.set_to_global = PushButton(self.buttonbox, _("Set to global"))
             self.set_to_global.clicked.connect(lambda: self.done(2))
             
-            self.buttonbox.addButton(self.set_to_global, QDialogButtonBox.ButtonRole.DestructiveRole)
+            self.buttonbox.addButton(self.set_to_global, QDialogButtonBox.ButtonRole.ResetRole)
         
         self.set_to_default = PushButton(self.buttonbox, _("Set to default"))
         self.set_to_default.clicked.connect(lambda: self.done(3))
         
-        self.buttonbox.addButton(self.set_to_default, QDialogButtonBox.ButtonRole.DestructiveRole)
+        self.buttonbox.addButton(self.set_to_default, QDialogButtonBox.ButtonRole.ResetRole)
         
         self.setWindowTitle(title)
         self.setOption(QColorDialog.ColorDialogOption.DontUseNativeDialog)

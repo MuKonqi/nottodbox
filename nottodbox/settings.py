@@ -220,7 +220,7 @@ settingsdb = SettingsDB()
 if not settingsdb.createTable():
     print("[2] Failed to create table")
     sys.exit(2)
-
+    
 
 class SettingsWidget(QWidget):
     def __init__(self, parent: QMainWindow, notes, todos, diaries) -> None:        
@@ -237,7 +237,6 @@ class SettingsWidget(QWidget):
         self.stacked.addWidget(SettingsPage(self, "diaries", _("Diaries"), diaries, 2))
         
         self.list = QListWidget(self)
-        self.list.setCurrentRow(0)
         self.list.setFixedWidth(90)
         self.list.currentRowChanged.connect(lambda: self.stacked.setCurrentIndex(self.list.currentRow()))
         
@@ -251,14 +250,16 @@ class SettingsWidget(QWidget):
         self.list_diaries.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
         
         self.list.addItem(self.list_notes)
+        self.list.addItem(self.list_todos)
         self.list.addItem(self.list_diaries)
-        
-        self.list.setCurrentRow(0)
         
         self.setLayout(self.layout_)
         self.layout_.addWidget(self.list)
         self.layout_.addWidget(self.stacked)
         
+        self.list.setCurrentRow(0)
+        self.list.currentRowChanged.connect(lambda: self.stacked.setCurrentIndex(self.list.currentRow()))
+              
         
 class SettingsPage(QWidget):
     def __init__(self, parent: SettingsWidget, module: str, pretty: str, target, index: int) -> None:
@@ -269,18 +270,11 @@ class SettingsPage(QWidget):
         self.target = target
         self.index = index
         
+        self.parent_.menu.addAction(pretty, self.setIndexes)
+        
         self.layout_ = QVBoxLayout(self)
         
-        if self.module == "notes":
-            self.autosave, self.format, self.background, self.foreground = settingsdb.getModuleSettings("notes")
-            
-        elif self.module == "todos":
-            self.background, self.foreground = settingsdb.getModuleSettings("todos")
-            
-        elif self.module == "diaries":
-            self.autosave, self.format, self.highlight = settingsdb.getModuleSettings("diaries")
-        
-        self.parent_.menu.addAction(pretty, self.setIndexes)
+        self.format_changed = False
         
         self.inputs = QWidget(self)
         self.form = QFormLayout(self.inputs)
@@ -289,12 +283,6 @@ class SettingsPage(QWidget):
         if self.module == "notes" or self.module == "diaries":    
             self.autosave_checkbox = QCheckBox(self.inputs)
             self.autosave_checkbox.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
-            if self.autosave == "enabled":
-                self.autosave_checkbox.setText(_("Enabled"))
-                self.autosave_checkbox.setChecked(True)
-            elif self.autosave == "disabled":
-                self.autosave_checkbox.setText(_("Disabled"))
-                self.autosave_checkbox.setChecked(False)
             try:
                 self.autosave_checkbox.checkStateChanged.connect(self.setAutoSave)
             except:
@@ -303,12 +291,6 @@ class SettingsPage(QWidget):
             self.format_combobox = QComboBox(self.inputs)
             self.format_combobox.addItems([_("Plain-text"), _("Markdown"), _("HTML")])
             self.format_combobox.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
-            if self.format == "plain-text":
-                self.format_combobox.setCurrentIndex(0)
-            elif self.format == "markdown":
-                self.format_combobox.setCurrentIndex(1)
-            elif self.format == "html":
-                self.format_combobox.setCurrentIndex(2)
             self.format_combobox.setEditable(False)
             self.format_combobox.currentIndexChanged.connect(self.setFormat)
                 
@@ -316,39 +298,35 @@ class SettingsPage(QWidget):
             self.form.addRow(_("Format:"), self.format_combobox)
         
         if self.module == "notes" or self.module == "todos":
-            self.background_button = PushButton(self, 
-                                                 _("Select color (it is {color})")
-                                                 .format(color = _("default") if self.background == "default" else self.background))
+            self.background_button = PushButton(self, "")
             self.background_button.clicked.connect(self.setBackground)
             
-            self.foreground_button = PushButton(self, 
-                                                 _("Select color (it is {color})")
-                                                 .format(color = _("default") if self.foreground == "default" else self.foreground))
+            self.foreground_button = PushButton(self, "")
             self.foreground_button.clicked.connect(self.setForeground)
             
             self.form.addRow(_("Background color:"), self.background_button)
             self.form.addRow(_("Text color:"), self.foreground_button)
             
         if self.module == "diaries":
-            self.highlight_button = PushButton(self, 
-                                                 _("Select color (it is {color})")
-                                                 .format(color = _("default") if self.highlight == "default" else self.highlight))
+            self.highlight_button = PushButton(self, "")
             self.highlight_button.clicked.connect(self.setHighlight)
             
             self.form.addRow(_("Highlight color:"), self.highlight_button)
                 
         self.buttons = QDialogButtonBox(self)
         
-        self.save = PushButton(self.buttons, _("Save"))
-        self.save.clicked.connect(self.saveSettings)
-        
         self.reset = PushButton(self.buttons, _("Reset"))
         self.reset.clicked.connect(self.resetSettings)
         
-        self.buttons.addButton(self.save, QDialogButtonBox.ButtonRole.ApplyRole)
-        self.buttons.addButton(self.reset, QDialogButtonBox.ButtonRole.ApplyRole)
+        self.apply = PushButton(self.buttons, _("Apply"))
+        self.apply.clicked.connect(self.applySettings)
         
-        self.format_changed = False
+        self.cancel = PushButton(self.buttons, _("Cancel"))
+        self.cancel.clicked.connect(self.setSettingsFromDB)
+        
+        self.buttons.addButton(self.reset, QDialogButtonBox.ButtonRole.ResetRole)
+        self.buttons.addButton(self.apply, QDialogButtonBox.ButtonRole.ApplyRole)
+        self.buttons.addButton(self.cancel, QDialogButtonBox.ButtonRole.RejectRole)
             
         self.setLayout(self.layout_)
         self.layout_.addWidget(self.inputs)
@@ -356,13 +334,15 @@ class SettingsPage(QWidget):
         self.layout_.addWidget(HSeperator(self))
         self.layout_.addWidget(self.buttons)
         
-    def askFormatChange(self) -> bool:
-        if self.format_changed:
-            accepted = QMessageBox.question(
+        self.setSettingsFromDB()
+        
+    def askFormatChange(self, definitely: bool = False) -> bool:
+        if self.format_changed or definitely:
+            question = QMessageBox.question(
                 self, _("Question"), _("If you have documents with the format setting set to global," +
                                        " this change may corrupt them.\nAre you sure?"))
             
-            if accepted == QMessageBox.StandardButton.Yes:
+            if question == QMessageBox.StandardButton.Yes:
                 self.format_changed = False
                 
                 return True
@@ -373,59 +353,47 @@ class SettingsPage(QWidget):
         else:
             return True
         
-    def resetSettings(self) -> None:
+    def applySettings(self) -> None:
+        if not self.askFormatChange():
+            return
+        
         if self.module == "notes":
-            format_change_acceptted = self.askFormatChange()
-            
-            if format_change_acceptted:
-                call = settingsdb.saveModuleSettings(
-                    self.module, "enabled", "markdown", "default", "default", None)
-                
-            else:
-                return
+            call = settingsdb.saveModuleSettings(
+                self.module, self.autosave, self.format, self.background, self.foreground, None)
         
         elif self.module == "todos":
             call = settingsdb.saveModuleSettings(
-                self.module, None, None, "default", "default", None)
+                self.module, None, None, self.background, self.foreground, None)
         
         elif self.module == "diaries":
-            format_change_acceptted = self.askFormatChange()
-            
-            if format_change_acceptted:
-                call = settingsdb.saveModuleSettings(
-                    self.module, "enabled", "markdown", None, None, "default")
-            
-            else:
-                return
+            call = settingsdb.saveModuleSettings(
+                self.module, self.autosave, self.format, None, None, self.highlight)
         
         if call:
-            if self.module == "notes":
-                self.background = "default"
-                self.foreground = "default"
-                
-                self.autosave_checkbox.setChecked(True)
-                self.format_combobox.setCurrentIndex(1)
-                self.background_button.setText(_("Select color (it is {color})")
-                                               .format(color = _("default") if self.background == "default" else self.background))
-                self.foreground_button.setText(_("Select color (it is {color})")
-                                               .format(color = _("default") if self.foreground == "default" else self.foreground))
-                
-            elif self.module == "todos":
-                self.background = "default"
-                self.foreground = "default"
-                
-                self.background_button.setText(_("Select color (it is {color})")
-                                            .format(color = _("default") if self.background == "default" else self.background))
-                self.foreground_button.setText(_("Select color (it is {color})")
-                                               .format(color = _("default") if self.foreground == "default" else self.foreground))
+            self.changed = False
             
-            elif self.module == "diaries":
-                self.highlight = "default"
-                
-                self.autosave_checkbox.setChecked(True)
-                self.format_combobox.setCurrentIndex(1)
-                self.highlight_button.setText(_("Select color (it is {color})")
-                                              .format(color = _("default") if self.highlight == "default" else self.highlight))
+            self.target.refreshSettings()
+            
+            QMessageBox.information(self.parent_, _("Successful"), _("New settings are applied."))
+        
+        else:
+            QMessageBox.critical(self.parent_, _("Error"), _("Failed to apply new settings."))
+        
+    def resetSettings(self) -> None:
+        if not self.askFormatChange(True):
+            return
+        
+        if self.module == "notes":
+            call = settingsdb.saveModuleSettings(self.module, "enabled", "markdown", "default", "default", None)
+        
+        elif self.module == "todos":
+            call = settingsdb.saveModuleSettings(self.module, None, None, "default", "default", None)
+        
+        elif self.module == "diaries":
+            call = settingsdb.saveModuleSettings(self.module, "enabled", "markdown", None, None, "default")
+        
+        if call:
+            self.setSettingsFromDB()
                 
             self.target.refreshSettings()
             
@@ -433,39 +401,6 @@ class SettingsPage(QWidget):
         
         else:
             QMessageBox.critical(self.parent_, _("Error"), _("Failed to reset settings."))
-            
-    def saveSettings(self) -> None:
-        if self.module == "notes":
-            format_change_acceptted = self.askFormatChange()
-                
-            if format_change_acceptted:
-                call = settingsdb.saveModuleSettings(
-                    self.module, self.autosave, self.format, self.background, self.foreground, None)
-                
-            else:
-                return
-        
-        elif self.module == "todos":
-            call = settingsdb.saveModuleSettings(
-                self.module, None, None, self.background, self.foreground, None)
-        
-        elif self.module == "diaries":
-            format_change_acceptted = self.askFormatChange()
-            
-            if format_change_acceptted:
-                call = settingsdb.saveModuleSettings(
-                    self.module, self.autosave, self.format, None, None, self.highlight)
-            
-            else:
-                return
-        
-        if call:
-            self.target.refreshSettings()
-            
-            QMessageBox.information(self.parent_, _("Successful"), _("New settings are saved."))
-        
-        else:
-            QMessageBox.critical(self.parent_, _("Error"), _("Failed to save settings."))
             
     def setAutoSave(self, signal: Qt.CheckState | int) -> None:
         if signal == Qt.CheckState.Unchecked or signal == 0:
@@ -522,3 +457,41 @@ class SettingsPage(QWidget):
     def setIndexes(self) -> None:
         self.parent_.parent_.tabwidget.setCurrentIndex(4)
         self.parent_.list.setCurrentRow(self.index)
+        
+    def setSettingsFromDB(self) -> None:
+        if self.module == "notes":
+            self.autosave, self.format, self.background, self.foreground = settingsdb.getModuleSettings("notes")
+            
+        elif self.module == "todos":
+            self.background, self.foreground = settingsdb.getModuleSettings("todos")
+            
+        elif self.module == "diaries":
+            self.autosave, self.format, self.highlight = settingsdb.getModuleSettings("diaries")
+        
+        if self.module == "notes" or self.module == "diaries":    
+            if self.autosave == "enabled":
+                self.autosave_checkbox.setText(_("Enabled"))
+                self.autosave_checkbox.setChecked(True)
+            elif self.autosave == "disabled":
+                self.autosave_checkbox.setText(_("Disabled"))
+                self.autosave_checkbox.setChecked(False)
+        
+            if self.format == "plain-text":
+                self.format_combobox.setCurrentIndex(0)
+            elif self.format == "markdown":
+                self.format_combobox.setCurrentIndex(1)
+            elif self.format == "html":
+                self.format_combobox.setCurrentIndex(2)
+        
+        if self.module == "notes" or self.module == "todos":
+            self.background_button.setText(_("Select color (it is {color})")
+                                           .format(color = _("default") if self.background == "default" else self.background))
+            
+            self.foreground_button.setText(_("Select color (it is {color})")
+                                           .format(color = _("default") if self.foreground == "default" else self.foreground))
+
+        if self.module == "diaries":
+            self.highlight_button.setText(_("Select color (it is {color})")
+                                          .format(color = _("default") if self.highlight == "default" else self.highlight))
+            
+        self.changed = False

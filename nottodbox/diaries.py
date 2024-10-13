@@ -381,8 +381,6 @@ class DiariesTabWidget(QTabWidget):
     def __init__(self, parent: QMainWindow) -> None:
         super().__init__(parent)
         
-        self.tabCloseRequested.connect(self.closeTab)
-        
         global diaries_parent
         
         diaries_parent = parent
@@ -450,6 +448,8 @@ class DiariesTabWidget(QTabWidget):
         self.setDocumentMode(True)
         self.setTabBarAutoHide(True)
         self.setUsesScrollButtons(True)
+        
+        self.tabCloseRequested.connect(self.closeTab)
         
     def checkIfTheDiaryExists(self, name: str, mode: str = "normal") -> bool:
         call = diariesdb.checkIfTheDiaryExists(name)

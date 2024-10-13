@@ -569,8 +569,6 @@ class NotesTabWidget(QTabWidget):
     def __init__(self, parent: QMainWindow) -> None:
         super().__init__(parent)
         
-        self.tabCloseRequested.connect(self.closeTab)
-        
         global notes_parent
         
         notes_parent = parent
@@ -623,6 +621,8 @@ class NotesTabWidget(QTabWidget):
         self.setDocumentMode(True)
         self.setTabBarAutoHide(True)
         self.setUsesScrollButtons(True)
+        
+        self.tabCloseRequested.connect(self.closeTab)
          
     def closeTab(self, index: int) -> None:
         if index != self.indexOf(self.home):           

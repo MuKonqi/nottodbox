@@ -22,7 +22,7 @@ sys.dont_write_bytecode = True
 import getpass
 import os
 from gettext import gettext as _
-from widgets.other import HSeperator, Label
+from widgets.other import HSeperator, Label, PushButton
 from widgets.pages import NormalPage
 from notes import NotesTabWidget, NotesTreeView
 from todos import TodosWidget, TodosTreeView
@@ -43,28 +43,63 @@ class HomeWidget(QWidget):
     def __init__(self, parent: QMainWindow, todos: TodosWidget, notes: NotesTabWidget):
         super().__init__(parent)
         
+        self.focused_to_diary = False
+        
         self.layout_ = QVBoxLayout(self)
         
         self.label_welcome = Label(self, _("Welcome {username}!").format(username = username))
         self.label_welcome.setStyleSheet("font-size: 12pt")
         
-        self.label_diary = Label(self, _("Your Diary for {date}").format(date = today.toString("dd.MM.yyyy")))
+        self.diary_button = PushButton(self, _("Focus to Diary for Today"))
+        self.diary_button.clicked.connect(self.focusToDiary)
+        
         self.diary = NormalPage(self, "diaries", today, today.toString("dd.MM.yyyy"), setting_autosave, setting_format, diariesdb)
         
-        self.label_todos = Label(self, _("List of Your To-do Lists & To-dos"))
+        self.todos_seperator = HSeperator(self)
+        
+        self.todos_label = Label(self, _("List of To-dos"))
+        
         self.todos = TodosTreeView(todos, "home")
         
-        self.label_notes = Label(self, _("List of Your Notebooks & Notes"))
+        self.notes_seperator = HSeperator(self)
+        
+        self.notes_label = Label(self, _("List of Notes"))
+        
         self.notes = NotesTreeView(notes, "home")
         
         self.setLayout(self.layout_)
         self.layout_.addWidget(self.label_welcome)
         self.layout_.addWidget(HSeperator(self))
-        self.layout_.addWidget(self.label_diary)
+        self.layout_.addWidget(self.diary_button)
         self.layout_.addWidget(self.diary)
-        self.layout_.addWidget(HSeperator(self))
-        self.layout_.addWidget(self.label_todos)
+        self.layout_.addWidget(self.todos_seperator)
+        self.layout_.addWidget(self.todos_label)
         self.layout_.addWidget(self.todos)
-        self.layout_.addWidget(HSeperator(self))
-        self.layout_.addWidget(self.label_notes)
+        self.layout_.addWidget(self.notes_seperator)
+        self.layout_.addWidget(self.notes_label)
         self.layout_.addWidget(self.notes)
+        
+    def focusToDiary(self) -> None:
+        if self.focused_to_diary:
+            self.todos_seperator.setVisible(True)
+            self.todos_label.setVisible(True)
+            self.todos.setVisible(True)
+            self.notes_seperator.setVisible(True)
+            self.notes_label.setVisible(True)
+            self.notes.setVisible(True)
+            
+            self.diary_button.setText(_("Focus to Diary for Today"))
+            
+            self.focused_to_diary = False
+            
+        else:
+            self.todos_seperator.setVisible(False)
+            self.todos_label.setVisible(False)
+            self.todos.setVisible(False)
+            self.notes_seperator.setVisible(False)
+            self.notes_label.setVisible(False)
+            self.notes.setVisible(False)
+            
+            self.diary_button.setText(_("Finish Focusing of Diary for Today"))
+            
+            self.focused_to_diary = True

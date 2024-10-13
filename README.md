@@ -1,9 +1,9 @@
 # Nottodbox (pre-alpha)
 
 <p align="center"><img src="./data/io.github.mukonqi.nottodbox.svg" alt="Nottodbox Icon"></img></a></p>
-<p align="center"><img src="https://img.shields.io/badge/Edit notes, to-do lists and diaries-376296" alt="Edit notes, to-do lists and diaries"></img></p>
-<p align="center"><img src="https://img.shields.io/github/downloads/mukonqi/nottodbox/total?label=Downloads" alt="GitHub Downloads"></img></p>
-<p align="center"><img src="https://img.shields.io/github/v/release/mukonqi/nottodbox?label=Latest Release" alt="GitHub Release"></p>
+<p align="center"><img src="https://img.shields.io/badge/Edit_notes,_to--dos_and_diaries-376296" alt="Edit notes, to-dos and diaries"></img></p>
+<p align="center"><img src="https://img.shields.io/github/downloads/mukonqi/nottodbox/total?label=Downloads" alt="Count of Downloads"></img></p>
+<p align="center"><img src="https://img.shields.io/github/v/release/mukonqi/nottodbox?label=Latest Release" alt="Latest Release"></p>
 
 
 ## Features
@@ -17,13 +17,13 @@
 
 ### Home
 - A shortcut for keeping today's diary
-- Listing to-do lists & to-dos with creation (for both), modification (only to-do lists), status (only to-do), completion (only to-do) informations
-- Listing notebooks & notes with creation and modification informations (all of them are for both)
+- Listing to-dos
+- Listing notes
 
 ### Notes
 - Two labels for showing selected notebook and note
 - A entry for searching in list
-- Listing notebooks & notes with creation and modification informations (all of them are for both)
+- Listing notes
 - For notebooks:
     - Creating a notebook
     - Setting background color
@@ -46,7 +46,7 @@
 ### To-dos
 - A entry for searcing in list
 - Two labels for showing selected notebook and note
-- Listing to-do lists & to-dos with creation (for both), modification (only to-do lists), status (only to-do), completion (only to-do) informations
+- Listing to-dos
 - For to-do lists:
     - Creating a to-do list
     - Setting background color
@@ -74,8 +74,7 @@
 
 ### Note and Diary's Pages
 - Text formatter (plain-text format does not supported):
-    - Formatting selected section via cursor
-    - Formatting word under cursor
+    - Formatting selected section via cursor or word uncer cursor
     - Format options:
         - Bold
         - Italic
@@ -89,9 +88,15 @@
         - Link
         - Text color (only for HTML format)
         - Background color (only for HTML format)
-- Standart Qt's text edit box
+- Standart Qt's text edit box with opening links support
 - Manuel saving
-- Options for setting auto-save and format settings
+    - For triggering, user must click the "Save" button or accept the warning question when closing a document.
+    - This can change backups except if old diary pages.
+- Auto-saving
+    - This triggered when the document content's changes.
+    - This is disabled and can't be enabled for old diaries.
+    - This can't change backups.
+- Format options (plain-text, Markdown and HTML)
 
 
 ## Building
