@@ -24,7 +24,7 @@ import getpass
 import sqlite3
 from gettext import gettext as _
 from widgets.dialogs import ColorDialog
-from widgets.other import HSeperator, PushButton
+from widgets.other import HSeperator, PushButton, VSeperator
 from PySide6.QtGui import QColor
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import *
@@ -227,14 +227,9 @@ class SettingsWidget(QWidget):
         super().__init__(parent)
         
         self.parent_ = parent
-        self.layout_ = QHBoxLayout(self)
+        self.layout_ = QGridLayout(self)
         
         self.menu = self.parent_.menuBar().addMenu(_("Settings"))
-        
-        self.stacked = QStackedWidget(self)
-        self.stacked.addWidget(SettingsPage(self, "notes", _("Notes"), notes, 0))
-        self.stacked.addWidget(SettingsPage(self, "todos", _("To-dos"), todos, 1))
-        self.stacked.addWidget(SettingsPage(self, "diaries", _("Diaries"), diaries, 2))
         
         self.list = QListWidget(self)
         self.list.setFixedWidth(90)
@@ -249,16 +244,105 @@ class SettingsWidget(QWidget):
         self.list_diaries = QListWidgetItem(_("Diaries"), self.list)
         self.list_diaries.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
         
+        self.stacked = QStackedWidget(self)
+        
+        self.pages = [
+            SettingsPage(self, "notes", _("Notes"), notes, 0),
+            SettingsPage(self, "todos", _("To-dos"), todos, 1),
+            SettingsPage(self, "diaries", _("Diaries"), diaries, 2)
+        ]
+        
+        self.buttons = QDialogButtonBox(self)
+        
+        self.reset = PushButton(self.buttons, _("Reset all"))
+        self.reset.clicked.connect(self.resetAll)
+        
+        self.apply = PushButton(self.buttons, _("Apply all"))
+        self.apply.clicked.connect(self.applyAll)
+        
+        self.cancel = PushButton(self.buttons, _("Cancel all"))
+        self.cancel.clicked.connect(self.cancelAll)
+        
         self.list.addItem(self.list_notes)
         self.list.addItem(self.list_todos)
         self.list.addItem(self.list_diaries)
         
+        for page in self.pages:
+            self.stacked.addWidget(page)
+        
+        self.buttons.addButton(self.reset, QDialogButtonBox.ButtonRole.ResetRole)
+        self.buttons.addButton(self.apply, QDialogButtonBox.ButtonRole.ApplyRole)
+        self.buttons.addButton(self.cancel, QDialogButtonBox.ButtonRole.RejectRole)
+        
         self.setLayout(self.layout_)
-        self.layout_.addWidget(self.list)
-        self.layout_.addWidget(self.stacked)
+        self.layout_.addWidget(self.list, 0, 0, 1, 1)
+        self.layout_.addWidget(VSeperator(self), 0, 1, 1, 1)
+        self.layout_.addWidget(self.stacked, 0, 2, 1, 1)
+        self.layout_.addWidget(HSeperator(self), 1, 0, 1, 3)
+        self.layout_.addWidget(self.buttons, 2, 0, 1, 3)
         
         self.list.setCurrentRow(0)
         self.list.currentRowChanged.connect(lambda: self.stacked.setCurrentIndex(self.list.currentRow()))
+        
+    def applyAll(self) -> None:
+        successful = True
+        ask_question = True
+        
+        for page in self.pages:
+            if page.format_changed and ask_question:
+                ask_question = False
+                
+                question = QMessageBox.question(
+                    self, _("Question"), _("If you have documents with the format setting set to global," +
+                                           " this change may corrupt them.\nAre you sure?"))
+                
+                if question != QMessageBox.StandardButton.Yes:
+                    QMessageBox.critical(self, _("Error"), _("Process cancelled."))
+
+                    return
+                
+            call = page.applySettings(False)
+            
+            if not call:
+                successful = False
+        
+        if successful:
+            QMessageBox.information(self, _("Successful"), _("All settings applied."))
+            
+        else:
+            QMessageBox.critical(self, _("Error"), _("Failed to apply all settings."))
+    
+    def cancelAll(self) -> None:
+        for page in self.pages:
+            page.setSettingsFromDB()
+    
+    def resetAll(self) -> None:
+        successful = True
+        ask_question = True
+        
+        for page in self.pages:
+            if page.format_changed and ask_question:
+                ask_question = False
+                
+                question = QMessageBox.question(
+                    self, _("Question"), _("If you have documents with the format setting set to global," +
+                                           " this change may corrupt them.\nAre you sure?"))
+                
+                if question != QMessageBox.StandardButton.Yes:
+                    QMessageBox.critical(self, _("Error"), _("Process cancelled."))
+
+                    return
+                
+            call = page.resetSettings(False)
+            
+            if not call:
+                successful = False
+        
+        if successful:
+            QMessageBox.information(self, _("Successful"), _("All setting reset."))
+            
+        else:
+            QMessageBox.critical(self, _("Error"), _("Failed to reset all settings."))
               
         
 class SettingsPage(QWidget):
@@ -353,9 +437,10 @@ class SettingsPage(QWidget):
         else:
             return True
         
-    def applySettings(self) -> None:
-        if not self.askFormatChange():
-            return
+    def applySettings(self, messages: bool = True) -> bool:
+        if messages:
+            if not self.askFormatChange():
+                return False
         
         if self.module == "notes":
             call = settingsdb.saveModuleSettings(
@@ -370,18 +455,23 @@ class SettingsPage(QWidget):
                 self.module, self.autosave, self.format, None, None, self.highlight)
         
         if call:
-            self.changed = False
-            
             self.target.refreshSettings()
             
-            QMessageBox.information(self.parent_, _("Successful"), _("New settings are applied."))
+            if messages:
+                QMessageBox.information(self.parent_, _("Successful"), _("New settings are applied."))
+                
+            return True
         
         else:
-            QMessageBox.critical(self.parent_, _("Error"), _("Failed to apply new settings."))
+            if messages:
+                QMessageBox.critical(self.parent_, _("Error"), _("Failed to apply new settings."))
+                
+            return False
         
-    def resetSettings(self) -> None:
-        if not self.askFormatChange(True):
-            return
+    def resetSettings(self, messages: bool = True) -> bool:
+        if messages:
+            if not self.askFormatChange(True):
+                return False
         
         if self.module == "notes":
             call = settingsdb.saveModuleSettings(self.module, "enabled", "markdown", "default", "default", None)
@@ -397,10 +487,16 @@ class SettingsPage(QWidget):
                 
             self.target.refreshSettings()
             
-            QMessageBox.information(self.parent_, _("Successful"), _("Settings are reset."))
+            if messages:
+                QMessageBox.information(self.parent_, _("Successful"), _("Settings are reset."))
+                
+            return True
         
         else:
-            QMessageBox.critical(self.parent_, _("Error"), _("Failed to reset settings."))
+            if messages:
+                QMessageBox.critical(self.parent_, _("Error"), _("Failed to reset settings."))
+                
+            return False
             
     def setAutoSave(self, signal: Qt.CheckState | int) -> None:
         if signal == Qt.CheckState.Unchecked or signal == 0:
@@ -493,5 +589,3 @@ class SettingsPage(QWidget):
         if self.module == "diaries":
             self.highlight_button.setText(_("Select color (it is {color})")
                                           .format(color = _("default") if self.highlight == "default" else self.highlight))
-            
-        self.changed = False
