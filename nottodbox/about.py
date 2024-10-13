@@ -19,7 +19,6 @@ import sys
 sys.dont_write_bytecode = True
 
 
-from datetime import datetime
 from gettext import gettext as _
 from widgets.other import HSeperator, Label
 from PySide6.QtGui import QFontDatabase, QPixmap
@@ -54,7 +53,7 @@ class AboutWidget(QWidget):
         self.developer_label = Label(self, _("Developer") + ': <a href="https://mukonqi.github.io">MuKonqi (Muhammed S.)</a>')
         self.developer_label.setOpenExternalLinks(True)
         
-        self.copyright_label = Label(self, _("Copyright (C)") + f': {datetime.now().year} MuKonqi (Muhammed S.)')
+        self.copyright_label = Label(self, _("Copyright (C)") + f': 2024 MuKonqi (Muhammed S.)')
         
         self.license_label = Label(self, _("License: GNU General Public License, Version 3 or later"))
         

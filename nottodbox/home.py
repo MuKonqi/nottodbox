@@ -39,20 +39,8 @@ if not os.path.isdir(userdata):
 today = QDate.currentDate()
 
 
-class HomeScrollArea(QScrollArea):
-    def __init__(self, parent: QMainWindow, todos: QTabWidget, notes: QTabWidget):
-        super().__init__(parent)
-        
-        global home_parent
-        home_parent = parent
-    
-        self.setWidgetResizable(True)
-        self.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.setWidget(HomeWidget(self, todos, notes))
-
-
 class HomeWidget(QWidget):
-    def __init__(self, parent: HomeScrollArea, todos: TodosWidget, notes: NotesTabWidget):
+    def __init__(self, parent: QMainWindow, todos: TodosWidget, notes: NotesTabWidget):
         super().__init__(parent)
         
         self.layout_ = QVBoxLayout(self)

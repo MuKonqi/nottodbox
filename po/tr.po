@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.0.7\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-12 20:48+0300\n"
-"PO-Revision-Date: 2024-10-12 20:48+0300\n"
+"POT-Creation-Date: 2024-10-13 11:01+0300\n"
+"PO-Revision-Date: 2024-10-12 11:01+0300\n"
 "Last-Translator: Muhammed S. <mukonqi@gmail.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: tr\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: data/io.github.mukonqi.nottodbox.desktop.in.in:3 nottodbox/about.py:44
+#: data/io.github.mukonqi.nottodbox.desktop.in.in:3 nottodbox/about.py:43
 msgid "Nottodbox"
 msgstr "Nottodbox"
 
@@ -50,32 +50,32 @@ msgstr "Günlükler"
 msgid "Settings"
 msgstr "Ayarlar"
 
-#: data/io.github.mukonqi.nottodbox.desktop.in.in:36 nottodbox/about.py:36
+#: data/io.github.mukonqi.nottodbox.desktop.in.in:36 nottodbox/about.py:35
 #: nottodbox/mainwindow.py:68
 msgid "About"
 msgstr "Hakkında"
 
-#: nottodbox/about.py:47
+#: nottodbox/about.py:46
 msgid "Version"
 msgstr "Sürüm"
 
-#: nottodbox/about.py:49
+#: nottodbox/about.py:48
 msgid "Commit"
 msgstr "İşleme"
 
-#: nottodbox/about.py:51
+#: nottodbox/about.py:50
 msgid "Source codes"
 msgstr "Kaynak kodları"
 
-#: nottodbox/about.py:54
+#: nottodbox/about.py:53
 msgid "Developer"
 msgstr "Geliştirici"
 
-#: nottodbox/about.py:57
+#: nottodbox/about.py:56
 msgid "Copyright (C)"
 msgstr "Telif Hakkı (C)"
 
-#: nottodbox/about.py:59
+#: nottodbox/about.py:58
 msgid "License: GNU General Public License, Version 3 or later"
 msgstr "Lisans: GNU Genel Kamu Lisansı, Sürüm 3 veya sonrası"
 
@@ -127,10 +127,10 @@ msgstr "Her şeyi sil"
 #: nottodbox/diaries.py:539 nottodbox/diaries.py:555 nottodbox/diaries.py:572
 #: nottodbox/diaries.py:612 nottodbox/diaries.py:633 nottodbox/diaries.py:636
 #: nottodbox/diaries.py:642 nottodbox/diaries.py:674 nottodbox/diaries.py:680
-#: nottodbox/diaries.py:721 nottodbox/mainwindow.py:179
-#: nottodbox/mainwindow.py:185 nottodbox/mainwindow.py:191
-#: nottodbox/mainwindow.py:197 nottodbox/mainwindow.py:214
-#: nottodbox/mainwindow.py:225 nottodbox/mainwindow.py:237
+#: nottodbox/diaries.py:721 nottodbox/mainwindow.py:180
+#: nottodbox/mainwindow.py:186 nottodbox/mainwindow.py:192
+#: nottodbox/mainwindow.py:198 nottodbox/mainwindow.py:215
+#: nottodbox/mainwindow.py:226 nottodbox/mainwindow.py:238
 #: nottodbox/notes.py:763 nottodbox/notes.py:772 nottodbox/notes.py:776
 #: nottodbox/notes.py:783 nottodbox/notes.py:795 nottodbox/notes.py:807
 #: nottodbox/notes.py:823 nottodbox/notes.py:836 nottodbox/notes.py:840
@@ -179,8 +179,8 @@ msgstr "Günlük adı boş olamaz."
 
 #: nottodbox/diaries.py:483 nottodbox/diaries.py:530 nottodbox/diaries.py:552
 #: nottodbox/diaries.py:630 nottodbox/diaries.py:669
-#: nottodbox/mainwindow.py:173 nottodbox/mainwindow.py:183
-#: nottodbox/mainwindow.py:189 nottodbox/mainwindow.py:195
+#: nottodbox/mainwindow.py:174 nottodbox/mainwindow.py:184
+#: nottodbox/mainwindow.py:190 nottodbox/mainwindow.py:196
 #: nottodbox/notes.py:792 nottodbox/notes.py:804 nottodbox/notes.py:821
 #: nottodbox/notes.py:851 nottodbox/notes.py:879 nottodbox/notes.py:914
 #: nottodbox/notes.py:951 nottodbox/notes.py:1032 nottodbox/notes.py:1063
@@ -206,7 +206,7 @@ msgstr "{name} günlüğünün içeriği temizlendi."
 msgid "Failed to clear content of {name} diary."
 msgstr "{name} günlüğünün içeriği temizlenemedi."
 
-#: nottodbox/diaries.py:492 nottodbox/mainwindow.py:148 nottodbox/notes.py:632
+#: nottodbox/diaries.py:492 nottodbox/mainwindow.py:149 nottodbox/notes.py:632
 #: nottodbox/settings.py:362 nottodbox/widgets/pages.py:530
 #: nottodbox/widgets/pages.py:605 nottodbox/widgets/pages.py:718
 #: nottodbox/widgets/pages.py:740
@@ -306,21 +306,21 @@ msgstr "(Yedek)"
 msgid "Double-click on top to opening a diary."
 msgstr "Üstte bir günlüğü açmak için çift tıklayın."
 
-#: nottodbox/home.py:60
+#: nottodbox/home.py:48
 #, python-brace-format
 msgid "Welcome {username}!"
 msgstr "Merhabalar {username}!"
 
-#: nottodbox/home.py:63
+#: nottodbox/home.py:51
 #, python-brace-format
 msgid "Your Diary for {date}"
 msgstr "{date} için Günlüğünüz"
 
-#: nottodbox/home.py:66
+#: nottodbox/home.py:54
 msgid "List of Your To-do Lists & To-dos"
 msgstr "Yapılacaklar Listelerinizin & Yapılacaklarınızın Listesi"
 
-#: nottodbox/home.py:69
+#: nottodbox/home.py:57
 msgid "List of Your Notebooks & Notes"
 msgstr "Not Defterlerinizin & Notlarınızın Listesi"
 
@@ -341,43 +341,43 @@ msgstr "Gizle"
 msgid "To-dos"
 msgstr "Yapılacaklar"
 
-#: nottodbox/mainwindow.py:114
+#: nottodbox/mainwindow.py:115
 msgid "Note"
 msgstr "Not"
 
-#: nottodbox/mainwindow.py:114 nottodbox/mainwindow.py:121
+#: nottodbox/mainwindow.py:115 nottodbox/mainwindow.py:122
 msgid " (Backup)"
 msgstr " (Yedek)"
 
-#: nottodbox/mainwindow.py:115 nottodbox/notes.py:589 nottodbox/notes.py:684
+#: nottodbox/mainwindow.py:116 nottodbox/notes.py:589 nottodbox/notes.py:684
 #: nottodbox/sidebar.py:250 nottodbox/sidebar.py:251 nottodbox/sidebar.py:280
 #: nottodbox/sidebar.py:281
 msgid "Note: "
 msgstr "Not: "
 
-#: nottodbox/mainwindow.py:119
+#: nottodbox/mainwindow.py:120
 msgid "notes"
 msgstr "notlar"
 
-#: nottodbox/mainwindow.py:121
+#: nottodbox/mainwindow.py:122
 msgid "Diary"
 msgstr "Günlük"
 
-#: nottodbox/mainwindow.py:122 nottodbox/sidebar.py:258
+#: nottodbox/mainwindow.py:123 nottodbox/sidebar.py:258
 #: nottodbox/sidebar.py:259 nottodbox/sidebar.py:295 nottodbox/sidebar.py:296
 msgid "Diary: "
 msgstr "Günlük: "
 
-#: nottodbox/mainwindow.py:127 nottodbox/mainwindow.py:134
+#: nottodbox/mainwindow.py:128 nottodbox/mainwindow.py:135
 msgid " and diaries"
 msgstr " ve günlükler"
 
-#: nottodbox/mainwindow.py:129 nottodbox/mainwindow.py:133
-#: nottodbox/mainwindow.py:136
+#: nottodbox/mainwindow.py:130 nottodbox/mainwindow.py:134
+#: nottodbox/mainwindow.py:137
 msgid "diaries"
 msgstr "günlükler"
 
-#: nottodbox/mainwindow.py:149
+#: nottodbox/mainwindow.py:150
 #, python-brace-format
 msgid ""
 "Some {pages} are not saved.\n"
@@ -387,55 +387,55 @@ msgstr ""
 "Hemen kapatmak ya da kaydedip kapatmak mı yoksa işlemi iptal mi etmek "
 "istersiniz?"
 
-#: nottodbox/mainwindow.py:173
+#: nottodbox/mainwindow.py:174
 msgid "All open notes and open diaries saved."
 msgstr "Tüm açık sayfalar ve notlar kaydedildi."
 
-#: nottodbox/mainwindow.py:175 nottodbox/mainwindow.py:177
+#: nottodbox/mainwindow.py:176 nottodbox/mainwindow.py:178
 #: nottodbox/notes.py:1489 nottodbox/todos.py:1220
 msgid "Warning"
 msgstr "Uyarı"
 
-#: nottodbox/mainwindow.py:175
+#: nottodbox/mainwindow.py:176
 msgid "All open notes saved but failed to save all open diaries."
 msgstr "Tüm açık notlar kaydedildi fakat açık günlükler kaydedilemedi."
 
-#: nottodbox/mainwindow.py:177
+#: nottodbox/mainwindow.py:178
 msgid "All open diaries saved but failed to save all open notes."
 msgstr "Tüm açık günlükler kaydedildi fakat açık notlar kaydedilemedi."
 
-#: nottodbox/mainwindow.py:179
+#: nottodbox/mainwindow.py:180
 msgid "Failed to save all open notes and open diaries."
 msgstr "Tüm notlar ve günlükler kaydedilemedi."
 
-#: nottodbox/mainwindow.py:183
+#: nottodbox/mainwindow.py:184
 msgid "All open notes saved."
 msgstr "Tüm notlar kaydedildi."
 
-#: nottodbox/mainwindow.py:185
+#: nottodbox/mainwindow.py:186
 msgid "Failed to save all open notes."
 msgstr "Tüm notlar kaydedilemedi."
 
-#: nottodbox/mainwindow.py:189
+#: nottodbox/mainwindow.py:190
 msgid "All open diaries saved."
 msgstr "Tüm günlükler kaydedildi."
 
-#: nottodbox/mainwindow.py:191
+#: nottodbox/mainwindow.py:192
 msgid "Failed to save all open diaries."
 msgstr "Tüm günlükler kaydedilemedi."
 
-#: nottodbox/mainwindow.py:195
+#: nottodbox/mainwindow.py:196
 #, python-brace-format
 msgid "Diary {date} saved."
 msgstr "Günlük {date} kaydedildi."
 
-#: nottodbox/mainwindow.py:197
+#: nottodbox/mainwindow.py:198
 #, python-brace-format
 msgid "Failed to save diary {date}."
 msgstr "{date} günlüğü kaydedilemedi."
 
-#: nottodbox/mainwindow.py:214 nottodbox/mainwindow.py:225
-#: nottodbox/mainwindow.py:237
+#: nottodbox/mainwindow.py:215 nottodbox/mainwindow.py:226
+#: nottodbox/mainwindow.py:238
 msgid "Can not save new sidebar setting."
 msgstr "Yeni kenar çubuğu ayarı kaydedilemedi."
 

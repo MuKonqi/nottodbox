@@ -31,7 +31,7 @@ userdata = f"/home/{username}/.config/nottodbox/"
     
 
 from sidebar import SidebarWidget
-from home import HomeScrollArea
+from home import HomeWidget
 from notes import NotesTabWidget, notesdb, notes
 from todos import TodosWidget
 from diaries import DiariesTabWidget, today, diariesdb, diaries
@@ -56,7 +56,7 @@ class MainWindow(QMainWindow):
         self.notes = NotesTabWidget(self)
         self.todos = TodosWidget(self)
         self.diaries = DiariesTabWidget(self)
-        self.home = HomeScrollArea(self, self.todos, self.notes)
+        self.home = HomeWidget(self, self.todos, self.notes)
         self.settings = SettingsWidget(self, self.notes, self.todos, self.diaries)
         self.about = AboutWidget(self)   
 
@@ -99,8 +99,9 @@ class MainWindow(QMainWindow):
         self.dock.topLevelChanged.connect(self.dockModeChanged)
         self.dock.visibilityChanged.connect(self.dockStatusChanged)
             
-        self.setMinimumWidth(1000)
-        self.setMinimumHeight(700)
+        self.setMinimumWidth(900)
+        self.setMinimumHeight(630)
+        self.setGeometry(0, 0, 900, 630)
         self.setCentralWidget(self.widget)
 
     def closeEvent(self, a0: QCloseEvent | None):        
@@ -128,7 +129,7 @@ class MainWindow(QMainWindow):
                     except UnboundLocalError:
                         insert_for_question = _("diaries")
                         
-        if not self.home.widget().diary.closable:
+        if not self.home.diary.closable:
             try:
                 if not _("diaries") in insert_for_question:
                     insert_for_question += _(" and diaries")
@@ -164,8 +165,8 @@ class MainWindow(QMainWindow):
                     
                 if is_main_diary_unsaved:
                     call_diary_save_one = diariesdb.saveDocument(today.toString("dd.MM.yyyy"),
-                                                                 self.home.widget().diary.input.toPlainText(),
-                                                                 self.home.widget().diary.content,
+                                                                 self.home.diary.input.toPlainText(),
+                                                                 self.home.diary.content,
                                                                  False)
                 
                 if are_there_unsaved_notes and are_there_unsaved_diaries:
