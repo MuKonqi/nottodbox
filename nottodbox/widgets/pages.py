@@ -70,10 +70,6 @@ class TextFormatter(QToolBar):
         self.strikethrough_button.triggered.connect(self.setStrikeThrough)
         self.strikethrough_button.setCheckable(True)
         
-        self.fixedspacing_button = Action(self, _("Fixed spacing"))
-        self.fixedspacing_button.triggered.connect(self.setFixedSpacing)
-        self.fixedspacing_button.setCheckable(True)
-        
         self.header_menu = QMenu(self)
         self.header_menu.addAction(
             _("Paragraph text"), lambda: self.setHeadingLevel(0))
@@ -129,7 +125,6 @@ class TextFormatter(QToolBar):
         self.addAction(self.italic_button)
         self.addAction(self.underline_button)
         self.addAction(self.strikethrough_button)
-        self.addAction(self.fixedspacing_button)
         self.addSeparator()
         
         self.addWidget(self.header_button)
@@ -162,17 +157,20 @@ class TextFormatter(QToolBar):
         cur.mergeBlockFormat(blkfmt)
         
     def setBackgroundColor(self) -> None:
-        status, qcolor = ColorDialog(Qt.GlobalColor.white, self, _("Select Background Color")).getColor()
+        ok, status, qcolor = ColorDialog(self, False, Qt.GlobalColor.white, _("Select Background Color")).getColor()
         
-        if status == "ok":
+        if ok:
+            if status == "new":
+                color = qcolor
+                
+            elif status == "default":
+                color = QTextCharFormat().background()
+            
             cur = self.input.textCursor()
 
             chrfmt = cur.charFormat()
             
-            if qcolor.isValid():
-                chrfmt.setBackground(qcolor)
-            else:
-                chrfmt.setBackground(QTextCharFormat().background())
+            chrfmt.setBackground(color)
                 
             self.mergeFormat(cur, chrfmt)
         
@@ -185,17 +183,6 @@ class TextFormatter(QToolBar):
         elif chrfmt.fontWeight() == 400:
             chrfmt.setFontWeight(700)
         
-        self.mergeFormat(cur, chrfmt)
-        
-    def setFixedSpacing(self) -> None:
-        cur = self.input.textCursor()
-        chrfmt = cur.charFormat()
-        
-        if chrfmt.fontFixedPitch():
-            chrfmt.setFontFixedPitch(False)
-        else:
-            chrfmt.setFontFixedPitch(True)
-            
         self.mergeFormat(cur, chrfmt)
         
     def setHeadingLevel(self, level: int) -> None:
@@ -292,17 +279,20 @@ class TextFormatter(QToolBar):
                 QMessageBox.critical(self, _("Error"), _("The row and column numbers are required, they can not be blank."))
                 
     def setTextColor(self) -> None:
-        status, qcolor = ColorDialog(Qt.GlobalColor.white, self, _("Select Text Color")).getColor()
+        ok, status, qcolor = ColorDialog(self, False, Qt.GlobalColor.white, _("Select Text Color")).getColor()
         
-        if status == "ok":
+        if ok:
+            if status == "new":
+                color = qcolor
+                
+            elif status == "default":
+                color = QTextCharFormat().foreground()
+            
             cur = self.input.textCursor()
 
             chrfmt = cur.charFormat()
             
-            if qcolor.isValid():
-                chrfmt.setForeground(qcolor)
-            else:
-                chrfmt.setForeground(QTextCharFormat().foreground())
+            chrfmt.setForeground(color)
                 
             self.mergeFormat(cur, chrfmt)
     
@@ -340,11 +330,6 @@ class TextFormatter(QToolBar):
             self.strikethrough_button.setChecked(True)
         else:
             self.strikethrough_button.setChecked(False)
-            
-        if chrfmt.fontFixedPitch():
-            self.fixedspacing_button.setChecked(True)
-        else:
-            self.fixedspacing_button.setChecked(False)
                 
     def updateStatus(self, format: str) -> None:
         if format == "plain-text":

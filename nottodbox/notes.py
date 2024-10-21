@@ -27,18 +27,18 @@ from settings import settingsdb
 from widgets.dialogs import ColorDialog
 from widgets.other import HSeperator, Label, PushButton, VSeperator
 from widgets.pages import NormalPage, BackupPage
+from widgets.lists import TreeView
 from gettext import gettext as _
-from PySide6.QtGui import QStandardItem, QStandardItemModel, QMouseEvent, QColor
-from PySide6.QtCore import Qt, QSortFilterProxyModel
+from PySide6.QtGui import QStandardItemModel, QColor
 from PySide6.QtWidgets import *
 
 
-notes = {}
+notebook_counts = {}
+notebook_items = {}
 note_counts = {}
 note_items = {}
 note_menus = {}
-notebook_counts = {}
-notebook_items = {}
+notes = {}
 
 username = getpass.getuser()
 userdata = f"/home/{username}/.config/nottodbox/"
@@ -223,18 +223,6 @@ class NotesDB:
             return False
         else:
             return True
-        
-    def getAll(self) -> dict:
-        all = {}
-        
-        self.cur.execute("select name, creation, modification, background, foreground from __main__")
-        parents = self.cur.fetchall()
-        
-        for notebook, creation, modification, background, foreground in parents:
-            self.cur.execute(f"select name, creation, modification, background, foreground from '{notebook}'")
-            all[(notebook, creation, modification, background, foreground)] = self.cur.fetchall()
-            
-        return all
     
     def getAutosave(self, notebook: str, name: str) -> str:
         self.cur.execute(f"select autosave from '{notebook}' where name = ?", (name,))
@@ -281,13 +269,20 @@ class NotesDB:
             fetch = "global"
         return fetch
     
+    def getNoteForeground(self, notebook: str, name: str) -> str:
+        self.cur.execute(f"select foreground from '{notebook}' where name = ?", (name,))
+        try:
+            fetch = self.cur.fetchone()[0]
+        except TypeError:
+            fetch = "global"
+        return fetch
+    
     def getNotebook(self, name: str) -> tuple:
         self.cur.execute(f"""select creation, modification, 
                          background, foreground from __main__ where name = ?""", (name,))
         creation, modification, background, foreground = self.cur.fetchone()
         
-        self.cur.execute(f"""select name, creation, modification, 
-                         background, foreground from '{name}'""")
+        self.cur.execute(f"select name from '{name}'")
         return creation, modification, background, foreground, self.cur.fetchall()
     
     def getNotebookBackground(self, name: str) -> str:
@@ -306,13 +301,9 @@ class NotesDB:
             fetch = "global"
         return fetch
     
-    def getNoteForeground(self, notebook: str, name: str) -> str:
-        self.cur.execute(f"select foreground from '{notebook}' where name = ?", (name,))
-        try:
-            fetch = self.cur.fetchone()[0]
-        except TypeError:
-            fetch = "global"
-        return fetch
+    def getNotebookNames(self) -> list:
+        self.cur.execute("select name from __main__")
+        return self.cur.fetchall()
     
     def renameNote(self, notebook: str, name: str, newname: str) -> bool:
         date = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
@@ -384,7 +375,7 @@ class NotesDB:
             fetch_format = self.getFormat(notebook, name)
             
             if fetch_format == "global":
-                fetch_format == setting_format
+                fetch_format = setting_format
             
             if fetch_format == "plain-text":
                 text = notes[item].input.toPlainText()
@@ -396,10 +387,10 @@ class NotesDB:
                 text = notes[item].input.toHtml()
             
             calls[item] = self.saveDocument(notebook,
-                                        name,
-                                        text, 
-                                        notes[item].content, 
-                                        False)
+                                            name,
+                                            text, 
+                                            notes[item].content, 
+                                            False)
             
             if not calls[item]:
                 successful = False
@@ -518,7 +509,7 @@ class NotesDB:
                     fetch = self.cur.fetchone()[0]
                     
                     if fetch == date:
-                        note_items[(notebook, name)][2].setText(date)
+                        note_items[(notebook, name)][2].setText(date, name)
 
                         return True
     
@@ -545,7 +536,7 @@ class NotesDB:
                 fetch = self.cur.fetchone()[0]
                 
                 if fetch == date:
-                    notebook_items[name][2].setText(date)
+                    notebook_items[name][2].setText(date, name)
                     
                     return True
                 
@@ -572,10 +563,10 @@ class NotesTabWidget(QTabWidget):
         global notes_parent
         
         notes_parent = parent
-        self.backups = {}
-        self.note = ""
         self.notebook = ""
+        self.note = ""
         self.current_widget = None
+        self.backups = {}
         
         self.home = QWidget(self)
         self.layout_ = QGridLayout(self.home)
@@ -589,7 +580,7 @@ class NotesTabWidget(QTabWidget):
         self.treeview = NotesTreeView(self)
         
         self.entry = QLineEdit(self.home)
-        self.entry.setPlaceholderText(_("Search in the list below"))
+        self.entry.setPlaceholderText(_("Search..."))
         self.entry.setClearButtonEnabled(True)
         self.entry.textEdited.connect(self.treeview.setFilter)
         
@@ -611,9 +602,10 @@ class NotesTabWidget(QTabWidget):
         self.layout_.addWidget(self.selecteds, 0, 0, 1, 3)
         self.layout_.addWidget(HSeperator(self), 1, 0, 1, 3)
         self.layout_.addWidget(self.entry, 2, 0, 1, 1)
-        self.layout_.addWidget(self.treeview, 3, 0, 1, 1)
-        self.layout_.addWidget(VSeperator(self), 2, 1, 2, 1)
-        self.layout_.addWidget(self.none_options, 2, 2, 2, 1)
+        self.layout_.addWidget(HSeperator(self), 3, 0, 1, 1)
+        self.layout_.addWidget(self.treeview, 4, 0, 1, 1)
+        self.layout_.addWidget(VSeperator(self), 2, 1, 3, 1)
+        self.layout_.addWidget(self.none_options, 2, 2, 3, 1)
         
         self.addTab(self.home, _("Home"))
         self.setTabsClosable(True)
@@ -630,7 +622,7 @@ class NotesTabWidget(QTabWidget):
                 if not notes[self.tabText(index).replace("&", "")].closable:
                     self.question = QMessageBox.question(self, 
                                                          _("Question"),
-                                                         _("{name} note not saved.\nDo you want to directly closing or closing after saving it or cancel?")
+                                                         _("{name} note not saved.\nWhat would you like to do?")
                                                          .format(name = self.tabText(index).replace("&", "")),
                                                          QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.Save | QMessageBox.StandardButton.Cancel,
                                                          QMessageBox.StandardButton.Save)
@@ -650,7 +642,7 @@ class NotesTabWidget(QTabWidget):
                 pass
             
             if not str(self.tabText(index).replace("&", "")).endswith(f' {_("(Backup)")}'):
-                notes_parent.dock.widget().removePage(self.tabText(index).replace("&", ""), self)
+                notes_parent.dock.widget().open_pages.deletePage("notes", self.tabText(index).replace("&", ""))
                 
             self.removeTab(index)
             
@@ -687,6 +679,9 @@ class NotesTabWidget(QTabWidget):
         global setting_autosave, setting_format, setting_background, setting_foreground
         
         setting_autosave, setting_format, setting_background, setting_foreground = settingsdb.getModuleSettings("notes")
+        
+        self.treeview.setting_background = setting_background
+        self.treeview.setting_foreground = setting_foreground
 
         
 class NotesNoneOptions(QWidget):
@@ -700,17 +695,18 @@ class NotesNoneOptions(QWidget):
         self.warning_label = Label(self, _("You can select\na notebook\nor a note\non the left."))
         self.warning_label.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Maximum)
         
-        self.create_notebook = PushButton(self, _("Create notebook"))
-        self.create_notebook.clicked.connect(self.parent_.notebook_options.createNotebook)
+        self.create_notebook_button = PushButton(self, _("Create notebook"))
+        self.create_notebook_button.clicked.connect(self.parent_.notebook_options.createNotebook)
         
-        self.delete_all = PushButton(self, _("Delete all"))
-        self.delete_all.clicked.connect(self.parent_.notebook_options.deleteAll)
+        self.delete_all_button = PushButton(self, _("Delete all"))
+        self.delete_all_button.clicked.connect(self.parent_.notebook_options.deleteAll)
         
-        self.setFixedWidth(180)
+        self.setFixedWidth(200)
         self.setLayout(self.layout_)
         self.layout_.addWidget(self.warning_label)
-        self.layout_.addWidget(self.create_notebook)
-        self.layout_.addWidget(self.delete_all)
+        self.layout_.addWidget(HSeperator(self))
+        self.layout_.addWidget(self.create_notebook_button)
+        self.layout_.addWidget(self.delete_all_button)
         
         
 class NotesNotebookOptions(QWidget):
@@ -721,40 +717,42 @@ class NotesNotebookOptions(QWidget):
         
         self.layout_ = QVBoxLayout(self)
 
-        self.create_note = PushButton(self, _("Create note"))
-        self.create_note.clicked.connect(self.parent_.note_options.createNote)
+        self.create_note_button = PushButton(self, _("Create note"))
+        self.create_note_button.clicked.connect(self.parent_.note_options.createNote)
         
-        self.create_notebook = PushButton(self, _("Create notebook"))
-        self.create_notebook.clicked.connect(self.createNotebook)
+        self.create_notebook_button = PushButton(self, _("Create notebook"))
+        self.create_notebook_button.clicked.connect(self.createNotebook)
         
-        self.set_background = PushButton(self, _("Set background color"))
-        self.set_background.clicked.connect(self.setNotebookBackground)
+        self.set_background_button = PushButton(self, _("Set background color"))
+        self.set_background_button.clicked.connect(self.setNotebookBackground)
         
-        self.set_foreground = PushButton(self, _("Set text color"))
-        self.set_foreground.clicked.connect(self.setNotebookForeground)
+        self.set_foreground_button = PushButton(self, _("Set text color"))
+        self.set_foreground_button.clicked.connect(self.setNotebookForeground)
         
-        self.rename_notebook = PushButton(self, _("Rename notebook"))
-        self.rename_notebook.clicked.connect(self.renameNotebook)
+        self.rename_button = PushButton(self, _("Rename"))
+        self.rename_button.clicked.connect(self.renameNotebook)
         
-        self.reset_notebook = PushButton(self, _("Reset notebook"))
-        self.reset_notebook.clicked.connect(self.resetNotebook)
+        self.reset_button = PushButton(self, _("Reset"))
+        self.reset_button.clicked.connect(self.resetNotebook)
         
-        self.delete_notebook = PushButton(self, _("Delete notebook"))
-        self.delete_notebook.clicked.connect(self.deleteNotebook)
+        self.delete_button = PushButton(self, _("Delete"))
+        self.delete_button.clicked.connect(self.deleteNotebook)
         
-        self.delete_all = PushButton(self, _("Delete all"))
-        self.delete_all.clicked.connect(self.deleteAll)
+        self.delete_all_button = PushButton(self, _("Delete all"))
+        self.delete_all_button.clicked.connect(self.deleteAll)
         
-        self.setFixedWidth(180)
+        self.setFixedWidth(200)
         self.setLayout(self.layout_)
-        self.layout_.addWidget(self.create_note)
-        self.layout_.addWidget(self.create_notebook)
-        self.layout_.addWidget(self.set_background)
-        self.layout_.addWidget(self.set_foreground)
-        self.layout_.addWidget(self.rename_notebook)
-        self.layout_.addWidget(self.reset_notebook)
-        self.layout_.addWidget(self.delete_notebook)
-        self.layout_.addWidget(self.delete_all)
+        self.layout_.addWidget(self.create_note_button)
+        self.layout_.addWidget(self.create_notebook_button)
+        self.layout_.addWidget(HSeperator(self))
+        self.layout_.addWidget(self.set_background_button)
+        self.layout_.addWidget(self.set_foreground_button)
+        self.layout_.addWidget(self.rename_button)
+        self.layout_.addWidget(self.reset_button)
+        self.layout_.addWidget(self.delete_button)
+        self.layout_.addWidget(HSeperator(self))
+        self.layout_.addWidget(self.delete_all_button)
         
     def checkIfTheNotebookExists(self, name: str, mode: str = "normal") -> bool:
         call = notesdb.checkIfTheNotebookExists(name)
@@ -798,7 +796,7 @@ class NotesNotebookOptions(QWidget):
         call = notesdb.deleteAll()
         
         if call:
-            self.parent_.treeview.updateAll()
+            self.parent_.treeview.deleteAll()
             self.parent_.insertInformations("", "")
             
             QMessageBox.information(self, _("Successful"), _("All notebooks deleted."))
@@ -964,44 +962,45 @@ class NotesNoteOptions(QWidget):
         
         self.layout_ = QVBoxLayout(self)
         
-        self.create_note = PushButton(self, _("Create note"))
-        self.create_note.clicked.connect(self.createNote)
+        self.create_note_button = PushButton(self, _("Create note"))
+        self.create_note_button.clicked.connect(self.createNote)
         
-        self.open_note = PushButton(self, _("Open note"))
-        self.open_note.clicked.connect(self.openNote)
+        self.open_button = PushButton(self, _("Open"))
+        self.open_button.clicked.connect(self.openNote)
         
-        self.set_background = PushButton(self, _("Set background color"))
-        self.set_background.clicked.connect(self.setNoteBackground)
+        self.set_background_button = PushButton(self, _("Set background color"))
+        self.set_background_button.clicked.connect(self.setNoteBackground)
         
-        self.set_foreground = PushButton(self, _("Set text color"))
-        self.set_foreground.clicked.connect(self.setNoteForeground)
+        self.set_foreground_button = PushButton(self, _("Set text color"))
+        self.set_foreground_button.clicked.connect(self.setNoteForeground)
         
-        self.rename = PushButton(self, _("Rename note"))
-        self.rename.clicked.connect(self.renameNote)
+        self.rename_button = PushButton(self, _("Rename"))
+        self.rename_button.clicked.connect(self.renameNote)
 
-        self.show_backup = PushButton(self, _("Show backup"))
-        self.show_backup.clicked.connect(self.showBackup)
+        self.show_backup_button = PushButton(self, _("Show backup"))
+        self.show_backup_button.clicked.connect(self.showBackup)
 
-        self.restore_content = PushButton(self, _("Restore content"))
-        self.restore_content.clicked.connect(self.restoreContent)
+        self.restore_content_button = PushButton(self, _("Restore content"))
+        self.restore_content_button.clicked.connect(self.restoreContent)
         
-        self.clear_content = PushButton(self, _("Clear content"))
-        self.clear_content.clicked.connect(self.clearContent)
+        self.clear_content_button = PushButton(self, _("Clear content"))
+        self.clear_content_button.clicked.connect(self.clearContent)
         
-        self.delete_note = PushButton(self, _("Delete note"))
-        self.delete_note.clicked.connect(self.deleteNote)
+        self.delete_button = PushButton(self, _("Delete"))
+        self.delete_button.clicked.connect(self.deleteNote)
 
-        self.setFixedWidth(180)
+        self.setFixedWidth(200)
         self.setLayout(self.layout_)
-        self.layout_.addWidget(self.create_note)
-        self.layout_.addWidget(self.open_note)
-        self.layout_.addWidget(self.set_background)
-        self.layout_.addWidget(self.set_foreground)
-        self.layout_.addWidget(self.rename)
-        self.layout_.addWidget(self.show_backup)
-        self.layout_.addWidget(self.restore_content)
-        self.layout_.addWidget(self.clear_content)
-        self.layout_.addWidget(self.delete_note)
+        self.layout_.addWidget(self.create_note_button)
+        self.layout_.addWidget(HSeperator(self))
+        self.layout_.addWidget(self.open_button)
+        self.layout_.addWidget(self.set_background_button)
+        self.layout_.addWidget(self.set_foreground_button)
+        self.layout_.addWidget(self.rename_button)
+        self.layout_.addWidget(self.show_backup_button)
+        self.layout_.addWidget(self.restore_content_button)
+        self.layout_.addWidget(self.clear_content_button)
+        self.layout_.addWidget(self.delete_button)
 
     def checkIfTheNoteExists(self, notebook: str, name: str, mode: str = "normal") -> bool:
         call = notesdb.checkIfTheNoteExists(notebook, name)
@@ -1096,7 +1095,7 @@ class NotesNoteOptions(QWidget):
             self.parent_.setCurrentWidget(notes[f"{name} @ {notebook}"])
             
         else:            
-            notes_parent.dock.widget().addPage(f"{name} @ {notebook}", self.parent_)
+            notes_parent.dock.widget().open_pages.appendPage("notes", f"{name} @ {notebook}")
             notes[f"{name} @ {notebook}"] = NormalPage(self, "notes", notebook, name, setting_autosave, setting_format, notesdb)
             self.parent_.addTab(notes[f"{name} @ {notebook}"], f"{name} @ {notebook}")
             self.parent_.setCurrentWidget(notes[f"{name} @ {notebook}"])
@@ -1250,245 +1249,98 @@ class NotesNoteOptions(QWidget):
         self.parent_.setCurrentWidget(self.parent_.backups[f'{name} @ {notebook}'])
 
 
-class NotesTreeView(QTreeView):
-    def __init__(self, parent: NotesTabWidget, caller: str = "notes") -> None:
-        super().__init__(parent)
+class NotesTreeView(TreeView):
+    def __init__(self, parent: NotesTabWidget, caller: str = "own") -> None:
+        super().__init__(parent, "notes", caller)
         
-        self.parent_ = parent
-        self.caller = caller
-
-        self.proxy = QSortFilterProxyModel(self)
-        self.proxy.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
-        self.proxy.setRecursiveFilteringEnabled(True)
+        self.db = notesdb
+        self.parent_counts = notebook_counts
+        self.parent_items = notebook_items
+        self.child_counts = note_counts
+        self.child_items = note_items
+        self.child_menus = note_menus
+        self.setting_background = setting_background
+        self.setting_foreground = setting_foreground
         
-        if self.caller == "notes":
+        if self.caller == "own":
+            self.menu = notes_parent.menuBar().addMenu(_("Notes"))
+            
             global notes_model
             
             notes_model = QStandardItemModel(self)
             notes_model.setHorizontalHeaderLabels([_("Name"), _("Creation"), _("Modification")])
             
+            self.appendAll()
+            
         self.proxy.setSourceModel(notes_model)
         
-        self.setModel(self.proxy)
-        self.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
-        self.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
-        self.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.setStatusTip(_("Double-click to opening a note."))
-        self.header().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
-
-        if self.caller == "notes":
-            self.selectionModel().currentRowChanged.connect(
-                lambda: self.parent_.insertInformations(self.getParentText(), self.getCurrentText()))
-        
-        self.doubleClicked.connect(lambda: self.openNote(self.getParentText(), self.getCurrentText()))
-        
-        self.appendAll()
 
     def appendAll(self) -> None:
-        global notes_menu
+        super().appendAll()
         
-        call = notesdb.getAll()
-        
-        if self.caller == "notes":
-            if not "notes_menu" in globals():
-                notes_menu = notes_parent.menuBar().addMenu(_("Notes"))
+        for row in notebook_items.values():
+            notes_model.appendRow(row)
             
-            notes_menu.clear() 
-        
-        if call != None and self.caller == "notes":
-            model_count = -1
+        if self.caller == "own":
+            for notebook, name in note_items.keys():
+                note_menus[(notebook, name)] = self.menu.addAction(
+                    f"{name} @ {notebook}", lambda name = name, notebook = notebook: self.doubleClickEvent(notebook, name))
             
-            all = [*call]
+    def appendNote(self, notebook: str, name: str) -> None:     
+        super().appendChild(notebook, name)
+        
+        if self.caller == "own":
+            note_menus[(notebook, name)] = self.menu.addAction(
+                f"{name} @ {notebook}", lambda name = name, notebook = notebook: self.doubleClickEvent(notebook, name))
             
-            for (notebook, creation_notebook, modification_notebook, 
-                 background_notebook, foreground_notebook) in all:
-                model_count += 1
-                notebook_count = -1
-                
-                notebook_counts[notebook] = model_count
-                notebook_items[notebook] = [QStandardItem(notebook),
-                                            QStandardItem(creation_notebook),
-                                            QStandardItem(modification_notebook)]
-                
-                for item in notebook_items[notebook]:
-                    if background_notebook == "global" and setting_background != "default":
-                        item.setBackground(QColor(setting_background))
-                    elif background_notebook != "global" and background_notebook != "default":
-                        item.setBackground(QColor(background_notebook))
-                    
-                    if foreground_notebook == "global" and setting_foreground != "default":
-                        item.setForeground(QColor(setting_foreground))
-                    elif foreground_notebook != "global" and foreground_notebook != "default":
-                        item.setForeground(QColor(foreground_notebook))
-                
-                for (name, creation_note, modification_note, 
-                     background_note, foreground_note) in call[notebook, creation_notebook, modification_notebook, 
-                                                               background_notebook, foreground_notebook]:
-                    notebook_count += 1
-                    
-                    note_counts[(notebook, name)] = notebook_count
-                    note_items[(notebook, name)] = [QStandardItem(name), 
-                                                    QStandardItem(creation_note), 
-                                                    QStandardItem(modification_note)]
-                    
-                    for item in note_items[(notebook, name)]:
-                        if background_note == "global" and setting_background != "default":
-                            item.setBackground(QColor(setting_background))
-                        elif background_note != "global" and background_note != "default":
-                            item.setBackground(QColor(background_note))
-                        
-                        if foreground_note == "global" and setting_foreground != "default":
-                            item.setForeground(QColor(setting_foreground))
-                        elif foreground_note != "global" and foreground_note != "default":
-                            item.setForeground(QColor(foreground_note))
-                
-                    notebook_items[notebook][0].appendRow(note_items[(notebook, name)])
-                    
-                    if self.caller == "notes":
-                        note_menus[(notebook, name)] = notes_menu.addAction(
-                            f"{name} @ {notebook}", lambda name = name, notebook = notebook: self.openNote(notebook, name))
-                
-                notes_model.appendRow(notebook_items[notebook])
-            
-    def appendNote(self, notebook: str, name: str) -> None:
-        creation_note, modification_note, background_note, foreground_note = notesdb.getNote(notebook, name)
+    def appendNotebook(self, name: str) -> None:
+        super().appendParent(name, notes_model.rowCount())
         
-        note_counts[(notebook, name)] = notebook_items[notebook][0].rowCount()
-        note_items[(notebook, name)] = [QStandardItem(name), 
-                                        QStandardItem(creation_note), 
-                                        QStandardItem(modification_note)]
+        notes_model.appendRow(notebook_items[name])
         
-        for item in note_items[(notebook, name)]:
-            if background_note == "global" and setting_background != "default":
-                item.setBackground(QColor(setting_background))
-            elif background_note != "global" and background_note != "default":
-                item.setBackground(QColor(background_note))
-            
-            if foreground_note == "global" and setting_foreground != "default":
-                item.setForeground(QColor(setting_foreground))
-            elif foreground_note != "global" and foreground_note != "default":
-                item.setForeground(QColor(foreground_note))
-    
-        notebook_items[notebook][0].appendRow(note_items[(notebook, name)])
+    def deleteAll(self) -> None:
+        global notebook_counts, notebook_items, note_counts, note_items, note_menus
         
-        if self.caller == "notes":
-            note_menus[(notebook, name)] = notes_menu.addAction(
-                f"{name} @ {notebook}", lambda name = name, notebook = notebook: self.openNote(notebook, name))
-            
-    def appendNotebook(self, notebook: str) -> None:
-        (creation_notebook, modification_notebook, 
-         background_notebook, foreground_notebook, notes) = notesdb.getNotebook(notebook)
+        notebook_counts = {}
+        notebook_items = {}
+        note_counts = {}
+        note_items = {}
+        note_menus = {}
         
-        model_count = notes_model.rowCount()
-        notebook_count = -1
+        notes_model.clear()
+        notes_model.setHorizontalHeaderLabels([_("Name"), _("Creation"), _("Modification")])
         
-        notebook_counts[notebook] = model_count
-        notebook_items[notebook] = [QStandardItem(notebook),
-                                    QStandardItem(creation_notebook),
-                                    QStandardItem(modification_notebook)]
-        
-        for item in notebook_items[notebook]:
-            if background_notebook == "global" and setting_background != "default":
-                item.setBackground(QColor(setting_background))
-            elif background_notebook != "global" and background_notebook != "default":
-                item.setBackground(QColor(background_notebook))
-            
-            if foreground_notebook == "global" and setting_foreground != "default":
-                item.setForeground(QColor(setting_foreground))
-            elif foreground_notebook != "global" and foreground_notebook != "default":
-                item.setForeground(QColor(foreground_notebook))
-        
-        for name, creation_note, modification_note, background_note, foreground_note in notes:
-            notebook_count += 1
-            
-            note_counts[(notebook, name)] = notebook_count
-            note_items[(notebook, name)] = [QStandardItem(name), 
-                                            QStandardItem(creation_note), 
-                                            QStandardItem(modification_note)]
-            
-            for item in note_items[(notebook, name)]:
-                if background_note == "global" and setting_background != "default":
-                    item.setBackground(QColor(setting_background))
-                elif background_note != "global" and background_note != "default":
-                    item.setBackground(QColor(background_note))
-                
-                if foreground_note == "global" and setting_foreground != "default":
-                    item.setForeground(QColor(setting_foreground))
-                elif foreground_note != "global" and foreground_note != "default":
-                    item.setForeground(QColor(foreground_note))
-        
-            notebook_items[notebook][0].appendRow(note_items[(notebook, name)])
-            
-            if self.caller == "notes":
-                note_menus[(notebook, name)] = notes_menu.addAction(
-                    f"{name} @ {notebook}", lambda name = name, notebook = notebook: self.openNote(notebook, name))
-        
-        notes_model.appendRow(notebook_items[notebook])
+        self.menu.clear()
         
     def deleteNote(self, notebook: str, name: str) -> None:
-        notebook_items[notebook][0].removeRow(note_counts[(notebook, name)])
+        super().deleteChild(notebook, name)
         
-        del note_items[(notebook, name)]
-        del note_counts[(notebook, name)]
-        
-        if self.caller == "notes":
-            notes_menu.removeAction(note_menus[(notebook, name)])
+        if self.caller == "own":
+            self.menu.removeAction(note_menus[(notebook, name)])
             
             del note_menus[(notebook, name)]
         
-    def deleteNotebook(self, notebook: str) -> None:
-        notes_model.removeRow(notebook_counts[notebook])
+    def deleteNotebook(self, name: str) -> None:
+        super().deleteParent(name)
         
-        del notebook_counts[notebook]
-        del notebook_items[notebook]
+        notes_model.removeRow(notebook_counts[name])
         
-        for key in note_items.copy().keys():
-            if key[0] == notebook:
-                del note_items[key]
-                
-        for key in note_counts.copy().keys():
-            if key[0] == notebook:
-                del note_counts[key]
-                
-        if self.caller == "notes":
+        for parent_ in notebook_counts.keys():
+            if notebook_counts[parent_] > notebook_counts[name]:
+                notebook_counts[parent_] -= 1
+         
+        del notebook_counts[name]
+        del notebook_items[name]
+        
+        if self.caller == "own":
             for key in note_menus.copy().keys():
-                if key[0] == notebook:
-                    notes_menu.removeAction(note_menus[key])
+                if key[0] == name:
+                    self.menu.removeAction(note_menus[key])
                     
                     del note_menus[key]
-                    
-    def getParentText(self) -> str:
-        try:
-            if self.currentIndex().parent().isValid():
-                return self.proxy.itemData(self.currentIndex().parent())[0]
-            
-            else:
-                return self.proxy.itemData(self.currentIndex())[0]
-            
-        except KeyError:
-            return ""
-        
-    def getCurrentText(self) -> str:
-        try:
-            if self.currentIndex().parent().isValid():
-                return self.proxy.itemData(self.currentIndex())[0]
-            
-            else:
-                return ""
-            
-        except KeyError:
-            return ""
-                
-    def mousePressEvent(self, e: QMouseEvent | None) -> None:
-        index = self.indexAt(e.pos())
-        
-        if index.column() == 0:
-            super().mousePressEvent(e)
-            
-        else:
-            QMessageBox.warning(self, _("Warning"), _("Please select a note or a notebook only by clicking on the first column."))
     
-    def openNote(self, notebook: str = "", name: str = "") -> None:
+    def doubleClickEvent(self, notebook: str = "", name: str = "") -> None:
         if notebook != "":
             if name == "":
                 try:
@@ -1517,72 +1369,28 @@ class NotesTreeView(QTreeView):
                 self.parent_.setCurrentWidget(notes[f"{name} @ {notebook}"])
                 
             else:            
-                notes_parent.dock.widget().addPage(f"{name} @ {notebook}", self.parent_)
+                notes_parent.dock.widget().open_pages.appendPage("notes", f"{name} @ {notebook}")
                 notes[f"{name} @ {notebook}"] = NormalPage(self, "notes", notebook, name, setting_autosave, setting_format, notesdb)
                 self.parent_.addTab(notes[f"{name} @ {notebook}"], f"{name} @ {notebook}")
                 self.parent_.setCurrentWidget(notes[f"{name} @ {notebook}"])
                 
         else:
             QMessageBox.critical(self, _("Error"), _("Please select a note or a notebook."))
-                
-    def setFilter(self, text: str) -> None:
-        self.proxy.beginResetModel()
-        self.proxy.setFilterFixedString(text)
-        self.proxy.endResetModel()
-        
-    def updateAll(self) -> None:
-        notes_model.clear()
-        notes_model.setHorizontalHeaderLabels([_("Name"), _("Creation"), _("Modification")])
-        
-        notes_menu.clear()
-        
-        self.appendAll()
         
     def updateNote(self, notebook: str, name: str, newname: str) -> None:
-        note_counts[(notebook, newname)] = note_counts.pop((notebook, name))
-        note_items[(notebook, newname)] = note_items.pop((notebook, name))
-        note_menus[(notebook, newname)] = note_menus.pop((notebook, name))
-        
-        note_items[(notebook, newname)][0].setText(newname)
+        super().updateChild(notebook, name, newname)
         
     def updateNoteBackground(self, notebook: str, name: str, color: str) -> None:
-        for item in note_items[(notebook, name)]:
-            if color == "global" and setting_background != "default":
-                item.setBackground(QColor(setting_background))    
-            elif color != "global" and color != "default":
-                item.setBackground(QColor(color))
-            else:
-                item.setData(None, Qt.ItemDataRole.BackgroundRole)
+        super().updateChildBackground(notebook, name, color)
+        
+    def updateNoteForeground(self, notebook: str, name: str, color: str) -> None:
+        super().updateParentBackground(notebook, name, color)
                 
     def updateNotebook(self, name: str, newname: str) -> None:
-        notebook_counts[newname] = notebook_counts.pop(name)
-        notebook_items[newname] = notebook_items.pop(name)
-        
-        notebook_items[newname][0].setText(newname)
+        super().updateParent(name, newname)
         
     def updateNotebookBackground(self, name: str, color: str) -> None:
-        for item in notebook_items[name]:
-            if color == "global" and setting_background != "default":
-                item.setBackground(QColor(setting_background))    
-            elif color != "global" and color != "default":
-                item.setBackground(QColor(color))
-            else:
-                item.setData(None, Qt.ItemDataRole.BackgroundRole)
+        super().updateParentBackground(name, color)
                 
     def updateNotebookForeground(self, name: str, color: str) -> None:
-        for item in notebook_items[name]:
-            if color == "global" and setting_foreground != "default":
-                item.setForeground(QColor(setting_foreground))
-            elif color != "global" and color != "default":
-                item.setForeground(QColor(color))
-            else:
-                item.setData(None, Qt.ItemDataRole.ForegroundRole)
-                
-    def updateNoteForeground(self, notebook: str, name: str, color: str) -> None:
-        for item in note_items[(notebook, name)]:
-            if color == "global" and setting_foreground != "default":
-                item.setForeground(QColor(setting_foreground))
-            elif color != "global" and color != "default":
-                item.setForeground(QColor(color))
-            else:
-                item.setData(None, Qt.ItemDataRole.ForegroundRole)
+        super().updateParentForeground(name, color)

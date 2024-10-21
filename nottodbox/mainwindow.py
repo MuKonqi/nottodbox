@@ -71,7 +71,7 @@ class MainWindow(QMainWindow):
         self.setStatusBar(self.statusbar)
         
         self.dock = QDockWidget(self)
-        self.dock.setFixedWidth(180)
+        self.dock.setFixedWidth(125)
         self.dock.setStyleSheet("margin: 0px")
         self.dock.setFeatures(QDockWidget.DockWidgetFeature.DockWidgetClosable |
                               QDockWidget.DockWidgetFeature.DockWidgetFloatable |
@@ -99,46 +99,29 @@ class MainWindow(QMainWindow):
         self.dock.topLevelChanged.connect(self.dockModeChanged)
         self.dock.visibilityChanged.connect(self.dockStatusChanged)
             
-        self.setMinimumWidth(900)
-        self.setMinimumHeight(630)
-        self.setGeometry(0, 0, 900, 630)
+        self.setMinimumWidth(1000)
+        self.setMinimumHeight(700)
+        self.setGeometry(0, 0, 1000, 700)
         self.setCentralWidget(self.widget)
 
     def closeEvent(self, a0: QCloseEvent | None):        
-        stringlist = self.dock.widget().model1.stringList()
+        pages = self.dock.widget().open_pages.pages
         
         are_there_unsaved_notes = False
         are_there_unsaved_diaries = False
         is_main_diary_unsaved = False
         
-        for page in stringlist:
-            if page.startswith(_("Note")) and not page.endswith(_(" (Backup)")):
-                length = len(_("Note: "))
-                if not are_there_unsaved_notes and not notes[page[length:]].closable:
+        for module, page in pages:
+            if module == "notes" and not page.endswith(_(" (Backup)")):
+                if not are_there_unsaved_notes and not notes[page].closable:
                     are_there_unsaved_notes = True
-                    
-                    insert_for_question = _("notes")
                 
-            elif page.startswith(_("Diary")) and not page.endswith(_(" (Backup)")):
-                length = len(_("Diary: "))
-                if not are_there_unsaved_diaries and not diaries[page[length:]].closable:
+            elif module == "diaries" and not page.endswith(_(" (Backup)")):
+                if not are_there_unsaved_diaries and not diaries[page].closable:
                     are_there_unsaved_diaries = True
-                    
-                    try:
-                        insert_for_question += _(" and diaries")
-                    except UnboundLocalError:
-                        insert_for_question = _("diaries")
                         
         if not self.home.diary.closable:
-            try:
-                if not _("diaries") in insert_for_question:
-                    insert_for_question += _(" and diaries")
-            except UnboundLocalError:
-                    insert_for_question = _("diaries")
-            finally:
-                is_main_diary_unsaved = True
-                stringlist = None
-
+            is_main_diary_unsaved = True
 
         if not are_there_unsaved_notes and not are_there_unsaved_diaries and not is_main_diary_unsaved:
             self.dock_closed = True
@@ -147,57 +130,42 @@ class MainWindow(QMainWindow):
         else:
             self.question = QMessageBox.question(self,
                                                  _("Question"),
-                                                 _("Some {pages} are not saved.\n"
-                                                   + "Do you want to directly closing or closing after saving them or cancel?")
-                                                 .format(pages = insert_for_question),
+                                                 _("Some pages are not saved.\nWhat would you like to do?"),
                                                  QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.SaveAll | QMessageBox.StandardButton.Cancel,
                                                  QMessageBox.StandardButton.SaveAll)
             
             if self.question == QMessageBox.StandardButton.Yes:
                 return super().closeEvent(a0)
 
-            elif self.question == QMessageBox.StandardButton.SaveAll:                
+            elif self.question == QMessageBox.StandardButton.SaveAll:    
+                successful = True
+                            
                 if are_there_unsaved_notes:
-                    call_notes_save_all = notesdb.saveAll()
+                    call_save_all_notes = notesdb.saveAll()
+                    
+                    if not call_save_all_notes:
+                        successful = False
                 
                 if are_there_unsaved_diaries:
-                    call_diaries_save_all = diariesdb.saveAll()
+                    call_save_all_diaries = diariesdb.saveAll()
+                    
+                    if not call_save_all_diaries:
+                        successful = False
                     
                 if is_main_diary_unsaved:
-                    call_diary_save_one = diariesdb.saveDocument(today.toString("dd.MM.yyyy"),
-                                                                 self.home.diary.input.toPlainText(),
-                                                                 self.home.diary.content,
-                                                                 False)
-                
-                if are_there_unsaved_notes and are_there_unsaved_diaries:
-                    if call_notes_save_all and call_diaries_save_all:
-                        QMessageBox.information(self, _("Successful"), _("All open notes and open diaries saved."))
-                    elif call_notes_save_all and not call_diaries_save_all:
-                        QMessageBox.warning(self, _("Warning"), _("All open notes saved but failed to save all open diaries."))
-                    elif not call_notes_save_all and call_diaries_save_all:
-                        QMessageBox.warning(self, _("Warning"), _("All open diaries saved but failed to save all open notes."))
-                    elif not call_notes_save_all and not call_diaries_save_all:
-                        QMessageBox.critical(self, _("Error"), _("Failed to save all open notes and open diaries."))
+                    call_save_todays_diary = diariesdb.saveDocument(today.toString("dd.MM.yyyy"),
+                                                                    self.home.diary.input.toPlainText(),
+                                                                    self.home.diary.content,
+                                                                    False)
                     
-                elif are_there_unsaved_notes: 
-                    if call_notes_save_all:
-                        QMessageBox.information(self, _("Successful"), _("All open notes saved."))
-                    elif not call_notes_save_all:
-                        QMessageBox.critical(self, _("Error"), _("Failed to save all open notes."))
+                    if not call_save_todays_diary:
+                        successful = False
                 
-                elif are_there_unsaved_diaries:
-                    if call_diaries_save_all:
-                        QMessageBox.information(self, _("Successful"), _("All open diaries saved."))
-                    elif not call_diaries_save_all:
-                        QMessageBox.critical(self, _("Error"), _("Failed to save all open diaries."))
-                        
-                elif is_main_diary_unsaved:
-                    if call_diary_save_one:
-                        QMessageBox.information(self, _("Successful"), _("Diary {date} saved.").format(date = today.toString("dd.MM.yyyy")))
-                    elif not call_diary_save_one:
-                        QMessageBox.critical(self, _("Error"), _("Failed to save diary {date}.").format(date = today.toString("dd.MM.yyyy")))
-                        
+                if not successful:
+                    QMessageBox.critical(self, _("Error"), _("Failed to save some pages."))
+                    
                 self.dock_closed = True
+                        
                 return super().closeEvent(a0)
             
             else:

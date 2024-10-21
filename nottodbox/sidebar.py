@@ -24,8 +24,10 @@ import getpass
 import os
 import sqlite3
 from gettext import gettext as _
-from widgets.other import Label, PushButton
-from PySide6.QtCore import QStringListModel, QSortFilterProxyModel
+from widgets.other import HSeperator, Label, PushButton
+from widgets.lists import StandardItem
+from PySide6.QtCore import Qt, QStringListModel, QSortFilterProxyModel
+from PySide6.QtGui import QStandardItemModel
 from PySide6.QtWidgets import *
 
 
@@ -33,35 +35,25 @@ username = getpass.getuser()
 userdata = f"/home/{username}/.config/nottodbox/"
 if not os.path.isdir(userdata):
     os.mkdir(userdata)
-    
+
 
 class SidebarDB:
     def __init__(self) -> None:
         self.db = sqlite3.connect(f"{userdata}sidebar.db")
         self.cur = self.db.cursor()
         
-    def addPage(self, page: str, module: str) -> bool:
+    def appendPage(self, module: str, page: str) -> bool:
         try:
-            self.cur.execute(f"insert into pages (page) values ('{module}-{page}')")
+            self.cur.execute("insert into history (module, page) values (?, ?)", (module, page))
             self.db.commit()
 
         except sqlite3.IntegrityError:
             pass
         
-        self.cur.execute(f"select page from pages where page = '{module}-{page}'")
-        control = self.cur.fetchone()
-
-        try:
-            if control[0] == f"{module}-{page}":            
-                return True
-            else:
-                return False
-
-        except TypeError:
-            return False
+        return self.checkIfThePageExists(module, page)
         
-    def checkIfThePageExists(self, name: str) -> bool:
-        self.cur.execute(f"select * from pages where page = '{name}'")
+    def checkIfThePageExists(self, module: str, page: str) -> bool:
+        self.cur.execute("select * from history where module = ? and page = ?", (module, page))
         
         try:
             self.cur.fetchone()[0]
@@ -72,7 +64,7 @@ class SidebarDB:
         
     def checkIfTheTableExists(self) -> bool:
         try:
-            self.cur.execute("select * from pages")
+            self.cur.execute("select * from history")
             return True
         
         except sqlite3.OperationalError:
@@ -80,21 +72,22 @@ class SidebarDB:
         
     def createTable(self) -> bool:
         self.cur.execute("""
-        CREATE TABLE IF NOT EXISTS pages (
-            page TEXT NOT NULL PRIMARY KEY
+        CREATE TABLE IF NOT EXISTS history (
+            module TEXT NOT NULL,
+            page TEXT NOT NULL
         );""")
         self.db.commit()
         
         return self.checkIfTheTableExists()
     
-    def deletePage(self, page: str, module: str) -> bool:
-        call = self.checkIfThePageExists(f"{module}-{page}")
+    def deletePage(self, module: str, page: str) -> bool:
+        call = self.checkIfThePageExists(module, page)
         
         if call:
-            self.cur.execute(f"delete from pages where page = '{module}-{page}'")
+            self.cur.execute("delete from history where module = ? and page = ?", (module, page))
             self.db.commit()
             
-            call = self.checkIfThePageExists(f"{module}-{page}")
+            call = self.checkIfThePageExists(module, page)
             
             if call:
                 return False
@@ -104,12 +97,12 @@ class SidebarDB:
         else:
             return True
         
-    def getNames(self) -> list:
-        self.cur.execute("select * from pages")
+    def getAll(self) -> list:
+        self.cur.execute("select module, page from history")
         return self.cur.fetchall()
         
     def recreateTable(self) -> bool:
-        self.cur.execute(f"DROP TABLE IF EXISTS pages")
+        self.cur.execute(f"DROP TABLE IF EXISTS history")
         self.db.commit()
         
         call = self.checkIfTheTableExists()
@@ -141,198 +134,155 @@ class SidebarWidget(QWidget):
         
         self.entry = QLineEdit(self)
         self.entry.setClearButtonEnabled(True)
-        self.entry.setPlaceholderText(_("Search in lists"))
+        self.entry.setPlaceholderText(_("Search..."))
         self.entry.textChanged.connect(self.setFilter)
         
-        self.model1 = QStringListModel(self)
-
-        self.proxy1 = QSortFilterProxyModel(self)
-        self.proxy1.setSourceModel(self.model1)
+        self.open_pages_label = Label(self, _("Open Pages"))
+        self.open_pages = SidebarOpenPages(self)
         
-        self.label1 = Label(self, _("Currently Open Pages"))
+        self.history_label = Label(self, _("History"))
+        self.history = SidebarHistory(self)
         
-        self.listview1 = QListView(self)
-        self.listview1.setStatusTip(_("Double-click to going to selected page."))
-        self.listview1.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
-        self.listview1.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
-        self.listview1.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
-        self.listview1.setModel(self.proxy1)
-        self.listview1.doubleClicked.connect(
-            lambda: self.goToPage(self.proxy1.itemData(self.listview1.currentIndex())))
-        
-        self.model2 = QStringListModel(self)
-
-        self.proxy2 = QSortFilterProxyModel(self)
-        self.proxy2.setSourceModel(self.model2)
-        
-        self.label2 = Label(self, _("Last Opened Pages"))
-        
-        self.listview2 = QListView(self)
-        self.listview2.setStatusTip(_("Double-click to going to selected page."))
-        self.listview2.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
-        self.listview2.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
-        self.listview2.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
-        self.listview2.setModel(self.proxy2)
-        self.listview2.doubleClicked.connect(
-            lambda: self.goToPage(self.proxy2.itemData(self.listview2.currentIndex())))
-        
-        self.label_2nd = Label(self, _('Only for 2nd list:'))
-        
-        self.buttons = QWidget(self)
-        self.buttons_layout = QHBoxLayout(self.buttons)
-        
-        self.delete_button = PushButton(self.buttons, _("Delete"))
+        self.delete_button = PushButton(self, _("Delete"))
+        self.delete_button.setFixedHeight(17.5)
         self.delete_button.clicked.connect(
-            lambda: self.deletePage(self.proxy2.itemData(self.listview2.currentIndex())))
+            lambda: self.history.deletePage(self.history.getModule(), self.history.getPage()))
         
-        self.clear_button = PushButton(self.buttons, _("Clear"))
-        self.clear_button.clicked.connect(self.clearList)
-        
-        self.buttons.setLayout(self.buttons_layout)
-        self.buttons_layout.addWidget(self.delete_button)
-        self.buttons_layout.addWidget(self.clear_button)
+        self.clear_button = PushButton(self, _("Clear"))
+        self.clear_button.setFixedHeight(17.5)
+        self.clear_button.clicked.connect(
+            self.history.deleteAll)
         
         self.setLayout(self.layout_)
         self.layout_.addWidget(self.entry)
-        self.layout_.addWidget(self.label1)
-        self.layout_.addWidget(self.listview1)
-        self.layout_.addWidget(self.label2)
-        self.layout_.addWidget(self.listview2)
-        self.layout_.addWidget(self.label_2nd)
-        self.layout_.addWidget(self.buttons)
+        self.layout_.addWidget(HSeperator(self))
+        self.layout_.addWidget(self.open_pages_label)
+        self.layout_.addWidget(self.open_pages)
+        self.layout_.addWidget(HSeperator(self))
+        self.layout_.addWidget(self.history_label)
+        self.layout_.addWidget(self.history)
+        self.layout_.addWidget(self.delete_button)
+        self.layout_.addWidget(self.clear_button)
         
-        self.insertPages()
+    def setFilter(self, text: str):
+        self.open_pages.setFilter(text)
+        self.history.setFilter(text)
         
-    def addPage(self, text: str, target: QTabWidget) -> None:
-        stringlist = self.model1.stringList()
-
-        if target == self.notes:
-            call = sidebardb.addPage(text, "notes")
-
-            stringlist.append(_("Note: {name}").format(name = text))
+        
+class SidebarTreeView(QTreeView):
+    def __init__(self, parent: SidebarWidget) -> None:
+        super().__init__(parent)
+        
+        self.parent_ = parent
+        
+        self.counts = {}
+        self.pages = []
+        
+        self.model_ = QStandardItemModel(self)
+        self.model_.setHorizontalHeaderLabels([_("Type"), _("Page")])
+        
+        self.proxy = QSortFilterProxyModel(self)
+        self.proxy.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
+        self.proxy.setRecursiveFilteringEnabled(True)
+        self.proxy.setSourceModel(self.model_)
+        
+        self.setModel(self.proxy)
+        self.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
+        self.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+        self.header().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
+        self.setStatusTip(_("Double-click to going to selected page."))
+        
+        self.doubleClicked.connect(lambda: self.doubleClickEvent(self.getModule(), self.getPage()))
+        
+    def appendPage(self, module: str, page: str) -> None:
+        self.counts[(module, page)] = self.model_.rowCount()
+        self.pages.append((module, page))
+        
+        self.model_.appendRow([StandardItem(_("Note") if module == "notes" else _("Diary"), [module, page]), 
+                               StandardItem(page, [module, page])])
+    
+    def deletePage(self, module: str, page: str) -> None:
+        self.model_.removeRow(self.counts[module, page])
+        
+        for parent_, child_ in self.counts.keys():
+            if self.counts[(parent_, child_)] > self.counts[(module, page)]:
+                self.counts[(parent_, child_)] -= 1
+                
+        del self.counts[(module, page)]
+        self.pages.remove((module, page))
+        
+    def doubleClickEvent(self, module: str, page: str) -> None:
+        if module == "notes":
+            name, notebook = str(page).split(" @ ")
+            self.parent_.notes.treeview.doubleClickEvent(notebook, name)
             
-        elif target == self.todos:
-            call = sidebardb.addPage(text, "todos")
+        elif module == "diaries":
+            self.parent_.diaries.calendar.openCreate(page)
+        
+    def getModule(self) -> str:
+        if self.currentIndex().isValid():
+            return self.currentIndex().data(Qt.ItemDataRole.UserRole)
+        
+        else:
+            return ""
+                    
+    def getPage(self) -> str:
+        if self.currentIndex().isValid():
+            return self.currentIndex().data(Qt.ItemDataRole.UserRole + 1)
+        
+        else:
+            return ""
             
-            stringlist.append(_("Todo list: {todolist}").format(todolist = text))
-            
-        elif target == self.diaries:
-            call = sidebardb.addPage(text, "diaries")
-            
-            stringlist.append(_("Diary: {date}").format(date = text))
-
+    def setFilter(self, text: str) -> None:
+        self.proxy.beginResetModel()
+        self.proxy.setFilterFixedString(text)
+        self.proxy.endResetModel()
+        
+        
+class SidebarOpenPages(SidebarTreeView):
+    def appendPage(self, module: str, page: str) -> None:
+        super().appendPage(module, page)
+        
+        self.parent_.history.appendPage(module, page)
+        
+        call = sidebardb.appendPage(module, page)
+        
         if not call:
-            QMessageBox.critical(self, _("Error"), _("Failed to add {page} to 2nd list.").format(page = text))
+            QMessageBox.critical(self, _("Error"), _("Failed to add {page} page to history.").format(page = page))
+            
+
+class SidebarHistory(SidebarTreeView):
+    def __init__(self, parent: SidebarWidget):
+        super().__init__(parent)
         
-        self.model1.setStringList(stringlist)
+        call = sidebardb.getAll()
         
-        self.insertPages()
+        for module, page in call:
+            self.appendPage(module, page)
+            
+    def appendPage(self, module: str, page: str):
+        if (module, page) not in self.pages:
+            super().appendPage(module, page)
+            
+    def deleteAll(self) -> None:
+        self.counts = {}
         
-    def clearList(self) -> None:
+        self.model_.clear()
+        self.model_.setHorizontalHeaderLabels([_("Type"), _("Page")])
+        
         call = sidebardb.recreateTable()
         
-        self.insertPages()
-        
         if call:
-            QMessageBox.information(self, _("Successful"), _("2nd list cleaned."))
-        else:
-            QMessageBox.critical(self, _("Error"), _("Failed to clear 2nd list."))
+            QMessageBox.information(self, _("Successful"), _("History cleared."))
             
-    def deletePage(self, key: list) -> None:
-        try:
-            text = key[0]
+        if not call:
+            QMessageBox.critical(self, _("Error"), _("Failed to clear history."))
             
-        except KeyError:
-            QMessageBox.critical(self, _("Error"), _("The selection is invalid."))
-            
-            return
+    def deletePage(self, module: str, page: str):
+        super().deletePage(module, page)
         
-        if text.startswith(_("Note: ")):
-            length = len(_("Note: "))
-            module = "notes"
-                
-        elif text.startswith(_("Todo list: ")):
-            length = len(_("Todo list: "))
-            module = "todos"
-
-        elif text.startswith(_("Diary: ")):
-            length = len(_("Diary: "))
-            module = "diaries"
+        call = sidebardb.deletePage(module, page)
         
-        call = sidebardb.deletePage(text[length:], module)
-        
-        self.insertPages()
-        
-        if call:
-            QMessageBox.information(self, _("Successful"), _("{page} deleted from 2nd list.").format(page = text[length:]))
-        else:
-            QMessageBox.critical(self, _("Error"), _("Failed to delete {page} from 2nd list.").format(page = text[length:]))
-
-    def goToPage(self, key: list) -> None:
-        try:
-            text = key[0]
-            
-        except KeyError:
-            QMessageBox.critical(self, _("Error"), _("The selection is invalid."))
-            
-            return
-        
-        if text.startswith(_("Note: ")):
-            length = len(_("Note: "))
-            
-            try:
-                notebook, name = str(text[length:]).split(" @ ")
-                self.notes.treeview.openNote(notebook, name)
-            
-            except ValueError:
-                QMessageBox.critical(self, _("Error"), _("Failed to open note via {text} text.").format(text = text[length:]))
-                
-        elif text.startswith(_("Todo list: ")):
-            length = len(_("Todo list: "))
-            
-            self.todos.treeview.openTodolistOrSetStatus(text[length:], "")
-
-        elif text.startswith(_("Diary: ")):
-            length = len(_("Diary: "))
-            
-            self.diaries.calendar.openCreate(text[length:])
-        
-    def insertPages(self) -> None:
-        call = sidebardb.getNames()
-        pages = []
-
-        for page in call:
-            page = page[0]
-            
-            if str(page).startswith("notes-"):
-                pages.append(_("Note: {page}").format(page = page[6:]))
-            if str(page).startswith("todos-"):
-                pages.append(_("Todo list: {page}").format(page = page[6:]))
-            if str(page).startswith("diaries-"):
-                pages.append(_("Diary: {page}").format(page = page[8:]))
-            
-        self.model2.setStringList(pages)
-        
-    def removePage(self, text: str, target: QTabWidget) -> None:
-        stringlist = self.model1.stringList()
-
-        if target == self.notes:
-            stringlist.remove(_("Note: {name}").format(name = text))
-            
-        elif target == self.todos:
-            stringlist.remove(_("Todo list: {todolist}").format(todolist = text))
-            
-        elif target == self.diaries:
-            stringlist.remove(_("Diary: {date}").format(date = text))
-        
-        self.model1.setStringList(stringlist)
-        
-        self.insertPages()
-    
-    def setFilter(self, text: str) -> None:
-        self.proxy1.beginResetModel()
-        self.proxy1.setFilterFixedString(text)
-        self.proxy2.beginResetModel()
-        self.proxy2.setFilterFixedString(text)
-        self.proxy1.endResetModel()  
-        self.proxy2.endResetModel()
+        if not call:
+            QMessageBox.critical(self, _("Error"), _("Failed to delete {page} page from history.").format(page = page))

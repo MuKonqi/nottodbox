@@ -27,16 +27,15 @@ from settings import settingsdb
 from gettext import gettext as _
 from widgets.dialogs import ColorDialog
 from widgets.other import HSeperator, Label, PushButton, VSeperator
-from PySide6.QtCore import Qt, QSortFilterProxyModel
-from PySide6.QtGui import QStandardItem, QStandardItemModel, QMouseEvent, QColor
+from widgets.lists import TreeView
+from PySide6.QtGui import QStandardItemModel, QColor
 from PySide6.QtWidgets import *
 
 
-todo_counts = {}
-todo_items = {}
 todolist_counts = {}
 todolist_items = {}
-todolist_menus = {}
+todo_counts = {}
+todo_items = {}
 
 username = getpass.getuser()
 userdata = f"/home/{username}/.config/nottodbox/"
@@ -201,20 +200,6 @@ class TodosDB:
             return False
         
         return self.checkIfTheTodoExists(todolist, newtodo)
-    
-    def getAll(self) -> dict:
-        all = {}
-        
-        self.cur.execute("""select name, creation, modification, 
-                         background, foreground from __main__""")
-        parents = self.cur.fetchall()
-        
-        for todolist, creation, modification, background, foreground in parents:
-            self.cur.execute(f"""select todo, status, creation, completion, 
-                             background, foreground from '{todolist}'""")
-            all[(todolist, creation, modification, background, foreground)] = self.cur.fetchall()
-            
-        return all
         
     def getStatus(self, todolist: str, todo: str) -> str:
         self.cur.execute(f"select status from '{todolist}' where todo = ?", (todo,))
@@ -246,8 +231,7 @@ class TodosDB:
                          background, foreground from __main__ where name = ?""", (name,))
         creation, modification, background, foreground = self.cur.fetchone()
         
-        self.cur.execute(f"""select todo, status, creation, completion,
-                         background, foreground from '{name}'""")
+        self.cur.execute(f"select todo from '{name}'")
         return creation, modification, background, foreground, self.cur.fetchall()
     
     def getTodolistBackground(self, name: str) -> str:
@@ -265,6 +249,10 @@ class TodosDB:
         except TypeError:
             fetch = "global"
         return fetch
+    
+    def getTodolistNames(self) -> list:
+        self.cur.execute("select name from __main__")
+        return self.cur.fetchall()
         
     def resetTodolist(self, name: str) -> bool:
         self.cur.execute("delete from __main__ where name = ?", (name,))
@@ -396,24 +384,22 @@ class TodosWidget(QWidget):
         global todos_parent
         
         todos_parent = parent
-        self.todo = ""
         self.todolist = ""
+        self.todo = ""
         self.current_widget = None
-        
-        todos_parent.menuBar().addAction(_("To-dos"), lambda: todos_parent.tabwidget.setCurrentIndex(2))
         
         self.layout_ = QGridLayout(self)
         
         self.selecteds = QWidget(self)
         self.selecteds_layout = QHBoxLayout(self.selecteds)
         
-        self.todo_selected = Label(self, _("To-do: "))
         self.todolist_selected = Label(self, _("To-do list: "))
+        self.todo_selected = Label(self, _("To-do: "))
         
         self.treeview = TodosTreeView(self)
         
         self.entry = QLineEdit(self)
-        self.entry.setPlaceholderText(_("Search in the list below"))
+        self.entry.setPlaceholderText(_("Search..."))
         self.entry.setClearButtonEnabled(True)
         self.entry.textChanged.connect(self.treeview.setFilter)
         
@@ -435,9 +421,10 @@ class TodosWidget(QWidget):
         self.layout_.addWidget(self.selecteds, 0, 0, 1, 3)
         self.layout_.addWidget(HSeperator(self), 1, 0, 1, 3)
         self.layout_.addWidget(self.entry, 2, 0, 1, 1)
-        self.layout_.addWidget(self.treeview, 3, 0, 1, 1)
-        self.layout_.addWidget(VSeperator(self), 2, 1, 2, 1)
-        self.layout_.addWidget(self.none_options, 2, 2, 2, 1)
+        self.layout_.addWidget(HSeperator(self), 3, 0, 1, 1)
+        self.layout_.addWidget(self.treeview, 4, 0, 1, 1)
+        self.layout_.addWidget(VSeperator(self), 2, 1, 3, 1)
+        self.layout_.addWidget(self.none_options, 2, 2, 3, 1)
             
     def insertInformations(self, todolist: str, todo: str) -> None:
         self.todolist = todolist
@@ -472,6 +459,9 @@ class TodosWidget(QWidget):
         global setting_background, setting_foreground
         
         setting_background, setting_foreground = settingsdb.getModuleSettings("todos")
+        
+        self.treeview.setting_background = setting_background
+        self.treeview.setting_foreground = setting_foreground
             
             
 class TodosNoneOptions(QWidget):
@@ -485,17 +475,18 @@ class TodosNoneOptions(QWidget):
         self.warning_label = Label(self, _("You can select\na to-do list\nor a to-do\non the left."))
         self.warning_label.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Maximum)
         
-        self.create_todolist = PushButton(self, _("Create to-do list"))
-        self.create_todolist.clicked.connect(self.parent_.todolist_options.createTodolist)
+        self.create_todolist_button = PushButton(self, _("Create to-do list"))
+        self.create_todolist_button.clicked.connect(self.parent_.todolist_options.createTodolist)
         
-        self.delete_all = PushButton(self, _("Delete all"))
-        self.delete_all.clicked.connect(self.parent_.todolist_options.deleteAll)
+        self.delete_all_button = PushButton(self, _("Delete all"))
+        self.delete_all_button.clicked.connect(self.parent_.todolist_options.deleteAll)
         
-        self.setFixedWidth(180)
+        self.setFixedWidth(200)
         self.setLayout(self.layout_)
         self.layout_.addWidget(self.warning_label)
-        self.layout_.addWidget(self.create_todolist)
-        self.layout_.addWidget(self.delete_all)
+        self.layout_.addWidget(HSeperator(self))
+        self.layout_.addWidget(self.create_todolist_button)
+        self.layout_.addWidget(self.delete_all_button)
         
         
 class TodosTodolistOptions(QWidget):
@@ -506,40 +497,42 @@ class TodosTodolistOptions(QWidget):
         
         self.layout_ = QVBoxLayout(self)
         
-        self.create_todo = PushButton(self, _("Create todo"))
-        self.create_todo.clicked.connect(self.parent_.todo_options.createTodo)
+        self.create_todo_button = PushButton(self, _("Create to-do"))
+        self.create_todo_button.clicked.connect(self.parent_.todo_options.createTodo)
         
-        self.create_todolist = PushButton(self, _("Create to-do list"))
-        self.create_todolist.clicked.connect(self.createTodolist)
+        self.create_todolist_button = PushButton(self, _("Create to-do list"))
+        self.create_todolist_button.clicked.connect(self.createTodolist)
         
-        self.set_background = PushButton(self, _("Set background color"))
-        self.set_background.clicked.connect(self.setTodolistBackground)
+        self.set_background_button = PushButton(self, _("Set background color"))
+        self.set_background_button.clicked.connect(self.setTodolistBackground)
         
-        self.set_foreground = PushButton(self, _("Set text color"))
-        self.set_foreground.clicked.connect(self.setTodolistForeground)
+        self.set_foreground_button = PushButton(self, _("Set text color"))
+        self.set_foreground_button.clicked.connect(self.setTodolistForeground)
         
-        self.rename_todolist = PushButton(self, _("Rename to-do list"))
-        self.rename_todolist.clicked.connect(self.renameTodolist)
+        self.rename_button = PushButton(self, _("Rename"))
+        self.rename_button.clicked.connect(self.renameTodolist)
         
-        self.reset_todolist = PushButton(self, _("Reset to-do list"))
-        self.reset_todolist.clicked.connect(self.resetTodolist)
+        self.reset_button = PushButton(self, _("Reset"))
+        self.reset_button.clicked.connect(self.resetTodolist)
         
-        self.delete_todolist = PushButton(self, _("Delete to-do list"))
-        self.delete_todolist.clicked.connect(self.deleteTodolist)
+        self.delete_button = PushButton(self, _("Delete"))
+        self.delete_button.clicked.connect(self.deleteTodolist)
         
-        self.delete_all = PushButton(self, _("Delete all"))
-        self.delete_all.clicked.connect(self.deleteAll)
+        self.delete_all_button = PushButton(self, _("Delete all"))
+        self.delete_all_button.clicked.connect(self.deleteAll)
         
-        self.setFixedWidth(180)
+        self.setFixedWidth(200)
         self.setLayout(self.layout_)
-        self.layout_.addWidget(self.create_todo)
-        self.layout_.addWidget(self.create_todolist)
-        self.layout_.addWidget(self.set_background)
-        self.layout_.addWidget(self.set_foreground)
-        self.layout_.addWidget(self.rename_todolist)
-        self.layout_.addWidget(self.reset_todolist)
-        self.layout_.addWidget(self.delete_todolist)
-        self.layout_.addWidget(self.delete_all)
+        self.layout_.addWidget(self.create_todo_button)
+        self.layout_.addWidget(self.create_todolist_button)
+        self.layout_.addWidget(HSeperator(self))
+        self.layout_.addWidget(self.set_background_button)
+        self.layout_.addWidget(self.set_foreground_button)
+        self.layout_.addWidget(self.rename_button)
+        self.layout_.addWidget(self.reset_button)
+        self.layout_.addWidget(self.delete_button)
+        self.layout_.addWidget(HSeperator(self))
+        self.layout_.addWidget(self.delete_all_button)
         
     def checkIfTheTodolistExists(self, name: str, mode: str = "normal") -> None:
         call = todosdb.checkIfTheTodolistExists(name)
@@ -583,7 +576,7 @@ class TodosTodolistOptions(QWidget):
         call = todosdb.deleteAll()
     
         if call:
-            self.parent_.treeview.updateAll()
+            self.parent_.treeview.deleteAll()
             self.parent_.insertInformations("", "")
             
             QMessageBox.information(self, _("Successful"), _("All to-do lists deleted."))
@@ -748,32 +741,33 @@ class TodosTodoOptions(QWidget):
         
         self.layout_ = QVBoxLayout(self)
         
-        self.create_todo = PushButton(self, _("Create todo"))
-        self.create_todo.clicked.connect(self.createTodo)
+        self.create_todo_button = PushButton(self, _("Create todo"))
+        self.create_todo_button.clicked.connect(self.createTodo)
         
-        self.set_background = PushButton(self, _("Set background color"))
-        self.set_background.clicked.connect(self.setTodoBackground)
+        self.set_background_button = PushButton(self, _("Set background color"))
+        self.set_background_button.clicked.connect(self.setTodoBackground)
         
-        self.set_foreground = PushButton(self, _("Set text color"))
-        self.set_foreground.clicked.connect(self.setTodoForeground)
+        self.set_foreground_button = PushButton(self, _("Set text color"))
+        self.set_foreground_button.clicked.connect(self.setTodoForeground)
         
-        self.change_status = PushButton(self, _("Change status"))
-        self.change_status.clicked.connect(self.changeStatus)
+        self.change_status_button = PushButton(self, _("Change status"))
+        self.change_status_button.clicked.connect(self.changeStatus)
         
-        self.edit_todo = PushButton(self, _("Edit todo"))
-        self.edit_todo.clicked.connect(self.editTodo)
+        self.edit_button = PushButton(self, _("Edit todo"))
+        self.edit_button.clicked.connect(self.editTodo)
         
-        self.delete_todo = PushButton(self, _("Delete todo"))
-        self.delete_todo.clicked.connect(self.deleteTodo)
+        self.delete_button = PushButton(self, _("Delete todo"))
+        self.delete_button.clicked.connect(self.deleteTodo)
         
-        self.setFixedWidth(180)
+        self.setFixedWidth(200)
         self.setLayout(self.layout_)
-        self.layout_.addWidget(self.create_todo)
-        self.layout_.addWidget(self.set_background)
-        self.layout_.addWidget(self.set_foreground)
-        self.layout_.addWidget(self.change_status)
-        self.layout_.addWidget(self.edit_todo)
-        self.layout_.addWidget(self.delete_todo)
+        self.layout_.addWidget(self.create_todo_button)
+        self.layout_.addWidget(HSeperator(self))
+        self.layout_.addWidget(self.set_background_button)
+        self.layout_.addWidget(self.set_foreground_button)
+        self.layout_.addWidget(self.change_status_button)
+        self.layout_.addWidget(self.edit_button)
+        self.layout_.addWidget(self.delete_button)
         
     def checkIfTheTodoExists(self, todolist: str, todo: str, mode: str = "normal") -> bool:
         call = todosdb.checkIfTheTodoExists(todolist, todo)
@@ -795,7 +789,7 @@ class TodosTodoOptions(QWidget):
         if call:
             self.parent_.treeview.updateTodo(todolist, todo, todo)
             
-            QMessageBox.information(self, _("Successful"), _("{todo} todo's status changed.").format(todo = todo))
+            QMessageBox.information(self, _("Successful"), _("{todo} to-do's status changed.").format(todo = todo))
     
         else:
             QMessageBox.critical(self, _("Error"), _("Failed to change {todo}'s status.").format(todo = todo))
@@ -957,196 +951,73 @@ class TodosTodoOptions(QWidget):
                 QMessageBox.critical(self, _("Error"), _("Failed to set text color for {todo} to-do.").format(todo = todo))
             
             
-class TodosTreeView(QTreeView):
-    def __init__(self, parent: TodosWidget, caller: str = "todos") -> None:
-        super().__init__(parent)
+class TodosTreeView(TreeView):
+    def __init__(self, parent: TodosWidget, caller: str = "own") -> None:
+        super().__init__(parent, "todos", caller)
         
-        self.parent_ = parent
-        self.caller = caller
-
-        self.proxy = QSortFilterProxyModel(self)
-        self.proxy.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
-        self.proxy.setRecursiveFilteringEnabled(True)
+        self.db = todosdb
+        self.parent_counts = todolist_counts
+        self.parent_items = todolist_items
+        self.child_counts = todo_counts
+        self.child_items = todo_items
+        self.setting_background = setting_background
+        self.setting_foreground = setting_foreground
         
-        if self.caller == "todos":
+        if self.caller == "own":
+            todos_parent.menuBar().addAction(_("To-dos"), lambda: todos_parent.tabwidget.setCurrentIndex(2))
+            
             global todos_model
             
             todos_model = QStandardItemModel(self)
-            todos_model.setHorizontalHeaderLabels([_("Name"), _("Creation"), _("Modification / Completion")])
+            todos_model.setHorizontalHeaderLabels([_("To-do List / To-do"), _("Creation"), _("Modification / Completion")])
+            
+            self.appendAll()
             
         self.proxy.setSourceModel(todos_model)
         
-        self.setModel(self.proxy)
-        self.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
-        self.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
-        self.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.setStatusTip(_("Double-click to changing status of a to-do."))
-        self.header().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
-
-        if self.caller == "todos":
-            self.selectionModel().currentRowChanged.connect(
-                lambda: self.parent_.insertInformations(self.getParentText(), self.getCurrentText()))
-            
-        self.doubleClicked.connect(lambda: self.changeStatus(self.getParentText(), self.getCurrentText()))
-        
-        self.appendAll()
 
     def appendAll(self) -> None:
-        call = todosdb.getAll()
+        super().appendAll()
         
-        if call != None and self.caller == "todos":
-            model_count = -1
-            
-            all = [*call]
-            
-            for todolist, creation_todolist, modification_todolist, background_todolist, foreground_todolist in all:
-                model_count += 1
-                todolist_count = -1
-                
-                todolist_counts[todolist] = model_count
-                todolist_items[todolist] = [QStandardItem(todolist),
-                                            QStandardItem(creation_todolist),
-                                            QStandardItem(modification_todolist)]
-                
-                for item in todolist_items[todolist]:
-                    if background_todolist == "global" and setting_background != "default":
-                        item.setBackground(QColor(setting_background))
-                    elif background_todolist != "global" and background_todolist != "default":
-                        item.setBackground(QColor(background_todolist))
-                    
-                    if foreground_todolist == "global" and setting_foreground != "default":
-                        item.setForeground(QColor(setting_foreground))
-                    elif foreground_todolist != "global" and foreground_todolist != "default":
-                        item.setForeground(QColor(foreground_todolist))
-                
-                for (todo, status_todo, creation_todo, completion_todo,
-                     background_todo, foreground_todo) in call[todolist,creation_todolist, modification_todolist,
-                                                               background_todolist, foreground_todolist]:
-                    todolist_count += 1
-                    
-                    todo_counts[(todolist, todo)] = todolist_count
-                    
-                    if status_todo == "completed":
-                        name_column = QStandardItem(f"[+] {todo}")
-                    elif status_todo == "uncompleted":
-                        name_column = QStandardItem(f"[-] {todo}")
-                    
-                    if completion_todo != "" and completion_todo != None:
-                        completion_column = QStandardItem(_("Not completed"))
-                    else:
-                        completion_column = QStandardItem(completion_todo)
-                        
-                    todo_items[(todolist, todo)] = [name_column, 
-                                                    QStandardItem(creation_todo), 
-                                                    completion_column]
-
-                    for item in todo_items[(todolist, todo)]:
-                        if background_todo == "global" and setting_background != "default":
-                            item.setBackground(QColor(setting_background))
-                        elif background_todo != "global" and background_todo != "default":
-                            item.setBackground(QColor(background_todo))
-                        
-                        if foreground_todo == "global" and setting_foreground != "default":
-                            item.setForeground(QColor(setting_foreground))
-                        elif foreground_todo != "global" and foreground_todo != "default":
-                            item.setForeground(QColor(foreground_todo))
-                
-                    todolist_items[todolist][0].appendRow(todo_items[(todolist, todo)])
-                
-                todos_model.appendRow(todolist_items[todolist])
+        for row in todolist_items.values():
+            todos_model.appendRow(row)
             
     def appendTodo(self, todolist: str, todo: str) -> None:
-        (status_todo, creation_todo, completion_todo,
-         background_todo, foreground_todo) = todosdb.getTodo(todolist, todo)
-        
-        todo_counts[(todolist, todo)] = todolist_items[todolist][0].rowCount()
-        
-        if status_todo == "completed":
-            name_column = QStandardItem(f"[+] {todo}")
-        elif status_todo == "uncompleted":
-            name_column = QStandardItem(f"[-] {todo}")
-        
-        if completion_todo != "" and completion_todo != None:
-            completion_column = QStandardItem(_("Not completed"))
-        else:
-            completion_column = QStandardItem(completion_todo)
+        super().appendChild(todolist, todo)
             
-        todo_items[(todolist, todo)] = [name_column, 
-                                        QStandardItem(creation_todo), 
-                                        completion_column]
+    def appendTodolist(self, name: str) -> None:
+        super().appendParent(name, todos_model.rowCount())
         
-        for item in todo_items[(todolist, todo)]:
-            if background_todo == "global" and setting_background != "default":
-                item.setBackground(QColor(setting_background))
-            elif background_todo != "global" and background_todo != "default":
-                item.setBackground(QColor(background_todo))
-            
-            if foreground_todo == "global" and setting_foreground != "default":
-                item.setForeground(QColor(setting_foreground))
-            elif foreground_todo != "global" and foreground_todo != "default":
-                item.setForeground(QColor(foreground_todo))
-
-        todolist_items[todolist][0].appendRow(todo_items[(todolist, todo)])
-            
-    def appendTodolist(self, todolist: str) -> None:
-        (creation_todolist, modification_todolist, 
-         background_todolist, foreground_todolist, todos) = todosdb.getTodolist(todolist)
+        todos_model.appendRow(todolist_items[name])
         
-        model_count = todos_model.rowCount()
-        todolist_count = -1
+    def deleteAll(self) -> None:
+        global todolist_counts, todolist_items, todo_counts, todo_items
         
-        todolist_counts[todolist] = model_count
-        todolist_items[todolist] = [QStandardItem(todolist),
-                                    QStandardItem(creation_todolist),
-                                    QStandardItem(modification_todolist)]
+        todolist_counts = {}
+        todolist_items = {}
+        todo_counts = {}
+        todo_items = {}
         
-        for item in todolist_items[todolist]:
-            if background_todolist == "global" and setting_background != "default":
-                item.setBackground(QColor(setting_background))
-            elif background_todolist != "global" and background_todolist != "default":
-                item.setBackground(QColor(background_todolist))
-            
-            if foreground_todolist == "global" and setting_foreground != "default":
-                item.setForeground(QColor(setting_foreground))
-            elif foreground_todolist != "global" and foreground_todolist != "default":
-                item.setForeground(QColor(foreground_todolist))
+        todos_model.clear()
+        todos_model.setHorizontalHeaderLabels([_("To-do List / To-do"), _("Creation"), _("Modification / Completion")])
         
-        for (todo, status_todo, creation_todo, completion_todo,
-                background_todo, foreground_todo) in todos:
-            todolist_count += 1
-            
-            todo_counts[(todolist, todo)] = todolist_count
-            
-            if status_todo == "completed":
-                name_column = QStandardItem(f"[+] {todo}")
-            elif status_todo == "uncompleted":
-                name_column = QStandardItem(f"[-] {todo}")
-            
-            if completion_todo != "" and completion_todo != None:
-                completion_column = QStandardItem(_("Not completed"))
-            else:
-                completion_column = QStandardItem(completion_todo)
-                
-            todo_items[(todolist, todo)] = [name_column, 
-                                            QStandardItem(creation_todo), 
-                                            completion_column]
-
-            for item in todo_items[(todolist, todo)]:
-                if background_todo == "global" and setting_background != "default":
-                    item.setBackground(QColor(setting_background))
-                elif background_todo != "global" and background_todo != "default":
-                    item.setBackground(QColor(background_todo))
-                
-                if foreground_todo == "global" and setting_foreground != "default":
-                    item.setForeground(QColor(setting_foreground))
-                elif foreground_todo != "global" and foreground_todo != "default":
-                    item.setForeground(QColor(foreground_todo))
+    def deleteTodo(self, todolist: str, todo: str) -> None:
+        super().deleteChild(todolist, todo)
         
-            todolist_items[todolist][0].appendRow(todo_items[(todolist, todo)])
+    def deleteTodolist(self, name: str) -> None:
+        super().deleteParent(name)
         
-        todos_model.appendRow(todolist_items[todolist])
-
-    def changeStatus(self, todolist: str, todo: str) -> None:
+        todos_model.removeRow(todolist_counts[name])
+        
+        for parent_ in todolist_counts.keys():
+            if todolist_counts[parent_] > todolist_counts[name]:
+                todolist_counts[parent_] -= 1
+        
+        del todolist_counts[name]
+        del todolist_items[name]
+        
+    def doubleClickEvent(self, todolist: str, todo: str) -> None:
         if todo == "" or todo == None:
             QMessageBox.critical(self, _("Error"), _("Please select a to-do."))
             return
@@ -1160,126 +1031,32 @@ class TodosTreeView(QTreeView):
         if call:
             self.updateTodo(todolist, todo, todo)
             
-            QMessageBox.information(self, _("Successful"), _("{todo} todo's status changed.").format(todo = todo))
+            QMessageBox.information(self, _("Successful"), _("{todo} to-do's status changed.").format(todo = todo))
     
         else:
             QMessageBox.critical(self, _("Error"), _("Failed to change {todo}'s status.").format(todo = todo))
         
-    def deleteTodo(self, todolist: str, todo: str) -> None:
-        todolist_items[todolist][0].removeRow(todo_counts[(todolist, todo)])
-        
-        del todo_items[(todolist, todo)]
-        del todo_counts[(todolist, todo)]
-        
-    def deleteTodolist(self, todolist: str) -> None:
-        todos_model.removeRow(todolist_counts[todolist])
-        
-        del todolist_counts[todolist]
-        del todolist_items[todolist]
-        
-        for key in todo_items.copy().keys():
-            if key[0] == todolist:
-                del todo_items[key]
-                
-        for key in todo_counts.copy().keys():
-            if key[0] == todolist:
-                del todo_counts[key]
-                
-        if self.caller == "todos":
-            del todolist_menus[todolist]
-                    
-    def getParentText(self) -> str:
-        try:
-            if self.currentIndex().parent().isValid():
-                return self.proxy.itemData(self.currentIndex().parent())[0]
-            
-            else:
-                return self.proxy.itemData(self.currentIndex())[0]
-            
-        except KeyError:
-            return ""
-        
-    def getCurrentText(self) -> str:
-        try:
-            if self.currentIndex().parent().isValid():
-                return self.proxy.itemData(self.currentIndex())[0][4:]
-            
-            else:
-                return ""
-            
-        except KeyError:
-            return ""
-                
-    def mousePressEvent(self, e: QMouseEvent | None) -> None:
-        index = self.indexAt(e.pos())
-        
-        if index.column() == 0:
-            super().mousePressEvent(e)
-            
-        else:
-            QMessageBox.warning(self, _("Warning"), _("Please select a to-do or a to-do list only by clicking on the first column."))
-                
-    def setFilter(self, text: str) -> None:
-        self.proxy.beginResetModel()
-        self.proxy.setFilterFixedString(text)
-        self.proxy.endResetModel()
-        
-    def updateAll(self) -> None:
-        todos_model.clear()
-        todos_model.setHorizontalHeaderLabels([_("Name"), _("Creation"), _("Modification / Completion")])
-        
-        self.appendAll()
-        
     def updateTodo(self, todolist: str, todo: str, newtodo: str) -> None:
-        status = todosdb.getStatus(todolist, newtodo)
+        super().updateChild(todolist, todo, newtodo)
         
-        todo_counts[(todolist, newtodo)] = todo_counts.pop((todolist, todo))
-        todo_items[(todolist, newtodo)] = todo_items.pop((todolist, todo))
+        status = self.db.getStatus(todolist, newtodo)
         
         if status == "completed":
-            todo_items[(todolist, newtodo)][0].setText(f"[+] {newtodo}")
+            self.child_items[(todolist, newtodo)][0].setText(f"[+] {newtodo}")
         elif status == "uncompleted":
-            todo_items[(todolist, newtodo)][0].setText(f"[-] {newtodo}")
-            
-    def updateTodoBackground(self, todolist: str, todo: str, color: str) -> None:
-        for item in todo_items[(todolist, todo)]:
-            if color == "global" and setting_background != "default":
-                item.setBackground(QColor(setting_background))    
-            elif color != "global" and color != "default":
-                item.setBackground(QColor(color))
-            else:
-                item.setData(None, Qt.ItemDataRole.BackgroundRole)
-                
-    def updateTodoForeground(self, todolist: str, todo: str, color: str) -> None:
-        for item in todo_items[(todolist, todo)]:
-            if color == "global" and setting_foreground != "default":
-                item.setForeground(QColor(setting_foreground))
-            elif color != "global" and color != "default":
-                item.setForeground(QColor(color))
-            else:
-                item.setData(None, Qt.ItemDataRole.ForegroundRole)
-            
-    def updateTodolist(self, name: str, newname: str) -> None:
-        todolist_counts[newname] = todolist_counts.pop(name)
-        todolist_items[newname] = todolist_items.pop(name)
-        todolist_menus[newname] = todolist_menus.pop(name)
+            self.child_items[(todolist, newtodo)][0].setText(f"[-] {newtodo}")
         
-        todolist_items[newname][0].setText(newname)
+    def updateTodoBackground(self, todolist: str, todo: str, color: str) -> None:
+        super().updateChildBackground(todolist, todo, color)
+        
+    def updateTodoForeground(self, todolist: str, todo: str, color: str) -> None:
+        super().updateParentBackground(todolist, todo, color)
+                
+    def updateTodolist(self, name: str, newname: str) -> None:
+        super().updateParent(name, newname)
         
     def updateTodolistBackground(self, name: str, color: str) -> None:
-        for item in todolist_items[name]:
-            if color == "global" and setting_background != "default":
-                item.setBackground(QColor(setting_background))    
-            elif color != "global" and color != "default":
-                item.setBackground(QColor(color))
-            else:
-                item.setData(None, Qt.ItemDataRole.BackgroundRole)
+        super().updateParentBackground(name, color)
                 
     def updateTodolistForeground(self, name: str, color: str) -> None:
-        for item in todolist_items[name]:
-            if color == "global" and setting_foreground != "default":
-                item.setForeground(QColor(setting_foreground))
-            elif color != "global" and color != "default":
-                item.setForeground(QColor(color))
-            else:
-                item.setData(None, Qt.ItemDataRole.ForegroundRole)
+        super().updateParentForeground(name, color)

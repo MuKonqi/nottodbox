@@ -1,5 +1,6 @@
 data/io.github.mukonqi.nottodbox.in.in
 nottodbox/widgets/dialogs.py
+nottodbox/widgets/lists.py
 nottodbox/widgets/pages.py
 nottodbox/about.py
 nottodbox/diaries.py

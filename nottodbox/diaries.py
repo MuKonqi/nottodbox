@@ -28,7 +28,7 @@ import sqlite3
 import datetime
 from settings import settingsdb
 from widgets.dialogs import ColorDialog
-from widgets.other import Label, PushButton, VSeperator
+from widgets.other import HSeperator, Label, PushButton, VSeperator
 from widgets.pages import NormalPage, BackupPage
 from gettext import gettext as _
 from PySide6.QtGui import QMouseEvent, QPainter, QColor
@@ -257,7 +257,7 @@ class DiariesDB:
             fetch_format = self.getFormat(name)
             
             if fetch_format == "global":
-                fetch_format == setting_format
+                fetch_format = setting_format
             
             if fetch_format == "plain-text":
                 text = diaries[name].input.toPlainText()
@@ -393,52 +393,53 @@ class DiariesTabWidget(QTabWidget):
         
         self.calendar = DiariesCalendarWidget(self)
         
-        self.comeback = PushButton(self.home, _("Come back to today"))
-        self.comeback.clicked.connect(lambda: self.calendar.setSelectedDate(today))
+        self.comeback_button = PushButton(self.home, _("Come back to today"))
+        self.comeback_button.clicked.connect(lambda: self.calendar.setSelectedDate(today))
 
-        self.refresh = PushButton(
+        self.refresh_button = PushButton(
             self.home, _("Refresh today variable (it is {name})").format(name = today.toString("dd.MM.yyyy")))
-        self.refresh.clicked.connect(self.refreshToday)
+        self.refresh_button.clicked.connect(self.refreshToday)
 
         self.side = QWidget(self.home)
-        self.side.setFixedWidth(180)
+        self.side.setFixedWidth(200)
         self.side_layout = QVBoxLayout(self.side)
         
-        self.open_create = PushButton(self.side, _("Open/create"))
-        self.open_create.clicked.connect(self.openCreate)
+        self.open_create_button = PushButton(self.side, _("Open/create"))
+        self.open_create_button.clicked.connect(self.openCreate)
 
-        self.show_backup = PushButton(self.side, _("Show backup"))
-        self.show_backup.clicked.connect(self.showBackup)
+        self.show_backup_button = PushButton(self.side, _("Show backup"))
+        self.show_backup_button.clicked.connect(self.showBackup)
 
-        self.restore = PushButton(self.side, _("Restore content"))
-        self.restore.clicked.connect(self.restoreContent)
+        self.restore_button = PushButton(self.side, _("Restore content"))
+        self.restore_button.clicked.connect(self.restoreContent)
         
-        self.clear_content = PushButton(self.side, _("Clear content"))
-        self.clear_content.clicked.connect(self.clearContent)
+        self.clear_content_button = PushButton(self.side, _("Clear content"))
+        self.clear_content_button.clicked.connect(self.clearContent)
         
-        self.set_highlight = PushButton(self.side, _("Set highlight"))
-        self.set_highlight.clicked.connect(self.setHighlight)
+        self.set_highlight_button = PushButton(self.side, _("Set highlight"))
+        self.set_highlight_button.clicked.connect(self.setHighlight)
         
-        self.delete_diary = PushButton(self.side, _("Delete diary"))
-        self.delete_diary.clicked.connect(self.deleteDiary)
+        self.delete_button = PushButton(self.side, _("Delete diary"))
+        self.delete_button.clicked.connect(self.deleteDiary)
         
-        self.delete_all = PushButton(self.side, _("Delete all"))
-        self.delete_all.clicked.connect(self.deleteAll)
+        self.delete_all_button = PushButton(self.side, _("Delete all"))
+        self.delete_all_button.clicked.connect(self.deleteAll)
         
         self.side.setLayout(self.side_layout)
-        self.side_layout.addWidget(self.open_create)
-        self.side_layout.addWidget(self.show_backup)
-        self.side_layout.addWidget(self.restore)
-        self.side_layout.addWidget(self.clear_content)
-        self.side_layout.addWidget(self.set_highlight)
-        self.side_layout.addWidget(self.delete_diary)
-        self.side_layout.addWidget(self.delete_all)
+        self.side_layout.addWidget(self.open_create_button)
+        self.side_layout.addWidget(self.show_backup_button)
+        self.side_layout.addWidget(self.restore_button)
+        self.side_layout.addWidget(self.clear_content_button)
+        self.side_layout.addWidget(self.set_highlight_button)
+        self.side_layout.addWidget(self.delete_button)
+        self.side_layout.addWidget(HSeperator(self))
+        self.side_layout.addWidget(self.delete_all_button)
         
         self.home.setLayout(self.main_layout)
         self.main_layout.addWidget(self.modification, 0, 0, 1, 1)
         self.main_layout.addWidget(self.calendar, 1, 0, 1, 1)
-        self.main_layout.addWidget(self.comeback, 2, 0, 1, 1)
-        self.main_layout.addWidget(self.refresh, 3, 0, 1, 1)
+        self.main_layout.addWidget(self.comeback_button, 2, 0, 1, 1)
+        self.main_layout.addWidget(self.refresh_button, 3, 0, 1, 1)
         self.main_layout.addWidget(VSeperator(self), 0, 2, 4, 1)
         self.main_layout.addWidget(self.side, 0, 3, 4, 1)
         
@@ -490,7 +491,7 @@ class DiariesTabWidget(QTabWidget):
                 if not diaries[self.tabText(index).replace("&", "")].closable:
                     self.question = QMessageBox.question(self, 
                                                          _("Question"),
-                                                         _("{name} diary not saved.\nDo you want to directly closing or closing after saving it or cancel?")
+                                                         _("{name} diary not saved.\nWhat would you like to do?")
                                                          .format(name = self.tabText(index).replace("&", "")),
                                                          QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.Save | QMessageBox.StandardButton.Cancel,
                                                          QMessageBox.StandardButton.Save)
@@ -515,7 +516,7 @@ class DiariesTabWidget(QTabWidget):
                 pass
             
             if not str(self.tabText(index).replace("&", "")).endswith(f' {_("(Backup)")}'):
-                diaries_parent.dock.widget().removePage(self.tabText(index).replace("&", ""), self)
+                diaries_parent.dock.widget().open_pages.deletePage("diaries", self.tabText(index).replace("&", ""))
             
             self.removeTab(index)
         
@@ -583,7 +584,7 @@ class DiariesTabWidget(QTabWidget):
             self.setCurrentWidget(diaries[name])
             
         else:
-            diaries_parent.dock.widget().addPage(name, self)
+            diaries_parent.dock.widget().open_pages.appendPage("diaries", name)
 
             diaries[name] = NormalPage(self, "diaries", today, name, setting_autosave, setting_format, diariesdb)
             self.addTab(diaries[name], name)
@@ -732,7 +733,7 @@ class DiariesCalendarWidget(QCalendarWidget):
             self.parent_.setCurrentWidget(diaries[name])
             
         else:
-            diaries_parent.dock.widget().addPage(name, self.parent_)
+            diaries_parent.dock.widget().open_pages.appendPage("diaries", name)
 
             diaries[name] = NormalPage(self, "diaries", today, name, setting_autosave, setting_format, diariesdb)
             self.parent_.addTab(diaries[name], name)

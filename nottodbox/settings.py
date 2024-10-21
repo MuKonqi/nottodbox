@@ -232,7 +232,7 @@ class SettingsWidget(QWidget):
         self.menu = self.parent_.menuBar().addMenu(_("Settings"))
         
         self.list = QListWidget(self)
-        self.list.setFixedWidth(90)
+        self.list.setFixedWidth(100)
         self.list.currentRowChanged.connect(lambda: self.stacked.setCurrentIndex(self.list.currentRow()))
         
         self.list_notes = QListWidgetItem(_("Notes"), self.list)
@@ -254,13 +254,13 @@ class SettingsWidget(QWidget):
         
         self.buttons = QDialogButtonBox(self)
         
-        self.reset = PushButton(self.buttons, _("Reset all"))
+        self.reset = PushButton(self.buttons, _("Reset"))
         self.reset.clicked.connect(self.resetAll)
         
-        self.apply = PushButton(self.buttons, _("Apply all"))
+        self.apply = PushButton(self.buttons, _("Apply"))
         self.apply.clicked.connect(self.applyAll)
         
-        self.cancel = PushButton(self.buttons, _("Cancel all"))
+        self.cancel = PushButton(self.buttons, _("Cancel"))
         self.cancel.clicked.connect(self.cancelAll)
         
         self.list.addItem(self.list_notes)
@@ -275,11 +275,11 @@ class SettingsWidget(QWidget):
         self.buttons.addButton(self.cancel, QDialogButtonBox.ButtonRole.RejectRole)
         
         self.setLayout(self.layout_)
-        self.layout_.addWidget(self.list, 0, 0, 1, 1)
-        self.layout_.addWidget(VSeperator(self), 0, 1, 1, 1)
+        self.layout_.addWidget(self.list, 0, 0, 3, 1)
+        self.layout_.addWidget(VSeperator(self), 0, 1, 3, 1)
         self.layout_.addWidget(self.stacked, 0, 2, 1, 1)
-        self.layout_.addWidget(HSeperator(self), 1, 0, 1, 3)
-        self.layout_.addWidget(self.buttons, 2, 0, 1, 3)
+        self.layout_.addWidget(HSeperator(self), 1, 2, 1, 1)
+        self.layout_.addWidget(self.buttons, 2, 2, 1, 1)
         
         self.list.setCurrentRow(0)
         self.list.currentRowChanged.connect(lambda: self.stacked.setCurrentIndex(self.list.currentRow()))
@@ -359,6 +359,7 @@ class SettingsPage(QWidget):
         self.layout_ = QVBoxLayout(self)
         
         self.format_changed = False
+        self.startup = True
         
         self.inputs = QWidget(self)
         self.form = QFormLayout(self.inputs)
@@ -396,27 +397,9 @@ class SettingsPage(QWidget):
             self.highlight_button.clicked.connect(self.setHighlight)
             
             self.form.addRow(_("Highlight color:"), self.highlight_button)
-                
-        self.buttons = QDialogButtonBox(self)
-        
-        self.reset = PushButton(self.buttons, _("Reset"))
-        self.reset.clicked.connect(self.resetSettings)
-        
-        self.apply = PushButton(self.buttons, _("Apply"))
-        self.apply.clicked.connect(self.applySettings)
-        
-        self.cancel = PushButton(self.buttons, _("Cancel"))
-        self.cancel.clicked.connect(self.setSettingsFromDB)
-        
-        self.buttons.addButton(self.reset, QDialogButtonBox.ButtonRole.ResetRole)
-        self.buttons.addButton(self.apply, QDialogButtonBox.ButtonRole.ApplyRole)
-        self.buttons.addButton(self.cancel, QDialogButtonBox.ButtonRole.RejectRole)
             
         self.setLayout(self.layout_)
         self.layout_.addWidget(self.inputs)
-        self.layout_.addStretch()
-        self.layout_.addWidget(HSeperator(self))
-        self.layout_.addWidget(self.buttons)
         
         self.setSettingsFromDB()
         
@@ -530,7 +513,11 @@ class SettingsPage(QWidget):
                                            .format(color = _("default") if self.foreground == "default" else self.foreground))
                 
     def setFormat(self, index: int) -> None:
-        self.format_changed = True
+        if self.startup:
+            self.startup = False
+        
+        else:
+            self.format_changed = True
         
         if index == 0:
             self.format = "plain-text"
