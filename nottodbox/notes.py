@@ -660,17 +660,23 @@ class NotesTabWidget(QTabWidget):
             
             self.current_widget = self.none_options
             
+            self.treeview.setIndex(None)
+            
         elif self.notebook != "" and self.name == "":
             self.notebook_options.setVisible(True)
             self.layout_.replaceWidget(self.current_widget, self.notebook_options)
             
             self.current_widget = self.notebook_options
             
+            self.treeview.setIndex(notebook_items[notebook][0])
+            
         elif self.notebook != "" and self.name != "":
             self.note_options.setVisible(True)
             self.layout_.replaceWidget(self.current_widget, self.note_options)
             
             self.current_widget = self.note_options
+            
+            self.treeview.setIndex(note_items[(notebook, name)][0])
             
         self.notebook_selected.setText(_("Notebook: ") + notebook)
         self.note_selected.setText(_("Note: ") + name)
@@ -1299,19 +1305,14 @@ class NotesTreeView(TreeView):
         
         notes_model.appendRow(notebook_items[name])
         
-    def deleteAll(self) -> None:
-        global notebook_counts, notebook_items, note_counts, note_items, note_menus
+    def deleteAll(self) -> None:        
+        super().deleteAll()
         
-        notebook_counts = {}
-        notebook_items = {}
-        note_counts = {}
-        note_items = {}
-        note_menus = {}
+        self.child_menus.clear()
+        self.menu.clear()
         
         notes_model.clear()
         notes_model.setHorizontalHeaderLabels([_("Name"), _("Creation"), _("Modification")])
-        
-        self.menu.clear()
         
     def deleteNote(self, notebook: str, name: str) -> None:
         super().deleteChild(notebook, name)
@@ -1379,6 +1380,9 @@ class NotesTreeView(TreeView):
         
     def updateNote(self, notebook: str, name: str, newname: str) -> None:
         super().updateChild(notebook, name, newname)
+        
+        if self.caller == "own":
+            note_menus[(notebook, newname)] = note_menus.pop((notebook, name))
         
     def updateNoteBackground(self, notebook: str, name: str, color: str) -> None:
         super().updateChildBackground(notebook, name, color)

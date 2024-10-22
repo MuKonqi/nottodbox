@@ -47,7 +47,37 @@ class TodosDB:
     def __init__(self) -> None:
         self.db = sqlite3.connect(f"{userdata}todos.db")
         self.cur = self.db.cursor()
+
+    def changeStatus(self, todolist: str, todo: str) -> tuple:
+        date = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
         
+        status = self.getStatus(todolist, todo)
+        
+        if status == "completed":
+            newstatus = "uncompleted"
+            
+            todo_items[(todolist, todo)][2].setText(_("Not completed yet"), todo) 
+        
+        elif status == "uncompleted": 
+            newstatus = "completed"
+            
+            todo_items[(todolist, todo)][2].setText(date, todo) 
+            
+        self.cur.execute(f"update '{todolist}' set status = ?, completion = ? where todo = ?", (newstatus, date, todo))
+        self.db.commit()
+        
+        if not self.updateTodolistModificationDate(todolist, date):
+            return False
+        
+        self.cur.execute(f"select status from '{todolist}' where todo = ?", (todo,))
+        control = self.cur.fetchone()[0]
+        
+        if control == newstatus:
+            return True
+        
+        else:
+            return False 
+       
     def checkIfTheTableExists(self, table: str) -> bool:
         try:
             self.cur.execute(f"select * from '{table}'")
@@ -318,32 +348,6 @@ class TodosDB:
             return True
         else:
             return False
-        
-    def changeStatus(self, todolist: str, todo: str) -> tuple:
-        date = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-        
-        status = self.getStatus(todolist, todo)
-        
-        if status == "completed":
-            newstatus = "uncompleted"
-        
-        elif status == "uncompleted": 
-            newstatus = "completed"
-            
-        self.cur.execute(f"update '{todolist}' set status = ? where todo = ?", (newstatus, todo))
-        self.db.commit()
-        
-        if not self.updateTodolistModificationDate(todolist, date):
-            return False
-        
-        self.cur.execute(f"select status from '{todolist}' where todo = ?", (todo,))
-        control = self.cur.fetchone()[0]
-        
-        if control == newstatus:
-            return True
-        
-        else:
-            return False
     
     def updateTodolistModificationDate(self, name: str, date: str) -> bool:
         if self.checkIfTheTableExists("__main__"):
@@ -440,17 +444,23 @@ class TodosWidget(QWidget):
             
             self.current_widget = self.none_options
             
+            self.treeview.setIndex(None)
+            
         elif self.todolist != "" and self.todo == "":
             self.todolist_options.setVisible(True)
             self.layout_.replaceWidget(self.current_widget, self.todolist_options)
             
             self.current_widget = self.todolist_options
             
+            self.treeview.setIndex(todolist_items[todolist][0])
+            
         elif self.todolist != "" and self.todo != "":
             self.todo_options.setVisible(True)
             self.layout_.replaceWidget(self.current_widget, self.todo_options)
             
             self.current_widget = self.todo_options
+            
+            self.treeview.setIndex(todo_items[(todolist, todo)][0])
             
         self.todolist_selected.setText(_("To-do list: ") + todolist)
         self.todo_selected.setText(_("To-do: ") + todo)
@@ -992,12 +1002,7 @@ class TodosTreeView(TreeView):
         todos_model.appendRow(todolist_items[name])
         
     def deleteAll(self) -> None:
-        global todolist_counts, todolist_items, todo_counts, todo_items
-        
-        todolist_counts = {}
-        todolist_items = {}
-        todo_counts = {}
-        todo_items = {}
+        super().deleteAll()
         
         todos_model.clear()
         todos_model.setHorizontalHeaderLabels([_("To-do List / To-do"), _("Creation"), _("Modification / Completion")])

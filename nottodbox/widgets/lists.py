@@ -22,7 +22,7 @@ sys.dont_write_bytecode = True
 
 from gettext import gettext as _
 from PySide6.QtGui import QStandardItem, QMouseEvent, QColor
-from PySide6.QtCore import Qt, QSortFilterProxyModel
+from PySide6.QtCore import Qt, QSortFilterProxyModel, QItemSelectionModel
 from PySide6.QtWidgets import *
 
 
@@ -56,7 +56,12 @@ class StandardItem(QStandardItem):
                 self.setData(data, Qt.ItemDataRole.UserRole + count)
         
         elif datas == None:
-            self.setData(text, Qt.ItemDataRole.UserRole)
+            if text.startswith("[+] "):
+                self.setData(text.removeprefix("[+] "), Qt.ItemDataRole.UserRole)
+            elif text.startswith("[-] "):
+                self.setData(text.removeprefix("[-] "), Qt.ItemDataRole.UserRole)
+            else:
+                self.setData(text, Qt.ItemDataRole.UserRole)
 
 
 class TreeView(QTreeView):
@@ -122,7 +127,7 @@ class TreeView(QTreeView):
             elif status == "uncompleted":
                 name_column = StandardItem(f"[-] {name}", name)
             
-            if completion != "" and completion != None:
+            if completion == "" or completion == None:
                 completion_column = StandardItem(_("Not completed yet"), name)
             else:
                 completion_column = StandardItem(completion, name)
@@ -167,6 +172,12 @@ class TreeView(QTreeView):
         
         for name in names:
             self.appendChild(parent, name[0])
+            
+    def deleteAll(self) -> None:
+        self.parent_counts.clear()
+        self.parent_counts.clear()
+        self.child_menus.clear()
+        self.child_counts.clear()
         
     def deleteChild(self, parent: str, name: str) -> None:
         self.parent_items[parent][0].removeRow(self.child_counts[(parent, name)])
@@ -177,11 +188,6 @@ class TreeView(QTreeView):
         
         del self.child_items[(parent, name)]
         del self.child_counts[(parent, name)]
-        
-        if self.caller == "own" and self.module == "notes":
-            self.menu.removeAction(self.child_menus[(parent, name)])
-            
-            del self.child_menus[(parent, name)]
         
     def deleteParent(self, parent: str) -> None:        
         for key in self.child_items.copy().keys():
@@ -223,10 +229,14 @@ class TreeView(QTreeView):
         self.proxy.setFilterFixedString(text)
         self.proxy.endResetModel()
         
+    def setIndex(self, item: QStandardItem | None) -> None:
+        if item is None:
+            self.clearSelection()
+            self.selectionModel().clearCurrentIndex()
+        
     def updateChild(self, parent: str, name: str, newname: str) -> None:
         self.child_counts[(parent, newname)] = self.child_counts.pop((parent, name))
         self.child_items[(parent, newname)] = self.child_items.pop((parent, name))
-        self.child_menus[(parent, newname)] = self.child_menus.pop((parent, name))
         
         self.child_items[(parent, newname)][0].setText(newname)
         
