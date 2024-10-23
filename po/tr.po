@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.0.7\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-22 22:05+0300\n"
-"PO-Revision-Date: 2024-10-22 22:05+0300\n"
+"POT-Creation-Date: 2024-10-23 22:10+0300\n"
+"PO-Revision-Date: 2024-10-23 22:10+0300\n"
 "Last-Translator: Muhammed S. <mukonqi@gmail.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: tr\n"
@@ -218,7 +218,7 @@ msgid ""
 "{name} diary not saved.\n"
 "What would you like to do?"
 msgstr ""
-"{name} günlüğü kaydedilemedi.\n"
+"{name} günlüğü kaydedilmedi.\n"
 "Ne yapmak istersiniz?"
 
 #: nottodbox/diaries.py:508
@@ -416,7 +416,7 @@ msgid "Reset"
 msgstr "Sıfırla"
 
 #: nottodbox/notes.py:744 nottodbox/notes.py:995 nottodbox/sidebar.py:146
-#: nottodbox/todos.py:528
+#: nottodbox/todos.py:528 nottodbox/todos.py:769
 msgid "Delete"
 msgstr "Sil"
 
@@ -1019,12 +1019,8 @@ msgid "Change status"
 msgstr "Durumu ayarla"
 
 #: nottodbox/todos.py:766
-msgid "Edit todo"
-msgstr "Yapılacağı düzenle"
-
-#: nottodbox/todos.py:769
-msgid "Delete todo"
-msgstr "Yapılacağı sil"
+msgid "Edit"
+msgstr "Düzenle"
 
 #: nottodbox/todos.py:786
 #, python-brace-format

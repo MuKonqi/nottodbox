@@ -634,8 +634,8 @@ class TodosTodolistOptions(QWidget):
                 call = todosdb.renameTodolist(name, newname)
                 
                 if call:
-                    self.insertInformations(newname, "")
                     self.parent_.treeview.updateTodolist(name, newname)
+                    self.parent_.insertInformations(newname, "")
                     
                     QMessageBox.information(self, _("Successful"), _("{name} to-do list renamed as {newname}.")
                                             .format(name = name, newname = newname))
@@ -763,10 +763,10 @@ class TodosTodoOptions(QWidget):
         self.change_status_button = PushButton(self, _("Change status"))
         self.change_status_button.clicked.connect(self.changeStatus)
         
-        self.edit_button = PushButton(self, _("Edit todo"))
+        self.edit_button = PushButton(self, _("Edit"))
         self.edit_button.clicked.connect(self.editTodo)
         
-        self.delete_button = PushButton(self, _("Delete todo"))
+        self.delete_button = PushButton(self, _("Delete"))
         self.delete_button.clicked.connect(self.deleteTodo)
         
         self.setFixedWidth(200)

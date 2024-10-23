@@ -1354,7 +1354,7 @@ class NotesTreeView(TreeView):
                     if call:
                         name = _("Unnamed")
                         
-                        self.parent_.treeview.appendNote(notebook, name)
+                        self.appendNote(notebook, name)
                         self.parent_.insertInformations(notebook, name)
                     
                     else:
