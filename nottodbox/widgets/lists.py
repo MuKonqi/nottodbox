@@ -240,7 +240,7 @@ class TreeView(QTreeView):
             
             self.selectionModel().setCurrentIndex(
                 self.model().mapFromSource(item.index()),
-                QItemSelectionModel.SelectionFlag.ToggleCurrent)
+                QItemSelectionModel.SelectionFlag.ClearAndSelect | QItemSelectionModel.SelectionFlag.Rows)
             
             if self.caller == "own":
                 self.selectionModel().currentRowChanged.connect(
