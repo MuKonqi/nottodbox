@@ -482,6 +482,7 @@ class DiariesTabWidget(QTabWidget):
     
         if call:
             QMessageBox.information(self, _("Successful"), _("Content of {name} diary deleted.").format(name = name))
+        
         else:
             QMessageBox.critical(self, _("Error"), _("Failed to clear content of {name} diary.").format(name = name))
          
@@ -527,8 +528,6 @@ class DiariesTabWidget(QTabWidget):
             self.insertInformations("")
             self.calendar.menu.clear()
             actions.clear()
-            
-            QMessageBox.information(self, _("Successful"), _("All diaries deleted."))
 
         else:
             QMessageBox.critical(self, _("Error"), _("Failed to delete all diaries."))
@@ -549,8 +548,6 @@ class DiariesTabWidget(QTabWidget):
             self.insertInformations("")
             self.calendar.menu.removeAction(actions[name])
             del actions[name]
-            
-            QMessageBox.information(self, _("Successful"), _("{name} diary deleted.").format(name = name))
             
         else:
             QMessageBox.critical(self, _("Error"), _("Failed to delete {name} diary.").format(name = name))
@@ -665,13 +662,7 @@ class DiariesTabWidget(QTabWidget):
                 
             call = diariesdb.setHighlight(name, color)
                     
-            if call:
-                QMessageBox.information(
-                    self, _("Successful"), _("Highlight color setted to {color} for {name} diary.")
-                    .format(color = color if (status == "new")
-                            else (_("global") if status == "global" else _("default")), name = name))
-                
-            else:
+            if not call:
                 QMessageBox.critical(self, _("Error"), _("Failed to set highlight color for {name} diary.").format(name = name))
             
     def showBackup(self) -> None:

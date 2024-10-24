@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.0.7\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-24 18:56+0300\n"
-"PO-Revision-Date: 2024-10-24 18:56+0300\n"
+"POT-Creation-Date: 2024-10-24 20:58+0300\n"
+"PO-Revision-Date: 2024-10-24 20:58+0300\n"
 "Last-Translator: Muhammed S. <mukonqi@gmail.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: tr\n"
@@ -31,16 +31,16 @@ msgid "Home"
 msgstr "Ev"
 
 #: data/io.github.mukonqi.nottodbox.desktop.in.in:21 nottodbox/mainwindow.py:64
-#: nottodbox/notes.py:1266 nottodbox/settings.py:238 nottodbox/settings.py:250
+#: nottodbox/notes.py:1236 nottodbox/settings.py:238 nottodbox/settings.py:250
 msgid "Notes"
 msgstr "Notlar"
 
 #: data/io.github.mukonqi.nottodbox.desktop.in.in:25 nottodbox/mainwindow.py:65
-#: nottodbox/settings.py:241 nottodbox/settings.py:251 nottodbox/todos.py:971
+#: nottodbox/settings.py:241 nottodbox/settings.py:251 nottodbox/todos.py:938
 msgid "To-dos"
 msgstr "Yapılacaklar"
 
-#: data/io.github.mukonqi.nottodbox.desktop.in.in:29 nottodbox/diaries.py:711
+#: data/io.github.mukonqi.nottodbox.desktop.in.in:29 nottodbox/diaries.py:702
 #: nottodbox/mainwindow.py:66 nottodbox/settings.py:244
 #: nottodbox/settings.py:252
 msgid "Diaries"
@@ -80,7 +80,7 @@ msgstr "Telif Hakkı (C)"
 msgid "License: GNU General Public License, Version 3 or later"
 msgstr "Lisans: GNU Genel Kamu Lisansı, Sürüm 3 veya sonrası"
 
-#: nottodbox/diaries.py:392 nottodbox/diaries.py:565 nottodbox/diaries.py:567
+#: nottodbox/diaries.py:392 nottodbox/diaries.py:562 nottodbox/diaries.py:564
 msgid "Modification: "
 msgstr "Değiştirilme: "
 
@@ -88,7 +88,7 @@ msgstr "Değiştirilme: "
 msgid "Come back to today"
 msgstr "Günümüze geri dön"
 
-#: nottodbox/diaries.py:400 nottodbox/diaries.py:607
+#: nottodbox/diaries.py:400 nottodbox/diaries.py:604
 #, python-brace-format
 msgid "Refresh today variable (it is {name})"
 msgstr "Gün değişkenini yenile (şu anda {name})"
@@ -97,16 +97,16 @@ msgstr "Gün değişkenini yenile (şu anda {name})"
 msgid "Open/create"
 msgstr "Aç/oluştur"
 
-#: nottodbox/diaries.py:410 nottodbox/notes.py:980
+#: nottodbox/diaries.py:410 nottodbox/notes.py:961
 msgid "Show backup"
 msgstr "Yedeği göster"
 
-#: nottodbox/diaries.py:413 nottodbox/notes.py:983
+#: nottodbox/diaries.py:413 nottodbox/notes.py:964
 #: nottodbox/widgets/pages.py:660
 msgid "Restore content"
 msgstr "İçeriği geri yükle"
 
-#: nottodbox/diaries.py:416 nottodbox/notes.py:986
+#: nottodbox/diaries.py:416 nottodbox/notes.py:967
 msgid "Clear content"
 msgstr "İçeriği temizle"
 
@@ -118,42 +118,43 @@ msgstr "Vurgu rengini ayarla"
 msgid "Delete diary"
 msgstr "Günlüğü sil"
 
-#: nottodbox/diaries.py:425 nottodbox/notes.py:701 nottodbox/notes.py:741
-#: nottodbox/todos.py:485 nottodbox/todos.py:525
+#: nottodbox/diaries.py:425 nottodbox/notes.py:712 nottodbox/notes.py:752
+#: nottodbox/notes.py:973 nottodbox/todos.py:496 nottodbox/todos.py:536
+#: nottodbox/todos.py:747
 msgid "Delete all"
 msgstr "Her şeyi sil"
 
 #: nottodbox/diaries.py:459 nottodbox/diaries.py:467 nottodbox/diaries.py:475
-#: nottodbox/diaries.py:486 nottodbox/diaries.py:508 nottodbox/diaries.py:534
-#: nottodbox/diaries.py:540 nottodbox/diaries.py:556 nottodbox/diaries.py:573
-#: nottodbox/diaries.py:613 nottodbox/diaries.py:634 nottodbox/diaries.py:637
-#: nottodbox/diaries.py:643 nottodbox/diaries.py:675 nottodbox/diaries.py:681
-#: nottodbox/diaries.py:722 nottodbox/mainwindow.py:165
+#: nottodbox/diaries.py:487 nottodbox/diaries.py:509 nottodbox/diaries.py:533
+#: nottodbox/diaries.py:539 nottodbox/diaries.py:553 nottodbox/diaries.py:570
+#: nottodbox/diaries.py:610 nottodbox/diaries.py:631 nottodbox/diaries.py:634
+#: nottodbox/diaries.py:640 nottodbox/diaries.py:666 nottodbox/diaries.py:672
+#: nottodbox/diaries.py:713 nottodbox/mainwindow.py:165
 #: nottodbox/mainwindow.py:183 nottodbox/mainwindow.py:194
-#: nottodbox/mainwindow.py:206 nottodbox/notes.py:761 nottodbox/notes.py:770
-#: nottodbox/notes.py:774 nottodbox/notes.py:781 nottodbox/notes.py:793
-#: nottodbox/notes.py:805 nottodbox/notes.py:821 nottodbox/notes.py:834
-#: nottodbox/notes.py:838 nottodbox/notes.py:853 nottodbox/notes.py:857
-#: nottodbox/notes.py:861 nottodbox/notes.py:880 nottodbox/notes.py:917
-#: nottodbox/notes.py:954 nottodbox/notes.py:1009 nottodbox/notes.py:1017
-#: nottodbox/notes.py:1033 nottodbox/notes.py:1039 nottodbox/notes.py:1046
-#: nottodbox/notes.py:1053 nottodbox/notes.py:1065 nottodbox/notes.py:1083
-#: nottodbox/notes.py:1115 nottodbox/notes.py:1130 nottodbox/notes.py:1134
-#: nottodbox/notes.py:1138 nottodbox/notes.py:1157 nottodbox/notes.py:1195
-#: nottodbox/notes.py:1233 nottodbox/notes.py:1355 nottodbox/notes.py:1373
+#: nottodbox/mainwindow.py:206 nottodbox/notes.py:658 nottodbox/notes.py:772
+#: nottodbox/notes.py:781 nottodbox/notes.py:785 nottodbox/notes.py:792
+#: nottodbox/notes.py:802 nottodbox/notes.py:817 nottodbox/notes.py:830
+#: nottodbox/notes.py:834 nottodbox/notes.py:846 nottodbox/notes.py:850
+#: nottodbox/notes.py:854 nottodbox/notes.py:871 nottodbox/notes.py:903
+#: nottodbox/notes.py:935 nottodbox/notes.py:995 nottodbox/notes.py:1003
+#: nottodbox/notes.py:1020 nottodbox/notes.py:1026 nottodbox/notes.py:1033
+#: nottodbox/notes.py:1040 nottodbox/notes.py:1050 nottodbox/notes.py:1066
+#: nottodbox/notes.py:1098 nottodbox/notes.py:1110 nottodbox/notes.py:1114
+#: nottodbox/notes.py:1118 nottodbox/notes.py:1137 nottodbox/notes.py:1170
+#: nottodbox/notes.py:1203 nottodbox/notes.py:1325 nottodbox/notes.py:1343
 #: nottodbox/settings.py:300 nottodbox/settings.py:313
 #: nottodbox/settings.py:332 nottodbox/settings.py:345
-#: nottodbox/settings.py:450 nottodbox/settings.py:480 nottodbox/sidebar.py:252
-#: nottodbox/sidebar.py:280 nottodbox/sidebar.py:288 nottodbox/todos.py:545
-#: nottodbox/todos.py:554 nottodbox/todos.py:558 nottodbox/todos.py:565
-#: nottodbox/todos.py:577 nottodbox/todos.py:589 nottodbox/todos.py:606
-#: nottodbox/todos.py:619 nottodbox/todos.py:623 nottodbox/todos.py:637
-#: nottodbox/todos.py:641 nottodbox/todos.py:644 nottodbox/todos.py:663
-#: nottodbox/todos.py:700 nottodbox/todos.py:737 nottodbox/todos.py:780
-#: nottodbox/todos.py:799 nottodbox/todos.py:805 nottodbox/todos.py:815
-#: nottodbox/todos.py:827 nottodbox/todos.py:845 nottodbox/todos.py:870
-#: nottodbox/todos.py:874 nottodbox/todos.py:878 nottodbox/todos.py:917
-#: nottodbox/todos.py:955 nottodbox/todos.py:1021 nottodbox/todos.py:1036
+#: nottodbox/settings.py:450 nottodbox/settings.py:480 nottodbox/sidebar.py:249
+#: nottodbox/sidebar.py:274 nottodbox/sidebar.py:282 nottodbox/todos.py:442
+#: nottodbox/todos.py:556 nottodbox/todos.py:565 nottodbox/todos.py:569
+#: nottodbox/todos.py:576 nottodbox/todos.py:586 nottodbox/todos.py:601
+#: nottodbox/todos.py:614 nottodbox/todos.py:618 nottodbox/todos.py:630
+#: nottodbox/todos.py:634 nottodbox/todos.py:637 nottodbox/todos.py:654
+#: nottodbox/todos.py:686 nottodbox/todos.py:718 nottodbox/todos.py:766
+#: nottodbox/todos.py:783 nottodbox/todos.py:789 nottodbox/todos.py:799
+#: nottodbox/todos.py:809 nottodbox/todos.py:825 nottodbox/todos.py:847
+#: nottodbox/todos.py:851 nottodbox/todos.py:855 nottodbox/todos.py:889
+#: nottodbox/todos.py:922 nottodbox/todos.py:988 nottodbox/todos.py:1001
 #: nottodbox/widgets/pages.py:253 nottodbox/widgets/pages.py:279
 #: nottodbox/widgets/pages.py:497 nottodbox/widgets/pages.py:543
 #: nottodbox/widgets/pages.py:573 nottodbox/widgets/pages.py:613
@@ -166,30 +167,20 @@ msgstr "Hata"
 msgid "There is no diary called {name}."
 msgstr "{name} adında bir günlük yok."
 
-#: nottodbox/diaries.py:467 nottodbox/diaries.py:634
+#: nottodbox/diaries.py:467 nottodbox/diaries.py:631
 #, python-brace-format
 msgid "There is no backup for {name} diary."
 msgstr "{name} günlüğü için yedek yok."
 
-#: nottodbox/diaries.py:475 nottodbox/diaries.py:540 nottodbox/diaries.py:573
-#: nottodbox/diaries.py:613 nottodbox/diaries.py:643 nottodbox/diaries.py:681
-#: nottodbox/diaries.py:722
+#: nottodbox/diaries.py:475 nottodbox/diaries.py:539 nottodbox/diaries.py:570
+#: nottodbox/diaries.py:610 nottodbox/diaries.py:640 nottodbox/diaries.py:672
+#: nottodbox/diaries.py:713
 msgid "Diary name can not be blank."
 msgstr "Günlük adı boş olamaz."
 
-#: nottodbox/diaries.py:484 nottodbox/diaries.py:531 nottodbox/diaries.py:553
-#: nottodbox/diaries.py:631 nottodbox/diaries.py:670 nottodbox/notes.py:790
-#: nottodbox/notes.py:802 nottodbox/notes.py:819 nottodbox/notes.py:849
-#: nottodbox/notes.py:877 nottodbox/notes.py:912 nottodbox/notes.py:949
-#: nottodbox/notes.py:1031 nottodbox/notes.py:1062 nottodbox/notes.py:1080
-#: nottodbox/notes.py:1126 nottodbox/notes.py:1154 nottodbox/notes.py:1190
-#: nottodbox/notes.py:1228 nottodbox/settings.py:310 nottodbox/settings.py:342
-#: nottodbox/settings.py:444 nottodbox/settings.py:474 nottodbox/sidebar.py:277
-#: nottodbox/todos.py:574 nottodbox/todos.py:586 nottodbox/todos.py:603
-#: nottodbox/todos.py:634 nottodbox/todos.py:660 nottodbox/todos.py:695
-#: nottodbox/todos.py:732 nottodbox/todos.py:796 nottodbox/todos.py:824
-#: nottodbox/todos.py:842 nottodbox/todos.py:866 nottodbox/todos.py:912
-#: nottodbox/todos.py:950 nottodbox/todos.py:1033
+#: nottodbox/diaries.py:484 nottodbox/diaries.py:628 nottodbox/notes.py:1017
+#: nottodbox/notes.py:1134 nottodbox/settings.py:310 nottodbox/settings.py:342
+#: nottodbox/settings.py:444 nottodbox/settings.py:474
 #: nottodbox/widgets/pages.py:538 nottodbox/widgets/pages.py:736
 msgid "Successful"
 msgstr "Başarılı"
@@ -199,12 +190,12 @@ msgstr "Başarılı"
 msgid "Content of {name} diary deleted."
 msgstr "{name} günlüğünün içeriği temizlendi."
 
-#: nottodbox/diaries.py:486
+#: nottodbox/diaries.py:487
 #, python-brace-format
 msgid "Failed to clear content of {name} diary."
 msgstr "{name} günlüğünün içeriği temizlenemedi."
 
-#: nottodbox/diaries.py:493 nottodbox/mainwindow.py:132 nottodbox/notes.py:624
+#: nottodbox/diaries.py:494 nottodbox/mainwindow.py:132 nottodbox/notes.py:624
 #: nottodbox/settings.py:296 nottodbox/settings.py:328
 #: nottodbox/settings.py:409 nottodbox/widgets/pages.py:515
 #: nottodbox/widgets/pages.py:590 nottodbox/widgets/pages.py:703
@@ -212,7 +203,7 @@ msgstr "{name} günlüğünün içeriği temizlenemedi."
 msgid "Question"
 msgstr "Soru"
 
-#: nottodbox/diaries.py:494
+#: nottodbox/diaries.py:495
 #, python-brace-format
 msgid ""
 "{name} diary not saved.\n"
@@ -221,30 +212,21 @@ msgstr ""
 "{name} günlüğü kaydedilmedi.\n"
 "Ne yapmak istersiniz?"
 
-#: nottodbox/diaries.py:508
+#: nottodbox/diaries.py:509
 #, python-brace-format
 msgid "Failed to save {name} diary."
 msgstr "{name} günlüğü kaydedilemedi."
 
-#: nottodbox/diaries.py:531
-msgid "All diaries deleted."
-msgstr "Tüm günlükler temizlendi."
-
-#: nottodbox/diaries.py:534
+#: nottodbox/diaries.py:533
 msgid "Failed to delete all diaries."
 msgstr "Tüm günlükler temizlenemedi."
 
 #: nottodbox/diaries.py:553
 #, python-brace-format
-msgid "{name} diary deleted."
-msgstr "{name} günlüğü silindi."
-
-#: nottodbox/diaries.py:556
-#, python-brace-format
 msgid "Failed to delete {name} diary."
 msgstr "{name} günlüğü silinemedi."
 
-#: nottodbox/diaries.py:623 nottodbox/widgets/pages.py:515
+#: nottodbox/diaries.py:620 nottodbox/widgets/pages.py:515
 #: nottodbox/widgets/pages.py:590 nottodbox/widgets/pages.py:703
 #: nottodbox/widgets/pages.py:725
 msgid ""
@@ -254,51 +236,31 @@ msgstr ""
 "Günlükler yazıldığı güne özellerdir.\n"
 "Yani, emin misiniz?"
 
-#: nottodbox/diaries.py:631
+#: nottodbox/diaries.py:628
 #, python-brace-format
 msgid "Backup of {name} diary restored."
 msgstr "{name} günlüğünün yedeği geri yüklendi."
 
-#: nottodbox/diaries.py:637
+#: nottodbox/diaries.py:634
 #, python-brace-format
 msgid "Failed to restore backup of {name} diary."
 msgstr "{name} günlüğünün yedeği geri yüklenemedi."
 
-#: nottodbox/diaries.py:654
+#: nottodbox/diaries.py:651
 #, python-brace-format
 msgid "Select Highlight Color for {name} Diary"
 msgstr "{name} Günlüğü için Vurgu Rengi Seçin"
 
-#: nottodbox/diaries.py:670
-#, python-brace-format
-msgid "Highlight color setted to {color} for {name} diary."
-msgstr "Vurgu rengi, {name} günlüğü için {color} olarak ayarlandı."
-
-#: nottodbox/diaries.py:672 nottodbox/notes.py:914 nottodbox/notes.py:951
-#: nottodbox/notes.py:1192 nottodbox/notes.py:1230 nottodbox/todos.py:697
-#: nottodbox/todos.py:734 nottodbox/todos.py:914 nottodbox/todos.py:952
-msgid "global"
-msgstr "küresel"
-
-#: nottodbox/diaries.py:672 nottodbox/notes.py:914 nottodbox/notes.py:951
-#: nottodbox/notes.py:1192 nottodbox/notes.py:1230 nottodbox/settings.py:502
-#: nottodbox/settings.py:513 nottodbox/settings.py:538
-#: nottodbox/settings.py:571 nottodbox/settings.py:574
-#: nottodbox/settings.py:578 nottodbox/todos.py:697 nottodbox/todos.py:734
-#: nottodbox/todos.py:914 nottodbox/todos.py:952
-msgid "default"
-msgstr "varsayılan"
-
-#: nottodbox/diaries.py:675
+#: nottodbox/diaries.py:666
 #, python-brace-format
 msgid "Failed to set highlight color for {name} diary."
 msgstr "Vurgu rengi, {name} günlüğü için ayarlanamadı."
 
-#: nottodbox/diaries.py:693
+#: nottodbox/diaries.py:684
 msgid "(Backup)"
 msgstr "(Yedek)"
 
-#: nottodbox/diaries.py:704
+#: nottodbox/diaries.py:695
 msgid "Double-click on top to opening a diary."
 msgstr "Üstte bir günlüğü açmak için çift tıklayın."
 
@@ -356,15 +318,15 @@ msgstr "Bazı sayfalar kaydedilemedi."
 msgid "Can not save new sidebar setting."
 msgstr "Yeni kenar çubuğu ayarı kaydedilemedi."
 
-#: nottodbox/notes.py:577 nottodbox/notes.py:675
+#: nottodbox/notes.py:577 nottodbox/notes.py:686
 msgid "Notebook: "
 msgstr "Not defteri: "
 
-#: nottodbox/notes.py:578 nottodbox/notes.py:676
+#: nottodbox/notes.py:578 nottodbox/notes.py:687
 msgid "Note: "
 msgstr "Not: "
 
-#: nottodbox/notes.py:583 nottodbox/sidebar.py:137 nottodbox/todos.py:406
+#: nottodbox/notes.py:583 nottodbox/sidebar.py:136 nottodbox/todos.py:406
 msgid "Search..."
 msgstr "Ara..."
 
@@ -377,7 +339,11 @@ msgstr ""
 "{name} notu kaydedilmedi.\n"
 "Ne yapmak istersiniz?"
 
-#: nottodbox/notes.py:695
+#: nottodbox/notes.py:658
+msgid "Failed to delete all notebooks."
+msgstr "Tüm not defterleri silinemedi."
+
+#: nottodbox/notes.py:706
 msgid ""
 "You can select\n"
 "a notebook\n"
@@ -389,112 +355,89 @@ msgstr ""
 "veya bir not\n"
 "seçebilirsiniz."
 
-#: nottodbox/notes.py:698 nottodbox/notes.py:723
+#: nottodbox/notes.py:709 nottodbox/notes.py:734
 msgid "Create notebook"
 msgstr "Not defteri oluştur"
 
-#: nottodbox/notes.py:720 nottodbox/notes.py:965
+#: nottodbox/notes.py:731 nottodbox/notes.py:946
 msgid "Create note"
 msgstr "Not oluştur"
 
-#: nottodbox/notes.py:726 nottodbox/notes.py:971 nottodbox/todos.py:510
-#: nottodbox/todos.py:751
+#: nottodbox/notes.py:737 nottodbox/notes.py:952 nottodbox/todos.py:521
+#: nottodbox/todos.py:732
 msgid "Set background color"
 msgstr "Arka plan rengini ayarla"
 
-#: nottodbox/notes.py:729 nottodbox/notes.py:974 nottodbox/todos.py:513
-#: nottodbox/todos.py:754
+#: nottodbox/notes.py:740 nottodbox/notes.py:955 nottodbox/todos.py:524
+#: nottodbox/todos.py:735
 msgid "Set text color"
 msgstr "Metin rengini ayarla"
 
-#: nottodbox/notes.py:732 nottodbox/notes.py:977 nottodbox/todos.py:516
+#: nottodbox/notes.py:743 nottodbox/notes.py:958 nottodbox/todos.py:527
 msgid "Rename"
 msgstr "Yeniden adlandır"
 
-#: nottodbox/notes.py:735 nottodbox/settings.py:257 nottodbox/todos.py:519
+#: nottodbox/notes.py:746 nottodbox/settings.py:257 nottodbox/todos.py:530
 msgid "Reset"
 msgstr "Sıfırla"
 
-#: nottodbox/notes.py:738 nottodbox/notes.py:989 nottodbox/sidebar.py:146
-#: nottodbox/todos.py:522 nottodbox/todos.py:763
+#: nottodbox/notes.py:749 nottodbox/notes.py:970 nottodbox/sidebar.py:145
+#: nottodbox/todos.py:533 nottodbox/todos.py:744
 msgid "Delete"
 msgstr "Sil"
 
-#: nottodbox/notes.py:761 nottodbox/notes.py:1039
+#: nottodbox/notes.py:772 nottodbox/notes.py:1026
 #, python-brace-format
 msgid "There is no notebook called {name}."
 msgstr "{name} adında bir not defteri yok."
 
-#: nottodbox/notes.py:767
+#: nottodbox/notes.py:778
 msgid "Create Notebook"
 msgstr "Not Defteri Oluştur"
 
-#: nottodbox/notes.py:767
+#: nottodbox/notes.py:778
 msgid "Please enter a name for creating a notebook."
 msgstr "Lütfen bir not defteri oluşturmak için ad girin."
 
-#: nottodbox/notes.py:770 nottodbox/notes.py:834 nottodbox/notes.py:1115
+#: nottodbox/notes.py:781 nottodbox/notes.py:830 nottodbox/notes.py:1098
 msgid "The notebook name can not contain these characters: ' and @"
 msgstr "Not defteri adı şu karakterleri içeremez: ' ve @"
 
-#: nottodbox/notes.py:774 nottodbox/notes.py:838
+#: nottodbox/notes.py:785 nottodbox/notes.py:834
 msgid "The notebook name can not be to __main__."
 msgstr "Not defteri adı __main__ olamaz."
 
-#: nottodbox/notes.py:781
+#: nottodbox/notes.py:792
 #, python-brace-format
 msgid "{name} notebook already created."
 msgstr "{name} not defteri zaten oluşturulmuş."
 
-#: nottodbox/notes.py:790
-#, python-brace-format
-msgid "{name} notebook created."
-msgstr "{name} not defteri kaydedildi."
-
-#: nottodbox/notes.py:793
+#: nottodbox/notes.py:802
 #, python-brace-format
 msgid "Failed to create {name} notebook."
 msgstr "{name} not defteri oluşturulamadı."
 
-#: nottodbox/notes.py:802
-msgid "All notebooks deleted."
-msgstr "Tüm not defterleri silindi."
-
-#: nottodbox/notes.py:805
-msgid "Failed to delete all notebooks."
-msgstr "Tüm not defterleri silinemedi."
-
-#: nottodbox/notes.py:819
-#, python-brace-format
-msgid "{name} notebook deleted."
-msgstr "{name} not defteri silindi."
-
-#: nottodbox/notes.py:821
+#: nottodbox/notes.py:817
 #, python-brace-format
 msgid "Failed to delete {name} notebook."
 msgstr "{name} not defteri silinemedi."
 
-#: nottodbox/notes.py:830
+#: nottodbox/notes.py:826
 #, python-brace-format
 msgid "Rename {name} Notebook"
 msgstr "{name} Not Defterini Yeniden Adlandır"
 
-#: nottodbox/notes.py:831
+#: nottodbox/notes.py:827
 #, python-brace-format
 msgid "Please enter a new name for {name} notebook."
 msgstr "Lütfen {name} not defteri için yeni bir ad girin."
 
-#: nottodbox/notes.py:849
-#, python-brace-format
-msgid "{name} notebook renamed as {newname}."
-msgstr "{name} not defteri {newname} olarak yeniden adlandırıldı."
-
-#: nottodbox/notes.py:853 nottodbox/notes.py:861
+#: nottodbox/notes.py:846 nottodbox/notes.py:854
 #, python-brace-format
 msgid "Failed to rename {name} notebook."
 msgstr "{name} not defteri yeniden adlandırılamadı."
 
-#: nottodbox/notes.py:857
+#: nottodbox/notes.py:850
 #, python-brace-format
 msgid ""
 "Already existing {newname} notebook, renaming {name} notebook cancalled."
@@ -502,194 +445,154 @@ msgstr ""
 "Zaten {newname} not defteri mevcut, {name} not defterini yeniden adlandırma "
 "iptal edildi."
 
-#: nottodbox/notes.py:877
-#, python-brace-format
-msgid "{name} notebook reset."
-msgstr "{name} not defteri sıfırlandı."
-
-#: nottodbox/notes.py:880
+#: nottodbox/notes.py:871
 #, python-brace-format
 msgid "Failed to reset {name} notebook."
 msgstr "{name} not defteri sıfırlanamadı."
 
-#: nottodbox/notes.py:894
+#: nottodbox/notes.py:885
 #, python-brace-format
 msgid "Select Background Color for {name} Notebook"
 msgstr "{name} Not Defteri için Arka Plan Rengi Seçin"
 
-#: nottodbox/notes.py:912
-#, python-brace-format
-msgid "Background color setted to {color} for {name} notebook."
-msgstr "Arka plan rengi, {name} not defteri için {color} olarak ayarlandı."
-
-#: nottodbox/notes.py:917
+#: nottodbox/notes.py:903
 #, python-brace-format
 msgid "Failed to set background color for {name} notebook."
 msgstr "Arka plan rengi {name} not defteri için ayarlanamadı."
 
-#: nottodbox/notes.py:931
+#: nottodbox/notes.py:917
 #, python-brace-format
 msgid "Select Text Color for {name} Notebook"
 msgstr "{name} Not Defteri için Metin Rengi Seçin"
 
-#: nottodbox/notes.py:949
-#, python-brace-format
-msgid "Text color setted to {color} for {name} notebook."
-msgstr "Metin rengi, {name} not defteri için {color} olarak ayarlandı."
-
-#: nottodbox/notes.py:954
+#: nottodbox/notes.py:935
 #, python-brace-format
 msgid "Failed to set text color for {name} notebook."
 msgstr "Metin rengi, {name} not defteri için ayarlanamadı."
 
-#: nottodbox/notes.py:968
+#: nottodbox/notes.py:949
 msgid "Open"
 msgstr "Aç"
 
-#: nottodbox/notes.py:1009
+#: nottodbox/notes.py:995
 #, python-brace-format
 msgid "There is no note called {name}."
 msgstr "{name} adında bir not yok."
 
-#: nottodbox/notes.py:1017
+#: nottodbox/notes.py:1003
 #, python-brace-format
 msgid "There is no backup for {name} note."
 msgstr "{name} notu için yedek yok."
 
-#: nottodbox/notes.py:1031
+#: nottodbox/notes.py:1017
 #, python-brace-format
 msgid "Content of {name} note cleared."
 msgstr "{name} notunun içeriği temizlendi."
 
-#: nottodbox/notes.py:1033
+#: nottodbox/notes.py:1020
 #, python-brace-format
 msgid "Failed to clear content of {name} note."
 msgstr "{name} notunun içeriği temizlenemedi."
 
-#: nottodbox/notes.py:1043
+#: nottodbox/notes.py:1030
 msgid "Create Note"
 msgstr "Not Oluştur"
 
-#: nottodbox/notes.py:1043
+#: nottodbox/notes.py:1030
 msgid "Please enter a name for creating a note."
 msgstr "Lütfen bir not oluşturmak için bir not girin."
 
-#: nottodbox/notes.py:1046
+#: nottodbox/notes.py:1033
 msgid "The note name can not contain @ character."
 msgstr "Not adı @ karakterini içeremez."
 
-#: nottodbox/notes.py:1053
+#: nottodbox/notes.py:1040
 #, python-brace-format
 msgid "{name} note already created."
 msgstr "{name} notu zaten oluşturulmuş."
 
-#: nottodbox/notes.py:1062
-#, python-brace-format
-msgid "{name} note created."
-msgstr "{name} notu oluşturuldu."
-
-#: nottodbox/notes.py:1065 nottodbox/notes.py:1355
+#: nottodbox/notes.py:1050 nottodbox/notes.py:1325
 #, python-brace-format
 msgid "Failed to create {name} note."
 msgstr "{name} notunu oluşturulamadı."
 
-#: nottodbox/notes.py:1080
-#, python-brace-format
-msgid "{name} note deleted."
-msgstr "{name} notu silindi."
-
-#: nottodbox/notes.py:1083
+#: nottodbox/notes.py:1066
 #, python-brace-format
 msgid "Failed to delete {name} note."
 msgstr "{name} notu silinemedi."
 
-#: nottodbox/notes.py:1111
+#: nottodbox/notes.py:1094
 #, python-brace-format
 msgid "Rename {name} Note"
 msgstr "{name} Notunu Yeniden Adlandır"
 
-#: nottodbox/notes.py:1112
+#: nottodbox/notes.py:1095
 #, python-brace-format
 msgid "Please enter a new name for {name} note."
 msgstr "Lütfen {name} notu için yeni bir ad girin."
 
-#: nottodbox/notes.py:1126
-#, python-brace-format
-msgid "{name} note renamed as {newname}."
-msgstr "{name} notu {newname} olarak yeniden adlandırıldı."
-
-#: nottodbox/notes.py:1130 nottodbox/notes.py:1138
+#: nottodbox/notes.py:1110 nottodbox/notes.py:1118
 #, python-brace-format
 msgid "Failed to rename {name} note."
 msgstr "{name} notu yeniden adlandırılamadı."
 
-#: nottodbox/notes.py:1134
+#: nottodbox/notes.py:1114
 #, python-brace-format
 msgid "Already existing {newname} note, renaming {name} note cancalled."
 msgstr "Zaten {newname} notu mevcut, {name} notunu adlandırma iptal edildi."
 
-#: nottodbox/notes.py:1154
+#: nottodbox/notes.py:1134
 #, python-brace-format
 msgid "Backup of {name} note restored."
 msgstr "{name} notunun yedeği geri yüklendi."
 
-#: nottodbox/notes.py:1157
+#: nottodbox/notes.py:1137
 #, python-brace-format
 msgid "Failed to restore backup of {name} note."
 msgstr "{name} notunun yedeği geri yüklenemedi."
 
-#: nottodbox/notes.py:1172
+#: nottodbox/notes.py:1152
 #, python-brace-format
 msgid "Select Background Color for {name} Note"
 msgstr "{name} Notu için Arka Plan Rengi Seçin"
 
-#: nottodbox/notes.py:1190
-#, python-brace-format
-msgid "Background color setted to {color} for {name} note."
-msgstr "Arka plan rengi, {name} notu için {color} olarak ayarlandı."
-
-#: nottodbox/notes.py:1195
+#: nottodbox/notes.py:1170
 #, python-brace-format
 msgid "Failed to set background color for {name} note."
 msgstr "Arka plan rengi {name} notu için ayarlanamadı."
 
-#: nottodbox/notes.py:1210
+#: nottodbox/notes.py:1185
 #, python-brace-format
 msgid "Select Text Color for {name} Note"
 msgstr "{name} Notu için Metin Rengi Seçin"
 
-#: nottodbox/notes.py:1228
-#, python-brace-format
-msgid "Text color setted to {color} for {name} note."
-msgstr "Metin rengi, {name} notu için {color} olarak ayarlandı."
-
-#: nottodbox/notes.py:1233
+#: nottodbox/notes.py:1203
 #, python-brace-format
 msgid "Failed to set text color for {name} note."
 msgstr "Metin rengi, {name} notu için ayarlanamadı."
 
-#: nottodbox/notes.py:1271 nottodbox/notes.py:1309
+#: nottodbox/notes.py:1241 nottodbox/notes.py:1279
 msgid "Name"
 msgstr "Not Defteri / Not"
 
-#: nottodbox/notes.py:1271 nottodbox/notes.py:1309 nottodbox/todos.py:976
-#: nottodbox/todos.py:1002
+#: nottodbox/notes.py:1241 nottodbox/notes.py:1279 nottodbox/todos.py:943
+#: nottodbox/todos.py:969
 msgid "Creation"
 msgstr "Oluşturulma"
 
-#: nottodbox/notes.py:1271 nottodbox/notes.py:1309
+#: nottodbox/notes.py:1241 nottodbox/notes.py:1279
 msgid "Modification"
 msgstr "Değiştirilme"
 
-#: nottodbox/notes.py:1277
+#: nottodbox/notes.py:1247
 msgid "Double-click to opening a note."
 msgstr "Bir not açmak için çift tıklayın."
 
-#: nottodbox/notes.py:1346 nottodbox/notes.py:1349 nottodbox/notes.py:1355
+#: nottodbox/notes.py:1316 nottodbox/notes.py:1319 nottodbox/notes.py:1325
 msgid "Unnamed"
 msgstr "Adsız"
 
-#: nottodbox/notes.py:1373
+#: nottodbox/notes.py:1343
 msgid "Please select a note or a notebook."
 msgstr "Lütfen bir not  defteri veya not seçin."
 
@@ -799,6 +702,12 @@ msgstr "Arka Plan Rengi Seçin"
 msgid "Select color (it is {color})"
 msgstr "Renk seçin (şu anda {color})"
 
+#: nottodbox/settings.py:502 nottodbox/settings.py:513
+#: nottodbox/settings.py:538 nottodbox/settings.py:571
+#: nottodbox/settings.py:574 nottodbox/settings.py:578
+msgid "default"
+msgstr "varsayılan"
+
 #: nottodbox/settings.py:507 nottodbox/widgets/pages.py:282
 msgid "Select Text Color"
 msgstr "Metin Rengi Seçin"
@@ -807,52 +716,48 @@ msgstr "Metin Rengi Seçin"
 msgid "Select Highlight Color"
 msgstr "Vurgu Rengi Seçin"
 
-#: nottodbox/sidebar.py:140
+#: nottodbox/sidebar.py:139
 msgid "Open Pages"
 msgstr "Açık Sayfalar"
 
-#: nottodbox/sidebar.py:143
+#: nottodbox/sidebar.py:142
 msgid "History"
 msgstr "Geçmiş"
 
-#: nottodbox/sidebar.py:151
+#: nottodbox/sidebar.py:149
 msgid "Clear"
 msgstr "Temizle"
 
-#: nottodbox/sidebar.py:182 nottodbox/sidebar.py:272
+#: nottodbox/sidebar.py:179 nottodbox/sidebar.py:269
 msgid "Type"
 msgstr "Tür"
 
-#: nottodbox/sidebar.py:182 nottodbox/sidebar.py:272
+#: nottodbox/sidebar.py:179 nottodbox/sidebar.py:269
 msgid "Page"
 msgstr "Sayfa"
 
-#: nottodbox/sidebar.py:194
+#: nottodbox/sidebar.py:191
 msgid "Double-click to going to selected page."
 msgstr "Seçilen sayfaya gitmek için çift tıklayın."
 
-#: nottodbox/sidebar.py:202
+#: nottodbox/sidebar.py:199
 msgid "Note"
 msgstr "Not"
 
-#: nottodbox/sidebar.py:202
+#: nottodbox/sidebar.py:199
 msgid "Diary"
 msgstr "Günlük"
 
-#: nottodbox/sidebar.py:252
+#: nottodbox/sidebar.py:249
 #, python-brace-format
 msgid "Failed to add {page} page to history."
 msgstr "{page} sayfası geçmişe eklenemedi."
 
-#: nottodbox/sidebar.py:277
-msgid "History cleared."
-msgstr "Geçmiş temizlendi."
-
-#: nottodbox/sidebar.py:280
+#: nottodbox/sidebar.py:274
 msgid "Failed to clear history."
 msgstr "Geçmiş temizlenemedi."
 
-#: nottodbox/sidebar.py:288
+#: nottodbox/sidebar.py:282
 #, python-brace-format
 msgid "Failed to delete {page} page from history."
 msgstr "{page} sayfası geçmişten silinemedi."
@@ -861,15 +766,19 @@ msgstr "{page} sayfası geçmişten silinemedi."
 msgid "Not completed yet"
 msgstr "Henüz tamamlanmamış"
 
-#: nottodbox/todos.py:400 nottodbox/todos.py:459
+#: nottodbox/todos.py:400 nottodbox/todos.py:470
 msgid "To-do list: "
 msgstr "Yapılacaklar listesi: "
 
-#: nottodbox/todos.py:401 nottodbox/todos.py:460
+#: nottodbox/todos.py:401 nottodbox/todos.py:471
 msgid "To-do: "
 msgstr "Yapılacak: "
 
-#: nottodbox/todos.py:479
+#: nottodbox/todos.py:442
+msgid "Failed to delete all to-do lists."
+msgstr "Tüm yapılacaklar listeleri silinemedi."
+
+#: nottodbox/todos.py:490
 msgid ""
 "You can select\n"
 "a to-do list\n"
@@ -881,264 +790,194 @@ msgstr ""
 "veya bir yapılacak\n"
 "seçebilirsiniz."
 
-#: nottodbox/todos.py:482 nottodbox/todos.py:507
+#: nottodbox/todos.py:493 nottodbox/todos.py:518
 msgid "Create to-do list"
 msgstr "Yapılacaklar listesi oluştur"
 
-#: nottodbox/todos.py:504
+#: nottodbox/todos.py:515
 msgid "Create to-do"
 msgstr "Yapılacak oluştur"
 
-#: nottodbox/todos.py:545 nottodbox/todos.py:805
+#: nottodbox/todos.py:556 nottodbox/todos.py:789
 #, python-brace-format
 msgid "There is no to-do list called {name}."
 msgstr "{name} adında bir yapılacaklar listesi yok."
 
-#: nottodbox/todos.py:551
+#: nottodbox/todos.py:562
 msgid "Create To-do List"
 msgstr "Yapılacaklar listesi oluştur"
 
-#: nottodbox/todos.py:551
+#: nottodbox/todos.py:562
 msgid "Please enter a name for creating a to-do list."
 msgstr "Lütfen yapılacaklar listesi oluşturmak için bir isim girin."
 
-#: nottodbox/todos.py:554 nottodbox/todos.py:619
+#: nottodbox/todos.py:565 nottodbox/todos.py:614
 msgid "The to-do list name can not contain these characters: ' and @"
 msgstr "Yapılacaklar listesi adı şu karakterleri içeremez: ' ve @"
 
-#: nottodbox/todos.py:558 nottodbox/todos.py:623
+#: nottodbox/todos.py:569 nottodbox/todos.py:618
 msgid "The to-do list name can not be to __main__."
 msgstr "Yapılacaklar listesi adı __main__ olamaz."
 
-#: nottodbox/todos.py:565
+#: nottodbox/todos.py:576
 #, python-brace-format
 msgid "{name} to-do list already created."
 msgstr "{name} yapılacaklar listesi zaten oluşturulmuş."
 
-#: nottodbox/todos.py:574
-#, python-brace-format
-msgid "{name} to-do list created."
-msgstr "{name} yapılacaklar listesi oluşturuldu."
-
-#: nottodbox/todos.py:577
+#: nottodbox/todos.py:586
 #, python-brace-format
 msgid "Failed to create {name} to-do list."
 msgstr "{name} yapılacaklar listesi oluşturulamadı."
 
-#: nottodbox/todos.py:586
-msgid "All to-do lists deleted."
-msgstr "Tüm yapılacaklar listeleri silindi."
-
-#: nottodbox/todos.py:589
-msgid "Failed to delete all to-do lists."
-msgstr "Tüm yapılacaklar listeleri silinemedi."
-
-#: nottodbox/todos.py:603
-#, python-brace-format
-msgid "{name} to-do list deleted."
-msgstr "{name} yapılacaklar listesi silindi."
-
-#: nottodbox/todos.py:606
+#: nottodbox/todos.py:601
 #, python-brace-format
 msgid "Failed to delete {name} to-do list."
 msgstr "{name} yapılacaklar listesi silinemedi."
 
-#: nottodbox/todos.py:615
+#: nottodbox/todos.py:610
 #, python-brace-format
 msgid "Rename {name} To-do List"
 msgstr "{name} yapılacaklar listesini yeniden adlandır"
 
-#: nottodbox/todos.py:616
+#: nottodbox/todos.py:611
 #, python-brace-format
 msgid "Please enter a new name for {name} to-do list."
 msgstr "Lütfen {name} yapılacaklar listesi için yeni bir ad girin."
 
-#: nottodbox/todos.py:634
-#, python-brace-format
-msgid "{name} to-do list renamed as {newname}."
-msgstr "{name} yapılacaklar listesi {newname} olarak yeniden adlandırıldı."
-
-#: nottodbox/todos.py:637 nottodbox/todos.py:644
+#: nottodbox/todos.py:630 nottodbox/todos.py:637
 #, python-brace-format
 msgid "Failed to rename {name} to-do list."
 msgstr "{name} yapılacaklar listesi yeniden adlandırılamadı."
 
-#: nottodbox/todos.py:641
+#: nottodbox/todos.py:634
 #, python-brace-format
 msgid "{newname} to-do list already created."
 msgstr "{name} yapılacaklar listesi zaten oluşturulmuş."
 
-#: nottodbox/todos.py:660
-#, python-brace-format
-msgid "{name} to-do list reset."
-msgstr "{name} yapılacaklar listesi sıfırlandı."
-
-#: nottodbox/todos.py:663
+#: nottodbox/todos.py:654
 #, python-brace-format
 msgid "Failed to reset {name} to-do list."
 msgstr "{name} yapılacaklar listesi sıfırlanamadı."
 
-#: nottodbox/todos.py:677
+#: nottodbox/todos.py:668
 #, python-brace-format
 msgid "Select Background Color for {name} To-do List"
 msgstr "{name} Yapılacaklar Listesi için Arka Plan Rengi Seçin"
 
-#: nottodbox/todos.py:695
-#, python-brace-format
-msgid "Background color setted to {color} for {name} to-do list."
-msgstr ""
-"Arka plan rengi, {name} yapılacaklar listesi için {color} olarak ayarlandı."
-
-#: nottodbox/todos.py:700
+#: nottodbox/todos.py:686
 #, python-brace-format
 msgid "Failed to set background color for {name} to-do list."
 msgstr "Arka plan rengi {name} yapılacaklar listesi için ayarlanamadı."
 
-#: nottodbox/todos.py:714
+#: nottodbox/todos.py:700
 #, python-brace-format
 msgid "Select Text Color for {name} To-do List"
 msgstr "{name} Yapılacaklar Listesi için Metin Rengi Seçin"
 
-#: nottodbox/todos.py:732
-#, python-brace-format
-msgid "Text color setted to {color} for {name} to-do list."
-msgstr ""
-"Metin rengi, {name} yapılacaklar listesi için {color} olarak ayarlandı."
-
-#: nottodbox/todos.py:737
+#: nottodbox/todos.py:718
 #, python-brace-format
 msgid "Failed to set text color for {name} to-do list."
 msgstr "Metin rengi {name} yapılacaklar listesi için ayarlanamadı."
 
-#: nottodbox/todos.py:748
+#: nottodbox/todos.py:729
 msgid "Create todo"
 msgstr "Yapılacak oluştur"
 
-#: nottodbox/todos.py:757
+#: nottodbox/todos.py:738
 msgid "Change status"
 msgstr "Durumu ayarla"
 
-#: nottodbox/todos.py:760
+#: nottodbox/todos.py:741
 msgid "Edit"
 msgstr "Düzenle"
 
-#: nottodbox/todos.py:780
+#: nottodbox/todos.py:766
 #, python-brace-format
 msgid "There is no to-do called {todo}."
 msgstr "{todo} yapılacağı yok."
 
-#: nottodbox/todos.py:796 nottodbox/todos.py:1033
-#, python-brace-format
-msgid "{todo} to-do's status changed."
-msgstr "{todo} yapılacağının durumu değiştirildi."
-
-#: nottodbox/todos.py:799 nottodbox/todos.py:1036
+#: nottodbox/todos.py:783 nottodbox/todos.py:1001
 #, python-brace-format
 msgid "Failed to change {todo}'s status."
 msgstr "{todo} yapılacağı oluşturulamadı."
 
-#: nottodbox/todos.py:809
+#: nottodbox/todos.py:793
 msgid "Create To-do"
 msgstr "Yapılacak oluştur"
 
-#: nottodbox/todos.py:809
+#: nottodbox/todos.py:793
 msgid "Please enter anything for creating a to-do."
 msgstr "Lütfen bir yapılacak oluşturmak için herhangi bir şey girin."
 
-#: nottodbox/todos.py:815
+#: nottodbox/todos.py:799
 #, python-brace-format
 msgid "{todo} to-do already created."
 msgstr "{todo} yapılacağı zaten oluşturulmuş."
 
-#: nottodbox/todos.py:824
-#, python-brace-format
-msgid "{todo} to-do created."
-msgstr "{todo} yapılacağı oluşturuldu."
-
-#: nottodbox/todos.py:827
+#: nottodbox/todos.py:809
 #, python-brace-format
 msgid "Failed to create {todo} to-do."
 msgstr "{todo} yapılacağı oluşturulamadı."
 
-#: nottodbox/todos.py:842
-#, python-brace-format
-msgid "{todo} to-do deleted."
-msgstr "{todo} yapılacağı silindi."
-
-#: nottodbox/todos.py:845
+#: nottodbox/todos.py:825
 #, python-brace-format
 msgid "Failed to delete {todo} to-do."
 msgstr "{todo} yapılacağı silinemedi."
 
-#: nottodbox/todos.py:855
+#: nottodbox/todos.py:835
 #, python-brace-format
 msgid "Edit {todo} To-do"
 msgstr "{todo} yapılacağını düzenle"
 
-#: nottodbox/todos.py:856
+#: nottodbox/todos.py:836
 #, python-brace-format
 msgid "Please enter anything for editing {todo} to-do."
 msgstr "Lütfen {todo} yapılacağını düzenlemek için herhangi bir şey girin."
 
-#: nottodbox/todos.py:866
-#, python-brace-format
-msgid "{todo} to-do edited as {newtodo}."
-msgstr "{todo} yapılacağı {newtodo} olarak düzenlendi."
-
-#: nottodbox/todos.py:870 nottodbox/todos.py:878
+#: nottodbox/todos.py:847 nottodbox/todos.py:855
 #, python-brace-format
 msgid "Failed to edit {todo} to-do."
 msgstr "{todo} yapılacağı düzenlemedi."
 
-#: nottodbox/todos.py:874
+#: nottodbox/todos.py:851
 #, python-brace-format
 msgid "Already existing {newtodo} todo, editing {todo} to-do cancalled."
 msgstr ""
 "{newtodo} yapılacağı zaten mevcut, {todo} yapılacağını düzenleme vazgeçildi."
 
-#: nottodbox/todos.py:894
+#: nottodbox/todos.py:871
 #, python-brace-format
 msgid "Select Background Color for {todo} To-do"
 msgstr "{todo} Yapılacağı için Arka Plan Rengi Seçin"
 
-#: nottodbox/todos.py:912
-#, python-brace-format
-msgid "Background color setted to {color} for {todo} to-do."
-msgstr "Arka plan rengi, {todo} yapılacağı için {color} olarak ayarlandı."
-
-#: nottodbox/todos.py:917
+#: nottodbox/todos.py:889
 #, python-brace-format
 msgid "Failed to set background color for {todo} to-do."
 msgstr "Arka plan rengi {todo} yapılacağı için ayarlanamadı."
 
-#: nottodbox/todos.py:932
+#: nottodbox/todos.py:904
 #, python-brace-format
 msgid "Select Text Color for {todo} To-do"
 msgstr "{todo} Yapılacağı için Metin Rengi Seçin"
 
-#: nottodbox/todos.py:950
-#, python-brace-format
-msgid "Text color setted to {color} for {todo} to-do."
-msgstr "Metin rengi, {todo} yapılacağı için {color} olarak ayarlandı."
-
-#: nottodbox/todos.py:955
+#: nottodbox/todos.py:922
 #, python-brace-format
 msgid "Failed to set text color for {todo} to-do."
 msgstr "Metin rengi {todo} yapılacağı için ayarlanamadı."
 
-#: nottodbox/todos.py:976 nottodbox/todos.py:1002
+#: nottodbox/todos.py:943 nottodbox/todos.py:969
 msgid "To-do List / To-do"
 msgstr "Yapılacaklar Listesi / Yapılacak"
 
-#: nottodbox/todos.py:976 nottodbox/todos.py:1002
+#: nottodbox/todos.py:943 nottodbox/todos.py:969
 msgid "Modification / Completion"
 msgstr "Değiştirilme / Tamamlanma"
 
-#: nottodbox/todos.py:982
+#: nottodbox/todos.py:949
 msgid "Double-click to changing status of a to-do."
 msgstr "Bir yapılacağın durumunu değiştirmek için çift tıklayın."
 
-#: nottodbox/todos.py:1021
+#: nottodbox/todos.py:988
 msgid "Please select a to-do."
 msgstr "Lütfen bir yapılacak seçin."
 

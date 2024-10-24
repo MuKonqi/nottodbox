@@ -46,6 +46,8 @@ class Label(QLabel):
 class PushButton(QPushButton):
     def __init__(self, parent: QWidget, text: str):
         super().__init__(text, parent)
+        
+        self.setFixedHeight(30)
 
 
 class VSeperator(QFrame):

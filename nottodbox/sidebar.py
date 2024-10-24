@@ -122,12 +122,11 @@ if not create_table:
 
 
 class SidebarWidget(QWidget):
-    def __init__(self, parent: QMainWindow, notes: QTabWidget, todos: QTabWidget, diaries: QTabWidget):
+    def __init__(self, parent: QMainWindow, notes: QTabWidget, diaries: QTabWidget):
         super().__init__(parent)
         
         self.parent_ = parent
         self.notes = notes
-        self.todos = todos
         self.diaries = diaries
         
         self.layout_ = QGridLayout(self)
@@ -144,12 +143,10 @@ class SidebarWidget(QWidget):
         self.history = SidebarHistory(self)
         
         self.delete_button = PushButton(self, _("Delete"))
-        self.delete_button.setFixedHeight(17.5)
         self.delete_button.clicked.connect(
             lambda: self.history.deletePage(self.history.getModule(), self.history.getPage()))
         
         self.clear_button = PushButton(self, _("Clear"))
-        self.clear_button.setFixedHeight(17.5)
         self.clear_button.clicked.connect(
             self.history.deleteAll)
         
@@ -272,9 +269,6 @@ class SidebarHistory(SidebarTreeView):
         self.model_.setHorizontalHeaderLabels([_("Type"), _("Page")])
         
         call = sidebardb.recreateTable()
-        
-        if call:
-            QMessageBox.information(self, _("Successful"), _("History cleared."))
             
         if not call:
             QMessageBox.critical(self, _("Error"), _("Failed to clear history."))

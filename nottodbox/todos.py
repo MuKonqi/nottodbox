@@ -429,6 +429,17 @@ class TodosWidget(QWidget):
         self.layout_.addWidget(self.treeview, 4, 0, 1, 1)
         self.layout_.addWidget(VSeperator(self), 2, 1, 3, 1)
         self.layout_.addWidget(self.none_options, 2, 2, 3, 1)
+        
+    def deleteAll(self) -> None:
+        call = todosdb.deleteAll()
+    
+        if call:
+            self.treeview.deleteAll()
+            self.treeview.setIndex("", "")
+            self.insertInformations("", "")
+            
+        else:
+            QMessageBox.critical(self, _("Error"), _("Failed to delete all to-do lists."))
             
     def insertInformations(self, todolist: str, todo: str) -> None:
         self.todolist = todolist
@@ -483,7 +494,7 @@ class TodosNoneOptions(QWidget):
         self.create_todolist_button.clicked.connect(self.parent_.todolist_options.createTodolist)
         
         self.delete_all_button = PushButton(self, _("Delete all"))
-        self.delete_all_button.clicked.connect(self.parent_.todolist_options.deleteAll)
+        self.delete_all_button.clicked.connect(self.parent_.deleteAll)
         
         self.setFixedWidth(200)
         self.setLayout(self.layout_)
@@ -523,7 +534,7 @@ class TodosTodolistOptions(QWidget):
         self.delete_button.clicked.connect(self.deleteTodolist)
         
         self.delete_all_button = PushButton(self, _("Delete all"))
-        self.delete_all_button.clicked.connect(self.deleteAll)
+        self.delete_all_button.clicked.connect(self.parent_.deleteAll)
         
         self.setFixedWidth(200)
         self.setLayout(self.layout_)
@@ -571,22 +582,8 @@ class TodosTodolistOptions(QWidget):
                     self.parent_.treeview.appendTodolist(name)
                     self.parent_.treeview.setIndex(name, "")
                     
-                    QMessageBox.information(self, _("Successful"), _("{name} to-do list created.").format(name = name))
-                    
                 else:
                     QMessageBox.critical(self, _("Error"), _("Failed to create {name} to-do list.").format(name = name))
-            
-    def deleteAll(self) -> None:
-        call = todosdb.deleteAll()
-    
-        if call:
-            self.parent_.treeview.deleteAll()
-            self.parent_.treeview.setIndex("", "")
-            
-            QMessageBox.information(self, _("Successful"), _("All to-do lists deleted."))
-            
-        else:
-            QMessageBox.critical(self, _("Error"), _("Failed to delete all to-do lists."))
                        
     def deleteTodolist(self) -> None:
         name = self.parent_.todolist
@@ -599,8 +596,6 @@ class TodosTodolistOptions(QWidget):
         if call:
             self.parent_.treeview.deleteTodolist(name)
             self.parent_.treeview.setIndex("", "")
-            
-            QMessageBox.information(self, _("Successful"), _("{name} to-do list deleted.").format(name = name))
             
         else:
             QMessageBox.critical(self, _("Error"), _("Failed to delete {name} to-do list.").format(name = name))
@@ -631,8 +626,6 @@ class TodosTodolistOptions(QWidget):
                     self.parent_.treeview.updateTodolist(name, newname)
                     self.parent_.treeview.setIndex(newname, "")
                     
-                    QMessageBox.information(self, _("Successful"), _("{name} to-do list renamed as {newname}.")
-                                            .format(name = name, newname = newname))
                 else:
                     QMessageBox.critical(self, _("Error"), _("Failed to rename {name} to-do list.")
                                         .format(name = name))
@@ -656,8 +649,6 @@ class TodosTodolistOptions(QWidget):
             self.parent_.treeview.deleteTodolist(name)
             self.parent_.treeview.appendTodolist(name)
             self.parent_.treeview.setIndex(name, "")
-            
-            QMessageBox.information(self, _("Successful"), _("{name} to-do list reset.").format(name = name))
             
         else:
             QMessageBox.critical(self, _("Error"), _("Failed to reset {name} to-do list.").format(name = name))
@@ -691,11 +682,6 @@ class TodosTodolistOptions(QWidget):
             if call:
                 self.parent_.treeview.updateTodolistBackground(name, color)
                 
-                QMessageBox.information(
-                    self, _("Successful"), _("Background color setted to {color} for {name} to-do list.")
-                    .format(color = color if (status == "new")
-                            else (_("global") if status == "global" else _("default")), name = name))
-                
             else:
                 QMessageBox.critical(self, _("Error"), _("Failed to set background color for {name} to-do list.").format(name = name))
         
@@ -728,11 +714,6 @@ class TodosTodolistOptions(QWidget):
             if call:
                 self.parent_.treeview.updateTodolistForeground(name, color)
                 
-                QMessageBox.information(
-                    self, _("Successful"), _("Text color setted to {color} for {name} to-do list.")
-                    .format(color = color if (status == "new")
-                            else (_("global") if status == "global" else _("default")), name = name))
-                
             else:
                 QMessageBox.critical(self, _("Error"), _("Failed to set text color for {name} to-do list.").format(name = name))
 
@@ -763,6 +744,9 @@ class TodosTodoOptions(QWidget):
         self.delete_button = PushButton(self, _("Delete"))
         self.delete_button.clicked.connect(self.deleteTodo)
         
+        self.delete_all_button = PushButton(self, _("Delete all"))
+        self.delete_all_button.clicked.connect(self.parent_.deleteAll)
+        
         self.setFixedWidth(200)
         self.setLayout(self.layout_)
         self.layout_.addWidget(self.create_todo_button)
@@ -772,6 +756,8 @@ class TodosTodoOptions(QWidget):
         self.layout_.addWidget(self.change_status_button)
         self.layout_.addWidget(self.edit_button)
         self.layout_.addWidget(self.delete_button)
+        self.layout_.addWidget(HSeperator(self))
+        self.layout_.addWidget(self.delete_all_button)
         
     def checkIfTheTodoExists(self, todolist: str, todo: str, mode: str = "normal") -> bool:
         call = todosdb.checkIfTheTodoExists(todolist, todo)
@@ -792,8 +778,6 @@ class TodosTodoOptions(QWidget):
         
         if call:
             self.parent_.treeview.updateTodo(todolist, todo, todo)
-            
-            QMessageBox.information(self, _("Successful"), _("{todo} to-do's status changed.").format(todo = todo))
     
         else:
             QMessageBox.critical(self, _("Error"), _("Failed to change {todo}'s status.").format(todo = todo))
@@ -821,8 +805,6 @@ class TodosTodoOptions(QWidget):
                     self.parent_.treeview.appendTodo(todolist, todo)
                     self.parent_.treeview.setIndex(todolist, todo)
                     
-                    QMessageBox.information(self, _("Successful"), _("{todo} to-do created.").format(todo = todo))
-                    
                 else:
                     QMessageBox.critical(self, _("Error"), _("Failed to create {todo} to-do.").format(todo = todo))
                     
@@ -838,8 +820,6 @@ class TodosTodoOptions(QWidget):
         if call:
             self.parent_.treeview.deleteTodo(todolist, todo)
             self.parent_.treeview.setIndex(todolist, "")
-            
-            QMessageBox.information(self, _("Successful"), _("{todo} to-do deleted.").format(todo = todo))
             
         else:
             QMessageBox.critical(self, _("Error"), _("Failed to delete {todo} to-do.").format(todo = todo))
@@ -862,9 +842,6 @@ class TodosTodoOptions(QWidget):
                 if call:
                     self.parent_.treeview.updateTodo(todolist, todo, newtodo)
                     self.parent_.treeview.setIndex(todolist, newtodo)
-                    
-                    QMessageBox.information(self, _("Successful"), _("{todo} to-do edited as {newtodo}.")
-                                            .format(todo = todo, newtodo = newtodo))
     
                 else:
                     QMessageBox.critical(self, _("Error"), _("Failed to edit {todo} to-do.")
@@ -908,11 +885,6 @@ class TodosTodoOptions(QWidget):
             if call:
                 self.parent_.treeview.updateTodoBackground(todolist, todo, color)
                 
-                QMessageBox.information(
-                    self, _("Successful"), _("Background color setted to {color} for {todo} to-do.")
-                    .format(color = color if (status == "new")
-                            else (_("global") if status == "global" else _("default")), todo = todo))
-                
             else:
                 QMessageBox.critical(self, _("Error"), _("Failed to set background color for {todo} to-do.").format(todo = todo))
         
@@ -945,11 +917,6 @@ class TodosTodoOptions(QWidget):
                     
             if call:
                 self.parent_.treeview.updateTodoForeground(todolist, todo, color)
-                
-                QMessageBox.information(
-                    self, _("Successful"), _("Text color setted to {color} for {todo} to-do.")
-                    .format(color = color if (status == "new")
-                            else (_("global") if status == "global" else _("default")), todo = todo))
                 
             else:
                 QMessageBox.critical(self, _("Error"), _("Failed to set text color for {todo} to-do.").format(todo = todo))
@@ -1029,8 +996,6 @@ class TodosTreeView(TreeView):
             
         if call:
             self.updateTodo(todolist, todo, todo)
-            
-            QMessageBox.information(self, _("Successful"), _("{todo} to-do's status changed.").format(todo = todo))
     
         else:
             QMessageBox.critical(self, _("Error"), _("Failed to change {todo}'s status.").format(todo = todo))

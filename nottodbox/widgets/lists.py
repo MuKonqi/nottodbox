@@ -229,10 +229,9 @@ class TreeView(QTreeView):
         self.proxy.setFilterFixedString(text)
         self.proxy.endResetModel()
         
-    def setIndex(self, parent: str, child: str) -> None:
+    def setIndex(self, parent: str, child: str) -> None:        
         if parent == "":
-            self.clearSelection()
-            self.selectionModel().clearCurrentIndex()
+            self.selectionModel().clear()
             
         else:
             if parent != "" and child == "":
@@ -250,6 +249,12 @@ class TreeView(QTreeView):
         self.child_items[(parent, newname)] = self.child_items.pop((parent, name))
         
         self.child_items[(parent, newname)][0].setText(newname)
+        
+        for item in self.child_items[(parent, newname)]:
+            item.setData(newname, Qt.ItemDataRole.UserRole)
+            
+        if self.caller == "own":
+            self.parent_.insertInformations(parent, newname)
         
     def updateChildBackground(self, parent: str, name: str, color: str) -> None:
         for item in self.child_items[(parent, name)]:
@@ -274,6 +279,12 @@ class TreeView(QTreeView):
         self.parent_items[newname] = self.parent_items.pop(name)
         
         self.parent_items[newname][0].setText(newname)
+        
+        for item in self.parent_items[newname]:
+            item.setData(newname, Qt.ItemDataRole.UserRole)
+            
+        if self.caller == "own":
+            self.parent_.insertInformations(newname, "")
         
     def updateParentBackground(self, name: str, color: str) -> None:
         for item in self.parent_items[name]:

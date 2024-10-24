@@ -646,6 +646,17 @@ class NotesTabWidget(QTabWidget):
                 
             self.removeTab(index)
             
+    def deleteAll(self) -> None:
+        call = notesdb.deleteAll()
+        
+        if call:
+            self.treeview.deleteAll()
+            self.treeview.setIndex("", "")
+            self.insertInformations("", "")
+
+        else:
+            QMessageBox.critical(self, _("Error"), _("Failed to delete all notebooks."))
+            
     def insertInformations(self, notebook: str, name: str) -> None:
         self.notebook = notebook
         self.name = name      
@@ -699,7 +710,7 @@ class NotesNoneOptions(QWidget):
         self.create_notebook_button.clicked.connect(self.parent_.notebook_options.createNotebook)
         
         self.delete_all_button = PushButton(self, _("Delete all"))
-        self.delete_all_button.clicked.connect(self.parent_.notebook_options.deleteAll)
+        self.delete_all_button.clicked.connect(self.parent_.deleteAll)
         
         self.setFixedWidth(200)
         self.setLayout(self.layout_)
@@ -739,7 +750,7 @@ class NotesNotebookOptions(QWidget):
         self.delete_button.clicked.connect(self.deleteNotebook)
         
         self.delete_all_button = PushButton(self, _("Delete all"))
-        self.delete_all_button.clicked.connect(self.deleteAll)
+        self.delete_all_button.clicked.connect(self.parent_.deleteAll)
         
         self.setFixedWidth(200)
         self.setLayout(self.layout_)
@@ -787,22 +798,8 @@ class NotesNotebookOptions(QWidget):
                     self.parent_.treeview.appendNotebook(name)
                     self.parent_.treeview.setIndex(name, "")
                     
-                    QMessageBox.information(self, _("Successful"), _("{name} notebook created.").format(name = name))
-                    
                 else:
                     QMessageBox.critical(self, _("Error"), _("Failed to create {name} notebook.").format(name = name))
-                    
-    def deleteAll(self) -> None:
-        call = notesdb.deleteAll()
-        
-        if call:
-            self.parent_.treeview.deleteAll()
-            self.parent_.treeview.setIndex("", "")
-            
-            QMessageBox.information(self, _("Successful"), _("All notebooks deleted."))
-
-        else:
-            QMessageBox.critical(self, _("Error"), _("Failed to delete all notebooks."))
         
     def deleteNotebook(self) -> None:
         name = self.parent_.notebook
@@ -815,8 +812,7 @@ class NotesNotebookOptions(QWidget):
         if call:
             self.parent_.treeview.deleteNotebook(name)
             self.parent_.treeview.setIndex("", "")
-            
-            QMessageBox.information(self, _("Successful"), _("{name} notebook deleted.").format(name = name))
+
         else:
             QMessageBox.critical(self, _("Error"), _("Failed to delete {name} notebook.").format(name = name))
         
@@ -846,9 +842,6 @@ class NotesNotebookOptions(QWidget):
                     self.parent_.treeview.updateNotebook(name, newname)
                     self.parent_.treeview.setIndex(newname, "")
                     
-                    QMessageBox.information(self, _("Successful"), _("{name} notebook renamed as {newname}.")
-                                            .format(name = name, newname = newname))
-                    
                 else:
                     QMessageBox.critical(self, _("Error"), _("Failed to rename {name} notebook.")
                                         .format(name = name))
@@ -873,8 +866,6 @@ class NotesNotebookOptions(QWidget):
             self.parent_.treeview.deleteNotebook(name)
             self.parent_.treeview.appendNotebook(name)
             self.parent_.treeview.setIndex(name, "")
-            
-            QMessageBox.information(self, _("Successful"), _("{name} notebook reset.").format(name = name))
             
         else:
             QMessageBox.critical(self, _("Error"), _("Failed to reset {name} notebook.").format(name = name))
@@ -908,11 +899,6 @@ class NotesNotebookOptions(QWidget):
             if call:
                 self.parent_.treeview.updateNotebookBackground(name, color)
                 
-                QMessageBox.information(
-                    self, _("Successful"), _("Background color setted to {color} for {name} notebook.")
-                    .format(color = color if (status == "new")
-                            else (_("global") if status == "global" else _("default")), name = name))
-                
             else:
                 QMessageBox.critical(self, _("Error"), _("Failed to set background color for {name} notebook.").format(name = name))
         
@@ -944,11 +930,6 @@ class NotesNotebookOptions(QWidget):
                     
             if call:
                 self.parent_.treeview.updateNotebookForeground(name, color)
-                
-                QMessageBox.information(
-                    self, _("Successful"), _("Text color setted to {color} for {name} notebook.")
-                    .format(color = color if (status == "new")
-                            else (_("global") if status == "global" else _("default")), name = name))
                 
             else:
                 QMessageBox.critical(self, _("Error"), _("Failed to set text color for {name} notebook.").format(name = name))
@@ -988,6 +969,9 @@ class NotesNoteOptions(QWidget):
         
         self.delete_button = PushButton(self, _("Delete"))
         self.delete_button.clicked.connect(self.deleteNote)
+        
+        self.delete_all_button = PushButton(self, _("Delete all"))
+        self.delete_all_button.clicked.connect(self.parent_.deleteAll)
 
         self.setFixedWidth(200)
         self.setLayout(self.layout_)
@@ -1001,6 +985,8 @@ class NotesNoteOptions(QWidget):
         self.layout_.addWidget(self.restore_content_button)
         self.layout_.addWidget(self.clear_content_button)
         self.layout_.addWidget(self.delete_button)
+        self.layout_.addWidget(HSeperator(self))
+        self.layout_.addWidget(self.delete_all_button)
 
     def checkIfTheNoteExists(self, notebook: str, name: str, mode: str = "normal") -> bool:
         call = notesdb.checkIfTheNoteExists(notebook, name)
@@ -1029,6 +1015,7 @@ class NotesNoteOptions(QWidget):
     
         if call:
             QMessageBox.information(self, _("Successful"), _("Content of {name} note cleared.").format(name = name))
+            
         else:
             QMessageBox.critical(self, _("Error"), _("Failed to clear content of {name} note.").format(name = name))
     
@@ -1059,8 +1046,6 @@ class NotesNoteOptions(QWidget):
                     self.parent_.treeview.appendNote(notebook, name)
                     self.parent_.treeview.setIndex(notebook, name)
                     
-                    QMessageBox.information(self, _("Successful"), _("{name} note created.").format(name = name))
-                    
                 else:
                     QMessageBox.critical(self, _("Error"), _("Failed to create {name} note.").format(name = name))
             
@@ -1076,8 +1061,6 @@ class NotesNoteOptions(QWidget):
         if call:
             self.parent_.treeview.deleteNote(notebook, name)
             self.parent_.treeview.setIndex(notebook, "")
-            
-            QMessageBox.information(self, _("Successful"), _("{name} note deleted.").format(name = name))
             
         else:
             QMessageBox.critical(self, _("Error"), _("Failed to delete {name} note.").format(name = name))
@@ -1122,9 +1105,6 @@ class NotesNoteOptions(QWidget):
                 if call:
                     self.parent_.treeview.updateNote(notebook, name, newname)
                     self.parent_.treeview.setIndex(notebook, newname)
-                    
-                    QMessageBox.information(self, _("Successful"), _("{name} note renamed as {newname}.")
-                                            .format(name = name, newname = newname))
     
                 else:
                     QMessageBox.critical(self, _("Error"), _("Failed to rename {name} note.")
@@ -1186,11 +1166,6 @@ class NotesNoteOptions(QWidget):
             if call:
                 self.parent_.treeview.updateNoteBackground(notebook, name, color)
                 
-                QMessageBox.information(
-                    self, _("Successful"), _("Background color setted to {color} for {name} note.")
-                    .format(color = color if (status == "new")
-                            else (_("global") if status == "global" else _("default")), name = name))
-                
             else:
                 QMessageBox.critical(self, _("Error"), _("Failed to set background color for {name} note.").format(name = name))
         
@@ -1223,11 +1198,6 @@ class NotesNoteOptions(QWidget):
                     
             if call:
                 self.parent_.treeview.updateNoteForeground(notebook, name, color)
-                
-                QMessageBox.information(
-                    self, _("Successful"), _("Text color setted to {color} for {name} note.")
-                    .format(color = color if (status == "new")
-                            else (_("global") if status == "global" else _("default")), name = name))
                 
             else:
                 QMessageBox.critical(self, _("Error"), _("Failed to set text color for {name} note.").format(name = name))

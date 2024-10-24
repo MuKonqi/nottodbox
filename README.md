@@ -11,8 +11,8 @@
 - A entry for searching in lists
 - A list for open pages (when double-clicked it opens or focuses selected)
 - A list for history (when double-clicked it opens or focuses selected)
-- Deleting item from history
-- Clearing item from history
+- Deleting a item from history
+- Clearing history
 - Remember's it's status (visible / invisible), area in window (left / right), mode (fixed / floating)
 
 ### Home

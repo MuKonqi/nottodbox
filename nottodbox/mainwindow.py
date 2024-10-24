@@ -78,7 +78,7 @@ class MainWindow(QMainWindow):
                               QDockWidget.DockWidgetFeature.DockWidgetMovable)
         self.dock.setAllowedAreas(Qt.DockWidgetArea.LeftDockWidgetArea |
                                   Qt.DockWidgetArea.RightDockWidgetArea)
-        self.dock.setWidget(SidebarWidget(self, self.notes, self.todos, self.diaries))
+        self.dock.setWidget(SidebarWidget(self, self.notes, self.diaries))
         
         self.dock_closed = False
         self.dock_status, self.dock_area, self.dock_mode = settingsdb.getDockSettings()
