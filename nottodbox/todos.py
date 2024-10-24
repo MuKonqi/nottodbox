@@ -444,23 +444,17 @@ class TodosWidget(QWidget):
             
             self.current_widget = self.none_options
             
-            self.treeview.setIndex(None)
-            
         elif self.todolist != "" and self.todo == "":
             self.todolist_options.setVisible(True)
             self.layout_.replaceWidget(self.current_widget, self.todolist_options)
             
             self.current_widget = self.todolist_options
             
-            self.treeview.setIndex(todolist_items[todolist][0])
-            
         elif self.todolist != "" and self.todo != "":
             self.todo_options.setVisible(True)
             self.layout_.replaceWidget(self.current_widget, self.todo_options)
             
             self.current_widget = self.todo_options
-            
-            self.treeview.setIndex(todo_items[(todolist, todo)][0])
             
         self.todolist_selected.setText(_("To-do list: ") + todolist)
         self.todo_selected.setText(_("To-do: ") + todo)
@@ -575,7 +569,7 @@ class TodosTodolistOptions(QWidget):
                 
                 if call:
                     self.parent_.treeview.appendTodolist(name)
-                    self.parent_.insertInformations(name, "")
+                    self.parent_.treeview.setIndex(name, "")
                     
                     QMessageBox.information(self, _("Successful"), _("{name} to-do list created.").format(name = name))
                     
@@ -587,7 +581,7 @@ class TodosTodolistOptions(QWidget):
     
         if call:
             self.parent_.treeview.deleteAll()
-            self.parent_.insertInformations("", "")
+            self.parent_.treeview.setIndex("", "")
             
             QMessageBox.information(self, _("Successful"), _("All to-do lists deleted."))
             
@@ -604,7 +598,7 @@ class TodosTodolistOptions(QWidget):
             
         if call:
             self.parent_.treeview.deleteTodolist(name)
-            self.parent_.insertInformations("", "")
+            self.parent_.treeview.setIndex("", "")
             
             QMessageBox.information(self, _("Successful"), _("{name} to-do list deleted.").format(name = name))
             
@@ -635,7 +629,7 @@ class TodosTodolistOptions(QWidget):
                 
                 if call:
                     self.parent_.treeview.updateTodolist(name, newname)
-                    self.parent_.insertInformations(newname, "")
+                    self.parent_.treeview.setIndex(newname, "")
                     
                     QMessageBox.information(self, _("Successful"), _("{name} to-do list renamed as {newname}.")
                                             .format(name = name, newname = newname))
@@ -661,7 +655,7 @@ class TodosTodolistOptions(QWidget):
         if call:
             self.parent_.treeview.deleteTodolist(name)
             self.parent_.treeview.appendTodolist(name)
-            self.parent_.insertInformations(name, "")
+            self.parent_.treeview.setIndex(name, "")
             
             QMessageBox.information(self, _("Successful"), _("{name} to-do list reset.").format(name = name))
             
@@ -825,7 +819,7 @@ class TodosTodoOptions(QWidget):
                 
                 if call:
                     self.parent_.treeview.appendTodo(todolist, todo)
-                    self.parent_.insertInformations(todolist, todo)
+                    self.parent_.treeview.setIndex(todolist, todo)
                     
                     QMessageBox.information(self, _("Successful"), _("{todo} to-do created.").format(todo = todo))
                     
@@ -843,7 +837,7 @@ class TodosTodoOptions(QWidget):
             
         if call:
             self.parent_.treeview.deleteTodo(todolist, todo)
-            self.parent_.insertInformations(todolist, "")
+            self.parent_.treeview.setIndex(todolist, "")
             
             QMessageBox.information(self, _("Successful"), _("{todo} to-do deleted.").format(todo = todo))
             
@@ -867,7 +861,7 @@ class TodosTodoOptions(QWidget):
 
                 if call:
                     self.parent_.treeview.updateTodo(todolist, todo, newtodo)
-                    self.parent_.insertInformations(todolist, newtodo)
+                    self.parent_.treeview.setIndex(todolist, newtodo)
                     
                     QMessageBox.information(self, _("Successful"), _("{todo} to-do edited as {newtodo}.")
                                             .format(todo = todo, newtodo = newtodo))

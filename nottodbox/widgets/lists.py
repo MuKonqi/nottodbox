@@ -229,22 +229,21 @@ class TreeView(QTreeView):
         self.proxy.setFilterFixedString(text)
         self.proxy.endResetModel()
         
-    def setIndex(self, item: StandardItem | None) -> None:
-        if item is None:
+    def setIndex(self, parent: str, child: str) -> None:
+        if parent == "":
             self.clearSelection()
             self.selectionModel().clearCurrentIndex()
             
-        elif type(item) == StandardItem:
-            if self.caller == "own":
-                self.selectionModel().currentRowChanged.disconnect()
+        else:
+            if parent != "" and child == "":
+                item = self.parent_items[parent][0]
+                
+            elif parent != "" and child != "":
+                item = self.child_items[(parent, child)][0]
             
             self.selectionModel().setCurrentIndex(
                 self.model().mapFromSource(item.index()),
                 QItemSelectionModel.SelectionFlag.ClearAndSelect | QItemSelectionModel.SelectionFlag.Rows)
-            
-            if self.caller == "own":
-                self.selectionModel().currentRowChanged.connect(
-                    lambda: self.parent_.insertInformations(self.getParentText(), self.getChildText()))
             
     def updateChild(self, parent: str, name: str, newname: str) -> None:
         self.child_counts[(parent, newname)] = self.child_counts.pop((parent, name))

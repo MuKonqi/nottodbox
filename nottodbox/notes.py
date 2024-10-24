@@ -660,23 +660,17 @@ class NotesTabWidget(QTabWidget):
             
             self.current_widget = self.none_options
             
-            self.treeview.setIndex(None)
-            
         elif self.notebook != "" and self.name == "":
             self.notebook_options.setVisible(True)
             self.layout_.replaceWidget(self.current_widget, self.notebook_options)
             
             self.current_widget = self.notebook_options
             
-            self.treeview.setIndex(notebook_items[notebook][0])
-            
         elif self.notebook != "" and self.name != "":
             self.note_options.setVisible(True)
             self.layout_.replaceWidget(self.current_widget, self.note_options)
             
             self.current_widget = self.note_options
-            
-            self.treeview.setIndex(note_items[(notebook, name)][0])
             
         self.notebook_selected.setText(_("Notebook: ") + notebook)
         self.note_selected.setText(_("Note: ") + name)
@@ -791,7 +785,7 @@ class NotesNotebookOptions(QWidget):
                 
                 if call:
                     self.parent_.treeview.appendNotebook(name)
-                    self.parent_.insertInformations(name, "")
+                    self.parent_.treeview.setIndex(name, "")
                     
                     QMessageBox.information(self, _("Successful"), _("{name} notebook created.").format(name = name))
                     
@@ -803,7 +797,7 @@ class NotesNotebookOptions(QWidget):
         
         if call:
             self.parent_.treeview.deleteAll()
-            self.parent_.insertInformations("", "")
+            self.parent_.treeview.setIndex("", "")
             
             QMessageBox.information(self, _("Successful"), _("All notebooks deleted."))
 
@@ -820,7 +814,7 @@ class NotesNotebookOptions(QWidget):
         
         if call:
             self.parent_.treeview.deleteNotebook(name)
-            self.parent_.insertInformations("", "")
+            self.parent_.treeview.setIndex("", "")
             
             QMessageBox.information(self, _("Successful"), _("{name} notebook deleted.").format(name = name))
         else:
@@ -850,7 +844,7 @@ class NotesNotebookOptions(QWidget):
                 
                 if call:
                     self.parent_.treeview.updateNotebook(name, newname)
-                    self.parent_.insertInformations(newname, "")
+                    self.parent_.treeview.setIndex(newname, "")
                     
                     QMessageBox.information(self, _("Successful"), _("{name} notebook renamed as {newname}.")
                                             .format(name = name, newname = newname))
@@ -878,7 +872,7 @@ class NotesNotebookOptions(QWidget):
         if call:
             self.parent_.treeview.deleteNotebook(name)
             self.parent_.treeview.appendNotebook(name)
-            self.parent_.insertInformations(name, "")
+            self.parent_.treeview.setIndex(name, "")
             
             QMessageBox.information(self, _("Successful"), _("{name} notebook reset.").format(name = name))
             
@@ -1049,7 +1043,7 @@ class NotesNoteOptions(QWidget):
             self, _("Create Note"), _("Please enter a name for creating a note."))
         
         if "@" in name:
-            QMessageBox.critical(self, _("Error"), _('The note name can not contain @ character.'))
+            QMessageBox.critical(self, _("Error"), _("The note name can not contain @ character."))
             return
         
         elif topwindow and name != "":
@@ -1063,7 +1057,7 @@ class NotesNoteOptions(QWidget):
                 
                 if call:
                     self.parent_.treeview.appendNote(notebook, name)
-                    self.parent_.insertInformations(notebook, name)
+                    self.parent_.treeview.setIndex(notebook, name)
                     
                     QMessageBox.information(self, _("Successful"), _("{name} note created.").format(name = name))
                     
@@ -1081,7 +1075,7 @@ class NotesNoteOptions(QWidget):
             
         if call:
             self.parent_.treeview.deleteNote(notebook, name)
-            self.parent_.insertInformations(notebook, "")
+            self.parent_.treeview.setIndex(notebook, "")
             
             QMessageBox.information(self, _("Successful"), _("{name} note deleted.").format(name = name))
             
@@ -1127,7 +1121,7 @@ class NotesNoteOptions(QWidget):
                 
                 if call:
                     self.parent_.treeview.updateNote(notebook, name, newname)
-                    self.parent_.insertInformations(notebook, newname)
+                    self.parent_.treeview.setIndex(notebook, newname)
                     
                     QMessageBox.information(self, _("Successful"), _("{name} note renamed as {newname}.")
                                             .format(name = name, newname = newname))
@@ -1355,7 +1349,7 @@ class NotesTreeView(TreeView):
                         name = _("Unnamed")
                         
                         self.appendNote(notebook, name)
-                        self.parent_.insertInformations(notebook, name)
+                        self.setIndex(notebook, name)
                     
                     else:
                         QMessageBox.critical(self, _("Error"), _("Failed to create {name} note.").format(name = _("Unnamed")))
