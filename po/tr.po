@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.0.7\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-27 23:12+0300\n"
-"PO-Revision-Date: 2024-10-27 23:12+0300\n"
+"POT-Creation-Date: 2024-10-28 00:06+0300\n"
+"PO-Revision-Date: 2024-10-28 00:06+0300\n"
 "Last-Translator: Muhammed S. <mukonqi@gmail.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: tr\n"
@@ -300,6 +300,58 @@ msgstr "Notların Listesi"
 #: nottodbox/home.py:103
 msgid "Finish Focusing of Diary for Today"
 msgstr "Bugünün Günlüğüne Odaklanmayı Bitir"
+
+#: nottodbox/__init__.py:42
+msgid "usage: "
+msgstr "kullanım: "
+
+#: nottodbox/__init__.py:48
+msgid "positional arguments"
+msgstr "konumsal argümanlar"
+
+#: nottodbox/__init__.py:49
+msgid "optional arguments"
+msgstr "opsiyonel argümanlar"
+
+#: nottodbox/__init__.py:52
+msgid "show this help message"
+msgstr "bu yardım mesajını göster"
+
+#: nottodbox/__init__.py:53
+msgid "show the version"
+msgstr "sürümü göster"
+
+#: nottodbox/__init__.py:54
+msgid "set the page to be opened via number"
+msgstr "açılacak sayfayı numara ile ayarlayın"
+
+#: nottodbox/__init__.py:56
+msgid "set the page to be opened via name"
+msgstr "açılacak sayfayı isim ile ayarlayın"
+
+#: nottodbox/__init__.py:56 nottodbox/__init__.py:57 nottodbox/__init__.py:92
+msgid "home"
+msgstr "ev"
+
+#: nottodbox/__init__.py:57 nottodbox/__init__.py:95
+msgid "notes"
+msgstr "notlar"
+
+#: nottodbox/__init__.py:57 nottodbox/__init__.py:98
+msgid "to-dos"
+msgstr "yapılacaklar"
+
+#: nottodbox/__init__.py:57 nottodbox/__init__.py:101
+msgid "diaries"
+msgstr "günlükler"
+
+#: nottodbox/__init__.py:57 nottodbox/__init__.py:104
+msgid "settings"
+msgstr "ayarlar"
+
+#: nottodbox/__init__.py:57 nottodbox/__init__.py:107
+msgid "about"
+msgstr "hakkında"
 
 #: nottodbox/mainwindow.py:52
 msgid "Sidebar"

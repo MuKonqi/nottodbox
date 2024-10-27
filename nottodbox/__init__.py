@@ -24,6 +24,7 @@ sys.dont_write_bytecode = True
 
 
 import getpass
+import argparse
 import os
 import gettext
 from PySide6.QtGui import QIcon
@@ -32,6 +33,30 @@ from PySide6.QtWidgets import QApplication
 
 gettext.bindtextdomain("nottodbox", "@LOCALEDIR@")
 gettext.textdomain("nottodbox")
+_ = gettext.gettext
+
+
+class CustomFormatter(argparse.HelpFormatter):
+    def add_usage(self, usage, actions, groups, prefix = None):
+        if prefix is None:
+            prefix = _("usage: ")
+        
+        return super().add_usage(usage, actions, groups, prefix)
+
+
+parser = argparse.ArgumentParser(prog="nottodbox", add_help=False, formatter_class=CustomFormatter)
+parser._positionals.title = _("positional arguments")
+parser._optionals.title = _("optional arguments")
+group = parser.add_mutually_exclusive_group()
+
+parser.add_argument("-h", "--help", help=_("show this help message"), action="help", default=argparse.SUPPRESS)
+parser.add_argument("-v", "--version", help=_("show the version"), action="version", version="@VERSION@")
+group.add_argument("-i", "--index", help=_("set the page to be opened via number"), default=0,
+                   choices=[1, 2, 3, 4, 5, 6], type=int)
+group.add_argument("-p", "--page", help=_("set the page to be opened via name"), default=_("home"), 
+                   choices=[_("home"), _("notes"), _("to-dos"), _("diaries"), _("settings"), _("about")], type=str)
+
+args = parser.parse_args()
 
 
 username = getpass.getuser()
@@ -45,7 +70,7 @@ from mainwindow import MainWindow
 
 
 class Application(QApplication):
-    def __init__(self, argv: list, index: int = 0) -> None:
+    def __init__(self, argv: list) -> None:
         super().__init__(argv)
 
         with open("@APPDIR@/style.qss") as style_file:
@@ -59,13 +84,32 @@ class Application(QApplication):
         self.setStyleSheet(style)
         
         window = MainWindow()
-        window.tabwidget.setCurrentIndex(index)
+        
+        if args.index:
+            window.tabwidget.setCurrentIndex(args.index - 1)
+        
+        elif args.page:
+            if args.page == _("home"):
+                window.tabwidget.setCurrentIndex(0)
+            
+            elif args.page == _("notes"):
+                window.tabwidget.setCurrentIndex(1)
+                
+            elif args.page == _("to-dos"):
+                window.tabwidget.setCurrentIndex(2)
+                
+            elif args.page == _("diaries"):
+                window.tabwidget.setCurrentIndex(3)
+                
+            elif args.page == _("settings"):
+                window.tabwidget.setCurrentIndex(4)
+                
+            elif args.page == _("about"):
+                window.tabwidget.setCurrentIndex(5)
+                    
         window.show()
 
 if __name__ == "__main__":
-    if len(sys.argv[1:]) >= 1 and 0 <= int(sys.argv[1]) <= 5:
-        application = Application(sys.argv, int(sys.argv[1]))
-    else:
-        application = Application(sys.argv)
+    application = Application(sys.argv)
 
     sys.exit(application.exec())

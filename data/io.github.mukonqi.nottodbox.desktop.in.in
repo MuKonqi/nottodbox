@@ -12,25 +12,25 @@ Categories=Utility;TextEditor;Qt;
 Actions=Home;Notes;Todos;Diaries;Settings;About;
 
 [Desktop Action Home]
-Exec=nottodbox 0
+Exec=nottodbox -i 1
 Name=Home
 
 [Desktop Action Notes]
-Exec=nottodbox 1
+Exec=nottodbox -i 2
 Name=Notes
 
 [Desktop Action Todos]
-Exec=nottodbox 2
+Exec=nottodbox -i 3
 Name=To-dos
 
 [Desktop Action Diaries]
-Exec=nottodbox 3
+Exec=nottodbox -i 4
 Name=Diaries
 
 [Desktop Action Settings]
-Exec=nottodbox 4
+Exec=nottodbox -i 5
 Name=Settings
 
 [Desktop Action About]
-Exec=nottodbox 5
+Exec=nottodbox -i 6
 Name=About
