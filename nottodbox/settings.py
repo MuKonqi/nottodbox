@@ -294,11 +294,9 @@ class SettingsWidget(QWidget):
                 
                 question = QMessageBox.question(
                     self, _("Question"), _("If you have documents with the format setting set to global," +
-                                           " this change may corrupt them.\nAre you sure?"))
+                                           " this change may corrupt them.\nDo you really want to apply new settings?"))
                 
                 if question != QMessageBox.StandardButton.Yes:
-                    QMessageBox.critical(self, _("Error"), _("Process cancelled."))
-
                     return
                 
             call = page.applySettings(False)
@@ -307,10 +305,10 @@ class SettingsWidget(QWidget):
                 successful = False
         
         if successful:
-            QMessageBox.information(self, _("Successful"), _("All settings applied."))
+            QMessageBox.information(self, _("Successful"), _("All new settings applied."))
             
         else:
-            QMessageBox.critical(self, _("Error"), _("Failed to apply all settings."))
+            QMessageBox.critical(self, _("Error"), _("Failed to apply all new settings."))
     
     def cancelAll(self) -> None:
         for page in self.pages:
@@ -326,11 +324,9 @@ class SettingsWidget(QWidget):
                 
                 question = QMessageBox.question(
                     self, _("Question"), _("If you have documents with the format setting set to global," +
-                                           " this change may corrupt them.\nAre you sure?"))
+                                           " this change may corrupt them.\nDo you really want to apply new settings?"))
                 
                 if question != QMessageBox.StandardButton.Yes:
-                    QMessageBox.critical(self, _("Error"), _("Process cancelled."))
-
                     return
                 
             call = page.resetSettings(False)
@@ -407,7 +403,7 @@ class SettingsPage(QWidget):
         if self.format_changed or definitely:
             question = QMessageBox.question(
                 self, _("Question"), _("If you have documents with the format setting set to global," +
-                                       " this change may corrupt them.\nAre you sure?"))
+                                       " this change may corrupt them.\nDo you really want to apply new settings?"))
             
             if question == QMessageBox.StandardButton.Yes:
                 self.format_changed = False

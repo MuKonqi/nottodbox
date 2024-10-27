@@ -569,7 +569,7 @@ class NotesTabWidget(QTabWidget):
         self.backups = {}
         
         self.home = QWidget(self)
-        self.layout_ = QGridLayout(self.home)
+        self.home_layout = QGridLayout(self.home)
         
         self.selecteds = QWidget(self)
         self.selecteds_layout = QHBoxLayout(self.selecteds)
@@ -579,7 +579,7 @@ class NotesTabWidget(QTabWidget):
         
         self.treeview = NotesTreeView(self)
         
-        self.entry = QLineEdit(self.home)
+        self.entry = QLineEdit(self)
         self.entry.setPlaceholderText(_("Search..."))
         self.entry.setClearButtonEnabled(True)
         self.entry.textEdited.connect(self.treeview.setFilter)
@@ -598,14 +598,14 @@ class NotesTabWidget(QTabWidget):
         self.selecteds_layout.addWidget(self.notebook_selected)
         self.selecteds_layout.addWidget(self.note_selected)
         
-        self.home.setLayout(self.layout_)
-        self.layout_.addWidget(self.selecteds, 0, 0, 1, 3)
-        self.layout_.addWidget(HSeperator(self), 1, 0, 1, 3)
-        self.layout_.addWidget(self.entry, 2, 0, 1, 1)
-        self.layout_.addWidget(HSeperator(self), 3, 0, 1, 1)
-        self.layout_.addWidget(self.treeview, 4, 0, 1, 1)
-        self.layout_.addWidget(VSeperator(self), 2, 1, 3, 1)
-        self.layout_.addWidget(self.none_options, 2, 2, 3, 1)
+        self.home.setLayout(self.home_layout)
+        self.home_layout.addWidget(self.selecteds, 0, 0, 1, 3)
+        self.home_layout.addWidget(HSeperator(self), 1, 0, 1, 3)
+        self.home_layout.addWidget(self.entry, 2, 0, 1, 1)
+        self.home_layout.addWidget(HSeperator(self), 3, 0, 1, 1)
+        self.home_layout.addWidget(self.treeview, 4, 0, 1, 1)
+        self.home_layout.addWidget(VSeperator(self), 2, 1, 3, 1)
+        self.home_layout.addWidget(self.none_options, 2, 2, 3, 1)
         
         self.addTab(self.home, _("Home"))
         self.setTabsClosable(True)
@@ -647,15 +647,18 @@ class NotesTabWidget(QTabWidget):
             self.removeTab(index)
             
     def deleteAll(self) -> None:
-        call = notesdb.deleteAll()
+        question = QMessageBox.question(self, _("Question"), _("Do you really want to delete all notes?"))
         
-        if call:
-            self.treeview.deleteAll()
-            self.treeview.setIndex("", "")
-            self.insertInformations("", "")
+        if question == QMessageBox.StandardButton.Yes:
+            call = notesdb.deleteAll()
+            
+            if call:
+                self.treeview.deleteAll()
+                self.treeview.setIndex("", "")
+                self.insertInformations("", "")
 
-        else:
-            QMessageBox.critical(self, _("Error"), _("Failed to delete all notebooks."))
+            else:
+                QMessageBox.critical(self, _("Error"), _("Failed to delete all notebooks."))
             
     def insertInformations(self, notebook: str, name: str) -> None:
         self.notebook = notebook
@@ -667,19 +670,19 @@ class NotesTabWidget(QTabWidget):
         
         if self.notebook == "":
             self.none_options.setVisible(True)
-            self.layout_.replaceWidget(self.current_widget, self.none_options)
+            self.home_layout.replaceWidget(self.current_widget, self.none_options)
             
             self.current_widget = self.none_options
             
         elif self.notebook != "" and self.name == "":
             self.notebook_options.setVisible(True)
-            self.layout_.replaceWidget(self.current_widget, self.notebook_options)
+            self.home_layout.replaceWidget(self.current_widget, self.notebook_options)
             
             self.current_widget = self.notebook_options
             
         elif self.notebook != "" and self.name != "":
             self.note_options.setVisible(True)
-            self.layout_.replaceWidget(self.current_widget, self.note_options)
+            self.home_layout.replaceWidget(self.current_widget, self.note_options)
             
             self.current_widget = self.note_options
             
@@ -717,6 +720,7 @@ class NotesNoneOptions(QWidget):
         self.layout_.addWidget(self.warning_label)
         self.layout_.addWidget(HSeperator(self))
         self.layout_.addWidget(self.create_notebook_button)
+        self.layout_.addWidget(HSeperator(self))
         self.layout_.addWidget(self.delete_all_button)
         
         
@@ -807,14 +811,17 @@ class NotesNotebookOptions(QWidget):
         if not self.checkIfTheNotebookExists(name):
             return
         
-        call = notesdb.deleteNotebook(name)
+        question = QMessageBox.question(self, _("Question"), _("Do you really want to delete the {name} notebook?").format(name = name))
         
-        if call:
-            self.parent_.treeview.deleteNotebook(name)
-            self.parent_.treeview.setIndex("", "")
+        if question == QMessageBox.StandardButton.Yes:
+            call = notesdb.deleteNotebook(name)
+            
+            if call:
+                self.parent_.treeview.deleteNotebook(name)
+                self.parent_.treeview.setIndex("", "")
 
-        else:
-            QMessageBox.critical(self, _("Error"), _("Failed to delete {name} notebook.").format(name = name))
+            else:
+                QMessageBox.critical(self, _("Error"), _("Failed to delete {name} notebook.").format(name = name))
         
     def renameNotebook(self) -> None:
         name = self.parent_.notebook
@@ -1011,13 +1018,16 @@ class NotesNoteOptions(QWidget):
         if not self.checkIfTheNoteExists(notebook, name):
             return
         
-        call = notesdb.clearContent(notebook, name)
-    
-        if call:
-            QMessageBox.information(self, _("Successful"), _("Content of {name} note cleared.").format(name = name))
-            
-        else:
-            QMessageBox.critical(self, _("Error"), _("Failed to clear content of {name} note.").format(name = name))
+        question = QMessageBox.question(self, _("Question"), _("Do you really want to clear the content of the {name} note?").format(name = name))
+        
+        if question == QMessageBox.StandardButton.Yes:
+            call = notesdb.clearContent(notebook, name)
+        
+            if call:
+                QMessageBox.information(self, _("Successful"), _("Content of {name} note cleared.").format(name = name))
+                
+            else:
+                QMessageBox.critical(self, _("Error"), _("Failed to clear content of {name} note.").format(name = name))
     
     def createNote(self):
         notebook = self.parent_.notebook
@@ -1056,14 +1066,17 @@ class NotesNoteOptions(QWidget):
         if not self.checkIfTheNoteExists(notebook, name):
             return
         
-        call = notesdb.deleteNote(notebook, name)
-            
-        if call:
-            self.parent_.treeview.deleteNote(notebook, name)
-            self.parent_.treeview.setIndex(notebook, "")
-            
-        else:
-            QMessageBox.critical(self, _("Error"), _("Failed to delete {name} note.").format(name = name))
+        question = QMessageBox.question(self, _("Question"), _("Do you really want to delete the {name} note?").format(name = name))
+        
+        if question == QMessageBox.StandardButton.Yes:
+            call = notesdb.deleteNote(notebook, name)
+                
+            if call:
+                self.parent_.treeview.deleteNote(notebook, name)
+                self.parent_.treeview.setIndex(notebook, "")
+                
+            else:
+                QMessageBox.critical(self, _("Error"), _("Failed to delete {name} note.").format(name = name))
         
     def openNote(self, notebook: str = "", name: str = "") -> None:
         notebook = self.parent_.notebook

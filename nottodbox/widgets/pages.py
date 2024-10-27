@@ -512,7 +512,7 @@ class NormalPage(QWidget):
         if not autosave or (autosave and self.setting_autosave == "enabled"):
             if self.outdated == "yes":
                 question = QMessageBox.question(
-                    self, _("Question"), _("Diaries are unique to the day they are written.\nSo, are you sure?"))
+                    self, _("Question"), _("Diaries are unique to the day they are written.\nDo you really want to change the content?"))
                 
                 if question != QMessageBox.StandardButton.Yes:
                     return
@@ -587,7 +587,7 @@ class NormalPage(QWidget):
             
         if self.outdated == "yes":
             question = QMessageBox.question(
-                self, _("Question"), _("Diaries are unique to the day they are written.\nSo, are you sure?"))
+                self, _("Question"), _("Diaries are unique to the day they are written.\nDo you really want to change the content?"))
             
             if question != QMessageBox.StandardButton.Yes:
                 return
@@ -700,7 +700,7 @@ class BackupPage(QWidget):
             
         if self.outdated == "yes":
             question = QMessageBox.question(
-                self, _("Question"), _("Diaries are unique to the day they are written.\nSo, are you sure?"))
+                self, _("Question"), _("Diaries are unique to the day they are written.\nDo you really want to change the content?"))
             
             if question != QMessageBox.StandardButton.Yes:
                 return
@@ -722,7 +722,7 @@ class BackupPage(QWidget):
     def restoreContent(self):
         if self.outdated == "yes":
             question = QMessageBox.question(
-                self, _("Question"), _("Diaries are unique to the day they are written.\nSo, are you sure?"))
+                self, _("Question"), _("Diaries are unique to the day they are written.\nDo you really want to change the content?"))
             
             if question != QMessageBox.StandardButton.Yes:
                 return

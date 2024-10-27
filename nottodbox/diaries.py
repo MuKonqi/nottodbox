@@ -387,7 +387,7 @@ class DiariesTabWidget(QTabWidget):
         self.backups = {}
         
         self.home = QWidget(self)
-        self.main_layout = QGridLayout(self.home)
+        self.home_layout = QGridLayout(self.home)
         
         self.modification = Label(self.home, _("Modification: "))
         
@@ -435,13 +435,13 @@ class DiariesTabWidget(QTabWidget):
         self.side_layout.addWidget(HSeperator(self))
         self.side_layout.addWidget(self.delete_all_button)
         
-        self.home.setLayout(self.main_layout)
-        self.main_layout.addWidget(self.modification, 0, 0, 1, 1)
-        self.main_layout.addWidget(self.calendar, 1, 0, 1, 1)
-        self.main_layout.addWidget(self.comeback_button, 2, 0, 1, 1)
-        self.main_layout.addWidget(self.refresh_button, 3, 0, 1, 1)
-        self.main_layout.addWidget(VSeperator(self), 0, 2, 4, 1)
-        self.main_layout.addWidget(self.side, 0, 3, 4, 1)
+        self.home.setLayout(self.home_layout)
+        self.home_layout.addWidget(self.modification, 0, 0, 1, 1)
+        self.home_layout.addWidget(self.calendar, 1, 0, 1, 1)
+        self.home_layout.addWidget(self.comeback_button, 2, 0, 1, 1)
+        self.home_layout.addWidget(self.refresh_button, 3, 0, 1, 1)
+        self.home_layout.addWidget(VSeperator(self), 0, 2, 4, 1)
+        self.home_layout.addWidget(self.side, 0, 3, 4, 1)
         
         self.addTab(self.home, _("Home"))
         self.setTabsClosable(True)
@@ -478,13 +478,16 @@ class DiariesTabWidget(QTabWidget):
         if not self.checkIfTheDiaryExists(name):
             return
         
-        call = diariesdb.clearContent(name)
-    
-        if call:
-            QMessageBox.information(self, _("Successful"), _("Content of {name} diary deleted.").format(name = name))
+        question = QMessageBox.question(self, _("Question"), _("Do you really want to clear the content of the {name} diary?").format(name = name))
         
-        else:
-            QMessageBox.critical(self, _("Error"), _("Failed to clear content of {name} diary.").format(name = name))
+        if question == QMessageBox.StandardButton.Yes:
+            call = diariesdb.clearContent(name)
+        
+            if call:
+                QMessageBox.information(self, _("Successful"), _("Content of {name} diary deleted.").format(name = name))
+            
+            else:
+                QMessageBox.critical(self, _("Error"), _("Failed to clear content of {name} diary.").format(name = name))
          
     def closeTab(self, index: int) -> None:
         if index != self.indexOf(self.home):           
@@ -522,15 +525,18 @@ class DiariesTabWidget(QTabWidget):
             self.removeTab(index)
         
     def deleteAll(self) -> None:
-        call = diariesdb.recreateTable()
+        question = QMessageBox.question(self, _("Question"), _("Do you really want to delete all diaries?"))
         
-        if call:
-            self.insertInformations("")
-            self.calendar.menu.clear()
-            actions.clear()
+        if question == QMessageBox.StandardButton.Yes:
+            call = diariesdb.recreateTable()
+            
+            if call:
+                self.insertInformations("")
+                self.calendar.menu.clear()
+                actions.clear()
 
-        else:
-            QMessageBox.critical(self, _("Error"), _("Failed to delete all diaries."))
+            else:
+                QMessageBox.critical(self, _("Error"), _("Failed to delete all diaries."))
                        
     def deleteDiary(self) -> None:
         name = self.calendar.selectedDate().toString("dd.MM.yyyy")
@@ -542,15 +548,18 @@ class DiariesTabWidget(QTabWidget):
         if not self.checkIfTheDiaryExists(name):
             return
         
-        call = diariesdb.deleteNote(name)
-            
-        if call:
-            self.insertInformations("")
-            self.calendar.menu.removeAction(actions[name])
-            del actions[name]
-            
-        else:
-            QMessageBox.critical(self, _("Error"), _("Failed to delete {name} diary.").format(name = name))
+        question = QMessageBox.question(self, _("Question"), _("Do you really want to delete the {name} diary?").format(name = name))
+        
+        if question == QMessageBox.StandardButton.Yes:
+            call = diariesdb.deleteNote(name)
+                
+            if call:
+                self.insertInformations("")
+                self.calendar.menu.removeAction(actions[name])
+                del actions[name]
+                
+            else:
+                QMessageBox.critical(self, _("Error"), _("Failed to delete {name} diary.").format(name = name))
         
     def insertInformations(self, name: str) -> None: 
         if name != "":
@@ -617,7 +626,7 @@ class DiariesTabWidget(QTabWidget):
             return
         
         if QDate.fromString(name, "dd.MM.yyyy") != today:
-            question = QMessageBox.question(self, _("Diaries are unique to the day they are written.\nSo, are you sure?"))
+            question = QMessageBox.question(self, _("Diaries are unique to the day they are written.\nDo you really want to change the content?"))
 
             if question != QMessageBox.StandardButton.Yes:
                 return

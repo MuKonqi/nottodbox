@@ -103,6 +103,7 @@ class MainWindow(QMainWindow):
         self.setMinimumHeight(700)
         self.setGeometry(0, 0, 1000, 700)
         self.setCentralWidget(self.widget)
+        self.setStatusTip(_("There may be important information and tips here. Don't forget to look here!"))
 
     def closeEvent(self, a0: QCloseEvent | None):        
         pages = self.dock.widget().open_pages.pages

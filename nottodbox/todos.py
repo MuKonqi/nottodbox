@@ -392,7 +392,7 @@ class TodosWidget(QWidget):
         self.todo = ""
         self.current_widget = None
         
-        self.layout_ = QGridLayout(self)
+        self.home_layout = QGridLayout(self)
         
         self.selecteds = QWidget(self)
         self.selecteds_layout = QHBoxLayout(self.selecteds)
@@ -421,25 +421,28 @@ class TodosWidget(QWidget):
         self.selecteds_layout.addWidget(self.todolist_selected)
         self.selecteds_layout.addWidget(self.todo_selected)
         
-        self.setLayout(self.layout_)
-        self.layout_.addWidget(self.selecteds, 0, 0, 1, 3)
-        self.layout_.addWidget(HSeperator(self), 1, 0, 1, 3)
-        self.layout_.addWidget(self.entry, 2, 0, 1, 1)
-        self.layout_.addWidget(HSeperator(self), 3, 0, 1, 1)
-        self.layout_.addWidget(self.treeview, 4, 0, 1, 1)
-        self.layout_.addWidget(VSeperator(self), 2, 1, 3, 1)
-        self.layout_.addWidget(self.none_options, 2, 2, 3, 1)
+        self.setLayout(self.home_layout)
+        self.home_layout.addWidget(self.selecteds, 0, 0, 1, 3)
+        self.home_layout.addWidget(HSeperator(self), 1, 0, 1, 3)
+        self.home_layout.addWidget(self.entry, 2, 0, 1, 1)
+        self.home_layout.addWidget(HSeperator(self), 3, 0, 1, 1)
+        self.home_layout.addWidget(self.treeview, 4, 0, 1, 1)
+        self.home_layout.addWidget(VSeperator(self), 2, 1, 3, 1)
+        self.home_layout.addWidget(self.none_options, 2, 2, 3, 1)
         
     def deleteAll(self) -> None:
-        call = todosdb.deleteAll()
-    
-        if call:
-            self.treeview.deleteAll()
-            self.treeview.setIndex("", "")
-            self.insertInformations("", "")
-            
-        else:
-            QMessageBox.critical(self, _("Error"), _("Failed to delete all to-do lists."))
+        question = QMessageBox.question(self, _("Question"), _("Do you really want to delete all to-dos?"))
+        
+        if question == QMessageBox.StandardButton.Yes:
+            call = todosdb.deleteAll()
+        
+            if call:
+                self.treeview.deleteAll()
+                self.treeview.setIndex("", "")
+                self.insertInformations("", "")
+                
+            else:
+                QMessageBox.critical(self, _("Error"), _("Failed to delete all to-do lists."))
             
     def insertInformations(self, todolist: str, todo: str) -> None:
         self.todolist = todolist
@@ -451,19 +454,19 @@ class TodosWidget(QWidget):
         
         if self.todolist == "":
             self.none_options.setVisible(True)
-            self.layout_.replaceWidget(self.current_widget, self.none_options)
+            self.home_layout.replaceWidget(self.current_widget, self.none_options)
             
             self.current_widget = self.none_options
             
         elif self.todolist != "" and self.todo == "":
             self.todolist_options.setVisible(True)
-            self.layout_.replaceWidget(self.current_widget, self.todolist_options)
+            self.home_layout.replaceWidget(self.current_widget, self.todolist_options)
             
             self.current_widget = self.todolist_options
             
         elif self.todolist != "" and self.todo != "":
             self.todo_options.setVisible(True)
-            self.layout_.replaceWidget(self.current_widget, self.todo_options)
+            self.home_layout.replaceWidget(self.current_widget, self.todo_options)
             
             self.current_widget = self.todo_options
             
@@ -501,6 +504,7 @@ class TodosNoneOptions(QWidget):
         self.layout_.addWidget(self.warning_label)
         self.layout_.addWidget(HSeperator(self))
         self.layout_.addWidget(self.create_todolist_button)
+        self.layout_.addWidget(HSeperator(self))
         self.layout_.addWidget(self.delete_all_button)
         
         
@@ -591,14 +595,17 @@ class TodosTodolistOptions(QWidget):
         if not self.checkIfTheTodolistExists(name):
             return
         
-        call = todosdb.deleteTodolist(name)
-            
-        if call:
-            self.parent_.treeview.deleteTodolist(name)
-            self.parent_.treeview.setIndex("", "")
-            
-        else:
-            QMessageBox.critical(self, _("Error"), _("Failed to delete {name} to-do list.").format(name = name))
+        question = QMessageBox.question(self, _("Question"), _("Do you really want to delete the {name} to-do list?").format(name = name))
+        
+        if question == QMessageBox.StandardButton.Yes:
+            call = todosdb.deleteTodolist(name)
+                
+            if call:
+                self.parent_.treeview.deleteTodolist(name)
+                self.parent_.treeview.setIndex("", "")
+                
+            else:
+                QMessageBox.critical(self, _("Error"), _("Failed to delete {name} to-do list.").format(name = name))
     
     def renameTodolist(self) -> None:
         name = self.parent_.todolist
@@ -816,13 +823,16 @@ class TodosTodoOptions(QWidget):
             return
         
         call = todosdb.deleteTodo(todolist, todo)
-            
-        if call:
-            self.parent_.treeview.deleteTodo(todolist, todo)
-            self.parent_.treeview.setIndex(todolist, "")
-            
-        else:
-            QMessageBox.critical(self, _("Error"), _("Failed to delete {todo} to-do.").format(todo = todo))
+        
+        question = QMessageBox.question(self, _("Question"), _("Do you really want to delete the {todo} to-do?").format(todo = todo))
+        
+        if question == QMessageBox.StandardButton.Yes:
+            if call:
+                self.parent_.treeview.deleteTodo(todolist, todo)
+                self.parent_.treeview.setIndex(todolist, "")
+                
+            else:
+                QMessageBox.critical(self, _("Error"), _("Failed to delete {todo} to-do.").format(todo = todo))
                     
     def editTodo(self) -> None:
         todolist = self.parent_.todolist
