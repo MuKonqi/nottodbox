@@ -25,8 +25,8 @@ import sqlite3
 from gettext import gettext as _
 from widgets.dialogs import ColorDialog
 from widgets.other import HSeperator, PushButton, VSeperator
+from PySide6.QtCore import Slot, Qt
 from PySide6.QtGui import QColor
-from PySide6.QtCore import Qt
 from PySide6.QtWidgets import *
 
 
@@ -120,40 +120,6 @@ class SettingsDB:
         
         elif module == "diaries":
             return autosave, format, highlight
-    
-    def getDockSettings(self) -> tuple:
-        if not self.createTable():
-            print("[2] Failed to create table")
-            sys.exit(2)
-            
-        try:
-            self.cur.execute(f"select value from __main__ where setting = 'sidebar-status'")
-            status = str(self.cur.fetchone()[0])
-
-        except TypeError:
-            self.cur.execute(f"insert into __main__ (setting, value) values ('sidebar-status', 'enabled')")
-            self.db.commit()
-            status = "enabled"
-            
-        try:
-            self.cur.execute(f"select value from __main__ where setting = 'sidebar-area'")
-            area = str(self.cur.fetchone()[0])
-
-        except TypeError:
-            self.cur.execute(f"insert into __main__ (setting, value) values ('sidebar-area', 'left')")
-            self.db.commit()
-            area = "left"
-            
-        try:
-            self.cur.execute(f"select value from __main__ where setting = 'sidebar-mode'")
-            mode = str(self.cur.fetchone()[0])
-
-        except TypeError:
-            self.cur.execute(f"insert into __main__ (setting, value) values ('sidebar-mode', 'fixed')")
-            self.db.commit()
-            mode = "fixed"
-                
-        return status, area, mode
             
     def saveModuleSettings(self, module: str, autosave: str | None, format: str | None, background: str | None, foreground: str | None, highlight: str | None) -> bool:
         if module == "notes" or module == "diaries":
@@ -198,23 +164,6 @@ class SettingsDB:
             else:
                 return False
         
-    def saveDockSettings(self, status: str, area: str, mode: str) -> bool:
-        self.cur.execute(f"update __main__ set value = '{status}' where setting = 'sidebar-status'")
-        self.db.commit()
-        
-        self.cur.execute(f"update __main__ set value = '{area}' where setting = 'sidebar-area'")
-        self.db.commit()
-        
-        self.cur.execute(f"update __main__ set value = '{mode}' where setting = 'sidebar-mode'")
-        self.db.commit()
-        
-        call_status, call_area, call_mode = self.getDockSettings()
-        
-        if call_status == status and call_area == area and call_mode == mode:
-            return True
-        else:
-            return False
-        
         
 settingsdb = SettingsDB()
 if not settingsdb.createTable():
@@ -233,7 +182,6 @@ class SettingsWidget(QWidget):
         
         self.list = QListWidget(self)
         self.list.setFixedWidth(100)
-        self.list.currentRowChanged.connect(lambda: self.stacked.setCurrentIndex(self.list.currentRow()))
         
         self.list_notes = QListWidgetItem(_("Notes"), self.list)
         self.list_notes.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -284,6 +232,7 @@ class SettingsWidget(QWidget):
         self.list.setCurrentRow(0)
         self.list.currentRowChanged.connect(lambda: self.stacked.setCurrentIndex(self.list.currentRow()))
         
+    @Slot()
     def applyAll(self) -> None:
         successful = True
         ask_question = True
@@ -310,10 +259,12 @@ class SettingsWidget(QWidget):
         else:
             QMessageBox.critical(self, _("Error"), _("Failed to apply all new settings."))
     
+    @Slot()
     def cancelAll(self) -> None:
         for page in self.pages:
             page.setSettingsFromDB()
     
+    @Slot()
     def resetAll(self) -> None:
         successful = True
         ask_question = True
@@ -477,6 +428,7 @@ class SettingsPage(QWidget):
                 
             return False
             
+    @Slot(int or Qt.CheckState)
     def setAutoSave(self, signal: Qt.CheckState | int) -> None:
         if signal == Qt.CheckState.Unchecked or signal == 0:
             self.autosave = "disabled"
@@ -486,6 +438,7 @@ class SettingsPage(QWidget):
             self.autosave = "enabled"
             self.autosave_checkbox.setText(_("Enabled"))
             
+    @Slot()
     def setBackground(self) -> None:
         ok, status, qcolor = ColorDialog(self, False, 
             QColor(self.background if self.background != "default" else "#FFFFFFF"), 
@@ -496,7 +449,8 @@ class SettingsPage(QWidget):
             
             self.background_button.setText(_("Select color (it is {color})")
                                            .format(color = _("default") if self.background == "default" else self.background))
-            
+          
+    @Slot()  
     def setForeground(self) -> None:
         ok, status, qcolor = ColorDialog(self, False, 
             QColor(self.foreground if self.foreground != "default" else "#FFFFFF"), 
@@ -508,6 +462,7 @@ class SettingsPage(QWidget):
             self.foreground_button.setText(_("Select color (it is {color})")
                                            .format(color = _("default") if self.foreground == "default" else self.foreground))
                 
+    @Slot(int)
     def setFormat(self, index: int) -> None:
         if self.startup:
             self.startup = False
@@ -522,6 +477,7 @@ class SettingsPage(QWidget):
         elif index == 2:
             self.format = "html"
             
+    @Slot()
     def setHighlight(self) -> None:
         ok, status, qcolor = ColorDialog(self, False, 
             QColor(self.highlight if self.highlight != "default" else "#376296"), 

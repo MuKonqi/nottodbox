@@ -28,6 +28,7 @@ from gettext import gettext as _
 from widgets.dialogs import ColorDialog
 from widgets.other import HSeperator, Label, PushButton, VSeperator
 from widgets.lists import TreeView
+from PySide6.QtCore import Slot
 from PySide6.QtGui import QStandardItemModel, QColor
 from PySide6.QtWidgets import *
 
@@ -430,6 +431,7 @@ class TodosWidget(QWidget):
         self.home_layout.addWidget(VSeperator(self), 2, 1, 3, 1)
         self.home_layout.addWidget(self.none_options, 2, 2, 3, 1)
         
+    @Slot()
     def deleteAll(self) -> None:
         question = QMessageBox.question(self, _("Question"), _("Do you really want to delete all to-dos?"))
         
@@ -444,6 +446,7 @@ class TodosWidget(QWidget):
             else:
                 QMessageBox.critical(self, _("Error"), _("Failed to delete all to-do lists."))
             
+    @Slot(str, str)
     def insertInformations(self, todolist: str, todo: str) -> None:
         self.todolist = todolist
         self.todo = todo      
@@ -561,6 +564,7 @@ class TodosTodolistOptions(QWidget):
         
         return call
     
+    @Slot()
     def createTodolist(self) -> None:
         name, topwindow = QInputDialog.getText(
             self, _("Create To-do List"), _("Please enter a name for creating a to-do list."))
@@ -588,7 +592,8 @@ class TodosTodolistOptions(QWidget):
                     
                 else:
                     QMessageBox.critical(self, _("Error"), _("Failed to create {name} to-do list.").format(name = name))
-                       
+          
+    @Slot()             
     def deleteTodolist(self) -> None:
         name = self.parent_.todolist
         
@@ -607,6 +612,7 @@ class TodosTodolistOptions(QWidget):
             else:
                 QMessageBox.critical(self, _("Error"), _("Failed to delete {name} to-do list.").format(name = name))
     
+    @Slot()
     def renameTodolist(self) -> None:
         name = self.parent_.todolist
         
@@ -643,7 +649,8 @@ class TodosTodolistOptions(QWidget):
         else:
             QMessageBox.critical(self, _("Error"), _("Failed to rename {name} to-do list.")
                                  .format(name = name))
-            
+    
+    @Slot()        
     def resetTodolist(self) -> None:
         name = self.parent_.todo
         
@@ -659,7 +666,8 @@ class TodosTodolistOptions(QWidget):
             
         else:
             QMessageBox.critical(self, _("Error"), _("Failed to reset {name} to-do list.").format(name = name))
-            
+       
+    @Slot()     
     def setTodolistBackground(self) -> None:
         name = self.parent_.todolist
         
@@ -692,6 +700,7 @@ class TodosTodolistOptions(QWidget):
             else:
                 QMessageBox.critical(self, _("Error"), _("Failed to set background color for {name} to-do list.").format(name = name))
         
+    @Slot()
     def setTodolistForeground(self) -> None:
         name = self.parent_.todolist
 
@@ -774,6 +783,7 @@ class TodosTodoOptions(QWidget):
         
         return call
     
+    @Slot()
     def changeStatus(self) -> None:
         todolist = self.parent_.todolist
         todo = self.parent_.todo
@@ -789,6 +799,7 @@ class TodosTodoOptions(QWidget):
         else:
             QMessageBox.critical(self, _("Error"), _("Failed to change {todo}'s status.").format(todo = todo))
     
+    @Slot()
     def createTodo(self) -> None:
         todolist = self.parent_.todolist
         
@@ -815,6 +826,7 @@ class TodosTodoOptions(QWidget):
                 else:
                     QMessageBox.critical(self, _("Error"), _("Failed to create {todo} to-do.").format(todo = todo))
                     
+    @Slot()
     def deleteTodo(self) -> None:
         todolist = self.parent_.todolist
         todo = self.parent_.todo
@@ -834,6 +846,7 @@ class TodosTodoOptions(QWidget):
             else:
                 QMessageBox.critical(self, _("Error"), _("Failed to delete {todo} to-do.").format(todo = todo))
                     
+    @Slot()
     def editTodo(self) -> None:
         todolist = self.parent_.todolist
         todo = self.parent_.todo
@@ -865,6 +878,7 @@ class TodosTodoOptions(QWidget):
             QMessageBox.critical(self, _("Error"), _("Failed to edit {todo} to-do.")
                                  .format(todo = todo))
             
+    @Slot()
     def setTodoBackground(self) -> None:
         todolist = self.parent_.todolist
         todo = self.parent_.todo
@@ -898,6 +912,7 @@ class TodosTodoOptions(QWidget):
             else:
                 QMessageBox.critical(self, _("Error"), _("Failed to set background color for {todo} to-do.").format(todo = todo))
         
+    @Slot()
     def setTodoForeground(self) -> None:
         todolist = self.parent_.todolist
         todo = self.parent_.todo

@@ -26,8 +26,8 @@ import sqlite3
 from gettext import gettext as _
 from widgets.other import HSeperator, Label, PushButton
 from widgets.lists import StandardItem
-from PySide6.QtCore import Qt, QStringListModel, QSortFilterProxyModel
 from PySide6.QtGui import QStandardItemModel
+from PySide6.QtCore import Slot, Qt, QSortFilterProxyModel
 from PySide6.QtWidgets import *
 
 
@@ -161,6 +161,7 @@ class SidebarWidget(QWidget):
         self.layout_.addWidget(self.delete_button)
         self.layout_.addWidget(self.clear_button)
         
+    @Slot(str)
     def setFilter(self, text: str):
         self.open_pages.setFilter(text)
         self.history.setFilter(text)
@@ -209,6 +210,7 @@ class SidebarTreeView(QTreeView):
         del self.counts[(module, page)]
         self.pages.remove((module, page))
         
+    @Slot(str, str)
     def doubleClickEvent(self, module: str, page: str) -> None:
         if module == "notes":
             name, notebook = str(page).split(" @ ")
@@ -262,6 +264,7 @@ class SidebarHistory(SidebarTreeView):
         if (module, page) not in self.pages:
             super().appendPage(module, page)
             
+    @Slot()
     def deleteAll(self) -> None:
         self.counts = {}
         
@@ -273,6 +276,7 @@ class SidebarHistory(SidebarTreeView):
         if not call:
             QMessageBox.critical(self, _("Error"), _("Failed to clear history."))
             
+    @Slot(str, str)
     def deletePage(self, module: str, page: str):
         super().deletePage(module, page)
         

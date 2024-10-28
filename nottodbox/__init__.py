@@ -106,8 +106,6 @@ class Application(QApplication):
                 
             elif args.page == _("about"):
                 window.tabwidget.setCurrentIndex(5)
-                    
-        window.show()
 
 if __name__ == "__main__":
     application = Application(sys.argv)

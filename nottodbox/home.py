@@ -27,7 +27,7 @@ from widgets.pages import NormalPage
 from notes import NotesTabWidget, NotesTreeView
 from todos import TodosWidget, TodosTreeView
 from diaries import diariesdb, setting_autosave, setting_format
-from PySide6.QtCore import Qt, QDate
+from PySide6.QtCore import Slot, Qt, QDate
 from PySide6.QtWidgets import *
 
 
@@ -78,7 +78,8 @@ class HomeWidget(QWidget):
         self.layout_.addWidget(self.notes_seperator)
         self.layout_.addWidget(self.notes_label)
         self.layout_.addWidget(self.notes)
-        
+    
+    @Slot()
     def focusToDiary(self) -> None:
         if self.focused_to_diary:
             self.todos_seperator.setVisible(True)

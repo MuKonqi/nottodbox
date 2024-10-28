@@ -31,8 +31,8 @@ from widgets.dialogs import ColorDialog
 from widgets.other import HSeperator, Label, PushButton, VSeperator
 from widgets.pages import NormalPage, BackupPage
 from gettext import gettext as _
+from PySide6.QtCore import Slot, QDate, QRect, QPoint
 from PySide6.QtGui import QMouseEvent, QPainter, QColor
-from PySide6.QtCore import QDate, QRect, QPoint
 from PySide6.QtWidgets import *
 
 
@@ -394,7 +394,7 @@ class DiariesTabWidget(QTabWidget):
         self.calendar = DiariesCalendarWidget(self)
         
         self.comeback_button = PushButton(self.home, _("Come back to today"))
-        self.comeback_button.clicked.connect(lambda: self.calendar.setSelectedDate(today))
+        self.comeback_button.clicked.connect(lambda: self.calendar.setSelectedDate(today))  
 
         self.refresh_button = PushButton(
             self.home, _("Refresh today variable (it is {name})").format(name = today.toString("dd.MM.yyyy")))
@@ -419,7 +419,7 @@ class DiariesTabWidget(QTabWidget):
         self.set_highlight_button = PushButton(self.side, _("Set highlight"))
         self.set_highlight_button.clicked.connect(self.setHighlight)
         
-        self.delete_button = PushButton(self.side, _("Delete diary"))
+        self.delete_button = PushButton(self.side, _("Delete"))
         self.delete_button.clicked.connect(self.deleteDiary)
         
         self.delete_all_button = PushButton(self.side, _("Delete all"))
@@ -468,6 +468,7 @@ class DiariesTabWidget(QTabWidget):
         
         return call 
     
+    @Slot()
     def clearContent(self) -> None:
         name = self.calendar.selectedDate().toString("dd.MM.yyyy")
         
@@ -488,7 +489,8 @@ class DiariesTabWidget(QTabWidget):
             
             else:
                 QMessageBox.critical(self, _("Error"), _("Failed to clear content of {name} diary.").format(name = name))
-         
+
+    @Slot(int)
     def closeTab(self, index: int) -> None:
         if index != self.indexOf(self.home):           
             try:
@@ -523,7 +525,8 @@ class DiariesTabWidget(QTabWidget):
                 diaries_parent.dock.widget().open_pages.deletePage("diaries", self.tabText(index).replace("&", ""))
             
             self.removeTab(index)
-        
+    
+    @Slot()    
     def deleteAll(self) -> None:
         question = QMessageBox.question(self, _("Question"), _("Do you really want to delete all diaries?"))
         
@@ -537,7 +540,8 @@ class DiariesTabWidget(QTabWidget):
 
             else:
                 QMessageBox.critical(self, _("Error"), _("Failed to delete all diaries."))
-                       
+    
+    @Slot()                  
     def deleteDiary(self) -> None:
         name = self.calendar.selectedDate().toString("dd.MM.yyyy")
         
@@ -560,7 +564,8 @@ class DiariesTabWidget(QTabWidget):
                 
             else:
                 QMessageBox.critical(self, _("Error"), _("Failed to delete {name} diary.").format(name = name))
-        
+    
+    @Slot(str)
     def insertInformations(self, name: str) -> None: 
         if name != "":
             call = diariesdb.getInformations(name)
@@ -572,6 +577,7 @@ class DiariesTabWidget(QTabWidget):
         except TypeError:
             self.modification.setText(_("Modification: "))
         
+    @Slot()
     def openCreate(self) -> None:
         name = self.calendar.selectedDate().toString("dd.MM.yyyy")
         
@@ -603,6 +609,7 @@ class DiariesTabWidget(QTabWidget):
         if setting_highlight == "default":
             setting_highlight = "#376296"
             
+    @Slot()
     def refreshToday(self) -> None:
         global today
         
@@ -610,8 +617,9 @@ class DiariesTabWidget(QTabWidget):
         
         self.calendar.setMaximumDate(today)
         
-        self.refresh.setText(_("Refresh today variable (it is {name})").format(name = today.toString("dd.MM.yyyy")))
-            
+        self.refresh_button.setText(_("Refresh today variable (it is {name})").format(name = today.toString("dd.MM.yyyy")))
+     
+    @Slot()
     def restoreContent(self) -> None:
         name = self.calendar.selectedDate().toString("dd.MM.yyyy")
          
@@ -641,7 +649,8 @@ class DiariesTabWidget(QTabWidget):
             
         elif status == "failed" and not call:
             QMessageBox.critical(self, _("Error"), _("Failed to restore backup of {name} diary.").format(name = name))
-            
+    
+    @Slot()     
     def setHighlight(self) -> None:
         name = self.calendar.selectedDate().toString("dd.MM.yyyy")
         
@@ -673,7 +682,8 @@ class DiariesTabWidget(QTabWidget):
                     
             if not call:
                 QMessageBox.critical(self, _("Error"), _("Failed to set highlight color for {name} diary.").format(name = name))
-            
+    
+    @Slot()
     def showBackup(self) -> None:
         name = self.calendar.selectedDate().toString("dd.MM.yyyy")
         

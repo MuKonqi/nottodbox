@@ -23,8 +23,8 @@ sys.dont_write_bytecode = True
 from gettext import gettext as _
 from .dialogs import ColorDialog, GetTwoDialog
 from .other import PushButton, Action
+from PySide6.QtCore import Slot, Qt, QDate
 from PySide6.QtGui import QTextCursor, QTextFormat, QTextBlockFormat, QTextCharFormat, QTextListFormat, QDesktopServices, QPalette
-from PySide6.QtCore import Qt, QDate
 from PySide6.QtWidgets import *
 
 
@@ -174,6 +174,7 @@ class TextFormatter(QToolBar):
                 
             self.mergeFormat(cur, chrfmt)
         
+    @Slot()
     def setBold(self) -> None:
         cur = self.input.textCursor()
         chrfmt = cur.charFormat()
@@ -219,6 +220,7 @@ class TextFormatter(QToolBar):
         cur.mergeBlockCharFormat(chrfmt)
         cur.endEditBlock()
         
+    @Slot()
     def setItalic(self) -> None:
         cur = self.input.textCursor()
         chrfmt = cur.charFormat()
@@ -256,6 +258,7 @@ class TextFormatter(QToolBar):
         cur = self.input.textCursor()
         cur.insertList(style)
     
+    @Slot()
     def setStrikeThrough(self) -> None:
         cur = self.input.textCursor()
         chrfmt = cur.charFormat()
@@ -296,6 +299,7 @@ class TextFormatter(QToolBar):
                 
             self.mergeFormat(cur, chrfmt)
     
+    @Slot()
     def setUnderline(self) -> None:
         cur = self.input.textCursor()
         chrfmt = cur.charFormat()
@@ -307,6 +311,7 @@ class TextFormatter(QToolBar):
             
         self.mergeFormat(cur, chrfmt)
     
+    @Slot()
     def updateButtons(self) -> None:
         cur = self.input.textCursor()
         chrfmt = cur.charFormat()
@@ -497,6 +502,7 @@ class NormalPage(QWidget):
                 QMessageBox.critical(self, _("Error"), _("Failed to create {name} diary for changing settings."))
                 return False
                 
+    @Slot(bool)
     def saveDocument(self, autosave: bool = False) -> bool:
         self.closable = False
         
@@ -543,7 +549,8 @@ class NormalPage(QWidget):
                 QMessageBox.critical(self, _("Error"), _("Failed to save {name} document.").format(name = self.name))
                 
                 return False
-                
+    
+    @Slot(int)
     def setAutoSave(self, index: int) -> None:
         if index == 0:
             setting = "global"
@@ -572,6 +579,7 @@ class NormalPage(QWidget):
         else:
             QMessageBox.critical(self, _("Error"), _("Failed to save new auto-save setting for {name} document.").format(name = self.name))
             
+    @Slot(int)
     def setFormat(self, index: int) -> None:
         if index == 0:
             setting = "global"
@@ -685,6 +693,7 @@ class BackupPage(QWidget):
         self.layout_.addWidget(self.button)
         self.layout_.addWidget(self.format)
 
+    @Slot(int)
     def setFormat(self, index: int) -> None:
         if index == 0:
             setting = "global"
@@ -719,7 +728,8 @@ class BackupPage(QWidget):
         else:
             QMessageBox.critical(self, _("Error"), _("Failed to save new format setting for {name} document.").format(note = self.name))
             
-    def restoreContent(self):
+    @Slot()
+    def restoreContent(self) -> None:
         if self.outdated == "yes":
             question = QMessageBox.question(
                 self, _("Question"), _("Diaries are unique to the day they are written.\nDo you really want to change the content?"))

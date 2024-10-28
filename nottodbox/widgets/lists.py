@@ -21,8 +21,8 @@ sys.dont_write_bytecode = True
 
 
 from gettext import gettext as _
+from PySide6.QtCore import Slot, Qt, QSortFilterProxyModel, QItemSelectionModel
 from PySide6.QtGui import QStandardItem, QMouseEvent, QColor
-from PySide6.QtCore import Qt, QSortFilterProxyModel, QItemSelectionModel
 from PySide6.QtWidgets import *
 
 
@@ -198,6 +198,7 @@ class TreeView(QTreeView):
             if key[0] == parent:
                 del self.child_counts[key]
                     
+    @Slot(str, str)
     def doubleClickEvent(self, parent: str, child: str) -> None:
         pass
     
@@ -224,6 +225,7 @@ class TreeView(QTreeView):
         if index.isValid():
             super().mousePressEvent(e)
             
+    @Slot(str)
     def setFilter(self, text: str) -> None:
         self.proxy.beginResetModel()
         self.proxy.setFilterFixedString(text)

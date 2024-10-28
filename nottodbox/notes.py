@@ -30,6 +30,7 @@ from widgets.pages import NormalPage, BackupPage
 from widgets.lists import TreeView
 from gettext import gettext as _
 from PySide6.QtGui import QStandardItemModel, QColor
+from PySide6.QtCore import Slot
 from PySide6.QtWidgets import *
 
 
@@ -616,6 +617,7 @@ class NotesTabWidget(QTabWidget):
         
         self.tabCloseRequested.connect(self.closeTab)
          
+    @Slot(int)
     def closeTab(self, index: int) -> None:
         if index != self.indexOf(self.home):           
             try:
@@ -646,6 +648,7 @@ class NotesTabWidget(QTabWidget):
                 
             self.removeTab(index)
             
+    @Slot()
     def deleteAll(self) -> None:
         question = QMessageBox.question(self, _("Question"), _("Do you really want to delete all notes?"))
         
@@ -660,6 +663,7 @@ class NotesTabWidget(QTabWidget):
             else:
                 QMessageBox.critical(self, _("Error"), _("Failed to delete all notebooks."))
             
+    @Slot(str, str)
     def insertInformations(self, notebook: str, name: str) -> None:
         self.notebook = notebook
         self.name = name      
@@ -776,7 +780,8 @@ class NotesNotebookOptions(QWidget):
             QMessageBox.critical(self, _("Error"), _("There is no notebook called {name}.").format(name = name))
         
         return call
-                    
+    
+    @Slot()
     def createNotebook(self) -> None:
         name, topwindow = QInputDialog.getText(
             self, _("Create Notebook"), _("Please enter a name for creating a notebook."))
@@ -805,6 +810,7 @@ class NotesNotebookOptions(QWidget):
                 else:
                     QMessageBox.critical(self, _("Error"), _("Failed to create {name} notebook.").format(name = name))
         
+    @Slot()
     def deleteNotebook(self) -> None:
         name = self.parent_.notebook
         
@@ -823,6 +829,7 @@ class NotesNotebookOptions(QWidget):
             else:
                 QMessageBox.critical(self, _("Error"), _("Failed to delete {name} notebook.").format(name = name))
         
+    @Slot()
     def renameNotebook(self) -> None:
         name = self.parent_.notebook
         
@@ -861,6 +868,7 @@ class NotesNotebookOptions(QWidget):
             QMessageBox.critical(self, _("Error"), _("Failed to rename {name} notebook.")
                                  .format(name = name))
         
+    @Slot()
     def resetNotebook(self) -> None:
         name = self.parent_.notebook
         
@@ -876,7 +884,8 @@ class NotesNotebookOptions(QWidget):
             
         else:
             QMessageBox.critical(self, _("Error"), _("Failed to reset {name} notebook.").format(name = name))
-            
+         
+    @Slot()
     def setNotebookBackground(self) -> None:
         name = self.parent_.notebook
         
@@ -909,6 +918,7 @@ class NotesNotebookOptions(QWidget):
             else:
                 QMessageBox.critical(self, _("Error"), _("Failed to set background color for {name} notebook.").format(name = name))
         
+    @Slot()
     def setNotebookForeground(self) -> None:
         name = self.parent_.notebook
 
@@ -1011,6 +1021,7 @@ class NotesNoteOptions(QWidget):
         
         return call
     
+    @Slot()
     def clearContent(self) -> None:
         notebook = self.parent_.notebook
         name = self.parent_.name
@@ -1029,6 +1040,7 @@ class NotesNoteOptions(QWidget):
             else:
                 QMessageBox.critical(self, _("Error"), _("Failed to clear content of {name} note.").format(name = name))
     
+    @Slot()
     def createNote(self):
         notebook = self.parent_.notebook
         
@@ -1059,6 +1071,7 @@ class NotesNoteOptions(QWidget):
                 else:
                     QMessageBox.critical(self, _("Error"), _("Failed to create {name} note.").format(name = name))
             
+    @Slot()
     def deleteNote(self) -> None:
         notebook = self.parent_.notebook
         name = self.parent_.name
@@ -1078,6 +1091,7 @@ class NotesNoteOptions(QWidget):
             else:
                 QMessageBox.critical(self, _("Error"), _("Failed to delete {name} note.").format(name = name))
         
+    @Slot()
     def openNote(self, notebook: str = "", name: str = "") -> None:
         notebook = self.parent_.notebook
         name = self.parent_.name
@@ -1096,6 +1110,7 @@ class NotesNoteOptions(QWidget):
             self.parent_.addTab(notes[f"{name} @ {notebook}"], f"{name} @ {notebook}")
             self.parent_.setCurrentWidget(notes[f"{name} @ {notebook}"])
     
+    @Slot()
     def renameNote(self) -> None:
         notebook = self.parent_.notebook
         name = self.parent_.name
@@ -1131,6 +1146,7 @@ class NotesNoteOptions(QWidget):
             QMessageBox.critical(self, _("Error"), _("Failed to rename {name} note.")
                                  .format(name = name))
             
+    @Slot()
     def restoreContent(self) -> None:
         notebook = self.parent_.notebook
         name = self.parent_.name
@@ -1149,6 +1165,7 @@ class NotesNoteOptions(QWidget):
         elif not call:
             QMessageBox.critical(self, _("Error"), _("Failed to restore backup of {name} note.").format(name = name))
             
+    @Slot()
     def setNoteBackground(self) -> None:
         notebook = self.parent_.notebook
         name = self.parent_.name
@@ -1182,6 +1199,7 @@ class NotesNoteOptions(QWidget):
             else:
                 QMessageBox.critical(self, _("Error"), _("Failed to set background color for {name} note.").format(name = name))
         
+    @Slot()
     def setNoteForeground(self) -> None:
         notebook = self.parent_.notebook
         name = self.parent_.name
@@ -1215,6 +1233,7 @@ class NotesNoteOptions(QWidget):
             else:
                 QMessageBox.critical(self, _("Error"), _("Failed to set text color for {name} note.").format(name = name))
             
+    @Slot()
     def showBackup(self) -> None:
         notebook = self.parent_.notebook
         name = self.parent_.name
