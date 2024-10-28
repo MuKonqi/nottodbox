@@ -15,9 +15,6 @@
 # You should have received a copy of the GNU General Public License
 # along with Nottodbox.  If not, see <https://www.gnu.org/licenses/>.
 
-import sys
-sys.dont_write_bytecode = True
-
 
 import getpass
 import subprocess

@@ -16,10 +16,6 @@
 # along with Nottodbox.  If not, see <https://www.gnu.org/licenses/>.
 
 
-import sys
-sys.dont_write_bytecode = True
-
-
 import getpass
 from gettext import gettext as _
 from .other import PushButton

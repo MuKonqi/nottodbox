@@ -16,10 +16,6 @@
 # along with Nottodbox.  If not, see <https://www.gnu.org/licenses/>.
 
 
-import sys
-sys.dont_write_bytecode = True
-
-
 from gettext import gettext as _
 from PySide6.QtCore import Slot, Qt, QSortFilterProxyModel, QItemSelectionModel
 from PySide6.QtGui import QStandardItem, QMouseEvent, QColor

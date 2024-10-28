@@ -20,9 +20,6 @@
 # along with Nottodbox.  If not, see <https://www.gnu.org/licenses/>.
 
 import sys
-sys.dont_write_bytecode = True
-
-
 import getpass
 import argparse
 import os

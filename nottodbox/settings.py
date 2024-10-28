@@ -17,9 +17,6 @@
 
 
 import sys
-sys.dont_write_bytecode = True
-
-
 import getpass
 import sqlite3
 from gettext import gettext as _

@@ -17,11 +17,24 @@ gnome = import('gnome')
 
 
 python_bin = python.find_installation('python3',
-  modules: ['sys', 'locale', 'argparse', 'gettext', 'getpass', 'os', 'sqlite3', 'datetime', 'webbrowser', 'PySide6'])
-
+  modules: ['sys', 'locale', 'argparse', 'gettext', 'getpass', 'os', 'subprocess', 'sqlite3', 'datetime', 'webbrowser', 'PySide6'])
 
 if not python_bin.found()
-  error('Python3 or required libraries can not found!')
+  error('Python3 or required Python libraries can not found!')
+endif
+
+
+getent = find_program('getent')
+
+if not getent.found()
+  error('Getent can not found!')
+endif
+
+
+cut = find_program('cut')
+
+if not cut.found()
+  error('Cut can not found!')
 endif
 
 
@@ -32,6 +45,12 @@ subdir('po')
 
 install_data(
   'LICENSE.txt',
+  install_dir: join_paths(get_option('prefix'), get_option('datadir'), 'nottodbox')
+)
+
+
+install_data(
+  'README.md',
   install_dir: join_paths(get_option('prefix'), get_option('datadir'), 'nottodbox')
 )
 

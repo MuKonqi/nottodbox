@@ -9,4 +9,4 @@ builddir/
 *.mo
 
 # Python
-*.pycache
+*__pycache__
