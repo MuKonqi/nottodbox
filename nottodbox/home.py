@@ -20,7 +20,7 @@ sys.dont_write_bytecode = True
 
 
 import getpass
-import os
+import subprocess
 from gettext import gettext as _
 from widgets.other import HSeperator, Label, PushButton
 from widgets.pages import NormalPage
@@ -33,8 +33,8 @@ from PySide6.QtWidgets import *
 
 username = getpass.getuser()
 userdata = f"/home/{username}/.config/nottodbox/"
-if not os.path.isdir(userdata):
-    os.mkdir(userdata)
+username = str(subprocess.run("getent passwd $LOGNAME | cut -d: -f5 | cut -d, -f1", shell=True, capture_output=True)
+               .stdout).removeprefix("b'").removesuffix("\\n'")
     
 today = QDate.currentDate()
 
