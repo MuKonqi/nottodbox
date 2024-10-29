@@ -20,8 +20,8 @@ import sys
 import getpass
 import sqlite3
 import datetime
-from settings import settingsdb
 from gettext import gettext as _
+from settings import settingsdb
 from widgets.dialogs import ColorDialog
 from widgets.other import HSeperator, Label, PushButton, VSeperator
 from widgets.lists import TreeView
@@ -30,13 +30,13 @@ from PySide6.QtGui import QStandardItemModel, QColor
 from PySide6.QtWidgets import *
 
 
+username = getpass.getuser()
+userdata = f"/home/{username}/.config/nottodbox/"
+
 todolist_counts = {}
 todolist_items = {}
 todo_counts = {}
 todo_items = {}
-
-username = getpass.getuser()
-userdata = f"/home/{username}/.config/nottodbox/"
 
 setting_background, setting_foreground = settingsdb.getModuleSettings("todos")
 

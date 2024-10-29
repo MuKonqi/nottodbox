@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.0.7\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-28 20:25+0300\n"
-"PO-Revision-Date: 2024-10-28 20:25+0300\n"
+"POT-Creation-Date: 2024-10-29 18:47+0300\n"
+"PO-Revision-Date: 2024-10-29 18:47+0300\n"
 "Last-Translator: Muhammed S. <mukonqi@gmail.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: tr\n"
@@ -26,7 +26,7 @@ msgid "Edit notes, to-dos and diaries"
 msgstr "Notları, yapılacakları ve günlükleri düzenleyin"
 
 #: data/io.github.mukonqi.nottodbox.desktop.in.in:17 nottodbox/diaries.py:443
-#: nottodbox/mainwindow.py:60 nottodbox/notes.py:608
+#: nottodbox/__init__.py:93 nottodbox/mainwindow.py:60 nottodbox/notes.py:608
 msgid "Home"
 msgstr "Ev"
 
@@ -300,57 +300,37 @@ msgstr "Notların Listesi"
 msgid "Finish Focusing of Diary for Today"
 msgstr "Bugünün Günlüğüne Odaklanmayı Bitir"
 
-#: nottodbox/__init__.py:39
+#: nottodbox/__init__.py:43
 msgid "usage: "
 msgstr "kullanım: "
 
-#: nottodbox/__init__.py:45
+#: nottodbox/__init__.py:49
 msgid "positional arguments"
 msgstr "konumsal argümanlar"
 
-#: nottodbox/__init__.py:46
+#: nottodbox/__init__.py:50
 msgid "optional arguments"
 msgstr "opsiyonel argümanlar"
 
-#: nottodbox/__init__.py:49
+#: nottodbox/__init__.py:53
 msgid "show this help message"
 msgstr "bu yardım mesajını göster"
 
-#: nottodbox/__init__.py:50
+#: nottodbox/__init__.py:54
 msgid "show the version"
 msgstr "sürümü göster"
 
-#: nottodbox/__init__.py:51
+#: nottodbox/__init__.py:55
 msgid "set the page to be opened via number"
 msgstr "açılacak sayfayı numara ile ayarlayın"
 
-#: nottodbox/__init__.py:53
+#: nottodbox/__init__.py:57
 msgid "set the page to be opened via name"
 msgstr "açılacak sayfayı isim ile ayarlayın"
 
-#: nottodbox/__init__.py:53 nottodbox/__init__.py:54 nottodbox/__init__.py:89
+#: nottodbox/__init__.py:57
 msgid "home"
 msgstr "ev"
-
-#: nottodbox/__init__.py:54 nottodbox/__init__.py:92
-msgid "notes"
-msgstr "notlar"
-
-#: nottodbox/__init__.py:54 nottodbox/__init__.py:95
-msgid "to-dos"
-msgstr "yapılacaklar"
-
-#: nottodbox/__init__.py:54 nottodbox/__init__.py:98
-msgid "diaries"
-msgstr "günlükler"
-
-#: nottodbox/__init__.py:54 nottodbox/__init__.py:101
-msgid "settings"
-msgstr "ayarlar"
-
-#: nottodbox/__init__.py:54 nottodbox/__init__.py:104
-msgid "about"
-msgstr "hakkında"
 
 #: nottodbox/mainwindow.py:49
 msgid "Sidebar"

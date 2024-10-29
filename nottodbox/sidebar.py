@@ -41,7 +41,7 @@ class SidebarDB:
         
     def appendPage(self, module: str, page: str) -> bool:
         try:
-            self.cur.execute("insert into history (module, page) values (?, ?)", (module, page))
+            self.cur.execute("insert into __main__ (module, page) values (?, ?)", (module, page))
             self.db.commit()
 
         except sqlite3.IntegrityError:
@@ -50,7 +50,7 @@ class SidebarDB:
         return self.checkIfThePageExists(module, page)
         
     def checkIfThePageExists(self, module: str, page: str) -> bool:
-        self.cur.execute("select * from history where module = ? and page = ?", (module, page))
+        self.cur.execute("select * from __main__ where module = ? and page = ?", (module, page))
         
         try:
             self.cur.fetchone()[0]
@@ -61,7 +61,7 @@ class SidebarDB:
         
     def checkIfTheTableExists(self) -> bool:
         try:
-            self.cur.execute("select * from history")
+            self.cur.execute("select * from __main__")
             return True
         
         except sqlite3.OperationalError:
@@ -69,7 +69,7 @@ class SidebarDB:
         
     def createTable(self) -> bool:
         self.cur.execute("""
-        CREATE TABLE IF NOT EXISTS history (
+        CREATE TABLE IF NOT EXISTS __main__ (
             module TEXT NOT NULL,
             page TEXT NOT NULL
         );""")
@@ -81,7 +81,7 @@ class SidebarDB:
         call = self.checkIfThePageExists(module, page)
         
         if call:
-            self.cur.execute("delete from history where module = ? and page = ?", (module, page))
+            self.cur.execute("delete from __main__ where module = ? and page = ?", (module, page))
             self.db.commit()
             
             call = self.checkIfThePageExists(module, page)
@@ -95,11 +95,11 @@ class SidebarDB:
             return True
         
     def getAll(self) -> list:
-        self.cur.execute("select module, page from history")
+        self.cur.execute("select module, page from __main__")
         return self.cur.fetchall()
         
     def recreateTable(self) -> bool:
-        self.cur.execute(f"DROP TABLE IF EXISTS history")
+        self.cur.execute("DROP TABLE IF EXISTS __main__")
         self.db.commit()
         
         call = self.checkIfTheTableExists()

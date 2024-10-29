@@ -20,16 +20,19 @@ import sys
 import getpass
 import sqlite3
 import datetime
+from gettext import gettext as _
 from settings import settingsdb
 from widgets.dialogs import ColorDialog
 from widgets.other import HSeperator, Label, PushButton, VSeperator
 from widgets.pages import NormalPage, BackupPage
 from widgets.lists import TreeView
-from gettext import gettext as _
 from PySide6.QtGui import QStandardItemModel, QColor
 from PySide6.QtCore import Slot
 from PySide6.QtWidgets import *
 
+
+username = getpass.getuser()
+userdata = f"/home/{username}/.config/nottodbox/"
 
 notebook_counts = {}
 notebook_items = {}
@@ -37,9 +40,6 @@ note_counts = {}
 note_items = {}
 note_menus = {}
 notes = {}
-
-username = getpass.getuser()
-userdata = f"/home/{username}/.config/nottodbox/"
 
 setting_autosave, setting_format, setting_background, setting_foreground = settingsdb.getModuleSettings("notes")
 

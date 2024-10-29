@@ -30,7 +30,11 @@ from PySide6.QtWidgets import QApplication
 
 gettext.bindtextdomain("nottodbox", "@LOCALEDIR@")
 gettext.textdomain("nottodbox")
+
 _ = gettext.gettext
+
+def __(message: str) -> str:
+    return _(message).lower()
 
 
 class CustomFormatter(argparse.HelpFormatter):
@@ -51,7 +55,7 @@ parser.add_argument("-v", "--version", help=_("show the version"), action="versi
 group.add_argument("-i", "--index", help=_("set the page to be opened via number"), default=0,
                    choices=[1, 2, 3, 4, 5, 6], type=int)
 group.add_argument("-p", "--page", help=_("set the page to be opened via name"), default=_("home"), 
-                   choices=[_("home"), _("notes"), _("to-dos"), _("diaries"), _("settings"), _("about")], type=str)
+                   choices=[__("Home"), __("Notes"), __("To-dos"), __("Diaries"), __("Settings"), __("About")], type=str)
 
 args = parser.parse_args()
 
@@ -86,22 +90,22 @@ class Application(QApplication):
             window.tabwidget.setCurrentIndex(args.index - 1)
         
         elif args.page:
-            if args.page == _("home"):
+            if args.page == _("Home"):
                 window.tabwidget.setCurrentIndex(0)
             
-            elif args.page == _("notes"):
+            elif args.page == __("Notes"):
                 window.tabwidget.setCurrentIndex(1)
                 
-            elif args.page == _("to-dos"):
+            elif args.page == __("To-dos"):
                 window.tabwidget.setCurrentIndex(2)
                 
-            elif args.page == _("diaries"):
+            elif args.page == __("Diaries"):
                 window.tabwidget.setCurrentIndex(3)
                 
-            elif args.page == _("settings"):
+            elif args.page == __("Settings"):
                 window.tabwidget.setCurrentIndex(4)
                 
-            elif args.page == _("about"):
+            elif args.page == __("About"):
                 window.tabwidget.setCurrentIndex(5)
 
 if __name__ == "__main__":
