@@ -86,6 +86,7 @@ class MainWindow(QMainWindow):
         self.setGeometry(0, 0, 1000, 700)
         self.setCentralWidget(self.widget)
         self.setStatusTip(_("There may be important information and tips here. Don't forget to look here!"))
+        self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.dock)
         self.show()
         self.restoreGeometry(QByteArray(self.settings.value("geometry")))
         self.restoreState(QByteArray(self.settings.value("state")))

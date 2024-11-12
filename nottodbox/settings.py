@@ -318,7 +318,7 @@ class SettingsPage(QWidget):
                 self.autosave_checkbox.stateChanged.connect(self.setAutoSave)
             
             self.format_combobox = QComboBox(self.inputs)
-            self.format_combobox.addItems([_("Plain-text"), _("Markdown"), _("HTML")])
+            self.format_combobox.addItems([_("Plain-text"), "Markdown", "HTML"])
             self.format_combobox.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
             self.format_combobox.setEditable(False)
             self.format_combobox.currentIndexChanged.connect(self.setFormat)
@@ -333,14 +333,14 @@ class SettingsPage(QWidget):
             self.foreground_button = PushButton(self, "")
             self.foreground_button.clicked.connect(self.setForeground)
             
-            self.form.addRow(_("Background color:"), self.background_button)
-            self.form.addRow(_("Text color:"), self.foreground_button)
+            self.form.addRow("{}:".format(_("Background color")), self.background_button)
+            self.form.addRow("{}:".format(_("Text color")), self.foreground_button)
             
         if self.module == "diaries":
             self.highlight_button = PushButton(self, "")
             self.highlight_button.clicked.connect(self.setHighlight)
             
-            self.form.addRow(_("Highlight color:"), self.highlight_button)
+            self.form.addRow("{}:".format(_("Highlight color")), self.highlight_button)
             
         self.setLayout(self.layout_)
         self.layout_.addWidget(self.inputs)

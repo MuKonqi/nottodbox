@@ -194,7 +194,7 @@ class SidebarTreeView(QTreeView):
         self.counts[(module, page)] = self.model_.rowCount()
         self.pages.append((module, page))
         
-        self.model_.appendRow([StandardItem(_("Note") if module == "notes" else _("Diary"), [module, page]), 
+        self.model_.appendRow([StandardItem(_("note").title() if module == "notes" else _("diary").title(), [module, page]), 
                                StandardItem(page, [module, page])])
     
     def deletePage(self, module: str, page: str) -> None:

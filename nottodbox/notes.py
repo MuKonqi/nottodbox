@@ -572,8 +572,8 @@ class NotesTabWidget(QTabWidget):
         self.selecteds = QWidget(self)
         self.selecteds_layout = QHBoxLayout(self.selecteds)
         
-        self.notebook_selected = Label(self.selecteds, _("Notebook: "))
-        self.note_selected = Label(self.selecteds, _("Note: "))
+        self.notebook_selected = Label(self.selecteds, "{}: ".format(_("notebook").title()))
+        self.note_selected = Label(self.selecteds, "{}: ".format(_("note").title()))
         
         self.treeview = NotesTreeView(self)
         
@@ -621,8 +621,8 @@ class NotesTabWidget(QTabWidget):
                 if not notes[self.tabText(index).replace("&", "")].closable:
                     self.question = QMessageBox.question(self, 
                                                          _("Question"),
-                                                         _("{name} note not saved.\nWhat would you like to do?")
-                                                         .format(name = self.tabText(index).replace("&", "")),
+                                                         _("{item} not saved.\nWhat would you like to do?")
+                                                         .format(item = _("{name} note").format(name = self.tabText(index).replace("&", ""))),
                                                          QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.Save | QMessageBox.StandardButton.Cancel,
                                                          QMessageBox.StandardButton.Save)
                     
@@ -631,6 +631,11 @@ class NotesTabWidget(QTabWidget):
                         
                         if call:
                             self.closable = True
+                            
+                        else:
+                            QMessageBox.critical(self, _("Error"), _("Failed to save {item}.")
+                                                 .format(item = _("{name} note").format(name = self.tabText(index).replace("&", ""))))
+                            return
                     
                     elif self.question != QMessageBox.StandardButton.Yes:
                         return
@@ -640,7 +645,7 @@ class NotesTabWidget(QTabWidget):
             except KeyError:
                 pass
             
-            if not str(self.tabText(index).replace("&", "")).endswith(f' {_("(Backup)")}'):
+            if not str(self.tabText(index).replace("&", "")).endswith(f' {_(" (Backup)")}'):
                 notes_parent.dock.widget().open_pages.deletePage("notes", self.tabText(index).replace("&", ""))
                 
             self.removeTab(index)
@@ -687,8 +692,8 @@ class NotesTabWidget(QTabWidget):
             
             self.current_widget = self.note_options
             
-        self.notebook_selected.setText(_("Notebook: ") + notebook)
-        self.note_selected.setText(_("Note: ") + name)
+        self.notebook_selected.setText("{}: ".format(_("notebook").title()) + notebook)
+        self.note_selected.setText("{}: ".format(_("note").title()) + name)
         
     def refreshSettings(self) -> None:
         global setting_autosave, setting_format, setting_background, setting_foreground
@@ -710,10 +715,10 @@ class NotesNoneOptions(QWidget):
         self.warning_label = Label(self, _("You can select\na notebook\nor a note\non the left."))
         self.warning_label.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Maximum)
         
-        self.create_notebook_button = PushButton(self, _("Create notebook"))
+        self.create_notebook_button = PushButton(self, _("Create {}").format(_("notebook").title()))
         self.create_notebook_button.clicked.connect(self.parent_.notebook_options.createNotebook)
         
-        self.delete_all_button = PushButton(self, _("Delete all"))
+        self.delete_all_button = PushButton(self, _("Delete All"))
         self.delete_all_button.clicked.connect(self.parent_.deleteAll)
         
         self.setFixedWidth(200)
@@ -733,16 +738,16 @@ class NotesNotebookOptions(QWidget):
         
         self.layout_ = QVBoxLayout(self)
 
-        self.create_note_button = PushButton(self, _("Create note"))
+        self.create_note_button = PushButton(self, _("Create {}").format(_("note").title()))
         self.create_note_button.clicked.connect(self.parent_.note_options.createNote)
         
-        self.create_notebook_button = PushButton(self, _("Create notebook"))
+        self.create_notebook_button = PushButton(self, _("Create {}").format(_("notebook").title()))
         self.create_notebook_button.clicked.connect(self.createNotebook)
         
-        self.set_background_button = PushButton(self, _("Set background color"))
+        self.set_background_button = PushButton(self, _("Set Background Color"))
         self.set_background_button.clicked.connect(self.setNotebookBackground)
         
-        self.set_foreground_button = PushButton(self, _("Set text color"))
+        self.set_foreground_button = PushButton(self, _("Set Text Color"))
         self.set_foreground_button.clicked.connect(self.setNotebookForeground)
         
         self.rename_button = PushButton(self, _("Rename"))
@@ -754,7 +759,7 @@ class NotesNotebookOptions(QWidget):
         self.delete_button = PushButton(self, _("Delete"))
         self.delete_button.clicked.connect(self.deleteNotebook)
         
-        self.delete_all_button = PushButton(self, _("Delete all"))
+        self.delete_all_button = PushButton(self, _("Delete All"))
         self.delete_all_button.clicked.connect(self.parent_.deleteAll)
         
         self.setFixedWidth(200)
@@ -774,28 +779,40 @@ class NotesNotebookOptions(QWidget):
         call = notesdb.checkIfTheNotebookExists(name)
         
         if not call and mode == "normal":
-            QMessageBox.critical(self, _("Error"), _("There is no notebook called {name}.").format(name = name))
+            QMessageBox.critical(self, _("Error"), _("There is no {item}.")
+                                 .format(item = _("{name} notebook").format(name = name)))
         
         return call
     
-    @Slot()
-    def createNotebook(self) -> None:
-        name, topwindow = QInputDialog.getText(
-            self, _("Create Notebook"), _("Please enter a name for creating a notebook."))
-        
+    def checkTheName(self, name: str) -> bool:
         if "'" in name or "@" in name:
-            QMessageBox.critical(self, _("Error"), _("The notebook name can not contain these characters: ' and @"))
-            return
+            QMessageBox.critical(self, _("Error"), _("The {} name can not contain these characters: ' and @")
+                                 .format(_("notebook")))
+            return False
         
         elif "__main__" == name:
-            QMessageBox.critical(self, _("Error"), _("The notebook name can not be to __main__."))
+            QMessageBox.critical(self, _("Error"), _("The {} name can not be to __main__.")
+                                 .format(_("notebook")))
+            return False
+        
+        else:
+            return True
+    
+    @Slot()
+    def createNotebook(self) -> None:
+        name, topwindow = QInputDialog.getText(self, 
+                                               _("Create {}").format(_("notebook").title()), 
+                                               _("Please enter a name for creating a {}.").format(_("notebook")))
+        
+        if not self.checkTheName(name):
             return
         
         elif topwindow and name != "":
             call = self.checkIfTheNotebookExists(name, "inverted")
         
             if call:
-                QMessageBox.critical(self, _("Error"), _("{name} notebook already created.").format(name = name))
+                QMessageBox.critical(self, _("Error"), _("{item} already created.")
+                                     .format(item = _("{name} notebook").format(name = name)))
         
             else:
                 call = notesdb.createNotebook(name)
@@ -805,7 +822,8 @@ class NotesNotebookOptions(QWidget):
                     self.parent_.treeview.setIndex(name, "")
                     
                 else:
-                    QMessageBox.critical(self, _("Error"), _("Failed to create {name} notebook.").format(name = name))
+                    QMessageBox.critical(self, _("Error"), _("Failed to create {item}.")
+                                         .format(item = _("{name} notebook").format(name = name)))
         
     @Slot()
     def deleteNotebook(self) -> None:
@@ -814,7 +832,8 @@ class NotesNotebookOptions(QWidget):
         if not self.checkIfTheNotebookExists(name):
             return
         
-        question = QMessageBox.question(self, _("Question"), _("Do you really want to delete the {name} notebook?").format(name = name))
+        question = QMessageBox.question(self, _("Question"), _("Do you really want to delete the {item}?")
+                                        .format(item = _("{name} notebook").format(name = name)))
         
         if question == QMessageBox.StandardButton.Yes:
             call = notesdb.deleteNotebook(name)
@@ -824,7 +843,8 @@ class NotesNotebookOptions(QWidget):
                 self.parent_.treeview.setIndex("", "")
 
             else:
-                QMessageBox.critical(self, _("Error"), _("Failed to delete {name} notebook.").format(name = name))
+                QMessageBox.critical(self, _("Error"), _("Failed to delete {item}.")
+                                     .format(item = _("{name} notebook").format(name = name)))
         
     @Slot()
     def renameNotebook(self) -> None:
@@ -834,15 +854,12 @@ class NotesNotebookOptions(QWidget):
             return
         
         newname, topwindow = QInputDialog.getText(self, 
-                                                  _("Rename {name} Notebook").format(name = name.title()), 
-                                                  _("Please enter a new name for {name} notebook.").format(name = name))
+                                                  _("Rename {item}")
+                                                  .format(item = _("{name} notebook").format(name = name)).title(), 
+                                                  _("Please enter a new name for {item}.")
+                                                  .format(item = _("{name} notebook").format(name = name)))
         
-        if "'" in newname or "@" in newname:
-            QMessageBox.critical(self, _("Error"), _("The notebook name can not contain these characters: ' and @"))
-            return
-        
-        elif "__main__" == newname:
-            QMessageBox.critical(self, _("Error"), _("The notebook name can not be to __main__."))
+        if not self.checkTheName(newname):
             return
         
         elif topwindow and newname != "":
@@ -854,16 +871,17 @@ class NotesNotebookOptions(QWidget):
                     self.parent_.treeview.setIndex(newname, "")
                     
                 else:
-                    QMessageBox.critical(self, _("Error"), _("Failed to rename {name} notebook.")
-                                        .format(name = name))
+                    QMessageBox.critical(self, _("Error"), _("Failed to rename {item}.")
+                                         .format(item = _("{name} notebook").format(name = name)))
                     
             else:
-                QMessageBox.critical(self, _("Error"), _("Already existing {newname} notebook, renaming {name} notebook cancalled.")
-                                     .format(newname = newname, name = name))
+                QMessageBox.critical(self, _("Error"), _("Already existing {newitem}, renaming {the_item} cancalled.")
+                                     .format(newitem = _("{name} notebook").format(name = name), 
+                                             the_item = _("the {name} notebook").format(name = name)))
                 
         else:
-            QMessageBox.critical(self, _("Error"), _("Failed to rename {name} notebook.")
-                                 .format(name = name))
+            QMessageBox.critical(self, _("Error"), _("Failed to rename {item}.")
+                                 .format(item = _("{name} notebook").format(name = name)))
         
     @Slot()
     def resetNotebook(self) -> None:
@@ -880,7 +898,8 @@ class NotesNotebookOptions(QWidget):
             self.parent_.treeview.setIndex(name, "")
             
         else:
-            QMessageBox.critical(self, _("Error"), _("Failed to reset {name} notebook.").format(name = name))
+            QMessageBox.critical(self, _("Error"), _("Failed to reset {item}.")
+                                 .format(item = _("{name} notebook").format(name = name)))
          
     @Slot()
     def setNotebookBackground(self) -> None:
@@ -895,7 +914,8 @@ class NotesNotebookOptions(QWidget):
             QColor(background if background != "global" and background != "default"
                    else (setting_background if background == "global" and setting_background != "default" 
                          else "#FFFFFF")),
-            _("Select Background Color for {name} Notebook").format(name = name.title())).getColor()
+            _("Select Background Color for {item}")
+            .format(item = _("{name} notebook").format(name = name)).title()).getColor()
         
         if ok:
             if status == "new":
@@ -913,7 +933,8 @@ class NotesNotebookOptions(QWidget):
                 self.parent_.treeview.updateNotebookBackground(name, color)
                 
             else:
-                QMessageBox.critical(self, _("Error"), _("Failed to set background color for {name} notebook.").format(name = name))
+                QMessageBox.critical(self, _("Error"), _("Failed to set background color for {item}.")
+                                     .format(item = _("{name} notebook").format(name = name)))
         
     @Slot()
     def setNotebookForeground(self) -> None:
@@ -927,8 +948,8 @@ class NotesNotebookOptions(QWidget):
         ok, status, qcolor = ColorDialog(self, True, 
             QColor(foreground if foreground != "global" and foreground != "default"
                    else (setting_foreground if foreground == "global" and setting_foreground != "default" 
-                         else "#FFFFFF")),
-            _("Select Text Color for {name} Notebook").format(name = name.title())).getColor()
+                         else "#FFFFFF")), _("Select Text Color for {item}")
+            .format(item = _("{name} notebook").format(name = name)).title()).getColor()
         
         if ok:
             if status == "new":
@@ -946,7 +967,8 @@ class NotesNotebookOptions(QWidget):
                 self.parent_.treeview.updateNotebookForeground(name, color)
                 
             else:
-                QMessageBox.critical(self, _("Error"), _("Failed to set text color for {name} notebook.").format(name = name))
+                QMessageBox.critical(self, _("Error"), _("Failed to set text color for {item}.")
+                                     .format(item = _("{name} notebook").format(name = name)))
 
 
 class NotesNoteOptions(QWidget):
@@ -957,34 +979,34 @@ class NotesNoteOptions(QWidget):
         
         self.layout_ = QVBoxLayout(self)
         
-        self.create_note_button = PushButton(self, _("Create note"))
+        self.create_note_button = PushButton(self, _("Create {}").format(_("note").title()))
         self.create_note_button.clicked.connect(self.createNote)
         
         self.open_button = PushButton(self, _("Open"))
         self.open_button.clicked.connect(self.openNote)
         
-        self.set_background_button = PushButton(self, _("Set background color"))
+        self.set_background_button = PushButton(self, _("Set Background Color"))
         self.set_background_button.clicked.connect(self.setNoteBackground)
         
-        self.set_foreground_button = PushButton(self, _("Set text color"))
+        self.set_foreground_button = PushButton(self, _("Set Text Color"))
         self.set_foreground_button.clicked.connect(self.setNoteForeground)
         
         self.rename_button = PushButton(self, _("Rename"))
         self.rename_button.clicked.connect(self.renameNote)
 
-        self.show_backup_button = PushButton(self, _("Show backup"))
+        self.show_backup_button = PushButton(self, _("Show Backup"))
         self.show_backup_button.clicked.connect(self.showBackup)
 
-        self.restore_content_button = PushButton(self, _("Restore content"))
+        self.restore_content_button = PushButton(self, _("Restore Content"))
         self.restore_content_button.clicked.connect(self.restoreContent)
         
-        self.clear_content_button = PushButton(self, _("Clear content"))
+        self.clear_content_button = PushButton(self, _("Clear Content"))
         self.clear_content_button.clicked.connect(self.clearContent)
         
         self.delete_button = PushButton(self, _("Delete"))
         self.delete_button.clicked.connect(self.deleteNote)
         
-        self.delete_all_button = PushButton(self, _("Delete all"))
+        self.delete_all_button = PushButton(self, _("Delete All"))
         self.delete_all_button.clicked.connect(self.parent_.deleteAll)
 
         self.setFixedWidth(200)
@@ -1006,7 +1028,8 @@ class NotesNoteOptions(QWidget):
         call = notesdb.checkIfTheNoteExists(notebook, name)
         
         if not call and mode == "normal":
-            QMessageBox.critical(self, _("Error"), _("There is no note called {name}.").format(name = name))
+            QMessageBox.critical(self, _("Error"), _("There is no {item}.")
+                                 .format(item = _("{name} note").format(name = name)))
         
         return call
     
@@ -1014,9 +1037,19 @@ class NotesNoteOptions(QWidget):
         call = notesdb.checkIfTheNoteBackupExists(notebook, name)
         
         if not call:
-            QMessageBox.critical(self, _("Error"), _("There is no backup for {name} note.").format(name = name))
+            QMessageBox.critical(self, _("Error"), _("There is no backup for {item}.")
+                                 .format(item = _("{name} note").format(name = name)))
         
         return call
+    
+    def checkTheName(self, name: str) -> bool:
+        if "@" in name:
+            QMessageBox.critical(self, _("Error"), _("The {} name can not contain @ character.")
+                                 .format(_("note")))
+            return False
+        
+        else:
+            return True
     
     @Slot()
     def clearContent(self) -> None:
@@ -1026,37 +1059,42 @@ class NotesNoteOptions(QWidget):
         if not self.checkIfTheNoteExists(notebook, name):
             return
         
-        question = QMessageBox.question(self, _("Question"), _("Do you really want to clear the content of the {name} note?").format(name = name))
+        question = QMessageBox.question(self, _("Question"), _("Do you really want to clear the content {of_item}?")
+                                        .format(of_item = _("of {name} note").format(name = name)))
         
         if question == QMessageBox.StandardButton.Yes:
             call = notesdb.clearContent(notebook, name)
         
             if call:
-                QMessageBox.information(self, _("Successful"), _("Content of {name} note cleared.").format(name = name))
+                QMessageBox.information(self, _("Successful"), _("Content {of_item} cleared.")
+                                        .format(of_item = _("of {name} note").format(name = name)))
                 
             else:
-                QMessageBox.critical(self, _("Error"), _("Failed to clear content of {name} note.").format(name = name))
+                QMessageBox.critical(self, _("Error"), _("Failed to clear content {of_item}.")
+                                     .format(of_item = _("of {name} note").format(name = name)))
     
     @Slot()
     def createNote(self):
         notebook = self.parent_.notebook
         
         if not notesdb.checkIfTheNotebookExists(notebook):
-            QMessageBox.critical(self, _("Error"), _("There is no notebook called {name}.").format(name = notebook))
+            QMessageBox.critical(self, _("Error"), _("There is no {item}.")
+                                 .format(item = _("{name} notebook").format(name = notebook)))
             return
         
-        name, topwindow = QInputDialog.getText(
-            self, _("Create Note"), _("Please enter a name for creating a note."))
+        name, topwindow = QInputDialog.getText(self, 
+                                               _("Create {}").format(_("note").title()), 
+                                               _("Please enter a name for creating a {}.").format(_("note")))
         
-        if "@" in name:
-            QMessageBox.critical(self, _("Error"), _("The note name can not contain @ character."))
+        if not self.checkTheName(name):
             return
         
         elif topwindow and name != "":
             call = self.checkIfTheNoteExists(notebook, name, "inverted")
         
             if call:
-                QMessageBox.critical(self, _("Error"), _("{name} note already created.").format(name = name))
+                QMessageBox.critical(self, _("Error"), _("{item} already created.")
+                                     .format(item = _("{name} note").format(name = name)))
         
             else:
                 call = notesdb.createNote(notebook, name)
@@ -1066,7 +1104,8 @@ class NotesNoteOptions(QWidget):
                     self.parent_.treeview.setIndex(notebook, name)
                     
                 else:
-                    QMessageBox.critical(self, _("Error"), _("Failed to create {name} note.").format(name = name))
+                    QMessageBox.critical(self, _("Error"), _("Failed to create {item}.")
+                                         .format(item = _("{name} note").format(name = name)))
             
     @Slot()
     def deleteNote(self) -> None:
@@ -1076,7 +1115,8 @@ class NotesNoteOptions(QWidget):
         if not self.checkIfTheNoteExists(notebook, name):
             return
         
-        question = QMessageBox.question(self, _("Question"), _("Do you really want to delete the {name} note?").format(name = name))
+        question = QMessageBox.question(self, _("Question"), _("Do you really want to delete the {item}?")
+                                        .format(item = _("{name} note").format(name = name)))
         
         if question == QMessageBox.StandardButton.Yes:
             call = notesdb.deleteNote(notebook, name)
@@ -1086,7 +1126,8 @@ class NotesNoteOptions(QWidget):
                 self.parent_.treeview.setIndex(notebook, "")
                 
             else:
-                QMessageBox.critical(self, _("Error"), _("Failed to delete {name} note.").format(name = name))
+                QMessageBox.critical(self, _("Error"), _("Failed to delete {item}.")
+                                     .format(item = _("{name} note").format(name = name)))
         
     @Slot()
     def openNote(self, notebook: str = "", name: str = "") -> None:
@@ -1116,11 +1157,12 @@ class NotesNoteOptions(QWidget):
             return
         
         newname, topwindow = QInputDialog.getText(self, 
-                                                  _("Rename {name} Note").format(name = name.title()), 
-                                                  _("Please enter a new name for {name} note.").format(name = name))
+                                                  _("Rename {item}")
+                                                  .format(item = _("{name} note").format(name = name)).title(), 
+                                                  _("Please enter a new name for {item}.")
+                                                  .format(item = _("{name} note").format(name = name)))
         
-        if "'" in newname or "@" in newname:
-            QMessageBox.critical(self, _("Error"), _("The notebook name can not contain these characters: ' and @"))
+        if not self.checkTheName(newname):
             return
         
         elif topwindow and newname != "":
@@ -1132,16 +1174,17 @@ class NotesNoteOptions(QWidget):
                     self.parent_.treeview.setIndex(notebook, newname)
     
                 else:
-                    QMessageBox.critical(self, _("Error"), _("Failed to rename {name} note.")
-                                        .format(name = name))
+                    QMessageBox.critical(self, _("Error"), _("Failed to rename {item}.")
+                                         .format(item = _("{name} note").format(name = name)))
             
             else:
-                QMessageBox.critical(self, _("Error"), _("Already existing {newname} note, renaming {name} note cancalled.")
-                                     .format(newname = newname, name = name))
+                QMessageBox.critical(self, _("Error"), _("Already existing {newitem}, renaming {the_item} cancalled.")
+                                     .format(newitem = _("{name} note").format(name = name), 
+                                             the_item = _("the {name} note").format(name = name)))
                 
         else:
-            QMessageBox.critical(self, _("Error"), _("Failed to rename {name} note.")
-                                 .format(name = name))
+            QMessageBox.critical(self, _("Error"), _("Failed to rename {item}.")
+                                 .format(item = _("{name} note").format(name = name)))
             
     @Slot()
     def restoreContent(self) -> None:
@@ -1157,10 +1200,12 @@ class NotesNoteOptions(QWidget):
         call = notesdb.restoreContent(notebook, name)
         
         if call:
-            QMessageBox.information(self, _("Successful"), _("Backup of {name} note restored.").format(name = name))
+            QMessageBox.information(self, _("Successful"), _("Backup {of_item} restored.")
+                                    .format(of_item = _("of {name} note").format(name = name)))
             
         elif not call:
-            QMessageBox.critical(self, _("Error"), _("Failed to restore backup of {name} note.").format(name = name))
+            QMessageBox.critical(self, _("Error"), _("Failed to restore backup {of_item}.")
+                                 .format(of_item = _("of {name} note").format(name = name)))
             
     @Slot()
     def setNoteBackground(self) -> None:
@@ -1176,7 +1221,8 @@ class NotesNoteOptions(QWidget):
             QColor(background if background != "global" and background != "default"
                    else (setting_background if background == "global" and setting_background != "default" 
                          else "#FFFFFF")),
-            _("Select Background Color for {name} Note").format(name = name.title())).getColor()
+            _("Select Background Color for {item}")
+            .format(item = _("{name} note").format(name = name)).title()).getColor()
         
         if ok:
             if status == "new":
@@ -1194,7 +1240,8 @@ class NotesNoteOptions(QWidget):
                 self.parent_.treeview.updateNoteBackground(notebook, name, color)
                 
             else:
-                QMessageBox.critical(self, _("Error"), _("Failed to set background color for {name} note.").format(name = name))
+                QMessageBox.critical(self, _("Error"), _("Failed to set background color for {item}.")
+                                     .format(item = _("{name} note").format(name = name)))
         
     @Slot()
     def setNoteForeground(self) -> None:
@@ -1210,7 +1257,8 @@ class NotesNoteOptions(QWidget):
             QColor(foreground if foreground != "global" and foreground != "default"
                    else (setting_foreground if foreground == "global" and setting_foreground != "default" 
                          else "#FFFFFF")),
-            _("Select Text Color for {name} Note").format(name = name.title())).getColor()
+            _("Select Text Color for {item}")
+            .format(item = _("{name} note").format(name = name)).title()).getColor()
         
         if ok:
             if status == "new":
@@ -1228,7 +1276,8 @@ class NotesNoteOptions(QWidget):
                 self.parent_.treeview.updateNoteForeground(notebook, name, color)
                 
             else:
-                QMessageBox.critical(self, _("Error"), _("Failed to set text color for {name} note.").format(name = name))
+                QMessageBox.critical(self, _("Error"), _("Failed to set text color for {item}.")
+                                     .format(item = _("{name} note").format(name = name)))
             
     @Slot()
     def showBackup(self) -> None:
@@ -1244,7 +1293,7 @@ class NotesNoteOptions(QWidget):
         notes_parent.tabwidget.setCurrentIndex(1)
 
         self.parent_.backups[f'{name} @ {notebook}'] = BackupPage(self, "notes", notebook, name, setting_format, notesdb)
-        self.parent_.addTab(self.parent_.backups[f'{name} @ {notebook}'], f'{name} @ {notebook} {_("(Backup)")}')
+        self.parent_.addTab(self.parent_.backups[f'{name} @ {notebook}'], f'{name} @ {notebook} {_(" (Backup)")}')
         self.parent_.setCurrentWidget(self.parent_.backups[f'{name} @ {notebook}'])
 
 
@@ -1267,7 +1316,9 @@ class NotesTreeView(TreeView):
             global notes_model
             
             notes_model = QStandardItemModel(self)
-            notes_model.setHorizontalHeaderLabels([_("Name"), _("Creation"), _("Modification")])
+            notes_model.setHorizontalHeaderLabels(["{} / {}".format(_("notebook"), _("note")).title(), 
+                                                   _("Creation"), 
+                                                   _("Modification")])
             
             self.appendAll()
             
@@ -1305,7 +1356,9 @@ class NotesTreeView(TreeView):
         self.menu.clear()
         
         notes_model.clear()
-        notes_model.setHorizontalHeaderLabels([_("Name"), _("Creation"), _("Modification")])
+        notes_model.setHorizontalHeaderLabels(["{} / {}".format(_("notebook"), _("note")).title(), 
+                                                _("Creation"), 
+                                                _("Modification")])
         
     def deleteNote(self, notebook: str, name: str) -> None:
         super().deleteChild(notebook, name)
@@ -1351,7 +1404,8 @@ class NotesTreeView(TreeView):
                         self.setIndex(notebook, name)
                     
                     else:
-                        QMessageBox.critical(self, _("Error"), _("Failed to create {name} note.").format(name = _("Unnamed")))
+                        QMessageBox.critical(self, _("Error"), _("Failed to create {item}.")
+                                             .format(item = _("{name} note").format(name = _("Unnamed"))))
                         return
                 
             if not self.parent_.note_options.checkIfTheNoteExists(notebook, name):
@@ -1369,7 +1423,8 @@ class NotesTreeView(TreeView):
                 self.parent_.setCurrentWidget(notes[f"{name} @ {notebook}"])
                 
         else:
-            QMessageBox.critical(self, _("Error"), _("Please select a note or a notebook."))
+            QMessageBox.critical(self, _("Error"), _("Please select a {} or a {}.")
+                                 .format(_("notebook"), _("note")))
         
     def updateNote(self, notebook: str, name: str, newname: str) -> None:
         super().updateChild(notebook, name, newname)

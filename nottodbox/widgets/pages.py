@@ -392,16 +392,16 @@ class NormalPage(QWidget):
                     self.outdated = "no"
                 
         if self.global_autosave == "enabled":
-            self.pretty_autosave = _("enabled")
+            self.pretty_autosave = _("Enabled").lower()
         elif self.global_autosave == "disabled":
-            self.pretty_autosave = _("disabled")
+            self.pretty_autosave = _("Disabled").lower()
             
         if self.global_format == "plain-text":
-            self.pretty_format = _("plain-text")
+            self.pretty_format = _("Plain-text").lower()
         elif self.global_format == "markdown":
-            self.pretty_format = _("Markdown")
+            self.pretty_format = "Markdown"
         elif self.global_format == "html":
-            self.pretty_format = _("HTML")
+            self.pretty_format = "HTML"
 
         if self.call_autosave == "global":
             self.setting_autosave = self.global_autosave
@@ -435,9 +435,9 @@ class NormalPage(QWidget):
               
         self.autosave = QComboBox(self)
         self.autosave.addItems([
-            _("Auto-save: Follow global ({setting})").format(setting = self.pretty_autosave),
-            _("Auto-save: Enabled"), 
-            _("Auto-save: Disabled")])
+            "{} {}".format(_("Auto-save:"), _("Follow global ({setting})").format(setting = self.pretty_autosave)),
+            "{} {}".format(_("Auto-save:"), _("Enabled")),
+            "{} {}".format(_("Auto-save:"), _("Disabled"))])
         
         if self.call_autosave == "global":
             self.autosave.setCurrentIndex(0)
@@ -457,10 +457,10 @@ class NormalPage(QWidget):
         
         self.format = QComboBox(self)
         self.format.addItems([
-            _("Format: Follow global ({setting})").format(setting = self.pretty_format),
-            _("Format: Plain-text"), 
-            _("Format: Markdown"), 
-            _("Format: HTML")])
+            "{} {}".format(_("Format:"), _("Follow global ({setting})").format(setting = self.pretty_autosave)),
+            "{} {}".format(_("Format:"), _("Plain-text")),
+            "{} {}".format(_("Format:"), "Markdown"),
+            "{} {}".format(_("Format:"), "HTML")])
         
         if self.call_format == "global":
             self.format.setCurrentIndex(0)
@@ -472,7 +472,7 @@ class NormalPage(QWidget):
             self.format.setCurrentIndex(3)
         
         self.format.setEditable(False)
-        self.format.setStatusTip(_("Format changes may corrupt the document."))
+        self.format.setStatusTip(_("Format changes may corrupt the content."))
         self.format.currentIndexChanged.connect(self.setFormat)
         
         self.setLayout(self.layout_)
@@ -537,12 +537,14 @@ class NormalPage(QWidget):
                 self.closable = True
                 
                 if not autosave:
-                    QMessageBox.information(self, _("Successful"), _("{name} document saved.").format(name = self.name))
+                    QMessageBox.information(self, _("Successful"), _("{item} saved.")
+                                            .format(item = _("{name} note").format(name = self.name) if self.module == "notes" else _("{name} diary")).format(name = self.name))
                     
                 return True
                 
             else:
-                QMessageBox.critical(self, _("Error"), _("Failed to save {name} document.").format(name = self.name))
+                QMessageBox.critical(self, _("Error"), _("Failed to save {item}.")
+                                     .format(item = _("{name} note").format(name = self.name) if self.module == "notes" else _("{name} diary")).format(name = self.name))
                 
                 return False
     
@@ -573,7 +575,8 @@ class NormalPage(QWidget):
                 self.setting_autosave = setting
         
         else:
-            QMessageBox.critical(self, _("Error"), _("Failed to save new auto-save setting for {name} document.").format(name = self.name))
+            QMessageBox.critical(self, _("Error"), _("Failed to save new auto-save setting {of_item}.")
+                                 .format(of_item = _("of {name} note").format(name = self.name) if self.module == "notes" else _("of {name} diary")).format(name = self.name))
             
     @Slot(int)
     def setFormat(self, index: int) -> None:
@@ -614,7 +617,8 @@ class NormalPage(QWidget):
             self.formatter.updateStatus(self.setting_format)
         
         else:
-            QMessageBox.critical(self, _("Error"), _("Failed to save new format setting for {name} document.").format(name = self.name))
+            QMessageBox.critical(self, _("Error"), _("Failed to save new format setting {of_item}.")
+                                 .format(of_item = _("of {name} note").format(name = self.name) if self.module == "notes" else _("of {name} diary")).format(name = self.name))
 
 
 class BackupPage(QWidget):
@@ -661,15 +665,15 @@ class BackupPage(QWidget):
         elif self.setting_format == "html":
             self.input.setHtml(self.content)
         
-        self.button = PushButton(self, _("Restore content"))
+        self.button = PushButton(self, _("Restore Content"))
         self.button.clicked.connect(self.restoreContent)
         
         self.format = QComboBox(self)
         self.format.addItems([
-            _("Format: Follow global ({setting})").format(setting = self.global_format),
-            _("Format: Plain-text"), 
-            _("Format: Markdown"), 
-            _("Format: HTML")])
+            "{} {}".format(_("Format:"), _("Follow global ({setting})").format(setting = self.pretty_autosave)),
+            "{} {}".format(_("Format:"), _("Plain-text")),
+            "{} {}".format(_("Format:"), "Markdown"),
+            "{} {}".format(_("Format:"), "HTML")])
         
         if self.call_format == "global":
             self.format.setCurrentIndex(0)
@@ -681,7 +685,7 @@ class BackupPage(QWidget):
             self.format.setCurrentIndex(3)
         
         self.format.setEditable(False)
-        self.format.setStatusTip(_("Format changes may corrupt the document."))
+        self.format.setStatusTip(_("Format changes may corrupt the content."))
         self.format.currentIndexChanged.connect(self.setFormat)
         
         self.setLayout(self.layout_)
@@ -722,7 +726,8 @@ class BackupPage(QWidget):
                 self.setting_format = setting
         
         else:
-            QMessageBox.critical(self, _("Error"), _("Failed to save new format setting for {name} document.").format(note = self.name))
+            QMessageBox.critical(self, _("Error"), _("Failed to save new format setting {of_item}.")
+                                 .format(of_item = _("of {name} note").format(name = self.name) if self.module == "notes" else _("of {name} diary")).format(name = self.name))
             
     @Slot()
     def restoreContent(self) -> None:
@@ -739,7 +744,9 @@ class BackupPage(QWidget):
             call = self.database.restoreContent(self.name)
         
         if call:
-            QMessageBox.information(self, _("Successful"), _("Backup of {name} document restored.").format(name = self.name))
+            QMessageBox.information(self, _("Successful"), _("Backup {of_item} restored.")
+                                    .format(of_item = _("of {name} note").format(name = self.name) if self.module == "notes" else _("of {name} diary")).format(name = self.name))
             
         else:
-            QMessageBox.critical(self, _("Error"), _("Failed to restore backup of {name} document.").format(name = self.name))
+            QMessageBox.critical(self, _("Error"), _("Failed to restore backup {of_item}.")
+                                 .format(of_item = _("of {name} note").format(name = self.name) if self.module == "notes" else _("of {name} diary")).format(name = self.name))

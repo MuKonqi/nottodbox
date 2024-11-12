@@ -46,28 +46,28 @@ class TodosDB:
         self.db = sqlite3.connect(f"{userdata}todos.db")
         self.cur = self.db.cursor()
 
-    def changeStatus(self, todolist: str, todo: str) -> tuple:
+    def changeStatus(self, todolist: str, name: str) -> tuple:
         date = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
         
-        status = self.getStatus(todolist, todo)
+        status = self.getStatus(todolist, name)
         
         if status == "completed":
             newstatus = "uncompleted"
             
-            todo_items[(todolist, todo)][2].setText(_("Not completed yet"), todo) 
+            todo_items[(todolist, name)][2].setText(_("Not completed yet"), name) 
         
         elif status == "uncompleted": 
             newstatus = "completed"
             
-            todo_items[(todolist, todo)][2].setText(date, todo) 
+            todo_items[(todolist, name)][2].setText(date, name) 
             
-        self.cur.execute(f"update '{todolist}' set status = ?, completion = ? where todo = ?", (newstatus, date, todo))
+        self.cur.execute(f"update '{todolist}' set status = ?, completion = ? where name = ?", (newstatus, date, name))
         self.db.commit()
         
         if not self.updateTodolistModificationDate(todolist, date):
             return False
         
-        self.cur.execute(f"select status from '{todolist}' where todo = ?", (todo,))
+        self.cur.execute(f"select status from '{todolist}' where name = ?", (name,))
         control = self.cur.fetchone()[0]
         
         if control == newstatus:
@@ -84,9 +84,9 @@ class TodosDB:
         except sqlite3.OperationalError:
             return False
         
-    def checkIfTheTodoExists(self, todolist: str, todo: str) -> bool:
+    def checkIfTheTodoExists(self, todolist: str, name: str) -> bool:
         if self.checkIfTheTodolistExists(todolist):
-            self.cur.execute(f"select * from '{todolist}' where todo = ?", (todo,))
+            self.cur.execute(f"select * from '{todolist}' where name = ?", (name,))
             
             try:
                 self.cur.fetchone()[0]
@@ -121,21 +121,21 @@ class TodosDB:
         
         return self.checkIfTheTableExists("__main__")
     
-    def createTodo(self, todolist: str, todo: str) -> bool:
+    def createTodo(self, todolist: str, name: str) -> bool:
         date = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
         
         self.cur.execute("update __main__ set modification = ? where name = ?", (date, todolist))
         self.db.commit()
         
         self.cur.execute(f"""insert into '{todolist}' 
-                         (todo, status, creation, background, foreground) values (?, ?, ?, ?, ?)""",
-                         (todo, "uncompleted", date, "global", "global"))
+                         (name, status, creation, background, foreground) values (?, ?, ?, ?, ?)""",
+                         (name, "uncompleted", date, "global", "global"))
         self.db.commit()
         
-        self.cur.execute(f"select * from '{todolist}' where todo = ?", (todo,))
+        self.cur.execute(f"select * from '{todolist}' where name = ?", (name,))
         control = self.cur.fetchone()
         
-        if control[0] == todo and control[1] == "uncompleted" and control[2] == date:
+        if control[0] == name and control[1] == "uncompleted" and control[2] == date:
             return True
         else:
             return False
@@ -150,7 +150,7 @@ class TodosDB:
             
         self.cur.execute(f"""
             CREATE TABLE IF NOT EXISTS '{name}' (
-                todo TEXT NOT NULL PRIMARY KEY,
+                name TEXT NOT NULL PRIMARY KEY,
                 status TEXT NOT NULL,
                 creation TEXT NOT NULL,
                 completion TEXT,
@@ -188,16 +188,16 @@ class TodosDB:
         else:
             return False
     
-    def deleteTodo(self, todolist: str, todo: str) -> bool:
+    def deleteTodo(self, todolist: str, name: str) -> bool:
         date = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
         
-        self.cur.execute(f"delete from '{todolist}' where todo = ?", (todo,))
+        self.cur.execute(f"delete from '{todolist}' where name = ?", (name,))
         self.db.commit()
         
         if not self.updateTodolistModificationDate(todolist, date):
             return False
         
-        call = self.checkIfTheTodoExists(todolist, todo)
+        call = self.checkIfTheTodoExists(todolist, name)
         
         if call:
             return False
@@ -218,36 +218,36 @@ class TodosDB:
         else:
             return True
         
-    def editTodo(self, todolist: str, todo: str, newtodo: str) -> bool:
+    def editTodo(self, todolist: str, name: str, newname: str) -> bool:
         date = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
         
-        self.cur.execute(f"update '{todolist}' set todo = ? where todo = ?", (newtodo, todo))
+        self.cur.execute(f"update '{todolist}' set name = ? where name = ?", (newname, name))
         self.db.commit()
         
         if not self.updateTodolistModificationDate(todolist, date):
             return False
         
-        return self.checkIfTheTodoExists(todolist, newtodo)
+        return self.checkIfTheTodoExists(todolist, newname)
         
-    def getStatus(self, todolist: str, todo: str) -> str:
-        self.cur.execute(f"select status from '{todolist}' where todo = ?", (todo,))
+    def getStatus(self, todolist: str, name: str) -> str:
+        self.cur.execute(f"select status from '{todolist}' where name = ?", (name,))
         return self.cur.fetchone()[0]
     
-    def getTodo(self, todolist: str, todo: str) -> list:
+    def getTodo(self, todolist: str, name: str) -> list:
         self.cur.execute(f"""select status, creation, completion,
-                         background, foreground from '{todolist}' where todo = ?""", (todo,))
+                         background, foreground from '{todolist}' where name = ?""", (name,))
         return self.cur.fetchone()
     
-    def getTodoBackground(self, todolist: str, todo: str) -> str:
-        self.cur.execute(f"select background from '{todolist}' where todo = ?", (todo,))
+    def getTodoBackground(self, todolist: str, name: str) -> str:
+        self.cur.execute(f"select background from '{todolist}' where name = ?", (name,))
         try:
             fetch = self.cur.fetchone()[0]
         except TypeError:
             fetch = "global"
         return fetch
         
-    def getTodoForeground(self, todolist: str, todo: str) -> str:
-        self.cur.execute(f"select foreground from '{todolist}' where todo = ?", (todo,))
+    def getTodoForeground(self, todolist: str, name: str) -> str:
+        self.cur.execute(f"select foreground from '{todolist}' where name = ?", (name,))
         try:
             fetch = self.cur.fetchone()[0]
         except TypeError:
@@ -259,7 +259,7 @@ class TodosDB:
                          background, foreground from __main__ where name = ?""", (name,))
         creation, modification, background, foreground = self.cur.fetchone()
         
-        self.cur.execute(f"select todo from '{name}'")
+        self.cur.execute(f"select name from '{name}'")
         return creation, modification, background, foreground, self.cur.fetchall()
     
     def getTodolistBackground(self, name: str) -> str:
@@ -303,22 +303,22 @@ class TodosDB:
         
         return self.checkIfTheTodolistExists(newname)
     
-    def setTodoBackground(self, todolist: str, todo: str, color: str) -> bool:
-        self.cur.execute(f"update '{todolist}' set background = ? where todo = ?", (color, todo))
+    def setTodoBackground(self, todolist: str, name: str, color: str) -> bool:
+        self.cur.execute(f"update '{todolist}' set background = ? where name = ?", (color, name))
         self.db.commit()
         
-        call = self.getTodoBackground(todolist, todo)
+        call = self.getTodoBackground(todolist, name)
         
         if call == color:
             return True
         else:
             return False
         
-    def setTodoForeground(self, todolist: str, todo: str, color: str) -> bool:
-        self.cur.execute(f"update '{todolist}' set foreground = ? where todo = ?", (color, todo))
+    def setTodoForeground(self, todolist: str, name: str, color: str) -> bool:
+        self.cur.execute(f"update '{todolist}' set foreground = ? where name = ?", (color, name))
         self.db.commit()
         
-        call = self.getTodoForeground(todolist, todo)
+        call = self.getTodoForeground(todolist, name)
         
         if call == color:
             return True
@@ -387,7 +387,7 @@ class TodosWidget(QWidget):
         
         todos_parent = parent
         self.todolist = ""
-        self.todo = ""
+        self.name = ""
         self.current_widget = None
         
         self.home_layout = QGridLayout(self)
@@ -395,8 +395,8 @@ class TodosWidget(QWidget):
         self.selecteds = QWidget(self)
         self.selecteds_layout = QHBoxLayout(self.selecteds)
         
-        self.todolist_selected = Label(self, _("To-do list: "))
-        self.todo_selected = Label(self, _("To-do: "))
+        self.todolist_selected = Label(self, "{}: ".format(_("to-do list").title()))
+        self.todo_selected = Label(self, "{}: ".format(_("to-do").title()))
         
         self.treeview = TodosTreeView(self)
         
@@ -444,9 +444,9 @@ class TodosWidget(QWidget):
                 QMessageBox.critical(self, _("Error"), _("Failed to delete all to-do lists."))
             
     @Slot(str, str)
-    def insertInformations(self, todolist: str, todo: str) -> None:
+    def insertInformations(self, todolist: str, name: str) -> None:
         self.todolist = todolist
-        self.todo = todo      
+        self.name = name      
         
         self.none_options.setVisible(False)
         self.todolist_options.setVisible(False)
@@ -458,20 +458,20 @@ class TodosWidget(QWidget):
             
             self.current_widget = self.none_options
             
-        elif self.todolist != "" and self.todo == "":
+        elif self.todolist != "" and self.name == "":
             self.todolist_options.setVisible(True)
             self.home_layout.replaceWidget(self.current_widget, self.todolist_options)
             
             self.current_widget = self.todolist_options
             
-        elif self.todolist != "" and self.todo != "":
+        elif self.todolist != "" and self.name != "":
             self.todo_options.setVisible(True)
             self.home_layout.replaceWidget(self.current_widget, self.todo_options)
             
             self.current_widget = self.todo_options
             
-        self.todolist_selected.setText(_("To-do list: ") + todolist)
-        self.todo_selected.setText(_("To-do: ") + todo)
+        self.todolist_selected.setText("{}: ".format(_("to-do list").title()) + todolist)
+        self.todo_selected.setText("{}: ".format(_("to-do").title()) + name)
         
     def refreshSettings(self) -> None:
         global setting_background, setting_foreground
@@ -493,10 +493,10 @@ class TodosNoneOptions(QWidget):
         self.warning_label = Label(self, _("You can select\na to-do list\nor a to-do\non the left."))
         self.warning_label.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Maximum)
         
-        self.create_todolist_button = PushButton(self, _("Create to-do list"))
+        self.create_todolist_button = PushButton(self, _("Create {}").format(_("to-do list").title()))
         self.create_todolist_button.clicked.connect(self.parent_.todolist_options.createTodolist)
         
-        self.delete_all_button = PushButton(self, _("Delete all"))
+        self.delete_all_button = PushButton(self, _("Delete All"))
         self.delete_all_button.clicked.connect(self.parent_.deleteAll)
         
         self.setFixedWidth(200)
@@ -516,16 +516,16 @@ class TodosTodolistOptions(QWidget):
         
         self.layout_ = QVBoxLayout(self)
         
-        self.create_todo_button = PushButton(self, _("Create to-do"))
+        self.create_todo_button = PushButton(self, _("Create {}").format(_("to-do").title()))
         self.create_todo_button.clicked.connect(self.parent_.todo_options.createTodo)
         
-        self.create_todolist_button = PushButton(self, _("Create to-do list"))
+        self.create_todolist_button = PushButton(self, _("Create {}").format(_("to-do list").title()))
         self.create_todolist_button.clicked.connect(self.createTodolist)
         
-        self.set_background_button = PushButton(self, _("Set background color"))
+        self.set_background_button = PushButton(self, _("Set Background Color"))
         self.set_background_button.clicked.connect(self.setTodolistBackground)
         
-        self.set_foreground_button = PushButton(self, _("Set text color"))
+        self.set_foreground_button = PushButton(self, _("Set Text Color"))
         self.set_foreground_button.clicked.connect(self.setTodolistForeground)
         
         self.rename_button = PushButton(self, _("Rename"))
@@ -537,7 +537,7 @@ class TodosTodolistOptions(QWidget):
         self.delete_button = PushButton(self, _("Delete"))
         self.delete_button.clicked.connect(self.deleteTodolist)
         
-        self.delete_all_button = PushButton(self, _("Delete all"))
+        self.delete_all_button = PushButton(self, _("Delete All"))
         self.delete_all_button.clicked.connect(self.parent_.deleteAll)
         
         self.setFixedWidth(200)
@@ -557,28 +557,40 @@ class TodosTodolistOptions(QWidget):
         call = todosdb.checkIfTheTodolistExists(name)
         
         if not call and mode == "normal":
-            QMessageBox.critical(self, _("Error"), _("There is no to-do list called {name}.").format(name = name))
+            QMessageBox.critical(self, _("Error"), _("There is no {item}.")
+                                 .format(item = _("{name} to-do list").format(name = name)))
         
         return call
     
-    @Slot()
-    def createTodolist(self) -> None:
-        name, topwindow = QInputDialog.getText(
-            self, _("Create To-do List"), _("Please enter a name for creating a to-do list."))
-        
+    def checkTheName(self, name: str) -> bool:
         if "'" in name or "@" in name:
-            QMessageBox.critical(self, _("Error"), _("The to-do list name can not contain these characters: ' and @"))
-            return
+            QMessageBox.critical(self, _("Error"), _("The {} name can not contain these characters: ' and @")
+                                 .format(_("to-do list")))
+            return False
         
         elif "__main__" == name:
-            QMessageBox.critical(self, _("Error"), _("The to-do list name can not be to __main__."))
+            QMessageBox.critical(self, _("Error"), _("The {} name can not be to __main__.")
+                                 .format(_("to-do list")))
+            return False
+        
+        else:
+            return True
+    
+    @Slot()
+    def createTodolist(self) -> None:
+        name, topwindow = QInputDialog.getText(self, 
+                                               _("Create {}").format(_("to-do list").title()), 
+                                               _("Please enter a name for creating a {}.").format(_("to-do list")))
+        
+        if not self.checkTheName(name):
             return
         
         elif topwindow and name != "":
             call = self.checkIfTheTodolistExists(name, "inverted")
         
             if call:
-                QMessageBox.critical(self, _("Error"), _("{name} to-do list already created.").format(name = name))
+                QMessageBox.critical(self, _("Error"), _("{item} already created.")
+                                     .format(item = _("{name} to-do list").format(name = name)))
         
             else:
                 call = todosdb.createTodolist(name)
@@ -588,7 +600,8 @@ class TodosTodolistOptions(QWidget):
                     self.parent_.treeview.setIndex(name, "")
                     
                 else:
-                    QMessageBox.critical(self, _("Error"), _("Failed to create {name} to-do list.").format(name = name))
+                    QMessageBox.critical(self, _("Error"), _("Failed to create {item}.")
+                                         .format(item = _("{name} to-do list").format(name = name)))
           
     @Slot()             
     def deleteTodolist(self) -> None:
@@ -597,7 +610,8 @@ class TodosTodolistOptions(QWidget):
         if not self.checkIfTheTodolistExists(name):
             return
         
-        question = QMessageBox.question(self, _("Question"), _("Do you really want to delete the {name} to-do list?").format(name = name))
+        question = QMessageBox.question(self, _("Question"), _("Do you really want to delete the {item}?")
+                                        .format(item = _("{name} to-do list").format(name = name)))
         
         if question == QMessageBox.StandardButton.Yes:
             call = todosdb.deleteTodolist(name)
@@ -607,7 +621,8 @@ class TodosTodolistOptions(QWidget):
                 self.parent_.treeview.setIndex("", "")
                 
             else:
-                QMessageBox.critical(self, _("Error"), _("Failed to delete {name} to-do list.").format(name = name))
+                QMessageBox.critical(self, _("Error"), _("Failed to delete {item}.")
+                                     .format(item = _("{name} to-do list").format(name = name)))
     
     @Slot()
     def renameTodolist(self) -> None:
@@ -617,15 +632,12 @@ class TodosTodolistOptions(QWidget):
             return
         
         newname, topwindow = QInputDialog.getText(self, 
-                                                  _("Rename {name} To-do List").format(name = name.title()), 
-                                                  _("Please enter a new name for {name} to-do list.").format(name = name))
+                                                  _("Rename {item}")
+                                                  .format(item = _("{name} to-do list").format(name = name).title()), 
+                                                  _("Please enter a new name for {item}.")
+                                                  .format(item = _("{name} to-do list").format(name = name)))
         
-        if "'" in newname or "@" in newname:
-            QMessageBox.critical(self, _("Error"), _("The to-do list name can not contain these characters: ' and @"))
-            return
-        
-        elif "__main__" == newname:
-            QMessageBox.critical(self, _("Error"), _("The to-do list name can not be to __main__."))
+        if not self.checkTheName(name):
             return
         
         elif topwindow and newname != "":
@@ -637,19 +649,21 @@ class TodosTodolistOptions(QWidget):
                     self.parent_.treeview.setIndex(newname, "")
                     
                 else:
-                    QMessageBox.critical(self, _("Error"), _("Failed to rename {name} to-do list.")
-                                        .format(name = name))
+                    QMessageBox.critical(self, _("Error"), _("Failed to rename {item}.")
+                                        .format(item = _("{name} to-do list").format(name = name)))
                     
             else:
-                QMessageBox.critical(self, _("Error"), _("{newname} to-do list already created."))
+                QMessageBox.critical(self, _("Error"), _("Already existing {newitem}, renaming {the_item} cancalled.")
+                                     .format(newitem = _("{name} to-do list").format(name = name), 
+                                             the_item = _("the {name} to-do list").format(name = name)))
                 
         else:
-            QMessageBox.critical(self, _("Error"), _("Failed to rename {name} to-do list.")
-                                 .format(name = name))
+            QMessageBox.critical(self, _("Error"), _("Failed to rename {item}.")
+                                 .format(item = _("{name} to-do list").format(name = name)))
     
     @Slot()        
     def resetTodolist(self) -> None:
-        name = self.parent_.todo
+        name = self.parent_.name
         
         if not self.checkIfTheTodolistExists(name):
             return
@@ -662,7 +676,8 @@ class TodosTodolistOptions(QWidget):
             self.parent_.treeview.setIndex(name, "")
             
         else:
-            QMessageBox.critical(self, _("Error"), _("Failed to reset {name} to-do list.").format(name = name))
+            QMessageBox.critical(self, _("Error"), _("Failed to reset {item}.")
+                                 .format(item = _("{name} to-do list").format(name = name)))
        
     @Slot()     
     def setTodolistBackground(self) -> None:
@@ -677,7 +692,8 @@ class TodosTodolistOptions(QWidget):
             QColor(background if background != "global" and background != "default"
                    else (setting_background if background == "global" and setting_background != "default" 
                          else "#FFFFFF")),
-            _("Select Background Color for {name} To-do List").format(name = name.title())).getColor()
+            _("Select Background Color for {item}")
+            .format(item = _("{name} to-do list").format(name = name)).title()).getColor()
         
         if ok:
             if status == "new":
@@ -695,7 +711,8 @@ class TodosTodolistOptions(QWidget):
                 self.parent_.treeview.updateTodolistBackground(name, color)
                 
             else:
-                QMessageBox.critical(self, _("Error"), _("Failed to set background color for {name} to-do list.").format(name = name))
+                QMessageBox.critical(self, _("Error"), _("Failed to set background color for {item}.")
+                                     .format(item = _("{name} to-do list").format(name = name)))
         
     @Slot()
     def setTodolistForeground(self) -> None:
@@ -710,7 +727,8 @@ class TodosTodolistOptions(QWidget):
             QColor(foreground if foreground != "global" and foreground != "default"
                    else (setting_foreground if foreground == "global" and setting_foreground != "default" 
                          else "#FFFFFF")),
-            _("Select Text Color for {name} To-do List").format(name = name.title())).getColor()
+            _("Select Text Color for {item}")
+            .format(item = _("{name} to-do list").format(name = name)).title()).getColor()
         
         if ok:
             if status == "new":
@@ -728,7 +746,8 @@ class TodosTodolistOptions(QWidget):
                 self.parent_.treeview.updateTodolistForeground(name, color)
                 
             else:
-                QMessageBox.critical(self, _("Error"), _("Failed to set text color for {name} to-do list.").format(name = name))
+                QMessageBox.critical(self, _("Error"), _("Failed to set text color for {item}.")
+                                     .format(item = _("{name} to-do list").format(name = name)))
 
         
 class TodosTodoOptions(QWidget):
@@ -739,16 +758,16 @@ class TodosTodoOptions(QWidget):
         
         self.layout_ = QVBoxLayout(self)
         
-        self.create_todo_button = PushButton(self, _("Create todo"))
+        self.create_todo_button = PushButton(self, _("Create {}").format(_("to-do")))
         self.create_todo_button.clicked.connect(self.createTodo)
         
-        self.set_background_button = PushButton(self, _("Set background color"))
+        self.set_background_button = PushButton(self, _("Set Background Color"))
         self.set_background_button.clicked.connect(self.setTodoBackground)
         
-        self.set_foreground_button = PushButton(self, _("Set text color"))
+        self.set_foreground_button = PushButton(self, _("Set Text Color"))
         self.set_foreground_button.clicked.connect(self.setTodoForeground)
         
-        self.change_status_button = PushButton(self, _("Change status"))
+        self.change_status_button = PushButton(self, _("Change Status"))
         self.change_status_button.clicked.connect(self.changeStatus)
         
         self.edit_button = PushButton(self, _("Edit"))
@@ -757,7 +776,7 @@ class TodosTodoOptions(QWidget):
         self.delete_button = PushButton(self, _("Delete"))
         self.delete_button.clicked.connect(self.deleteTodo)
         
-        self.delete_all_button = PushButton(self, _("Delete all"))
+        self.delete_all_button = PushButton(self, _("Delete All"))
         self.delete_all_button.clicked.connect(self.parent_.deleteAll)
         
         self.setFixedWidth(200)
@@ -772,124 +791,136 @@ class TodosTodoOptions(QWidget):
         self.layout_.addWidget(HSeperator(self))
         self.layout_.addWidget(self.delete_all_button)
         
-    def checkIfTheTodoExists(self, todolist: str, todo: str, mode: str = "normal") -> bool:
-        call = todosdb.checkIfTheTodoExists(todolist, todo)
+    def checkIfTheTodoExists(self, todolist: str, name: str, mode: str = "normal") -> bool:
+        call = todosdb.checkIfTheTodoExists(todolist, name)
         
         if not call and mode == "normal":
-            QMessageBox.critical(self, _("Error"), _("There is no to-do called {todo}.").format(todo = todo))
+            QMessageBox.critical(self, _("Error"), _("There is no {item}.")
+                                 .format(item = _("{name} to-do").format(name = name)))
         
         return call
     
     @Slot()
     def changeStatus(self) -> None:
         todolist = self.parent_.todolist
-        todo = self.parent_.todo
+        name = self.parent_.name
         
-        if not self.checkIfTheTodoExists(todolist, todo):
+        if not self.checkIfTheTodoExists(todolist, name):
             return
         
-        call = todosdb.changeStatus(todolist, todo)
+        call = todosdb.changeStatus(todolist, name)
         
         if call:
-            self.parent_.treeview.updateTodo(todolist, todo, todo)
+            self.parent_.treeview.updateTodo(todolist, name, name)
     
         else:
-            QMessageBox.critical(self, _("Error"), _("Failed to change {todo}'s status.").format(todo = todo))
+            QMessageBox.critical(self, _("Error"), _("Failed to change status {of_item}.")
+                                 .format(of_item = _("of {name} to-do").format(name = name)))
     
     @Slot()
     def createTodo(self) -> None:
         todolist = self.parent_.todolist
         
         if not todosdb.checkIfTheTodolistExists(todolist):
-            QMessageBox.critical(self, _("Error"), _("There is no to-do list called {name}.").format(name = todolist))
+            QMessageBox.critical(self, _("Error"), _("There is no {item}.")
+                                 .format(of_item = _("of {name} to-do list").format(name = todolist)))
             return
         
-        todo, topwindow = QInputDialog.getText(
-            self, _("Create To-do"), _("Please enter anything for creating a to-do."))
+        name, topwindow = QInputDialog.getText(self, 
+                                               _("Create {}").format(_("to-do").title()), 
+                                               _("Please enter a name for creating a {}.").format(_("to-do")))
         
-        if topwindow and todo != "":
-            call = self.checkIfTheTodoExists(todolist, todo, "inverted")
+        if topwindow and name != "":
+            call = self.checkIfTheTodoExists(todolist, name, "inverted")
         
             if call:
-                QMessageBox.critical(self, _("Error"), _("{todo} to-do already created.").format(todo = todo))
+                QMessageBox.critical(self, _("Error"), _("{item} already created.")
+                                     .format(item = _("{name} to-do").format(name = name)))
         
             else:
-                call = todosdb.createTodo(todolist, todo)
+                call = todosdb.createTodo(todolist, name)
                 
                 if call:
-                    self.parent_.treeview.appendTodo(todolist, todo)
-                    self.parent_.treeview.setIndex(todolist, todo)
+                    self.parent_.treeview.appendTodo(todolist, name)
+                    self.parent_.treeview.setIndex(todolist, name)
                     
                 else:
-                    QMessageBox.critical(self, _("Error"), _("Failed to create {todo} to-do.").format(todo = todo))
+                    QMessageBox.critical(self, _("Error"), _("Failed to create {item}.")
+                                         .format(item = _("{name} to-do").format(name = name)))
                     
     @Slot()
     def deleteTodo(self) -> None:
         todolist = self.parent_.todolist
-        todo = self.parent_.todo
+        name = self.parent_.name
         
-        if not self.checkIfTheTodoExists(todolist, todo):
+        if not self.checkIfTheTodoExists(todolist, name):
             return
         
-        call = todosdb.deleteTodo(todolist, todo)
+        call = todosdb.deleteTodo(todolist, name)
         
-        question = QMessageBox.question(self, _("Question"), _("Do you really want to delete the {todo} to-do?").format(todo = todo))
+        question = QMessageBox.question(self, _("Question"), _("Do you really want to delete the {item}?")
+                                        .format(item = _("{name} to-do").format(name = name)))
         
         if question == QMessageBox.StandardButton.Yes:
             if call:
-                self.parent_.treeview.deleteTodo(todolist, todo)
+                self.parent_.treeview.deleteTodo(todolist, name)
                 self.parent_.treeview.setIndex(todolist, "")
                 
             else:
-                QMessageBox.critical(self, _("Error"), _("Failed to delete {todo} to-do.").format(todo = todo))
+                QMessageBox.critical(self, _("Error"), _("Failed to delete {item}.")
+                                     .format(item = _("{name} to-do").format(name = name)))
                     
     @Slot()
     def editTodo(self) -> None:
         todolist = self.parent_.todolist
-        todo = self.parent_.todo
+        name = self.parent_.name
         
-        if not self.checkIfTheTodoExists(todolist, todo):
+        if not self.checkIfTheTodoExists(todolist, name):
             return
         
-        newtodo, topwindow = QInputDialog.getText(self, 
-                                                  _("Edit {todo} To-do").format(todo = todo.title()), 
-                                                  _("Please enter anything for editing {todo} to-do.").format(todo = todo))
+        newname, topwindow = QInputDialog.getText(self, 
+                                                  _("Edit {item}")
+                                                  .format(item = _("{name} to-do").format(name = name)).title(), 
+                                                  _("Please enter anything for editing {the_item}.")
+                                                  .format(the_item = _("the {name} to-do").format(name = name)))
         
-        if topwindow and newtodo != "":
-            if not self.checkIfTheTodoExists(todolist, newtodo, "no-popup"):
-                call = todosdb.editTodo(todolist, todo, newtodo)
+        if topwindow and newname != "":
+            if not self.checkIfTheTodoExists(todolist, newname, "no-popup"):
+                call = todosdb.editTodo(todolist, name, newname)
 
                 if call:
-                    self.parent_.treeview.updateTodo(todolist, todo, newtodo)
-                    self.parent_.treeview.setIndex(todolist, newtodo)
+                    self.parent_.treeview.updateTodo(todolist, name, newname)
+                    self.parent_.treeview.setIndex(todolist, newname)
     
                 else:
-                    QMessageBox.critical(self, _("Error"), _("Failed to edit {todo} to-do.")
-                                        .format(todo = todo))
+                    QMessageBox.critical(self, _("Error"), _("Failed to edit {item}.")
+                                        .format(item = _("{name} to-do").format(name = name)))
             
             else:
-                QMessageBox.critical(self, _("Error"), _("Already existing {newtodo} todo, editing {todo} to-do cancalled.")
-                                     .format(newtodo = newtodo, todo = todo))
+                QMessageBox.critical(self, _("Error"), _("Already existing {newitem}, renaming {the_item} cancalled.")
+                                     .format(newitem = _("{name} to-do").format(name = name), 
+                                             the_item = _("the {name} to-do").format(name = name)))
                 
         else:
-            QMessageBox.critical(self, _("Error"), _("Failed to edit {todo} to-do.")
-                                 .format(todo = todo))
+            QMessageBox.critical(self, _("Error"), _("Failed to edit {item}.")
+                                 .format(item = _("{name} to-do").format(name = name)))
             
     @Slot()
     def setTodoBackground(self) -> None:
         todolist = self.parent_.todolist
-        todo = self.parent_.todo
+        name = self.parent_.name
         
-        if not self.checkIfTheTodoExists(todolist, todo):
+        if not self.checkIfTheTodoExists(todolist, name):
             return
         
-        background = todosdb.getTodoBackground(todolist, todo)
+        background = todosdb.getTodoBackground(todolist, name)
         
         ok, status, qcolor = ColorDialog(self, True, 
             QColor(background if background != "global" and background != "default"
                    else (setting_background if background == "global" and setting_background != "default" 
                          else "#FFFFFF")),
-            _("Select Background Color for {todo} To-do").format(todo = todo.title())).getColor()
+            _("Select Background Color for {item}")
+            .format(item = _("{name} to-do").format(name = name)).title()).getColor()
         
         if ok:
             if status == "new":
@@ -901,29 +932,31 @@ class TodosTodoOptions(QWidget):
             elif status == "default":
                 color = "default"
                 
-            call = todosdb.setTodoBackground(todolist, todo, color)
+            call = todosdb.setTodoBackground(todolist, name, color)
                     
             if call:
-                self.parent_.treeview.updateTodoBackground(todolist, todo, color)
+                self.parent_.treeview.updateTodoBackground(todolist, name, color)
                 
             else:
-                QMessageBox.critical(self, _("Error"), _("Failed to set background color for {todo} to-do.").format(todo = todo))
+                QMessageBox.critical(self, _("Error"), _("Failed to set background color for {item}.")
+                                     .format(item = _("{name} to-do").format(name = name)))
         
     @Slot()
     def setTodoForeground(self) -> None:
         todolist = self.parent_.todolist
-        todo = self.parent_.todo
+        name = self.parent_.name
 
-        if not self.checkIfTheTodoExists(todolist, todo):
+        if not self.checkIfTheTodoExists(todolist, name):
             return
         
-        foreground = todosdb.getTodoForeground(todolist, todo)
+        foreground = todosdb.getTodoForeground(todolist, name)
         
         ok, status, qcolor = ColorDialog(self, True, 
             QColor(foreground if foreground != "global" and foreground != "default"
                    else (setting_foreground if foreground == "global" and setting_foreground != "default" 
                          else "#FFFFFF")),
-            _("Select Text Color for {todo} To-do").format(todo = todo.title())).getColor()
+            _("Select Text Color for {item}")
+            .format(item = _("{name} to-do").format(name = name)).title()).getColor()
         
         if ok:
             if status == "new":
@@ -935,13 +968,14 @@ class TodosTodoOptions(QWidget):
             elif status == "default":
                 color = "default"
                 
-            call = todosdb.setTodoForeground(todolist, todo, color)
+            call = todosdb.setTodoForeground(todolist, name, color)
                     
             if call:
-                self.parent_.treeview.updateTodoForeground(todolist, todo, color)
+                self.parent_.treeview.updateTodoForeground(todolist, name, color)
                 
             else:
-                QMessageBox.critical(self, _("Error"), _("Failed to set text color for {todo} to-do.").format(todo = todo))
+                QMessageBox.critical(self, _("Error"), _("Failed to set text color for {item}.")
+                                     .format(item = _("{name} to-do").format(name = name)))
             
             
 class TodosTreeView(TreeView):
@@ -962,7 +996,9 @@ class TodosTreeView(TreeView):
             global todos_model
             
             todos_model = QStandardItemModel(self)
-            todos_model.setHorizontalHeaderLabels([_("To-do List / To-do"), _("Creation"), _("Modification / Completion")])
+            todos_model.setHorizontalHeaderLabels(["{} / {}".format(_("to-do list"), _("to-do")).title(), 
+                                                   _("Creation"), 
+                                                   "{} / {}".format(_("Modification"), _("Completion"))])
             
             self.appendAll()
             
@@ -976,8 +1012,8 @@ class TodosTreeView(TreeView):
         for row in todolist_items.values():
             todos_model.appendRow(row)
             
-    def appendTodo(self, todolist: str, todo: str) -> None:
-        super().appendChild(todolist, todo)
+    def appendTodo(self, todolist: str, name: str) -> None:
+        super().appendChild(todolist, name)
             
     def appendTodolist(self, name: str) -> None:
         super().appendParent(name, todos_model.rowCount())
@@ -988,10 +1024,12 @@ class TodosTreeView(TreeView):
         super().deleteAll()
         
         todos_model.clear()
-        todos_model.setHorizontalHeaderLabels([_("To-do List / To-do"), _("Creation"), _("Modification / Completion")])
+        todos_model.setHorizontalHeaderLabels(["{} / {}".format(_("to-do list"), _("to-do")).title(), 
+                                               _("Creation"), 
+                                               "{} / {}".format(_("Modification"), _("Completion"))])
         
-    def deleteTodo(self, todolist: str, todo: str) -> None:
-        super().deleteChild(todolist, todo)
+    def deleteTodo(self, todolist: str, name: str) -> None:
+        super().deleteChild(todolist, name)
         
     def deleteTodolist(self, name: str) -> None:
         super().deleteParent(name)
@@ -1005,38 +1043,39 @@ class TodosTreeView(TreeView):
         del todolist_counts[name]
         del todolist_items[name]
         
-    def doubleClickEvent(self, todolist: str, todo: str) -> None:
-        if todo == "" or todo == None:
-            QMessageBox.critical(self, _("Error"), _("Please select a to-do."))
+    def doubleClickEvent(self, todolist: str, name: str) -> None:
+        if name == "" or name == None:
+            QMessageBox.critical(self, _("Error"), _("Please select a {}.").format(_("to-do")))
             return
                 
         else:
-            if not self.parent_.todo_options.checkIfTheTodoExists(todolist, todo):
+            if not self.parent_.todo_options.checkIfTheTodoExists(todolist, name):
                 return
             
-        call = todosdb.changeStatus(todolist, todo)
+        call = todosdb.changeStatus(todolist, name)
             
         if call:
-            self.updateTodo(todolist, todo, todo)
+            self.updateTodo(todolist, name, name)
     
         else:
-            QMessageBox.critical(self, _("Error"), _("Failed to change {todo}'s status.").format(todo = todo))
+            QMessageBox.critical(self, _("Error"), _("Failed to change status {of_item}.")
+                                 .format(item = _("{name} to-do").format(name = name)))
         
-    def updateTodo(self, todolist: str, todo: str, newtodo: str) -> None:
-        super().updateChild(todolist, todo, newtodo)
+    def updateTodo(self, todolist: str, name: str, newname: str) -> None:
+        super().updateChild(todolist, name, newname)
         
-        status = self.db.getStatus(todolist, newtodo)
+        status = self.db.getStatus(todolist, newname)
         
         if status == "completed":
-            self.child_items[(todolist, newtodo)][0].setText(f"[+] {newtodo}")
+            self.child_items[(todolist, newname)][0].setText(f"[+] {newname}")
         elif status == "uncompleted":
-            self.child_items[(todolist, newtodo)][0].setText(f"[-] {newtodo}")
+            self.child_items[(todolist, newname)][0].setText(f"[-] {newname}")
         
-    def updateTodoBackground(self, todolist: str, todo: str, color: str) -> None:
-        super().updateChildBackground(todolist, todo, color)
+    def updateTodoBackground(self, todolist: str, name: str, color: str) -> None:
+        super().updateChildBackground(todolist, name, color)
         
-    def updateTodoForeground(self, todolist: str, todo: str, color: str) -> None:
-        super().updateParentBackground(todolist, todo, color)
+    def updateTodoForeground(self, todolist: str, name: str, color: str) -> None:
+        super().updateParentBackground(todolist, name, color)
                 
     def updateTodolist(self, name: str, newname: str) -> None:
         super().updateParent(name, newname)

@@ -65,7 +65,7 @@
 - A label for showing modification information
 - A calendar for selecting and highlighting
 - A shortcut for coming back to today
-- Refreshing today variable
+- Refreshing today information
 - Opening a diary, if does not keeped yet create a it
 - Showing backup (manuel saves updates backups but auto-saves not)
 - Restoring content via backup (old content will be new backup)

@@ -386,40 +386,40 @@ class DiariesTabWidget(QTabWidget):
         self.home = QWidget(self)
         self.home_layout = QGridLayout(self.home)
         
-        self.modification = Label(self.home, _("Modification: "))
+        self.modification = Label(self.home, "{} :".format(_("Modification")))
         
         self.calendar = DiariesCalendarWidget(self)
         
-        self.comeback_button = PushButton(self.home, _("Come back to today"))
+        self.comeback_button = PushButton(self.home, _("Come Back To Today"))
         self.comeback_button.clicked.connect(lambda: self.calendar.setSelectedDate(today))  
 
-        self.refresh_button = PushButton(
-            self.home, _("Refresh today variable (it is {name})").format(name = today.toString("dd.MM.yyyy")))
+        self.refresh_button = PushButton(self.home, _("Refresh Today Information (It Is {} Now)")
+                                         .format(today.toString("dd.MM.yyyy")))
         self.refresh_button.clicked.connect(self.refreshToday)
 
         self.side = QWidget(self.home)
         self.side.setFixedWidth(200)
         self.side_layout = QVBoxLayout(self.side)
         
-        self.open_create_button = PushButton(self.side, _("Open/create"))
+        self.open_create_button = PushButton(self.side, _("Open / Create"))
         self.open_create_button.clicked.connect(self.openCreate)
 
-        self.show_backup_button = PushButton(self.side, _("Show backup"))
+        self.show_backup_button = PushButton(self.side, _("Show Backup"))
         self.show_backup_button.clicked.connect(self.showBackup)
 
-        self.restore_button = PushButton(self.side, _("Restore content"))
+        self.restore_button = PushButton(self.side, _("Restore Content"))
         self.restore_button.clicked.connect(self.restoreContent)
         
-        self.clear_content_button = PushButton(self.side, _("Clear content"))
+        self.clear_content_button = PushButton(self.side, _("Clear Content"))
         self.clear_content_button.clicked.connect(self.clearContent)
         
-        self.set_highlight_button = PushButton(self.side, _("Set highlight"))
+        self.set_highlight_button = PushButton(self.side, _("Set Highlight Color"))
         self.set_highlight_button.clicked.connect(self.setHighlight)
         
         self.delete_button = PushButton(self.side, _("Delete"))
         self.delete_button.clicked.connect(self.deleteDiary)
         
-        self.delete_all_button = PushButton(self.side, _("Delete all"))
+        self.delete_all_button = PushButton(self.side, _("Delete All"))
         self.delete_all_button.clicked.connect(self.deleteAll)
         
         self.side.setLayout(self.side_layout)
@@ -453,7 +453,8 @@ class DiariesTabWidget(QTabWidget):
         call = diariesdb.checkIfTheDiaryExists(name)
         
         if not call and mode == "normal":
-            QMessageBox.critical(self, _("Error"), _("There is no diary called {name}.").format(name = name))
+            QMessageBox.critical(self, _("Error"), _("There is no {item}.")
+                                 .format(item = _("{name} diary").format(name = name)))
         
         return call
     
@@ -461,7 +462,8 @@ class DiariesTabWidget(QTabWidget):
         call = diariesdb.checkIfTheDiaryBackupExists(name)
         
         if not call and mode == "normal":
-            QMessageBox.critical(self, _("Error"), _("There is no backup for {name} diary.").format(name = name))
+            QMessageBox.critical(self, _("Error"), _("There is no backup for {item}.")
+                                 .format(item = _("{name} diary").format(name = name)))
         
         return call 
     
@@ -476,16 +478,19 @@ class DiariesTabWidget(QTabWidget):
         if not self.checkIfTheDiaryExists(name):
             return
         
-        question = QMessageBox.question(self, _("Question"), _("Do you really want to clear the content of the {name} diary?").format(name = name))
+        question = QMessageBox.question(self, _("Question"), _("Do you really want to clear the content {of_item}?")
+                                        .format(of_item = _("of {name} diary").format(name = name)))
         
         if question == QMessageBox.StandardButton.Yes:
             call = diariesdb.clearContent(name)
         
             if call:
-                QMessageBox.information(self, _("Successful"), _("Content of {name} diary deleted.").format(name = name))
+                QMessageBox.information(self, _("Successful"), _("Content {of_item} cleared.")
+                                        .format(of_item = _("of {name} diary").format(name = name)))
             
             else:
-                QMessageBox.critical(self, _("Error"), _("Failed to clear content of {name} diary.").format(name = name))
+                QMessageBox.critical(self, _("Error"), _("Failed to clear content {of_item}.")
+                                     .format(of_item = _("of {name} diary").format(name = name)))
 
     @Slot(int)
     def closeTab(self, index: int) -> None:
@@ -494,8 +499,8 @@ class DiariesTabWidget(QTabWidget):
                 if not diaries[self.tabText(index).replace("&", "")].closable:
                     self.question = QMessageBox.question(self, 
                                                          _("Question"),
-                                                         _("{name} diary not saved.\nWhat would you like to do?")
-                                                         .format(name = self.tabText(index).replace("&", "")),
+                                                         _("{item} not saved.\nWhat would you like to do?")
+                                                         .format(item = _("{name} diary").format(name = self.tabText(index).replace("&", ""))),
                                                          QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.Save | QMessageBox.StandardButton.Cancel,
                                                          QMessageBox.StandardButton.Save)
                     
@@ -507,8 +512,11 @@ class DiariesTabWidget(QTabWidget):
                         
                         if call:
                             self.closable = True
+                            
                         else:
-                            QMessageBox.critical(self, _("Error"), _("Failed to save {name} diary.").format(name = self.tabText(index).replace("&", "")))
+                            QMessageBox.critical(self, _("Error"), _("Failed to save {item}.")
+                                                 .format(item = _("{name} diary").format(name = self.tabText(index).replace("&", ""))))
+                            return
                     
                     elif self.question != QMessageBox.StandardButton.Yes:
                         return
@@ -518,7 +526,7 @@ class DiariesTabWidget(QTabWidget):
             except KeyError:
                 pass
             
-            if not str(self.tabText(index).replace("&", "")).endswith(f' {_("(Backup)")}'):
+            if not str(self.tabText(index).replace("&", "")).endswith(f' {_(" (Backup)")}'):
                 diaries_parent.dock.widget().open_pages.deletePage("diaries", self.tabText(index).replace("&", ""))
             
             self.removeTab(index)
@@ -549,7 +557,8 @@ class DiariesTabWidget(QTabWidget):
         if not self.checkIfTheDiaryExists(name):
             return
         
-        question = QMessageBox.question(self, _("Question"), _("Do you really want to delete the {name} diary?").format(name = name))
+        question = QMessageBox.question(self, _("Question"), _("Do you really want to delete {the_item}?")
+                                        .format(the_item = _("the {name} diary").format(name = name)))
         
         if question == QMessageBox.StandardButton.Yes:
             call = diariesdb.deleteNote(name)
@@ -560,7 +569,8 @@ class DiariesTabWidget(QTabWidget):
                 del actions[name]
                 
             else:
-                QMessageBox.critical(self, _("Error"), _("Failed to delete {name} diary.").format(name = name))
+                QMessageBox.critical(self, _("Error"), _("Failed to delete {item}.")
+                                     .format(item = _("{name} diary").format(name = name)))
     
     @Slot(str)
     def insertInformations(self, name: str) -> None: 
@@ -570,9 +580,9 @@ class DiariesTabWidget(QTabWidget):
             call = None
     
         try:
-            self.modification.setText(_("Modification: ") + call[0])
+            self.modification.setText("{} :".format(_("Modification")) + call[0])
         except TypeError:
-            self.modification.setText(_("Modification: "))
+            self.modification.setText("{} :".format(_("Modification")))
         
     @Slot()
     def openCreate(self) -> None:
@@ -614,7 +624,8 @@ class DiariesTabWidget(QTabWidget):
         
         self.calendar.setMaximumDate(today)
         
-        self.refresh_button.setText(_("Refresh today variable (it is {name})").format(name = today.toString("dd.MM.yyyy")))
+        self.refresh_button.setText(_("Refresh Today Information (It Is {} Now)")
+                                    .format(today.toString("dd.MM.yyyy")))
      
     @Slot()
     def restoreContent(self) -> None:
@@ -639,13 +650,16 @@ class DiariesTabWidget(QTabWidget):
         status, call = diariesdb.restoreContent(name)
         
         if status == "successful" and call:
-            QMessageBox.information(self, _("Successful"), _("Backup of {name} diary restored.").format(name = name))
+            QMessageBox.information(self, _("Successful"), _("Backup {of_item} restored.")
+                                    .format(of_item = _("of {name} diary").format(name = name)))
         
         elif status == "no-backup" and not call:
-            QMessageBox.critical(self, _("Error"), _("There is no backup for {name} diary.").format(name = name))
+            QMessageBox.critical(self, _("Error"), _("There is no backup for {item}.")
+                                 .format(item = _("{name} diary").format(name = name)))
             
         elif status == "failed" and not call:
-            QMessageBox.critical(self, _("Error"), _("Failed to restore backup of {name} diary.").format(name = name))
+            QMessageBox.critical(self, _("Error"), _("Failed to restore backup {of_item}.")
+                                 .format(of_item = _("of {name} diary").format(name = name)))
     
     @Slot()     
     def setHighlight(self) -> None:
@@ -663,7 +677,8 @@ class DiariesTabWidget(QTabWidget):
         ok, status, qcolor = ColorDialog(self, True, 
             QColor(highlight if highlight != "global" and highlight != "default" 
                    else setting_highlight if highlight == "global" else "#376296"),
-            _("Select Highlight Color for {name} Diary").format(name = name.title())).getColor()
+            _("Select Highlight Color for {item}")
+            .format(item = _("{name} diary").format(name = name)).title()).getColor()
         
         if ok:
             if status == "new":
@@ -678,7 +693,8 @@ class DiariesTabWidget(QTabWidget):
             call = diariesdb.setHighlight(name, color)
                     
             if not call:
-                QMessageBox.critical(self, _("Error"), _("Failed to set highlight color for {name} diary.").format(name = name))
+                QMessageBox.critical(self, _("Error"), _("Failed to set highlight color for {item}.")
+                                     .format(item = _("{name} diary").format(name = name)))
     
     @Slot()
     def showBackup(self) -> None:
@@ -697,7 +713,7 @@ class DiariesTabWidget(QTabWidget):
         diaries_parent.tabwidget.setCurrentIndex(3)
 
         self.backups[name] = BackupPage(self, "diaries", today, name, setting_format, diariesdb)
-        self.addTab(self.backups[name], (name + " " + _("(Backup)")))
+        self.addTab(self.backups[name], (name + _(" (Backup)")))
         self.setCurrentWidget(self.backups[name])
 
 
