@@ -46,7 +46,7 @@ class ColorDialog(QColorDialog):
         self.buttonbox.addButton(self.set_to_default, QDialogButtonBox.ButtonRole.ResetRole)
         
         self.setWindowTitle(title)
-        self.setOption(QColorDialog.ColorDialogOption.DontUseNativeDialog)
+        self.setOption(QColorDialog.ColorDialogOption.DontUseNativeDialog, True)
         self.exec()
 
     def getColor(self) -> tuple:

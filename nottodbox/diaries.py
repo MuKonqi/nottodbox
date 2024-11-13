@@ -386,7 +386,7 @@ class DiariesTabWidget(QTabWidget):
         self.home = QWidget(self)
         self.home_layout = QGridLayout(self.home)
         
-        self.modification = Label(self.home, "{} :".format(_("Modification")))
+        self.modification = Label(self.home, "{}: ".format(_("Modification")))
         
         self.calendar = DiariesCalendarWidget(self)
         
