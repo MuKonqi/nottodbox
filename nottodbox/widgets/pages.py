@@ -17,11 +17,11 @@
 
 
 from gettext import gettext as _
-from .dialogs import ColorDialog, GetTwoDialog
-from .other import PushButton, Action
 from PySide6.QtCore import Slot, Qt, QDate
 from PySide6.QtGui import QTextCursor, QTextFormat, QTextBlockFormat, QTextCharFormat, QTextListFormat, QDesktopServices, QPalette
 from PySide6.QtWidgets import *
+from .dialogs import ColorDialog, GetTwoDialog
+from .other import PushButton, Action
 
 
 class TextEdit(QTextEdit):

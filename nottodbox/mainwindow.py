@@ -18,6 +18,9 @@
 
 import getpass
 from gettext import gettext as _
+from PySide6.QtCore import Qt, QSettings, QByteArray
+from PySide6.QtGui import QCloseEvent
+from PySide6.QtWidgets import *
 from sidebar import SidebarWidget
 from home import HomeWidget
 from notes import NotesTabWidget, notesdb, notes
@@ -25,9 +28,6 @@ from todos import TodosWidget
 from diaries import DiariesTabWidget, today, diariesdb, diaries
 from about import AboutWidget
 from settings import SettingsWidget
-from PySide6.QtCore import Qt, QSettings, QByteArray
-from PySide6.QtGui import QCloseEvent
-from PySide6.QtWidgets import *
 
 
 username = getpass.getuser()

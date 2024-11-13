@@ -17,9 +17,9 @@
 
 
 from gettext import gettext as _
-from widgets.other import HSeperator, Label
 from PySide6.QtGui import QFontDatabase, QPixmap
 from PySide6.QtWidgets import *
+from widgets.other import HSeperator, Label
 
 
 class AboutWidget(QWidget):

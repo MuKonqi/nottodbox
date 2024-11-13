@@ -18,10 +18,10 @@
 
 import getpass
 from gettext import gettext as _
-from .other import PushButton
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor
 from PySide6.QtWidgets import *
+from .other import PushButton
 
 
 username = getpass.getuser()

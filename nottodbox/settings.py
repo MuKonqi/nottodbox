@@ -20,11 +20,11 @@ import sys
 import getpass
 import sqlite3
 from gettext import gettext as _
-from widgets.dialogs import ColorDialog
-from widgets.other import HSeperator, PushButton, VSeperator
 from PySide6.QtCore import Slot, Qt
 from PySide6.QtGui import QColor
 from PySide6.QtWidgets import *
+from widgets.dialogs import ColorDialog
+from widgets.other import HSeperator, PushButton, VSeperator
 
 
 username = getpass.getuser()

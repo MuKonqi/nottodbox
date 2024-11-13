@@ -21,14 +21,14 @@ import getpass
 import sqlite3
 import datetime
 from gettext import gettext as _
+from PySide6.QtGui import QStandardItemModel, QColor
+from PySide6.QtCore import Slot
+from PySide6.QtWidgets import *
 from settings import settingsdb
 from widgets.dialogs import ColorDialog
 from widgets.other import HSeperator, Label, PushButton, VSeperator
 from widgets.pages import NormalPage, BackupPage
 from widgets.lists import TreeView
-from PySide6.QtGui import QStandardItemModel, QColor
-from PySide6.QtCore import Slot
-from PySide6.QtWidgets import *
 
 
 username = getpass.getuser()
@@ -818,7 +818,7 @@ class NotesNotebookOptions(QWidget):
                 call = notesdb.createNotebook(name)
                 
                 if call:
-                    self.parent_.treeview.appendNotebook(name)
+                    self.parent_.treeview.appendParent(name)
                     self.parent_.treeview.setIndex(name, "")
                     
                 else:
@@ -839,7 +839,7 @@ class NotesNotebookOptions(QWidget):
             call = notesdb.deleteNotebook(name)
             
             if call:
-                self.parent_.treeview.deleteNotebook(name)
+                self.parent_.treeview.deleteParent(name)
                 self.parent_.treeview.setIndex("", "")
 
             else:
@@ -867,7 +867,7 @@ class NotesNotebookOptions(QWidget):
                 call = notesdb.renameNotebook(name, newname)
                 
                 if call:
-                    self.parent_.treeview.updateNotebook(name, newname)
+                    self.parent_.treeview.updateParent(name, newname)
                     self.parent_.treeview.setIndex(newname, "")
                     
                 else:
@@ -893,8 +893,8 @@ class NotesNotebookOptions(QWidget):
         call = notesdb.resetNotebook(name)
         
         if call:
-            self.parent_.treeview.deleteNotebook(name)
-            self.parent_.treeview.appendNotebook(name)
+            self.parent_.treeview.deleteParent(name)
+            self.parent_.treeview.appendParent(name)
             self.parent_.treeview.setIndex(name, "")
             
         else:
@@ -930,7 +930,7 @@ class NotesNotebookOptions(QWidget):
             call = notesdb.setNotebookBackground(name, color)
                     
             if call:
-                self.parent_.treeview.updateNotebookBackground(name, color)
+                self.parent_.treeview.updateParentBackground(name, color)
                 
             else:
                 QMessageBox.critical(self, _("Error"), _("Failed to set background color for {item}.")
@@ -964,7 +964,7 @@ class NotesNotebookOptions(QWidget):
             call = notesdb.setNotebookForeground(name, color)
                     
             if call:
-                self.parent_.treeview.updateNotebookForeground(name, color)
+                self.parent_.treeview.updateParentForeground(name, color)
                 
             else:
                 QMessageBox.critical(self, _("Error"), _("Failed to set text color for {item}.")
@@ -1100,7 +1100,7 @@ class NotesNoteOptions(QWidget):
                 call = notesdb.createNote(notebook, name)
                 
                 if call:
-                    self.parent_.treeview.appendNote(notebook, name)
+                    self.parent_.treeview.appendChild(notebook, name)
                     self.parent_.treeview.setIndex(notebook, name)
                     
                 else:
@@ -1122,7 +1122,7 @@ class NotesNoteOptions(QWidget):
             call = notesdb.deleteNote(notebook, name)
                 
             if call:
-                self.parent_.treeview.deleteNote(notebook, name)
+                self.parent_.treeview.deleteChild(notebook, name)
                 self.parent_.treeview.setIndex(notebook, "")
                 
             else:
@@ -1170,7 +1170,7 @@ class NotesNoteOptions(QWidget):
                 call = notesdb.renameNote(notebook, name, newname)
                 
                 if call:
-                    self.parent_.treeview.updateNote(notebook, name, newname)
+                    self.parent_.treeview.updateChild(notebook, name, newname)
                     self.parent_.treeview.setIndex(notebook, newname)
     
                 else:
@@ -1237,7 +1237,7 @@ class NotesNoteOptions(QWidget):
             call = notesdb.setNoteBackground(notebook, name, color)
                     
             if call:
-                self.parent_.treeview.updateNoteBackground(notebook, name, color)
+                self.parent_.treeview.updateChildBackground(notebook, name, color)
                 
             else:
                 QMessageBox.critical(self, _("Error"), _("Failed to set background color for {item}.")
@@ -1273,7 +1273,7 @@ class NotesNoteOptions(QWidget):
             call = notesdb.setNoteForeground(notebook, name, color)
                     
             if call:
-                self.parent_.treeview.updateNoteForeground(notebook, name, color)
+                self.parent_.treeview.updateChildForeground(notebook, name, color)
                 
             else:
                 QMessageBox.critical(self, _("Error"), _("Failed to set text color for {item}.")
@@ -1298,7 +1298,7 @@ class NotesNoteOptions(QWidget):
 
 
 class NotesTreeView(TreeView):
-    def __init__(self, parent: NotesTabWidget, caller: str = "own") -> None:
+    def __init__(self, parent: NotesTabWidget, caller: str = "own", model: QStandardItemModel = None) -> None:
         super().__init__(parent, "notes", caller)
         
         self.db = notesdb
@@ -1310,57 +1310,46 @@ class NotesTreeView(TreeView):
         self.setting_background = setting_background
         self.setting_foreground = setting_foreground
         
+        self.setStatusTip(_("Double-click to opening a note."))
+
         if self.caller == "own":
             self.menu = notes_parent.menuBar().addMenu(_("Notes"))
             
-            global notes_model
-            
-            notes_model = QStandardItemModel(self)
-            notes_model.setHorizontalHeaderLabels(["{} / {}".format(_("notebook"), _("note")).title(), 
+            self.model_.setHorizontalHeaderLabels(["{} / {}".format(_("notebook"), _("note")).title(), 
                                                    _("Creation"), 
                                                    _("Modification")])
             
             self.appendAll()
             
-        self.proxy.setSourceModel(notes_model)
+        if model is not None:
+            self.model_ = model
+            self.proxy.setSourceModel(self.model_)
         
-        self.setStatusTip(_("Double-click to opening a note."))
-
     def appendAll(self) -> None:
         super().appendAll()
-        
-        for row in notebook_items.values():
-            notes_model.appendRow(row)
             
         if self.caller == "own":
             for notebook, name in note_items.keys():
                 note_menus[(notebook, name)] = self.menu.addAction(
                     f"{name} @ {notebook}", lambda name = name, notebook = notebook: self.doubleClickEvent(notebook, name))
             
-    def appendNote(self, notebook: str, name: str) -> None:     
+    def appendChild(self, notebook: str, name: str) -> None:     
         super().appendChild(notebook, name)
         
         if self.caller == "own":
             note_menus[(notebook, name)] = self.menu.addAction(
                 f"{name} @ {notebook}", lambda name = name, notebook = notebook: self.doubleClickEvent(notebook, name))
-            
-    def appendNotebook(self, name: str) -> None:
-        super().appendParent(name, notes_model.rowCount())
-        
-        notes_model.appendRow(notebook_items[name])
         
     def deleteAll(self) -> None:        
         super().deleteAll()
         
-        self.child_menus.clear()
         self.menu.clear()
         
-        notes_model.clear()
-        notes_model.setHorizontalHeaderLabels(["{} / {}".format(_("notebook"), _("note")).title(), 
+        self.model_.setHorizontalHeaderLabels(["{} / {}".format(_("notebook"), _("note")).title(), 
                                                 _("Creation"), 
                                                 _("Modification")])
         
-    def deleteNote(self, notebook: str, name: str) -> None:
+    def deleteChild(self, notebook: str, name: str) -> None:
         super().deleteChild(notebook, name)
         
         if self.caller == "own":
@@ -1368,17 +1357,8 @@ class NotesTreeView(TreeView):
             
             del note_menus[(notebook, name)]
         
-    def deleteNotebook(self, name: str) -> None:
+    def deleteParent(self, name: str) -> None:
         super().deleteParent(name)
-        
-        notes_model.removeRow(notebook_counts[name])
-        
-        for parent_ in notebook_counts.keys():
-            if notebook_counts[parent_] > notebook_counts[name]:
-                notebook_counts[parent_] -= 1
-         
-        del notebook_counts[name]
-        del notebook_items[name]
         
         if self.caller == "own":
             for key in note_menus.copy().keys():
@@ -1400,7 +1380,7 @@ class NotesTreeView(TreeView):
                     if call:
                         name = _("Unnamed")
                         
-                        self.appendNote(notebook, name)
+                        self.appendChild(notebook, name)
                         self.setIndex(notebook, name)
                     
                     else:
@@ -1426,23 +1406,8 @@ class NotesTreeView(TreeView):
             QMessageBox.critical(self, _("Error"), _("Please select a {} or a {}.")
                                  .format(_("notebook"), _("note")))
         
-    def updateNote(self, notebook: str, name: str, newname: str) -> None:
+    def updateChild(self, notebook: str, name: str, newname: str) -> None:
         super().updateChild(notebook, name, newname)
         
         if self.caller == "own":
             note_menus[(notebook, newname)] = note_menus.pop((notebook, name))
-        
-    def updateNoteBackground(self, notebook: str, name: str, color: str) -> None:
-        super().updateChildBackground(notebook, name, color)
-        
-    def updateNoteForeground(self, notebook: str, name: str, color: str) -> None:
-        super().updateParentBackground(notebook, name, color)
-                
-    def updateNotebook(self, name: str, newname: str) -> None:
-        super().updateParent(name, newname)
-        
-    def updateNotebookBackground(self, name: str, color: str) -> None:
-        super().updateParentBackground(name, color)
-                
-    def updateNotebookForeground(self, name: str, color: str) -> None:
-        super().updateParentForeground(name, color)

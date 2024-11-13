@@ -21,11 +21,11 @@ import getpass
 import os
 import sqlite3
 from gettext import gettext as _
-from widgets.other import HSeperator, Label, PushButton
-from widgets.lists import StandardItem
 from PySide6.QtGui import QStandardItemModel
 from PySide6.QtCore import Slot, Qt, QSortFilterProxyModel
 from PySide6.QtWidgets import *
+from widgets.other import HSeperator, Label, PushButton
+from widgets.lists import StandardItem
 
 
 username = getpass.getuser()

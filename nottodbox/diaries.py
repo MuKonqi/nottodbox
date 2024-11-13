@@ -24,13 +24,13 @@ import getpass
 import sqlite3
 import datetime
 from gettext import gettext as _
+from PySide6.QtCore import Slot, QDate, QRect, QPoint
+from PySide6.QtGui import QMouseEvent, QPainter, QColor
+from PySide6.QtWidgets import *
 from settings import settingsdb
 from widgets.dialogs import ColorDialog
 from widgets.other import HSeperator, Label, PushButton, VSeperator
 from widgets.pages import NormalPage, BackupPage
-from PySide6.QtCore import Slot, QDate, QRect, QPoint
-from PySide6.QtGui import QMouseEvent, QPainter, QColor
-from PySide6.QtWidgets import *
 
 
 username = getpass.getuser()

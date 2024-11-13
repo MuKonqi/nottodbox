@@ -18,7 +18,7 @@
 
 from gettext import gettext as _
 from PySide6.QtCore import Slot, Qt, QSortFilterProxyModel, QItemSelectionModel
-from PySide6.QtGui import QStandardItem, QMouseEvent, QColor
+from PySide6.QtGui import QStandardItemModel, QStandardItem, QMouseEvent, QColor
 from PySide6.QtWidgets import *
 
 
@@ -68,8 +68,8 @@ class TreeView(QTreeView):
         self.module = module
         self.caller = caller
         
+        self.model_ = QStandardItemModel(self)
         self.db = None
-        self.menu = QMenu
         self.parent_counts = {}
         self.parent_items = {}
         self.child_counts = {}
@@ -81,6 +81,7 @@ class TreeView(QTreeView):
         self.proxy = QSortFilterProxyModel(self)
         self.proxy.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
         self.proxy.setRecursiveFilteringEnabled(True)
+        self.proxy.setSourceModel(self.model_)
         
         self.setModel(self.proxy)
         self.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
@@ -103,7 +104,7 @@ class TreeView(QTreeView):
             for name in names:
                 model_count += 1
                 
-                self.appendParent(name[0], model_count)
+                self.appendParent(name[0])
             
     def appendChild(self, parent: str, name: str) -> None:
         self.child_counts[(parent, name)] = self.parent_items[parent][0].rowCount()
@@ -145,10 +146,10 @@ class TreeView(QTreeView):
     
         self.parent_items[parent][0].appendRow(self.child_items[(parent, name)])
             
-    def appendParent(self, parent: str, rows: int) -> None:
+    def appendParent(self, parent: str) -> None:
         creation, modification, background, foreground, names = self.db.getNotebook(parent) if self.module == "notes" else self.db.getTodolist(parent)
         
-        model_count = rows
+        model_count = self.model_.rowCount()
         
         self.parent_counts[parent] = model_count
         self.parent_items[parent] = [StandardItem(parent, parent),
@@ -169,11 +170,14 @@ class TreeView(QTreeView):
         for name in names:
             self.appendChild(parent, name[0])
             
+        self.model_.appendRow(self.parent_items[parent])
+            
     def deleteAll(self) -> None:
         self.parent_counts.clear()
         self.parent_counts.clear()
         self.child_menus.clear()
         self.child_counts.clear()
+        self.model_.clear()
         
     def deleteChild(self, parent: str, name: str) -> None:
         self.parent_items[parent][0].removeRow(self.child_counts[(parent, name)])
@@ -185,7 +189,9 @@ class TreeView(QTreeView):
         del self.child_items[(parent, name)]
         del self.child_counts[(parent, name)]
         
-    def deleteParent(self, parent: str) -> None:        
+    def deleteParent(self, parent: str) -> None:       
+        self.model_.removeRow(self.parent_counts[parent])
+         
         for key in self.child_items.copy().keys():
             if key[0] == parent:
                 del self.child_items[key]
@@ -193,6 +199,13 @@ class TreeView(QTreeView):
         for key in self.child_counts.copy().keys():
             if key[0] == parent:
                 del self.child_counts[key]
+                
+        for parent_ in self.parent_counts.keys():
+            if self.parent_counts[parent_] > self.parent_counts[parent]:
+                self.parent_counts[parent_] -= 1
+                
+        del self.parent_counts[parent]
+        del self.parent_items[parent]
                     
     @Slot(str, str)
     def doubleClickEvent(self, parent: str, child: str) -> None:

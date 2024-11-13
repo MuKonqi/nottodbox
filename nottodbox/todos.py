@@ -21,13 +21,13 @@ import getpass
 import sqlite3
 import datetime
 from gettext import gettext as _
+from PySide6.QtCore import Slot
+from PySide6.QtGui import QStandardItemModel, QColor
+from PySide6.QtWidgets import *
 from settings import settingsdb
 from widgets.dialogs import ColorDialog
 from widgets.other import HSeperator, Label, PushButton, VSeperator
 from widgets.lists import TreeView
-from PySide6.QtCore import Slot
-from PySide6.QtGui import QStandardItemModel, QColor
-from PySide6.QtWidgets import *
 
 
 username = getpass.getuser()
@@ -596,7 +596,7 @@ class TodosTodolistOptions(QWidget):
                 call = todosdb.createTodolist(name)
                 
                 if call:
-                    self.parent_.treeview.appendTodolist(name)
+                    self.parent_.treeview.appendParent(name)
                     self.parent_.treeview.setIndex(name, "")
                     
                 else:
@@ -617,7 +617,7 @@ class TodosTodolistOptions(QWidget):
             call = todosdb.deleteTodolist(name)
                 
             if call:
-                self.parent_.treeview.deleteTodolist(name)
+                self.parent_.treeview.deleteParent(name)
                 self.parent_.treeview.setIndex("", "")
                 
             else:
@@ -645,7 +645,7 @@ class TodosTodolistOptions(QWidget):
                 call = todosdb.renameTodolist(name, newname)
                 
                 if call:
-                    self.parent_.treeview.updateTodolist(name, newname)
+                    self.parent_.treeview.updateParent(name, newname)
                     self.parent_.treeview.setIndex(newname, "")
                     
                 else:
@@ -671,8 +671,8 @@ class TodosTodolistOptions(QWidget):
         call = todosdb.resetTodolist(name)
         
         if call:
-            self.parent_.treeview.deleteTodolist(name)
-            self.parent_.treeview.appendTodolist(name)
+            self.parent_.treeview.deleteParent(name)
+            self.parent_.treeview.appendParent(name)
             self.parent_.treeview.setIndex(name, "")
             
         else:
@@ -708,7 +708,7 @@ class TodosTodolistOptions(QWidget):
             call = todosdb.setTodolistBackground(name, color)
                     
             if call:
-                self.parent_.treeview.updateTodolistBackground(name, color)
+                self.parent_.treeview.updateParentBackground(name, color)
                 
             else:
                 QMessageBox.critical(self, _("Error"), _("Failed to set background color for {item}.")
@@ -743,7 +743,7 @@ class TodosTodolistOptions(QWidget):
             call = todosdb.setTodolistForeground(name, color)
                     
             if call:
-                self.parent_.treeview.updateTodolistForeground(name, color)
+                self.parent_.treeview.updateParentForeground(name, color)
                 
             else:
                 QMessageBox.critical(self, _("Error"), _("Failed to set text color for {item}.")
@@ -811,7 +811,7 @@ class TodosTodoOptions(QWidget):
         call = todosdb.changeStatus(todolist, name)
         
         if call:
-            self.parent_.treeview.updateTodo(todolist, name, name)
+            self.parent_.treeview.updateChild(todolist, name, name)
     
         else:
             QMessageBox.critical(self, _("Error"), _("Failed to change status {of_item}.")
@@ -841,7 +841,7 @@ class TodosTodoOptions(QWidget):
                 call = todosdb.createTodo(todolist, name)
                 
                 if call:
-                    self.parent_.treeview.appendTodo(todolist, name)
+                    self.parent_.treeview.appendChild(todolist, name)
                     self.parent_.treeview.setIndex(todolist, name)
                     
                 else:
@@ -863,7 +863,7 @@ class TodosTodoOptions(QWidget):
         
         if question == QMessageBox.StandardButton.Yes:
             if call:
-                self.parent_.treeview.deleteTodo(todolist, name)
+                self.parent_.treeview.deleteChild(todolist, name)
                 self.parent_.treeview.setIndex(todolist, "")
                 
             else:
@@ -889,7 +889,7 @@ class TodosTodoOptions(QWidget):
                 call = todosdb.editTodo(todolist, name, newname)
 
                 if call:
-                    self.parent_.treeview.updateTodo(todolist, name, newname)
+                    self.parent_.treeview.updateChild(todolist, name, newname)
                     self.parent_.treeview.setIndex(todolist, newname)
     
                 else:
@@ -935,7 +935,7 @@ class TodosTodoOptions(QWidget):
             call = todosdb.setTodoBackground(todolist, name, color)
                     
             if call:
-                self.parent_.treeview.updateTodoBackground(todolist, name, color)
+                self.parent_.treeview.updateChildBackground(todolist, name, color)
                 
             else:
                 QMessageBox.critical(self, _("Error"), _("Failed to set background color for {item}.")
@@ -971,7 +971,7 @@ class TodosTodoOptions(QWidget):
             call = todosdb.setTodoForeground(todolist, name, color)
                     
             if call:
-                self.parent_.treeview.updateTodoForeground(todolist, name, color)
+                self.parent_.treeview.updateChildForeground(todolist, name, color)
                 
             else:
                 QMessageBox.critical(self, _("Error"), _("Failed to set text color for {item}.")
@@ -979,7 +979,7 @@ class TodosTodoOptions(QWidget):
             
             
 class TodosTreeView(TreeView):
-    def __init__(self, parent: TodosWidget, caller: str = "own") -> None:
+    def __init__(self, parent: TodosWidget, caller: str = "own", model: QStandardItemModel = None) -> None:
         super().__init__(parent, "todos", caller)
         
         self.db = todosdb
@@ -990,58 +990,27 @@ class TodosTreeView(TreeView):
         self.setting_background = setting_background
         self.setting_foreground = setting_foreground
         
+        self.setStatusTip(_("Double-click to changing status of a to-do."))
+        
         if self.caller == "own":
             todos_parent.menuBar().addAction(_("To-dos"), lambda: todos_parent.tabwidget.setCurrentIndex(2))
             
-            global todos_model
-            
-            todos_model = QStandardItemModel(self)
-            todos_model.setHorizontalHeaderLabels(["{} / {}".format(_("to-do list"), _("to-do")).title(), 
+            self.model_.setHorizontalHeaderLabels(["{} / {}".format(_("to-do list"), _("to-do")).title(), 
                                                    _("Creation"), 
                                                    "{} / {}".format(_("Modification"), _("Completion"))])
             
             self.appendAll()
             
-        self.proxy.setSourceModel(todos_model)
-        
-        self.setStatusTip(_("Double-click to changing status of a to-do."))
-
-    def appendAll(self) -> None:
-        super().appendAll()
-        
-        for row in todolist_items.values():
-            todos_model.appendRow(row)
-            
-    def appendTodo(self, todolist: str, name: str) -> None:
-        super().appendChild(todolist, name)
-            
-    def appendTodolist(self, name: str) -> None:
-        super().appendParent(name, todos_model.rowCount())
-        
-        todos_model.appendRow(todolist_items[name])
+        if model is not None:
+            self.model_ = model
+            self.proxy.setSourceModel(self.model_)
         
     def deleteAll(self) -> None:
         super().deleteAll()
         
-        todos_model.clear()
-        todos_model.setHorizontalHeaderLabels(["{} / {}".format(_("to-do list"), _("to-do")).title(), 
+        self.model_.setHorizontalHeaderLabels(["{} / {}".format(_("to-do list"), _("to-do")).title(), 
                                                _("Creation"), 
                                                "{} / {}".format(_("Modification"), _("Completion"))])
-        
-    def deleteTodo(self, todolist: str, name: str) -> None:
-        super().deleteChild(todolist, name)
-        
-    def deleteTodolist(self, name: str) -> None:
-        super().deleteParent(name)
-        
-        todos_model.removeRow(todolist_counts[name])
-        
-        for parent_ in todolist_counts.keys():
-            if todolist_counts[parent_] > todolist_counts[name]:
-                todolist_counts[parent_] -= 1
-        
-        del todolist_counts[name]
-        del todolist_items[name]
         
     def doubleClickEvent(self, todolist: str, name: str) -> None:
         if name == "" or name == None:
@@ -1055,13 +1024,13 @@ class TodosTreeView(TreeView):
         call = todosdb.changeStatus(todolist, name)
             
         if call:
-            self.updateTodo(todolist, name, name)
+            self.updateChild(todolist, name, name)
     
         else:
             QMessageBox.critical(self, _("Error"), _("Failed to change status {of_item}.")
                                  .format(item = _("{name} to-do").format(name = name)))
         
-    def updateTodo(self, todolist: str, name: str, newname: str) -> None:
+    def updateChild(self, todolist: str, name: str, newname: str) -> None:
         super().updateChild(todolist, name, newname)
         
         status = self.db.getStatus(todolist, newname)
@@ -1070,18 +1039,3 @@ class TodosTreeView(TreeView):
             self.child_items[(todolist, newname)][0].setText(f"[+] {newname}")
         elif status == "uncompleted":
             self.child_items[(todolist, newname)][0].setText(f"[-] {newname}")
-        
-    def updateTodoBackground(self, todolist: str, name: str, color: str) -> None:
-        super().updateChildBackground(todolist, name, color)
-        
-    def updateTodoForeground(self, todolist: str, name: str, color: str) -> None:
-        super().updateParentBackground(todolist, name, color)
-                
-    def updateTodolist(self, name: str, newname: str) -> None:
-        super().updateParent(name, newname)
-        
-    def updateTodolistBackground(self, name: str, color: str) -> None:
-        super().updateParentBackground(name, color)
-                
-    def updateTodolistForeground(self, name: str, color: str) -> None:
-        super().updateParentForeground(name, color)

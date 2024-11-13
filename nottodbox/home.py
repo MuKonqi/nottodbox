@@ -19,13 +19,13 @@
 import getpass
 import subprocess
 from gettext import gettext as _
+from PySide6.QtCore import Slot, QDate
+from PySide6.QtWidgets import *
 from widgets.other import HSeperator, Label, PushButton
 from widgets.pages import NormalPage
-from notes import NotesTabWidget, NotesTreeView
-from todos import TodosWidget, TodosTreeView
 from diaries import diariesdb, setting_autosave, setting_format
-from PySide6.QtCore import Slot, Qt, QDate
-from PySide6.QtWidgets import *
+from todos import TodosWidget, TodosTreeView
+from notes import NotesTabWidget, NotesTreeView
 
 
 username = getpass.getuser()
@@ -56,13 +56,13 @@ class HomeWidget(QWidget):
         
         self.todos_label = Label(self, _("List of To-dos"))
         
-        self.todos = TodosTreeView(todos, "home")
+        self.todos = TodosTreeView(todos, "home", todos.treeview.model_)
         
         self.notes_seperator = HSeperator(self)
         
         self.notes_label = Label(self, _("List of Notes"))
         
-        self.notes = NotesTreeView(notes, "home")
+        self.notes = NotesTreeView(notes, "home", notes.treeview.model_)
         
         self.setLayout(self.layout_)
         self.layout_.addWidget(self.label_welcome)
