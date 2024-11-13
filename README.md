@@ -1,7 +1,7 @@
 # Nottodbox (pre-alpha)
 
-<p align="center"><img src="./data/io.github.mukonqi.nottodbox.svg" alt="Nottodbox Icon"></img></a></p>
-<p align="center"><img src="https://img.shields.io/badge/Edit_notes,_to--dos_and_diaries-376296" alt="Edit notes, to-dos and diaries"></img></p>
+<p align="center"><img src="./data/io.github.mukonqi.nottodbox.png" alt="Icon of Nottodbox"></img></a></p>
+<p align="center"><img src="https://img.shields.io/badge/Organize_notes,_to--dos_and_diaries-376296" alt="Organize notes, to-dos and diaries"></img></p>
 <p align="center"><img src="https://img.shields.io/github/downloads/mukonqi/nottodbox/total?label=Downloads" alt="Count of Downloads"></img></p>
 <p align="center"><img src="https://img.shields.io/github/v/release/mukonqi/nottodbox?label=Latest Release" alt="Latest Release"></p>
 

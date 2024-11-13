@@ -45,7 +45,7 @@ class HomeWidget(QWidget):
         self.layout_ = QVBoxLayout(self)
         
         self.label_welcome = Label(self, _("Welcome {username}!").format(username = username))
-        self.label_welcome.setStyleSheet("font-size: 12pt")
+        self.label_welcome.setStyleSheet("font-size: 16pt; font-weight: 900;")
         
         self.diary_button = PushButton(self, _("Focus to Diary for Today"))
         self.diary_button.clicked.connect(self.focusToDiary)

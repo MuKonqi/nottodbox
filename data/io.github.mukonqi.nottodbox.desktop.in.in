@@ -1,6 +1,6 @@
 [Desktop Entry]
 Name=Nottodbox
-Comment=Edit notes, to-dos and diaries
+Comment=Organize notes, to-dos and diaries
 
 Type=Application
 Exec=@BINDIR@/nottodbox

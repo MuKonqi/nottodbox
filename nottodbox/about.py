@@ -38,7 +38,7 @@ class AboutWidget(QWidget):
         self.icon.setPixmap(QPixmap("@ICONFILE_PNG@"))
         
         self.nottodbox = Label(self.icon_and_nottodbox, _("Nottodbox"))
-        self.nottodbox.setStyleSheet("font-size: 24pt;")
+        self.nottodbox.setStyleSheet("font-size: 32pt; font-weight: 900;")
         
         self.version_label = Label(self, _("Version") + ': @VERSION@')
         
@@ -75,8 +75,8 @@ class AboutWidget(QWidget):
         self.layout_.addWidget(self.commit_label)
         self.layout_.addWidget(self.source_label)
         self.layout_.addWidget(HSeperator(self))
+        self.layout_.addWidget(self.developer_label)
+        self.layout_.addWidget(HSeperator(self))
         self.layout_.addWidget(self.copyright_label)
         self.layout_.addWidget(self.license_label)
         self.layout_.addWidget(self.license_textedit)
-        self.layout_.addWidget(HSeperator(self))
-        self.layout_.addWidget(self.developer_label)
