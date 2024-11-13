@@ -32,6 +32,8 @@ class ColorDialog(QColorDialog):
     def __init__(self, parent: QWidget, show_global: bool, color: QColor | Qt.GlobalColor | int, title: str) -> None:
         super().__init__(color, parent)
         
+        self.setOption(QColorDialog.ColorDialogOption.DontUseNativeDialog, True)
+        
         self.buttonbox = self.findChild(QDialogButtonBox)
         
         if show_global:
@@ -46,7 +48,6 @@ class ColorDialog(QColorDialog):
         self.buttonbox.addButton(self.set_to_default, QDialogButtonBox.ButtonRole.ResetRole)
         
         self.setWindowTitle(title)
-        self.setOption(QColorDialog.ColorDialogOption.DontUseNativeDialog, True)
         self.exec()
 
     def getColor(self) -> tuple:

@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.0.7\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-11-13 14:09+0300\n"
-"PO-Revision-Date: 2024-11-13 14:09+0300\n"
+"POT-Creation-Date: 2024-11-13 14:32+0300\n"
+"PO-Revision-Date: 2024-11-13 14:32+0300\n"
 "Last-Translator: Muhammed S. <mukonqi@gmail.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: tr\n"
@@ -873,11 +873,11 @@ msgstr "Tamamlanma"
 msgid "Please select a {}."
 msgstr "Lütfen bir {} seçin."
 
-#: nottodbox/widgets/dialogs.py:38
+#: nottodbox/widgets/dialogs.py:40
 msgid "Set to global"
 msgstr "Küresele ayarla"
 
-#: nottodbox/widgets/dialogs.py:43
+#: nottodbox/widgets/dialogs.py:45
 msgid "Set to default"
 msgstr "Varsayılana ayarla"
 
