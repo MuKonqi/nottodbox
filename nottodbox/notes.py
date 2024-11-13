@@ -26,7 +26,7 @@ from PySide6.QtCore import Slot
 from PySide6.QtWidgets import *
 from settings import settingsdb
 from widgets.dialogs import ColorDialog
-from widgets.other import HSeperator, Label, PushButton, VSeperator
+from widgets.other import Action, HSeperator, Label, PushButton, VSeperator
 from widgets.pages import NormalPage, BackupPage
 from widgets.lists import TreeView
 
@@ -1306,7 +1306,6 @@ class NotesTreeView(TreeView):
         self.parent_items = notebook_items
         self.child_counts = note_counts
         self.child_items = note_items
-        self.child_menus = note_menus
         self.setting_background = setting_background
         self.setting_foreground = setting_foreground
         
@@ -1324,25 +1323,20 @@ class NotesTreeView(TreeView):
         if model is not None:
             self.model_ = model
             self.proxy.setSourceModel(self.model_)
-        
-    def appendAll(self) -> None:
-        super().appendAll()
-            
-        if self.caller == "own":
-            for notebook, name in note_items.keys():
-                note_menus[(notebook, name)] = self.menu.addAction(
-                    f"{name} @ {notebook}", lambda name = name, notebook = notebook: self.doubleClickEvent(notebook, name))
             
     def appendChild(self, notebook: str, name: str) -> None:     
         super().appendChild(notebook, name)
         
         if self.caller == "own":
-            note_menus[(notebook, name)] = self.menu.addAction(
-                f"{name} @ {notebook}", lambda name = name, notebook = notebook: self.doubleClickEvent(notebook, name))
+            note_menus[(notebook, name)] = Action(self, f"{name} @ {notebook}")
+            note_menus[(notebook, name)].triggered.connect(lambda: self.doubleClickEvent(notebook, name))
+
+            self.menu.addAction(note_menus[(notebook, name)])
         
     def deleteAll(self) -> None:        
         super().deleteAll()
         
+        note_menus.clear()
         self.menu.clear()
         
         self.model_.setHorizontalHeaderLabels(["{} / {}".format(_("notebook"), _("note")).title(), 
@@ -1410,4 +1404,18 @@ class NotesTreeView(TreeView):
         super().updateChild(notebook, name, newname)
         
         if self.caller == "own":
+            note_menus[(notebook, name)].setText(f"{newname} @ {notebook}")
+            note_menus[(notebook, name)].triggered.disconnect()
+            note_menus[(notebook, name)].triggered.connect(lambda: self.doubleClickEvent(notebook, newname))
             note_menus[(notebook, newname)] = note_menus.pop((notebook, name))
+            
+    def updateParent(self, name, newname):
+        super().updateParent(name, newname)
+        
+        if self.caller == "own":
+            for key in note_menus.copy().keys():
+                if key[0] == name:
+                    note_menus[key].setText(f"{key[1]} @ {newname}")
+                    note_menus[key].triggered.disconnect()
+                    note_menus[key].triggered.connect(lambda state, note = key[1]: self.doubleClickEvent(newname, note))
+                    note_menus[(newname, key[1])] = note_menus.pop((name, key[1]))

@@ -74,7 +74,6 @@ class TreeView(QTreeView):
         self.parent_items = {}
         self.child_counts = {}
         self.child_items = {}
-        self.child_menus = {}
         self.setting_background = ""
         self.setting_foreground = ""
 
@@ -175,16 +174,15 @@ class TreeView(QTreeView):
     def deleteAll(self) -> None:
         self.parent_counts.clear()
         self.parent_counts.clear()
-        self.child_menus.clear()
         self.child_counts.clear()
         self.model_.clear()
         
     def deleteChild(self, parent: str, name: str) -> None:
         self.parent_items[parent][0].removeRow(self.child_counts[(parent, name)])
         
-        for parent_, child_ in self.child_counts.keys():
-            if self.child_counts[(parent_, child_)] > self.child_counts[(parent, name)]:
-                self.child_counts[(parent_, child_)] -= 1
+        for key in self.child_counts.keys():
+            if self.child_counts[key] > self.child_counts[(parent, name)]:
+                self.child_counts[key] -= 1
         
         del self.child_items[(parent, name)]
         del self.child_counts[(parent, name)]
@@ -200,9 +198,9 @@ class TreeView(QTreeView):
             if key[0] == parent:
                 del self.child_counts[key]
                 
-        for parent_ in self.parent_counts.keys():
-            if self.parent_counts[parent_] > self.parent_counts[parent]:
-                self.parent_counts[parent_] -= 1
+        for key in self.parent_counts.keys():
+            if self.parent_counts[key] > self.parent_counts[parent]:
+                self.parent_counts[key] -= 1
                 
         del self.parent_counts[parent]
         del self.parent_items[parent]
@@ -293,6 +291,14 @@ class TreeView(QTreeView):
         
         for item in self.parent_items[newname]:
             item.setData(newname, Qt.ItemDataRole.UserRole)
+            
+        for key in self.child_counts.copy().keys():
+            if key[0] == name:
+                self.child_counts[(newname, key[1])] = self.child_counts.pop((name, key[1]))
+                
+        for key in self.child_items.copy().keys():
+            if key[0] == name:
+                self.child_items[(newname, key[1])] = self.child_items.pop((name, key[1]))
             
         if self.caller == "own":
             self.parent_.insertInformations(newname, "")

@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.0.7\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-11-13 11:44+0300\n"
-"PO-Revision-Date: 2024-11-13 11:44+0300\n"
+"POT-Creation-Date: 2024-11-13 14:09+0300\n"
+"PO-Revision-Date: 2024-11-13 14:09+0300\n"
 "Last-Translator: Muhammed S. <mukonqi@gmail.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: tr\n"
@@ -31,7 +31,7 @@ msgid "Home"
 msgstr "Ev"
 
 #: data/io.github.mukonqi.nottodbox.desktop.in.in:21 nottodbox/mainwindow.py:61
-#: nottodbox/notes.py:1316 nottodbox/settings.py:183 nottodbox/settings.py:195
+#: nottodbox/notes.py:1315 nottodbox/settings.py:183 nottodbox/settings.py:195
 msgid "Notes"
 msgstr "Notlar"
 
@@ -81,7 +81,7 @@ msgid "License: GNU General Public License, Version 3 or later"
 msgstr "Lisans: GNU Genel Kamu Lisansı, Sürüm 3 veya sonrası"
 
 #: nottodbox/diaries.py:389 nottodbox/diaries.py:583 nottodbox/diaries.py:585
-#: nottodbox/notes.py:1320 nottodbox/notes.py:1350 nottodbox/todos.py:1000
+#: nottodbox/notes.py:1319 nottodbox/notes.py:1344 nottodbox/todos.py:1000
 #: nottodbox/todos.py:1013
 msgid "Modification"
 msgstr "Değiştirilme"
@@ -141,7 +141,7 @@ msgstr "Her Şeyi Sil"
 #: nottodbox/notes.py:1096 nottodbox/notes.py:1107 nottodbox/notes.py:1129
 #: nottodbox/notes.py:1177 nottodbox/notes.py:1181 nottodbox/notes.py:1186
 #: nottodbox/notes.py:1207 nottodbox/notes.py:1243 nottodbox/notes.py:1279
-#: nottodbox/notes.py:1387 nottodbox/notes.py:1406 nottodbox/settings.py:257
+#: nottodbox/notes.py:1381 nottodbox/notes.py:1400 nottodbox/settings.py:257
 #: nottodbox/settings.py:289 nottodbox/settings.py:394
 #: nottodbox/settings.py:424 nottodbox/sidebar.py:248 nottodbox/sidebar.py:274
 #: nottodbox/sidebar.py:283 nottodbox/todos.py:444 nottodbox/todos.py:560
@@ -392,15 +392,15 @@ msgstr "Bazı sayfalar kaydedilemedi."
 
 #: nottodbox/notes.py:575 nottodbox/notes.py:695 nottodbox/notes.py:718
 #: nottodbox/notes.py:744 nottodbox/notes.py:790 nottodbox/notes.py:795
-#: nottodbox/notes.py:804 nottodbox/notes.py:805 nottodbox/notes.py:1318
-#: nottodbox/notes.py:1348 nottodbox/notes.py:1407
+#: nottodbox/notes.py:804 nottodbox/notes.py:805 nottodbox/notes.py:1317
+#: nottodbox/notes.py:1342 nottodbox/notes.py:1401
 msgid "notebook"
 msgstr "not defteri"
 
 #: nottodbox/notes.py:576 nottodbox/notes.py:696 nottodbox/notes.py:741
 #: nottodbox/notes.py:982 nottodbox/notes.py:1048 nottodbox/notes.py:1086
-#: nottodbox/notes.py:1087 nottodbox/notes.py:1318 nottodbox/notes.py:1348
-#: nottodbox/notes.py:1407 nottodbox/sidebar.py:197
+#: nottodbox/notes.py:1087 nottodbox/notes.py:1317 nottodbox/notes.py:1342
+#: nottodbox/notes.py:1401 nottodbox/sidebar.py:197
 msgid "note"
 msgstr "not"
 
@@ -413,7 +413,7 @@ msgstr "Ara..."
 #: nottodbox/notes.py:1119 nottodbox/notes.py:1130 nottodbox/notes.py:1161
 #: nottodbox/notes.py:1163 nottodbox/notes.py:1178 nottodbox/notes.py:1182
 #: nottodbox/notes.py:1187 nottodbox/notes.py:1225 nottodbox/notes.py:1244
-#: nottodbox/notes.py:1261 nottodbox/notes.py:1280 nottodbox/notes.py:1388
+#: nottodbox/notes.py:1261 nottodbox/notes.py:1280 nottodbox/notes.py:1382
 #: nottodbox/widgets/pages.py:541 nottodbox/widgets/pages.py:547
 #, python-brace-format
 msgid "{name} note"
@@ -493,7 +493,7 @@ msgstr "Lütfen bir {} oluşturmak için bir ad girin."
 msgid "{item} already created."
 msgstr "{item} zaten oluşturulmuş."
 
-#: nottodbox/notes.py:825 nottodbox/notes.py:1107 nottodbox/notes.py:1387
+#: nottodbox/notes.py:825 nottodbox/notes.py:1107 nottodbox/notes.py:1381
 #: nottodbox/todos.py:603 nottodbox/todos.py:848
 #, python-brace-format
 msgid "Failed to create {item}."
@@ -583,20 +583,20 @@ msgstr "{name} notunun"
 msgid "the {name} note"
 msgstr "{name} notunu"
 
-#: nottodbox/notes.py:1313
+#: nottodbox/notes.py:1312
 msgid "Double-click to opening a note."
 msgstr "Bir not açmak için çift tıklayın."
 
-#: nottodbox/notes.py:1319 nottodbox/notes.py:1349 nottodbox/todos.py:999
+#: nottodbox/notes.py:1318 nottodbox/notes.py:1343 nottodbox/todos.py:999
 #: nottodbox/todos.py:1012
 msgid "Creation"
 msgstr "Oluşturulma"
 
-#: nottodbox/notes.py:1378 nottodbox/notes.py:1381 nottodbox/notes.py:1388
+#: nottodbox/notes.py:1372 nottodbox/notes.py:1375 nottodbox/notes.py:1382
 msgid "Unnamed"
 msgstr "Adsız"
 
-#: nottodbox/notes.py:1406
+#: nottodbox/notes.py:1400
 msgid "Please select a {} or a {}."
 msgstr "Lütfen bir {} veya {} seçin."
 
@@ -758,7 +758,7 @@ msgstr "Geçmiş temizlenemedi."
 msgid "Failed to delete {page} page from history."
 msgstr "{page} sayfası geçmişten silinemedi."
 
-#: nottodbox/todos.py:57 nottodbox/widgets/lists.py:128
+#: nottodbox/todos.py:57 nottodbox/widgets/lists.py:127
 msgid "Not completed yet"
 msgstr "Henüz tamamlanmamış"
 
