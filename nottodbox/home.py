@@ -21,11 +21,10 @@ import subprocess
 from gettext import gettext as _
 from PySide6.QtCore import Slot, QDate
 from PySide6.QtWidgets import *
-from widgets.other import HSeperator, Label, PushButton
+from diaries import diariesdb
+from widgets.lists import TreeView
+from widgets.others import HSeperator, Label, PushButton
 from widgets.pages import NormalPage
-from diaries import diariesdb, setting_autosave, setting_format
-from todos import TodosWidget, TodosTreeView
-from notes import NotesTabWidget, NotesTreeView
 
 
 username = getpass.getuser()
@@ -37,7 +36,7 @@ today = QDate.currentDate()
 
 
 class HomeWidget(QWidget):
-    def __init__(self, parent: QMainWindow, todos: TodosWidget, notes: NotesTabWidget):
+    def __init__(self, parent: QMainWindow, todos, notes, format: str, autosave: str):
         super().__init__(parent)
         
         self.focused_to_diary = False
@@ -50,19 +49,19 @@ class HomeWidget(QWidget):
         self.diary_button = PushButton(self, _("Focus to Diary for Today"))
         self.diary_button.clicked.connect(self.focusToDiary)
         
-        self.diary = NormalPage(self, "diaries", today, today.toString("dd.MM.yyyy"), setting_autosave, setting_format, diariesdb)
+        self.diary = NormalPage(self, "diaries", diariesdb, format, autosave, today.toString("dd.MM.yyyy"))
         
         self.todos_seperator = HSeperator(self)
         
         self.todos_label = Label(self, _("List of To-dos"))
         
-        self.todos = TodosTreeView(todos, "home", todos.treeview.model_)
+        self.todos = TreeView(todos, "todos", todos.db, False, todos.treeview.model_)
         
         self.notes_seperator = HSeperator(self)
         
         self.notes_label = Label(self, _("List of Notes"))
         
-        self.notes = NotesTreeView(notes, "home", notes.treeview.model_)
+        self.notes = TreeView(notes, "home", notes.db, False, notes.treeview.model_)
         
         self.setLayout(self.layout_)
         self.layout_.addWidget(self.label_welcome)

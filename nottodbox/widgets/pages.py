@@ -20,8 +20,9 @@ from gettext import gettext as _
 from PySide6.QtCore import Slot, Qt, QDate
 from PySide6.QtGui import QTextCursor, QTextFormat, QTextBlockFormat, QTextCharFormat, QTextListFormat, QDesktopServices, QPalette
 from PySide6.QtWidgets import *
+from databases.base import DBBase
 from .dialogs import ColorDialog, GetTwoDialog
-from .other import PushButton, Action
+from .others import PushButton, Action
 
 
 class TextEdit(QTextEdit):
@@ -229,7 +230,7 @@ class TextFormatter(QToolBar):
         self.mergeFormat(cur, chrfmt)
         
     def setLink(self) -> None:
-        status, text, url = GetTwoDialog(self, "text", _("Add Link"), _("Link text:"), _("Link URL:"), _("Not required"), _("Required")).getItems()
+        status, text, url = GetTwoDialog(self, _("Add Link"), "text", _("Link text:"), _("Link URL:"), _("Not required"), _("Required")).getResult()
         
         if status == "ok":
             if url != "" and url != None:
@@ -267,7 +268,7 @@ class TextFormatter(QToolBar):
         self.mergeFormat(cur, chrfmt)
         
     def setTable(self) -> None:
-        status, row, column = GetTwoDialog(self, "number", _("Add Table"), _("Row number:"), _("Column number:"), 1, 1).getItems()
+        status, row, column = GetTwoDialog(self, _("Add Table"), "number", _("Row number:"), _("Column number:"), 1, 1).getResult()
         
         if status == "ok":
             if row != None and column != None:
@@ -355,242 +356,105 @@ class TextFormatter(QToolBar):
             self.background_color.setEnabled(True)
             
             self.setStatusTip(_("To close an open formatting, type a word and then click on it."))
-
-
-class NormalPage(QWidget):
-    def __init__(self, parent: QWidget, module: str, notebook_or_today: str | QDate, name: str, global_autosave: str, global_format: str, database) -> None:
+            
+            
+class BasePage(QWidget):
+    def __init__(self, parent: QWidget, module: str,
+                 db: DBBase, caller: str, format: str,
+                 name: str, table: str = "__main__") -> None:
         super().__init__(parent)
         
         self.module = module
         self.name = name
-        self.database = database
-        self.global_autosave = global_autosave
-        self.global_format = global_format
+        self.db = db
+        self.format_ = format
         
         self.closable = True
         
         self.layout_ = QGridLayout(self)
         
+        self.today = QDate.currentDate()
+        
         if self.module == "notes":
-            self.notebook = notebook_or_today
-            self.content = self.database.getContent(self.notebook, self.name)
-            self.call_autosave = self.database.getAutosave(self.notebook, self.name)
-            self.call_format = self.database.getFormat(self.notebook, self.name)
+            self.table = table
+            
             self.outdated = "no"
             
         elif self.module == "diaries":
-            self.today = notebook_or_today
-            self.content = self.database.getContent(self.name)
-            self.call_autosave = self.database.getAutosave(self.name)
-            self.call_format = self.database.getFormat(self.name)
-            if QDate().fromString(self.name, "dd.MM.yyyy") == self.today:
-                self.outdated = "no"
-            else:
-                if database.checkIfTheDiaryExists(self.name):
-                    self.outdated = "yes"
-                else:
-                    self.outdated = "no"
-                
-        if self.global_autosave == "enabled":
-            self.pretty_autosave = _("Enabled").lower()
-        elif self.global_autosave == "disabled":
-            self.pretty_autosave = _("Disabled").lower()
+            self.table = "__main__"
             
-        if self.global_format == "plain-text":
-            self.pretty_format = _("Plain-text").lower()
-        elif self.global_format == "markdown":
-            self.pretty_format = "Markdown"
-        elif self.global_format == "html":
-            self.pretty_format = "HTML"
-
-        if self.call_autosave == "global":
-            self.setting_autosave = self.global_autosave
-        else:
-            self.setting_autosave = self.call_autosave
+            self.outdated = self.db.getOutdated(name)
+                    
+        if caller == "normal":
+            self.content = self.db.getContent(self.name, self.table)
         
-        if self.call_format == "global":
-            self.setting_format = self.global_format
+        elif caller == "backup":
+            self.content = self.db.getBackup(self.name, self.table)
+            
+        call_format = self.db.getFormat(self.name, self.table)
+            
+        if self.format_ == "plain-text":
+            pretty_format = _("Plain-text").lower()
+            
+        elif self.format_ == "markdown":
+            pretty_format = "Markdown"
+            
+        elif self.format_ == "html":
+            pretty_format = "HTML"
+        
+        if call_format == "global":
+            self.format = self.format_
+            
         else:
-            self.setting_format = self.call_format
+            self.format = call_format
         
         self.input = TextEdit(self)
         self.input.setAcceptRichText(True)
         
-        if self.setting_format == "plain-text":
+        if self.format == "plain-text":
             self.input.setPlainText(self.content)
             
-        elif self.setting_format == "markdown":
+        elif self.format == "markdown":
             self.input.setMarkdown(self.content)
             
-        elif self.setting_format == "html":
+        elif self.format == "html":
             self.input.setHtml(self.content)
-
-        self.formatter = TextFormatter(self, self.input, self.setting_format)
-    
-        self.input.textChanged.connect(lambda: self.saveDocument(True))
-        self.input.cursorPositionChanged.connect(self.formatter.updateButtons)
         
-        self.save = PushButton(self, _("Save"))
-        self.save.clicked.connect(self.saveDocument)
-              
-        self.autosave = QComboBox(self)
-        self.autosave.addItems([
-            "{} {}".format(_("Auto-save:"), _("Follow global ({setting})").format(setting = self.pretty_autosave)),
-            "{} {}".format(_("Auto-save:"), _("Enabled")),
-            "{} {}".format(_("Auto-save:"), _("Disabled"))])
-        
-        if self.call_autosave == "global":
-            self.autosave.setCurrentIndex(0)
-        elif self.call_autosave == "enabled":
-            self.autosave.setCurrentIndex(1)
-        elif self.call_autosave == "disabled":
-            self.autosave.setCurrentIndex(2)
-        
-        self.autosave.setEditable(False)
-        self.autosave.setStatusTip(_("Auto-saves do not change backups."))
-        self.autosave.currentIndexChanged.connect(self.setAutoSave)
-        
-        if self.outdated == "yes":
-            self.autosave.setEnabled(False)
-            self.autosave.setStatusTip(_("Auto-save feature disabled for old diaries."))
-            self.setting_autosave = "disabled"
-        
-        self.format = QComboBox(self)
-        self.format.addItems([
-            "{} {}".format(_("Format:"), _("Follow global ({setting})").format(setting = self.pretty_autosave)),
+        self.format_combobox = QComboBox(self)
+        self.format_combobox.addItems([
+            "{} {}".format(_("Format:"), _("Follow global ({setting})").format(setting = pretty_format)),
             "{} {}".format(_("Format:"), _("Plain-text")),
             "{} {}".format(_("Format:"), "Markdown"),
             "{} {}".format(_("Format:"), "HTML")])
         
-        if self.call_format == "global":
-            self.format.setCurrentIndex(0)
-        elif self.call_format == "plain-text":
-            self.format.setCurrentIndex(1)
-        elif self.call_format == "markdown":
-            self.format.setCurrentIndex(2)
-        elif self.call_format == "html":
-            self.format.setCurrentIndex(3)
+        if call_format == "global":
+            self.format_combobox.setCurrentIndex(0)
+        elif call_format == "plain-text":
+            self.format_combobox.setCurrentIndex(1)
+        elif call_format == "markdown":
+            self.format_combobox.setCurrentIndex(2)
+        elif call_format == "html":
+            self.format_combobox.setCurrentIndex(3)
         
-        self.format.setEditable(False)
-        self.format.setStatusTip(_("Format changes may corrupt the content."))
-        self.format.currentIndexChanged.connect(self.setFormat)
+        self.format_combobox.setEditable(False)
+        self.format_combobox.setStatusTip(_("Format changes may corrupt the content."))
+        self.format_combobox.currentIndexChanged.connect(self.setFormat)
         
         self.setLayout(self.layout_)
-        self.layout_.addWidget(self.formatter, 0, 0, 1, 2)
-        self.layout_.addWidget(self.input, 1, 0, 1, 2)
-        self.layout_.addWidget(self.save, 2, 0, 1, 2)
-        self.layout_.addWidget(self.autosave, 3, 0, 1, 1)
-        self.layout_.addWidget(self.format, 3, 1, 1, 1)
-            
-    def createDiary(self) -> bool:
-        check = self.database.checkIfTheDiaryExists(self.name)
-        
-        if check:
-            return True
-        
-        else:
-            create = self.database.saveDocument(self.name, "", "", False)
-            
-            if create:
-                return True
-            
-            else:
-                QMessageBox.critical(self, _("Error"), _("Failed to create {name} diary for changing settings."))
-                return False
-                
-    @Slot(bool)
-    def saveDocument(self, autosave: bool = False) -> bool:
-        self.closable = False
-        
-        if self.setting_format == "plain-text":
-            text = self.input.toPlainText()
-            
-        elif self.setting_format == "markdown":
-            text = self.input.toMarkdown()
-            
-        elif self.setting_format == "html":
-            text = self.input.toHtml()
-        
-        if not autosave or (autosave and self.setting_autosave == "enabled"):
-            if self.outdated == "yes":
-                question = QMessageBox.question(
-                    self, _("Question"), _("Diaries are unique to the day they are written.\nDo you really want to change the content?"))
-                
-                if question != QMessageBox.StandardButton.Yes:
-                    return
-            
-            
-            if self.module == "notes":
-                call = self.database.saveDocument(self.notebook,
-                                                  self.name,
-                                                  text,
-                                                  self.content,
-                                                  autosave)
-            
-            elif self.module == "diaries":
-                call = self.database.saveDocument(self.name,
-                                                  text,
-                                                  self.content,
-                                                  autosave)
-
-            if call:
-                self.closable = True
-                
-                if not autosave:
-                    QMessageBox.information(self, _("Successful"), _("{item} saved.")
-                                            .format(item = _("{name} note").format(name = self.name) if self.module == "notes" else _("{name} diary")).format(name = self.name))
-                    
-                return True
-                
-            else:
-                QMessageBox.critical(self, _("Error"), _("Failed to save {item}.")
-                                     .format(item = _("{name} note").format(name = self.name) if self.module == "notes" else _("{name} diary")).format(name = self.name))
-                
-                return False
-    
-    @Slot(int)
-    def setAutoSave(self, index: int) -> None:
-        if index == 0:
-            setting = "global"
-        
-        elif index == 1:
-            setting = "enabled"
-        
-        elif index == 2:
-            setting = "disabled"
-        
-        if self.module == "notes":
-            call = self.database.setAutosave(self.notebook, self.name, setting)
-        
-        elif self.module == "diaries":
-            if self.createDiary():
-                call = self.database.setAutosave(self.name, setting)
-            else:
-                return
-        
-        if call:
-            if setting == "global":
-                self.setting_autosave = self.global_autosave
-            else:
-                self.setting_autosave = setting
-        
-        else:
-            QMessageBox.critical(self, _("Error"), _("Failed to save new auto-save setting {of_item}.")
-                                 .format(of_item = _("of {name} note").format(name = self.name) if self.module == "notes" else _("of {name} diary")).format(name = self.name))
             
     @Slot(int)
-    def setFormat(self, index: int) -> None:
+    def setFormat(self, index: int) -> bool:
         if index == 0:
-            setting = "global"
+            value = "global"
         
         elif index == 1:
-            setting = "plain-text"
+            value = "plain-text"
         
         elif index == 2:
-            setting = "markdown"
+            value = "markdown"
         
         elif index == 3:
-            setting = "html"
+            value = "html"
             
         if self.outdated == "yes":
             question = QMessageBox.question(
@@ -599,135 +463,37 @@ class NormalPage(QWidget):
             if question != QMessageBox.StandardButton.Yes:
                 return
         
-        if self.module == "notes":
-            call = self.database.setFormat(self.notebook, self.name, setting)
-            
-        elif self.module == "diaries":
-            if self.createDiary():
-                call = self.database.setFormat(self.name, setting)
-            else:
-                return
+        call = self.db.setFormat(value, self.name, self.table)
         
         if call:
-            if setting == "global":
-                self.setting_format = self.global_format
-            else:
-                self.setting_format = setting
+            if value == "global":
+                self.format = self.format_
                 
-            self.formatter.updateStatus(self.setting_format)
+            else:
+                self.format = value
+                
+            return True
         
         else:
             QMessageBox.critical(self, _("Error"), _("Failed to save new format setting {of_item}.")
-                                 .format(of_item = _("of {name} note").format(name = self.name) if self.module == "notes" else _("of {name} diary")).format(name = self.name))
+                                 .format(of_item = _("of {name} note") if self.module == "notes" else _("of {name} dated diary"))
+                                 .format(name = self.name))
+            
+            return False
+        
 
-
-class BackupPage(QWidget):
-    def __init__(self, parent: QWidget, module: str, notebook_or_today: str, name: str, global_format: str, database) -> None:
-        super().__init__(parent)
-        
-        self.module = module
-        self.name = name
-        self.database = database
-        self.global_format = global_format
-        
-        self.closable = True
-        
-        self.layout_ = QVBoxLayout(self)
-        
-        if self.module == "notes":
-            self.notebook = notebook_or_today
-            self.content = self.database.getBackup(self.notebook, self.name)
-            self.call_format = self.database.getFormat(self.notebook, self.name)
-            self.outdated = "no"
-            
-        elif self.module == "diaries":
-            self.today = notebook_or_today
-            self.content = self.database.getBackup(self.name)
-            self.call_format = self.database.getFormat(self.name)
-            if QDate().fromString(self.name, "dd.MM.yyyy") == self.today:
-                self.outdated = "no"
-            else:
-                self.outdated = "yes"
-                
-        if self.call_format == "global":
-            self.setting_format = self.global_format
-        else:
-            self.setting_format = self.call_format
-        
-        self.input = TextEdit(self)
-        
-        if self.setting_format == "plain-text":
-            self.input.setPlainText(self.content)
-            
-        elif self.setting_format == "markdown":
-            self.input.setMarkdown(self.content)
-            
-        elif self.setting_format == "html":
-            self.input.setHtml(self.content)
+class BackupPage(BasePage):
+    def __init__(self, parent: QWidget, module: str, 
+                 db: DBBase, format: str, 
+                 name: str, table: str = "__main__") -> None:
+        super().__init__(parent, module, db, "backup", format, name, table)
         
         self.button = PushButton(self, _("Restore Content"))
         self.button.clicked.connect(self.restoreContent)
         
-        self.format = QComboBox(self)
-        self.format.addItems([
-            "{} {}".format(_("Format:"), _("Follow global ({setting})").format(setting = self.pretty_autosave)),
-            "{} {}".format(_("Format:"), _("Plain-text")),
-            "{} {}".format(_("Format:"), "Markdown"),
-            "{} {}".format(_("Format:"), "HTML")])
-        
-        if self.call_format == "global":
-            self.format.setCurrentIndex(0)
-        elif self.call_format == "plain-text":
-            self.format.setCurrentIndex(1)
-        elif self.call_format == "markdown":
-            self.format.setCurrentIndex(2)
-        elif self.call_format == "html":
-            self.format.setCurrentIndex(3)
-        
-        self.format.setEditable(False)
-        self.format.setStatusTip(_("Format changes may corrupt the content."))
-        self.format.currentIndexChanged.connect(self.setFormat)
-        
-        self.setLayout(self.layout_)
         self.layout_.addWidget(self.input)
         self.layout_.addWidget(self.button)
-        self.layout_.addWidget(self.format)
-
-    @Slot(int)
-    def setFormat(self, index: int) -> None:
-        if index == 0:
-            setting = "global"
-        
-        elif index == 1:
-            setting = "plain-text"
-        
-        elif index == 2:
-            setting = "markdown"
-        
-        elif index == 3:
-            setting = "html"
-            
-        if self.outdated == "yes":
-            question = QMessageBox.question(
-                self, _("Question"), _("Diaries are unique to the day they are written.\nDo you really want to change the content?"))
-            
-            if question != QMessageBox.StandardButton.Yes:
-                return
-        
-        if self.module == "notes":
-            call = self.database.setFormat(self.notebook, self.name, setting)
-        elif self.module == "diaries":
-            call = self.database.setFormat(self.name, setting)
-        
-        if call:
-            if setting == "global":
-                self.setting_format = self.global_format
-            else:
-                self.setting_format = setting
-        
-        else:
-            QMessageBox.critical(self, _("Error"), _("Failed to save new format setting {of_item}.")
-                                 .format(of_item = _("of {name} note").format(name = self.name) if self.module == "notes" else _("of {name} diary")).format(name = self.name))
+        self.layout_.addWidget(self.format_combobox)
             
     @Slot()
     def restoreContent(self) -> None:
@@ -738,15 +504,187 @@ class BackupPage(QWidget):
             if question != QMessageBox.StandardButton.Yes:
                 return
         
-        if self.module == "notes":
-            call = self.database.restoreContent(self.notebook, self.name)
-        elif self.module == "diaries":
-            call = self.database.restoreContent(self.name)
-        
-        if call:
+        if self.db.restoreContent(self.name, self.table):
             QMessageBox.information(self, _("Successful"), _("Backup {of_item} restored.")
-                                    .format(of_item = _("of {name} note").format(name = self.name) if self.module == "notes" else _("of {name} diary")).format(name = self.name))
+                                    .format(of_item = _("of {name} note") if self.module == "notes" else _("of {name} dated diary"))
+                                    .format(name = self.name))
             
         else:
             QMessageBox.critical(self, _("Error"), _("Failed to restore backup {of_item}.")
-                                 .format(of_item = _("of {name} note").format(name = self.name) if self.module == "notes" else _("of {name} diary")).format(name = self.name))
+                                 .format(of_item = _("of {name} note") if self.module == "notes" else _("of {name} dated diary"))
+                                 .format(name = self.name))
+
+
+class NormalPage(BasePage):
+    def __init__(self, parent: QWidget, module: str,
+                 db: DBBase, format: str, autosave: str,
+                 name: str, table: str = "__main__") -> None:
+        super().__init__(parent, module, db, "normal", format, name, table)
+        
+        self.autosave_ = autosave
+        
+        call_autosave = self.db.getAutosave(self.name, self.table)
+                
+        if self.autosave_ == "enabled":
+            pretty_autosave = _("Enabled").lower()
+            
+        elif self.autosave_ == "disabled":
+            pretty_autosave = _("Disabled").lower()
+
+        if call_autosave == "global":
+            self.autosave = self.autosave_
+            
+        else:
+            self.autosave = call_autosave
+
+        self.formatter = TextFormatter(self, self.input, self.format)
+    
+        self.input.textChanged.connect(lambda: self.saveChild(True))
+        self.input.cursorPositionChanged.connect(self.formatter.updateButtons)
+        
+        self.button = PushButton(self, _("Save"))
+        self.button.clicked.connect(self.saveChild)
+              
+        self.autosave_combobox = QComboBox(self)
+        self.autosave_combobox.addItems([
+            "{} {}".format(_("Auto-save:"), _("Follow global ({setting})").format(setting = pretty_autosave)),
+            "{} {}".format(_("Auto-save:"), _("Enabled")),
+            "{} {}".format(_("Auto-save:"), _("Disabled"))])
+        
+        if call_autosave == "global":
+            self.autosave_combobox.setCurrentIndex(0)
+        elif call_autosave == "enabled":
+            self.autosave_combobox.setCurrentIndex(1)
+        elif call_autosave == "disabled":
+            self.autosave_combobox.setCurrentIndex(2)
+        
+        self.autosave_combobox.setEditable(False)
+        self.autosave_combobox.setStatusTip(_("Auto-saves do not change backups."))
+        self.autosave_combobox.currentIndexChanged.connect(self.setAutoSave)
+        
+        if self.outdated == "yes":
+            self.autosave_combobox.setEnabled(False)
+            self.autosave_combobox.setStatusTip(_("Auto-save feature disabled for old diaries."))
+            self.autosave = "disabled"
+        
+        self.layout_.addWidget(self.formatter, 0, 0, 1, 2)
+        self.layout_.addWidget(self.input, 1, 0, 1, 2)
+        self.layout_.addWidget(self.button, 2, 0, 1, 2)
+        self.layout_.addWidget(self.format_combobox, 3, 0, 1, 1)
+        self.layout_.addWidget(self.autosave_combobox, 3, 1, 1, 1)
+            
+    def checkIfTheDiaryExistsIfNotCreateTheDiary(self) -> bool:
+        if self.module == "notes":
+            return True
+        
+        elif self.module == "diaries":
+            check = self.db.checkIfTheChildExists(self.name)
+            
+            if check:
+                return True
+            
+            else:
+                create = self.db.createChild("", self.name)
+                
+                if create:
+                    return True
+                
+                else:
+                    QMessageBox.critical(self, _("Error"), _("Failed to create {name} dated diary for changing settings."))
+                    return False
+                
+    @Slot(bool)
+    def saveChild(self, autosave: bool = False) -> bool:
+        self.closable = False
+            
+        if self.outdated == "":
+            if not self.db.createChild(self.name):
+                QMessageBox.critical(self, _("Error"), _("Failed to create {item}.")
+                                    .format(item = _("{name} note") if self.module == "notes" else _("{name} dated diary")))
+                
+                return False
+        
+        if not autosave or (autosave and self.autosave == "enabled"):
+            if self.outdated == "yes":
+                question = QMessageBox.question(
+                    self, _("Question"), _("Diaries are unique to the day they are written.\nDo you really want to change the content?"))
+                
+                if question != QMessageBox.StandardButton.Yes:
+                    return
+            
+            call = self.db.saveChild(self.getText(),
+                                     self.content,
+                                     autosave,
+                                     self.name,
+                                     self.table)
+
+            if call:
+                self.closable = True
+                
+                if not autosave:
+                    QMessageBox.information(self, _("Successful"), _("{item} saved.")
+                                            .format(item = _("{name} note") if self.module == "notes" else _("{name} dated diary"))
+                                            .format(name = self.name))
+                    
+                return True
+                
+            else:
+                QMessageBox.critical(self, _("Error"), _("Failed to save {item}.")
+                                     .format(item = _("{name} note") if self.module == "notes" else _("{name} dated diary"))
+                                     .format(name = self.name))
+                
+                return False
+    
+    @Slot(int)
+    def setAutoSave(self, index: int) -> None:
+        if index == 0:
+            value = "global"
+        
+        elif index == 1:
+            value = "enabled"
+        
+        elif index == 2:
+            value = "disabled"
+        
+        if not self.checkIfTheDiaryExistsIfNotCreateTheDiary():
+            return
+        
+        if self.db.setAutosave(value, self.name, self.table):
+            if value == "global":
+                self.autosave = self.autosave_
+                
+            else:
+                self.autosave = value
+        
+        else:
+            QMessageBox.critical(self, _("Error"), _("Failed to save new auto-save setting {of_item}.")
+                                 .format(of_item = _("of {name} note") if self.module == "notes" else _("of {name} dated diary"))
+                                 .format(name = self.name))
+            
+    def setBackup(self) -> bool:
+        if self.db.setBackup(self.getText(), self.name):
+            return True
+            
+        else:
+            QMessageBox.critical(self, _("Error"), _("Failed to set backup {of_item}.")
+                                 .format(item = _("of {name} note") if self.module == "notes" else _("of {name} dated diary")))
+                
+            return False
+            
+    @Slot(int)
+    def setFormat(self, index: int) -> None:
+        if not self.checkIfTheDiaryExistsIfNotCreateTheDiary():
+            return
+        
+        if super().setFormat(index):
+            self.formatter.updateStatus(self.format)
+            
+    def getText(self) -> str:
+        if self.format == "plain-text":
+            return self.input.toPlainText()
+            
+        elif self.format == "markdown":
+            return self.input.toMarkdown()
+            
+        elif self.format == "html":
+            return self.input.toHtml()

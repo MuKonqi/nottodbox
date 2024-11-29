@@ -20,6 +20,7 @@ from gettext import gettext as _
 from PySide6.QtCore import Slot, Qt, QSortFilterProxyModel, QItemSelectionModel
 from PySide6.QtGui import QStandardItemModel, QStandardItem, QMouseEvent, QColor
 from PySide6.QtWidgets import *
+from databases.lists import DBForLists
 
 
 class StandardItem(QStandardItem):
@@ -61,62 +62,69 @@ class StandardItem(QStandardItem):
 
 
 class TreeView(QTreeView):
-    def __init__(self, parent: QWidget, module: str, caller: str = "own") -> None:
+    def __init__(self, parent: QWidget, module: str, db: DBForLists, own: bool = True, model: QStandardItemModel = None) -> None:
         super().__init__(parent)
         
         self.parent_ = parent
         self.module = module
-        self.caller = caller
+        self.db = db
+        self.own = own
         
         self.model_ = QStandardItemModel(self)
-        self.db = None
-        self.parent_counts = {}
-        self.parent_items = {}
-        self.child_counts = {}
-        self.child_items = {}
-        self.setting_background = ""
-        self.setting_foreground = ""
 
         self.proxy = QSortFilterProxyModel(self)
         self.proxy.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
         self.proxy.setRecursiveFilteringEnabled(True)
         self.proxy.setSourceModel(self.model_)
         
+        if self.module == "notes":
+            self.setStatusTip(_("Double-click to opening a note."))
+            
+        elif self.module == "todos":
+            self.setStatusTip(_("Double-click to changing status of a to-do."))
+        
         self.setModel(self.proxy)
         self.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
         self.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.header().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
-
-        if self.caller == "own":
-            self.selectionModel().currentRowChanged.connect(
-                lambda: self.parent_.insertInformations(self.getParentText(), self.getChildText()))
         
-        self.doubleClicked.connect(lambda: self.doubleClickEvent(self.getParentText(), self.getChildText()))
+        self.model_.setHorizontalHeaderLabels([_("Name"), _("Creation"), _("Modification")])
+
+        if self.own:
+            self.selectionModel().currentRowChanged.connect(
+                lambda: self.parent_.setOptionWidget(self.getChildText(), self.getParentText()))
+            
+        if model is not None:
+            self.proxy.setSourceModel(self.model_)
+        
+        self.doubleClicked.connect(lambda: self.parent_.shortcutEvent(self.getChildText(), self.getParentText()))
+        
+        self.appendAll()
 
     def appendAll(self) -> None:
-        names = self.db.getNotebookNames() if self.module == "notes" else self.db.getTodolistNames()
+        all = self.db.getAll()
         
-        if self.caller == "own":
+        if self.own:
             model_count = -1
             
-            for name in names:
+            for parent in all.keys():
                 model_count += 1
                 
-                self.appendParent(name[0])
+                self.appendParent(parent)
             
-    def appendChild(self, parent: str, name: str) -> None:
-        self.child_counts[(parent, name)] = self.parent_items[parent][0].rowCount()
+    def appendChild(self, name: str, table: str) -> None:        
+        self.parent_.child_counts[(name, table)] = self.parent_.table_items[table][0].rowCount()
         
         if self.module == "notes":
-            creation, modification, background, foreground = self.db.getNote(parent, name)
+            creation, modification, background, foreground = self.db.getChild(name, table)
             
-            self.child_items[(parent, name)] = [StandardItem(name, name), 
-                                                StandardItem(creation, name), 
-                                                StandardItem(modification, name)]
+            self.parent_.child_items[(name, table)] = [StandardItem(name, name), 
+                                               StandardItem(creation, name), 
+                                               StandardItem(modification, name)]
             
         elif self.module == "todos":
-            status, creation, completion, background, foreground = self.db.getTodo(parent, name)
+            status, creation, completion, background, foreground = self.db.getChild(name, table)
             
             if status == "completed":
                 name_column = StandardItem(f"[+] {name}", name)
@@ -128,86 +136,82 @@ class TreeView(QTreeView):
             else:
                 completion_column = StandardItem(completion, name)
                 
-            self.child_items[(parent, name)] = [name_column, 
+            self.parent_.child_items[(name, table)] = [name_column, 
                                                 StandardItem(creation, name), 
                                                 completion_column]
         
-        for item in self.child_items[(parent, name)]:
-            if background == "global" and self.setting_background != "default":
-                item.setBackground(QColor(self.setting_background))
+        for item in self.parent_.child_items[(name, table)]:
+            if background == "global" and self.parent_.background != "default":
+                item.setBackground(QColor(self.parent_.background))
             elif background != "global" and background != "default":
                 item.setBackground(QColor(background))
             
-            if foreground == "global" and self.setting_foreground != "default":
-                item.setForeground(QColor(self.setting_foreground))
+            if foreground == "global" and self.parent_.foreground != "default":
+                item.setForeground(QColor(self.parent_.foreground))
             elif foreground != "global" and foreground != "default":
                 item.setForeground(QColor(foreground))
     
-        self.parent_items[parent][0].appendRow(self.child_items[(parent, name)])
+        self.parent_.table_items[table][0].appendRow(self.parent_.child_items[(name, table)])
             
-    def appendParent(self, parent: str) -> None:
-        creation, modification, background, foreground, names = self.db.getNotebook(parent) if self.module == "notes" else self.db.getTodolist(parent)
+    def appendParent(self, name: str) -> None:
+        creation, modification, background, foreground, documents = self.db.getParent(name) if self.module == "notes" else self.db.getParent(name)
         
         model_count = self.model_.rowCount()
         
-        self.parent_counts[parent] = model_count
-        self.parent_items[parent] = [StandardItem(parent, parent),
-                                     StandardItem(creation, parent),
-                                     StandardItem(modification, parent)]
+        self.parent_.table_counts[name] = model_count
+        self.parent_.table_items[name] = [StandardItem(name, name),
+                                   StandardItem(creation, name),
+                                   StandardItem(modification, name)]
         
-        for item in self.parent_items[parent]:
-            if background == "global" and self.setting_background != "default":
-                item.setBackground(QColor(self.setting_background))
+        for item in self.parent_.table_items[name]:
+            if background == "global" and self.parent_.background != "default":
+                item.setBackground(QColor(self.parent_.background))
             elif background != "global" and background != "default":
                 item.setBackground(QColor(background))
             
-            if foreground == "global" and self.setting_foreground != "default":
-                item.setForeground(QColor(self.setting_foreground))
+            if foreground == "global" and self.parent_.foreground != "default":
+                item.setForeground(QColor(self.parent_.foreground))
             elif foreground != "global" and foreground != "default":
                 item.setForeground(QColor(foreground))
         
-        for name in names:
-            self.appendChild(parent, name[0])
+        for child in documents:
+            self.appendChild(child[0], name)
             
-        self.model_.appendRow(self.parent_items[parent])
+        self.model_.appendRow(self.parent_.table_items[name])
             
     def deleteAll(self) -> None:
-        self.parent_counts.clear()
-        self.parent_counts.clear()
-        self.child_counts.clear()
+        self.parent_.table_counts.clear()
+        self.parent_.table_counts.clear()
+        self.parent_.child_counts.clear()
         self.model_.clear()
         
-    def deleteChild(self, parent: str, name: str) -> None:
-        self.parent_items[parent][0].removeRow(self.child_counts[(parent, name)])
+    def deleteChild(self, name: str, table: str) -> None:
+        self.parent_.table_items[table][0].removeRow(self.parent_.child_counts[(name, table)])
         
-        for key in self.child_counts.keys():
-            if self.child_counts[key] > self.child_counts[(parent, name)]:
-                self.child_counts[key] -= 1
+        for key in self.parent_.child_counts.keys():
+            if self.parent_.child_counts[key] > self.parent_.child_counts[(name, table)]:
+                self.parent_.child_counts[key] -= 1
         
-        del self.child_items[(parent, name)]
-        del self.child_counts[(parent, name)]
+        del self.parent_.child_items[(name, table)]
+        del self.parent_.child_counts[(name, table)]
         
-    def deleteParent(self, parent: str) -> None:       
-        self.model_.removeRow(self.parent_counts[parent])
+    def deleteParent(self, name: str) -> None:       
+        self.model_.removeRow(self.parent_.table_counts[name])
          
-        for key in self.child_items.copy().keys():
-            if key[0] == parent:
-                del self.child_items[key]
+        for key in self.parent_.child_items.copy().keys():
+            if key[0] == name:
+                del self.parent_.child_items[key]
                 
-        for key in self.child_counts.copy().keys():
-            if key[0] == parent:
-                del self.child_counts[key]
+        for key in self.parent_.child_counts.copy().keys():
+            if key[0] == name:
+                del self.parent_.child_counts[key]
                 
-        for key in self.parent_counts.keys():
-            if self.parent_counts[key] > self.parent_counts[parent]:
-                self.parent_counts[key] -= 1
+        for key in self.parent_.table_counts.keys():
+            if self.parent_.table_counts[key] > self.parent_.table_counts[name]:
+                self.parent_.table_counts[key] -= 1
                 
-        del self.parent_counts[parent]
-        del self.parent_items[parent]
-                    
-    @Slot(str, str)
-    def doubleClickEvent(self, parent: str, child: str) -> None:
-        pass
+        del self.parent_.table_counts[name]
+        del self.parent_.table_items[name]
     
     def getChildText(self) -> str:
         if self.currentIndex().isValid() and self.currentIndex().parent().isValid():
@@ -238,85 +242,95 @@ class TreeView(QTreeView):
         self.proxy.setFilterFixedString(text)
         self.proxy.endResetModel()
         
-    def setIndex(self, parent: str, child: str) -> None:        
-        if parent == "":
+    def setIndex(self, child: str, table: str) -> None:        
+        if table == "":
             self.selectionModel().clear()
             
         else:
-            if parent != "" and child == "":
-                item = self.parent_items[parent][0]
+            if table != "" and child == "":
+                item = self.parent_.table_items[table][0]
                 
-            elif parent != "" and child != "":
-                item = self.child_items[(parent, child)][0]
+            elif table != "" and child != "":
+                item = self.parent_.child_items[(child, table)][0]
             
             self.selectionModel().setCurrentIndex(
                 self.model().mapFromSource(item.index()),
                 QItemSelectionModel.SelectionFlag.ClearAndSelect | QItemSelectionModel.SelectionFlag.Rows)
-            
-    def updateChild(self, parent: str, name: str, newname: str) -> None:
-        self.child_counts[(parent, newname)] = self.child_counts.pop((parent, name))
-        self.child_items[(parent, newname)] = self.child_items.pop((parent, name))
         
-        self.child_items[(parent, newname)][0].setText(newname)
-        
-        for item in self.child_items[(parent, newname)]:
-            item.setData(newname, Qt.ItemDataRole.UserRole)
-            
-        if self.caller == "own":
-            self.parent_.insertInformations(parent, newname)
-        
-    def updateChildBackground(self, parent: str, name: str, color: str) -> None:
-        for item in self.child_items[(parent, name)]:
-            if color == "global" and self.setting_background != "default":
-                item.setBackground(QColor(self.setting_background))    
-            elif color != "global" and color != "default":
-                item.setBackground(QColor(color))
+    def updateBackground(self, value: str, name: str, table: str = "__main__") -> None:
+        def startUpgrading(item: StandardItem):
+            if value == "global" and self.parent_.background != "default":
+                item.setBackground(QColor(self.parent_.background))   
+                 
+            elif value != "global" and value != "default":
+                item.setBackground(QColor(value))
+                
             else:
                 item.setData(None, Qt.ItemDataRole.BackgroundRole)
+        
+        if table == "__main__":
+            for item in self.parent_.table_items[name]:
+                startUpgrading(item)
+            
+        else:    
+            for item in self.parent_.child_items[(name, table)]:
+                startUpgrading(item)
                 
-    def updateChildForeground(self, parent: str, name: str, color: str) -> None:
-        for item in self.child_items[(parent, name)]:
-            if color == "global" and self.setting_foreground != "default":
-                item.setForeground(QColor(self.setting_foreground))
-            elif color != "global" and color != "default":
-                item.setForeground(QColor(color))
+    def updateForeground(self, value: str, name: str, table: str = "__main__") -> None:
+        def startUpgrading(item: StandardItem):
+            if value == "global" and self.parent_.foreground != "default":
+                item.setForeground(QColor(self.parent_.foreground))
+            elif value != "global" and value != "default":
+                item.setForeground(QColor(value))
             else:
                 item.setData(None, Qt.ItemDataRole.ForegroundRole)
                 
-    def updateParent(self, name: str, newname: str) -> None:
-        self.parent_counts[newname] = self.parent_counts.pop(name)
-        self.parent_items[newname] = self.parent_items.pop(name)
-        
-        self.parent_items[newname][0].setText(newname)
-        
-        for item in self.parent_items[newname]:
-            item.setData(newname, Qt.ItemDataRole.UserRole)
+        if table == "__main__":
+            for item in self.parent_.table_items[name]:
+                startUpgrading(item)
             
-        for key in self.child_counts.copy().keys():
-            if key[0] == name:
-                self.child_counts[(newname, key[1])] = self.child_counts.pop((name, key[1]))
+        else:    
+            for item in self.parent_.child_items[(name, table)]:
+                startUpgrading(item)
                 
-        for key in self.child_items.copy().keys():
-            if key[0] == name:
-                self.child_items[(newname, key[1])] = self.child_items.pop((name, key[1]))
+    def updateItem(self, newname: str, name: str, table: str = "__main__"):
+        if table == "__main__":
+            self.parent_.table_counts[newname] = self.parent_.table_counts.pop(name)
+            self.parent_.table_items[newname] = self.parent_.table_items.pop(name)
             
-        if self.caller == "own":
-            self.parent_.insertInformations(newname, "")
-        
-    def updateParentBackground(self, name: str, color: str) -> None:
-        for item in self.parent_items[name]:
-            if color == "global" and self.setting_background != "default":
-                item.setBackground(QColor(self.setting_background))    
-            elif color != "global" and color != "default":
-                item.setBackground(QColor(color))
-            else:
-                item.setData(None, Qt.ItemDataRole.BackgroundRole)
+            self.parent_.table_items[newname][0].setText(newname)
+            
+            for item in self.parent_.table_items[newname]:
+                item.setData(newname, Qt.ItemDataRole.UserRole)
                 
-    def updateParentForeground(self, name: str, color: str) -> None:
-        for item in self.parent_items[name]:
-            if color == "global" and self.setting_foreground != "default":
-                item.setForeground(QColor(self.setting_foreground))
-            elif color != "global" and color != "default":
-                item.setForeground(QColor(color))
-            else:
-                item.setData(None, Qt.ItemDataRole.ForegroundRole)
+            for key in self.parent_.child_counts.copy().keys():
+                if key[0] == name:
+                    self.parent_.child_counts[(newname, key[1])] = self.parent_.child_counts.pop((name, key[1]))
+                    
+            for key in self.parent_.child_items.copy().keys():
+                if key[0] == name:
+                    self.parent_.child_items[(newname, key[1])] = self.parent_.child_items.pop((name, key[1]))
+                
+            if self.own:
+                self.parent_.setOptionWidget("", newname)
+                
+        else:
+            self.parent_.child_counts[(newname, table)] = self.parent_.child_counts.pop((name, table))
+            self.parent_.child_items[(newname, table)] = self.parent_.child_items.pop((name, table))
+            
+            if self.module == "notes":
+                self.parent_.child_items[(newname, table)][0].setText(newname)
+                
+            elif self.module == "todos":
+                status = self.db.getStatus(newname, table)
+                
+                if status == "completed":
+                    self.parent_.child_items[(newname, table)][0].setText(f"[+] {newname}")
+                elif status == "uncompleted":
+                    self.parent_.child_items[(newname, table)][0].setText(f"[-] {newname}")
+            
+            for item in self.parent_.child_items[(newname, table)]:
+                item.setData(newname, Qt.ItemDataRole.UserRole)
+                
+            if self.own:
+                self.parent_.setOptionWidget(newname, table)

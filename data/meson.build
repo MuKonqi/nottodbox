@@ -25,7 +25,7 @@ install_data(
 
 install_data(
   project_id + '.png',
-  install_dir: join_paths(get_option('prefix'), get_option('datadir'), 'icons/hicolor/64x64/apps')
+  install_dir: join_paths(get_option('prefix'), get_option('datadir'), 'icons/hicolor/96x96/apps')
 )
 
 

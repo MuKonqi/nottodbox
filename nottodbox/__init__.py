@@ -55,7 +55,7 @@ parser.add_argument("-v", "--version", help=_("show the version"), action="versi
 group.add_argument("-i", "--index", help=_("set the page to be opened via number"), default=0,
                    choices=[1, 2, 3, 4, 5, 6], type=int)
 group.add_argument("-p", "--page", help=_("set the page to be opened via name"), default=_("home"), 
-                   choices=[__("Home"), __("Notes"), __("To-dos"), __("Diaries"), __("Settings"), __("About")], type=str)
+                   choices=[__("Home"), __("Notes"), __("To-Dos"), __("Diaries"), __("Settings"), __("About")], type=str)
 
 args = parser.parse_args()
 
@@ -96,7 +96,7 @@ class Application(QApplication):
             elif args.page == __("Notes"):
                 window.tabwidget.setCurrentIndex(1)
                 
-            elif args.page == __("To-dos"):
+            elif args.page == __("To-Dos"):
                 window.tabwidget.setCurrentIndex(2)
                 
             elif args.page == __("Diaries"):

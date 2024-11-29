@@ -16,7 +16,6 @@
 # along with Nottodbox.  If not, see <https://www.gnu.org/licenses/>.
 
 
-import sys
 import getpass
 import os
 import sqlite3
@@ -24,8 +23,8 @@ from gettext import gettext as _
 from PySide6.QtGui import QStandardItemModel
 from PySide6.QtCore import Slot, Qt, QSortFilterProxyModel
 from PySide6.QtWidgets import *
-from widgets.other import HSeperator, Label, PushButton
 from widgets.lists import StandardItem
+from widgets.others import HSeperator, Label, PushButton
 
 
 username = getpass.getuser()
@@ -38,6 +37,8 @@ class SidebarDB:
     def __init__(self) -> None:
         self.db = sqlite3.connect(f"{userdata}sidebar.db")
         self.cur = self.db.cursor()
+        
+        self.createTable()
         
     def appendPage(self, module: str, page: str) -> bool:
         try:
@@ -69,13 +70,20 @@ class SidebarDB:
         
     def createTable(self) -> bool:
         self.cur.execute("""
-        CREATE TABLE IF NOT EXISTS __main__ (
-            module TEXT NOT NULL,
-            page TEXT NOT NULL
-        );""")
+                         CREATE TABLE IF NOT EXISTS __main__ (
+                             module TEXT NOT NULL,
+                             page TEXT NOT NULL
+                             );
+                             """)
         self.db.commit()
         
-        return self.checkIfTheTableExists()
+        check = self.checkIfTheTableExists()
+        
+        if not check:
+            print("[2] Failed to create main table for sidebar.py")
+            exit(2)
+            
+        return check
     
     def deletePage(self, module: str, page: str) -> bool:
         call = self.checkIfThePageExists(module, page)
@@ -111,11 +119,6 @@ class SidebarDB:
 
 
 sidebardb = SidebarDB()
-
-create_table = sidebardb.createTable()
-if not create_table:
-    print("[2] Failed to create table")
-    sys.exit(2)
 
 
 class SidebarWidget(QWidget):
@@ -211,10 +214,10 @@ class SidebarTreeView(QTreeView):
     def doubleClickEvent(self, module: str, page: str) -> None:
         if module == "notes":
             name, notebook = str(page).split(" @ ")
-            self.parent_.notes.treeview.doubleClickEvent(notebook, name)
+            self.parent_.notes.treeview.doubleClickEvent(name, notebook)
             
         elif module == "diaries":
-            self.parent_.diaries.calendar.openCreate(page)
+            self.parent_.diaries.home.shortcutEvent(page)
         
     def getModule(self) -> str:
         if self.currentIndex().isValid():

@@ -21,7 +21,7 @@ Name=Notes
 
 [Desktop Action Todos]
 Exec=@BINDIR@/nottodbox -i 3
-Name=To-dos
+Name=To-Dos
 
 [Desktop Action Diaries]
 Exec=@BINDIR@/nottodbox -i 4

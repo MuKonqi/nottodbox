@@ -23,9 +23,9 @@ from PySide6.QtGui import QCloseEvent
 from PySide6.QtWidgets import *
 from sidebar import SidebarWidget
 from home import HomeWidget
-from notes import NotesTabWidget, notesdb, notes
-from todos import TodosWidget
-from diaries import DiariesTabWidget, today, diariesdb, diaries
+from notes import NotesTabWidget, notesdb
+from todos import TodosHomePage
+from diaries import DiariesTabWidget, diariesdb
 from about import AboutWidget
 from settings import SettingsWidget
 
@@ -38,7 +38,11 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         
-        self.settings = QSettings("io.github.mukonqi", "nottodbox")
+        self.setMinimumWidth(1000)
+        self.setMinimumHeight(700)
+        self.setGeometry(0, 0, 1000, 700)
+        
+        self.qsettings = QSettings("io.github.mukonqi", "nottodbox")
         
         self.widget = QWidget(self)
         self.layout_ = QVBoxLayout(self.widget)
@@ -50,22 +54,23 @@ class MainWindow(QMainWindow):
         self.menu_sidebar.addAction(_("Show"), lambda: self.dock.setVisible(True))
         self.menu_sidebar.addAction(_("Hide"), lambda: self.dock.setVisible(False))
 
-        self.notes_page = NotesTabWidget(self)
-        self.todos_page = TodosWidget(self)
-        self.diaries_page = DiariesTabWidget(self)
-        self.about_page = AboutWidget(self)
-        self.home_page = HomeWidget(self, self.todos_page, self.notes_page)
-        self.settings_page = SettingsWidget(self, self.notes_page, self.todos_page, self.diaries_page)
+        self.notes = NotesTabWidget(self)
+        self.todos = TodosHomePage(self)
+        self.diaries = DiariesTabWidget(self)
+        self.about = AboutWidget(self)
+        self.home = HomeWidget(self, self.todos, self.notes.home, self.diaries.home.format, self.diaries.home.autosave)
+        self.settings = SettingsWidget(self, self.notes.home, self.todos, self.diaries.home)
 
-        self.tabwidget.addTab(self.home_page, _("Home"))
-        self.tabwidget.addTab(self.notes_page, _("Notes"))
-        self.tabwidget.addTab(self.todos_page, _("To-dos"))
-        self.tabwidget.addTab(self.diaries_page, _("Diaries"))
-        self.tabwidget.addTab(self.settings_page, _("Settings"))
-        self.tabwidget.addTab(self.about_page, _("About"))
+        self.tabwidget.addTab(self.home, _("Home"))
+        self.tabwidget.addTab(self.notes, _("Notes"))
+        self.tabwidget.addTab(self.todos, _("To-dos"))
+        self.tabwidget.addTab(self.diaries, _("Diaries"))
+        self.tabwidget.addTab(self.settings, _("Settings"))
+        self.tabwidget.addTab(self.about, _("About"))
         
         self.statusbar = QStatusBar(self)
         self.setStatusBar(self.statusbar)
+        self.setStatusTip(_("There may be important information and tips here. Don't forget to look here!"))
         
         self.dock = QDockWidget(self)
         self.dock.setObjectName("DockWidget")
@@ -76,20 +81,16 @@ class MainWindow(QMainWindow):
                               QDockWidget.DockWidgetFeature.DockWidgetMovable)
         self.dock.setAllowedAreas(Qt.DockWidgetArea.LeftDockWidgetArea |
                                   Qt.DockWidgetArea.RightDockWidgetArea)
-        self.dock.setWidget(SidebarWidget(self, self.notes_page, self.diaries_page))
+        self.dock.setWidget(SidebarWidget(self, self.notes, self.diaries))
+        self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.dock)
             
         self.widget.setLayout(self.layout_)
         self.layout_.addWidget(self.tabwidget)
-            
-        self.setMinimumWidth(1000)
-        self.setMinimumHeight(700)
-        self.setGeometry(0, 0, 1000, 700)
         self.setCentralWidget(self.widget)
-        self.setStatusTip(_("There may be important information and tips here. Don't forget to look here!"))
-        self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.dock)
+    
         self.show()
-        self.restoreGeometry(QByteArray(self.settings.value("geometry")))
-        self.restoreState(QByteArray(self.settings.value("state")))
+        self.restoreGeometry(QByteArray(self.qsettings.value("geometry")))
+        self.restoreState(QByteArray(self.qsettings.value("state")))
 
     def closeEvent(self, a0: QCloseEvent | None):                
         pages = self.dock.widget().open_pages.pages
@@ -100,19 +101,23 @@ class MainWindow(QMainWindow):
         
         for module, page in pages:
             if module == "notes" and not page.endswith(_(" (Backup)")):
-                if not are_there_unsaved_notes and not notes[page].closable:
+                name, table = str(page).split(" @ ")
+                
+                if not are_there_unsaved_notes and not self.notes.pages[(name, table)].closable:
                     are_there_unsaved_notes = True
                 
             elif module == "diaries" and not page.endswith(_(" (Backup)")):
-                if not are_there_unsaved_diaries and not diaries[page].closable:
+                name = page
+                
+                if not are_there_unsaved_diaries and not self.diaries.pages[(name, "__main__")].closable:
                     are_there_unsaved_diaries = True
                         
-        if not self.home_page.diary.closable:
+        if not self.home.diary.closable:
             is_main_diary_unsaved = True
 
         if not are_there_unsaved_notes and not are_there_unsaved_diaries and not is_main_diary_unsaved:  
-            self.settings.setValue("geometry", self.saveGeometry())
-            self.settings.setValue("state", self.saveState())
+            self.qsettings.setValue("geometry", self.saveGeometry())
+            self.qsettings.setValue("state", self.saveState())
             
             return super().closeEvent(a0)
         
@@ -120,42 +125,51 @@ class MainWindow(QMainWindow):
             self.question = QMessageBox.question(self,
                                                  _("Question"),
                                                  _("Some pages are not saved.\nWhat would you like to do?"),
-                                                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.SaveAll | QMessageBox.StandardButton.Cancel,
+                                                 QMessageBox.StandardButton.SaveAll | QMessageBox.StandardButton.Discard | QMessageBox.StandardButton.Cancel,
                                                  QMessageBox.StandardButton.SaveAll)
-            
-            if self.question == QMessageBox.StandardButton.Yes:
-                return super().closeEvent(a0)
 
-            elif self.question == QMessageBox.StandardButton.SaveAll:    
+            if self.question == QMessageBox.StandardButton.SaveAll:    
                 successful = True
                             
                 if are_there_unsaved_notes:
-                    call_save_all_notes = notesdb.saveAll()
+                    messages = True
+                    
+                    call_save_all_notes = notesdb.saveAll(self.notes.home.format, self.notes.pages)
                     
                     if not call_save_all_notes:
                         successful = False
                 
                 if are_there_unsaved_diaries:
-                    call_save_all_diaries = diariesdb.saveAll()
+                    messages = True
+                    
+                    call_save_all_diaries = diariesdb.saveAll(self.diaries.home.format, self.diaries.pages)
                     
                     if not call_save_all_diaries:
                         successful = False
                     
                 if is_main_diary_unsaved:
-                    call_save_todays_diary = diariesdb.saveDocument(today.toString("dd.MM.yyyy"),
-                                                                    self.home.diary.input.toPlainText(),
-                                                                    self.home.diary.content,
-                                                                    False)
+                    messages = False
+                    
+                    call_save_todays_diary = self.home.diary.saveChild(False)
                     
                     if not call_save_todays_diary:
                         successful = False
                 
-                if not successful:
-                    QMessageBox.critical(self, _("Error"), _("Failed to save some pages."))
-                
-                self.settings.setValue("geometry", self.saveGeometry())
-                self.settings.setValue("state", self.saveState())
+                if successful and messages:
+                    QMessageBox.information(self, _("Successful"), _("All pages saved."))
+                    
+                elif not successful:
+                    if messages:
+                        QMessageBox.critical(self, _("Error"), _("Failed to save some pages."))
                         
+                    return a0.ignore()
+                
+                self.qsettings.setValue("geometry", self.saveGeometry())
+                self.qsettings.setValue("state", self.saveState())
+                        
+                return super().closeEvent(a0)
+            
+            elif self.question == QMessageBox.StandardButton.Discard:
                 return super().closeEvent(a0)
             
             else:

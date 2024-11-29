@@ -24,7 +24,7 @@ from PySide6.QtCore import Slot, Qt
 from PySide6.QtGui import QColor
 from PySide6.QtWidgets import *
 from widgets.dialogs import ColorDialog
-from widgets.other import HSeperator, PushButton, VSeperator
+from widgets.others import HSeperator, PushButton, VSeperator
 
 
 username = getpass.getuser()
@@ -36,6 +36,8 @@ class SettingsDB:
         self.db = sqlite3.connect(f"{userdata}settings.db")
         self.cur = self.db.cursor()
         
+        self.createTable()
+        
     def checkIfTheTableExists(self) -> bool:
         try:
             self.cur.execute(f"select * from __main__")
@@ -45,78 +47,78 @@ class SettingsDB:
             return False
         
     def createTable(self) -> bool:
-        sql = """
-        CREATE TABLE IF NOT EXISTS __main__ (
-            setting TEXT NOT NULL PRIMARY KEY,
-            value TEXT NOT NULL
-        );"""
-        
-        self.cur.execute(sql)
+        self.cur.execute("""
+                         CREATE TABLE IF NOT EXISTS __main__ (
+                             setting TEXT NOT NULL PRIMARY KEY,
+                             value TEXT NOT NULL);
+                             """)
         self.db.commit()
         
-        return self.checkIfTheTableExists()
-    
-    def getModuleSettings(self, module: str) -> tuple:
-        if not self.createTable():
-            print("[2] Failed to create table")
-            sys.exit(2)
+        check = self.checkIfTheTableExists()
+        
+        if not check:
+            print("[2] Failed to create main table for settings.db")
+            exit(2)
             
-        if module == "notes" or module == "diaries":
-            try:
-                self.cur.execute(f"select value from __main__ where setting = '{module}-autosave'")
-                autosave = str(self.cur.fetchone()[0])
+        return check
+    
+    def getModuleSettings(self, module: str) -> tuple[str, str, str, str, str]:
+        try:
+            self.cur.execute(f"select value from __main__ where setting = '{module}-autosave'")
+            autosave = str(self.cur.fetchone()[0])
 
-            except TypeError:
+        except TypeError:
+            if module == "notes" or module == "diaries":
                 self.cur.execute(f"insert into __main__ (setting, value) values ('{module}-autosave', 'enabled')")
                 self.db.commit()
-                autosave = "enabled"
-            
-            try:
-                self.cur.execute(f"select value from __main__ where setting = '{module}-format'")
-                format = str(self.cur.fetchone()[0])
+                
+            autosave = "enabled"
+        
+        try:
+            self.cur.execute(f"select value from __main__ where setting = '{module}-format'")
+            format = str(self.cur.fetchone()[0])
 
-            except TypeError:
+        except TypeError:
+            if module == "notes" or module == "diaries":
                 self.cur.execute(f"insert into __main__ (setting, value) values ('{module}-format', 'markdown')")
                 self.db.commit()
-                format = "markdown"
                 
-        if module == "notes" or module == "todos":
-            try:
-                self.cur.execute(f"select value from __main__ where setting = '{module}-background'")
-                background = str(self.cur.fetchone()[0])
+            format = "markdown"
+                
+        try:
+            self.cur.execute(f"select value from __main__ where setting = '{module}-background'")
+            background = str(self.cur.fetchone()[0])
 
-            except TypeError:
+        except TypeError:
+            if module == "notes" or module == "todos":
                 self.cur.execute(f"insert into __main__ (setting, value) values ('{module}-background', 'default')")
                 self.db.commit()
-                background = "default"
-            
-            try:
-                self.cur.execute(f"select value from __main__ where setting = '{module}-foreground'")
-                foreground = str(self.cur.fetchone()[0])
+                
+            background = "default"
+        
+        try:
+            self.cur.execute(f"select value from __main__ where setting = '{module}-foreground'")
+            foreground = str(self.cur.fetchone()[0])
 
-            except TypeError:
+        except TypeError:
+            if module == "notes" or module == "todos":
                 self.cur.execute(f"insert into __main__ (setting, value) values ('{module}-foreground', 'default')")
                 self.db.commit()
-                foreground = "default"
+            
+            foreground = "default"
         
-        if module == "diaries": 
-            try:
-                self.cur.execute(f"select value from __main__ where setting = '{module}-highlight'")
-                highlight = str(self.cur.fetchone()[0])
+        try:
+            self.cur.execute(f"select value from __main__ where setting = '{module}-highlight'")
+            highlight = str(self.cur.fetchone()[0])
 
-            except TypeError:
-                self.cur.execute(f"insert into __main__ (setting, value) values ('{module}-highlight', 'default')")
+        except TypeError:
+            if module == "diaries":
+                self.cur.execute(f"insert into __main__ (setting, value) values ('{module}-highlight', '#376296')")
                 self.db.commit()
-                highlight = "default"
-                
-        if module == "notes":        
-            return autosave, format, background, foreground
-        
-        elif module == "todos":
-            return background, foreground
-        
-        elif module == "diaries":
-            return autosave, format, highlight
+            
+            highlight = "#376296"
+                   
+        return autosave, format, background, foreground, highlight
             
     def saveModuleSettings(self, module: str, autosave: str | None, format: str | None, background: str | None, foreground: str | None, highlight: str | None) -> bool:
         if module == "notes" or module == "diaries":
@@ -136,36 +138,20 @@ class SettingsDB:
         if module == "diaries":
             self.cur.execute(f"update __main__ set value = '{highlight}' where setting = '{module}-highlight'")
             self.db.commit()
+        
+        call_autosave, call_format, call_background, call_foreground, call_highlight = self.getModuleSettings(module)
             
         if module == "notes":
-            call_autosave, call_format, call_background, call_foreground = self.getModuleSettings(module)
-            
-            if call_autosave == autosave and call_format == format and call_background == background and call_foreground == foreground:
-                return True
-            else:
-                return False
+            return call_autosave == autosave and call_format == format and call_background == background and call_foreground == foreground
             
         elif module == "todos":
-            call_background, call_foreground = self.getModuleSettings(module)
-            
-            if call_background == background and call_foreground == foreground:
-                return True
-            else:
-                return False
+            return call_background == background and call_foreground == foreground
             
         elif module == "diaries":
-            call_autosave, call_format, call_highlight = self.getModuleSettings(module)
-            
-            if call_autosave == autosave and call_format == format and call_highlight == highlight:
-                return True
-            else:
-                return False
+            return call_autosave == autosave and call_format == format and call_highlight == highlight
         
         
 settingsdb = SettingsDB()
-if not settingsdb.createTable():
-    print("[2] Failed to create table")
-    sys.exit(2)
     
 
 class SettingsWidget(QWidget):
@@ -407,7 +393,7 @@ class SettingsPage(QWidget):
             call = settingsdb.saveModuleSettings(self.module, None, None, "default", "default", None)
         
         elif self.module == "diaries":
-            call = settingsdb.saveModuleSettings(self.module, "enabled", "markdown", None, None, "default")
+            call = settingsdb.saveModuleSettings(self.module, "enabled", "markdown", None, None, "#376296")
         
         if call:
             self.setSettingsFromDB()
@@ -481,7 +467,7 @@ class SettingsPage(QWidget):
             _("Select Highlight Color")).getColor()
         
         if ok:
-            self.highlight = qcolor.name() if status == "new" else "default"
+            self.highlight = qcolor.name() if status == "new" else "#376296"
                     
             self.highlight_button.setText(_("Select color (it is {color})")
                                            .format(color = _("default") if self.highlight == "default" else self.highlight))
@@ -491,14 +477,7 @@ class SettingsPage(QWidget):
         self.parent_.list.setCurrentRow(self.index)
         
     def setSettingsFromDB(self) -> None:
-        if self.module == "notes":
-            self.autosave, self.format, self.background, self.foreground = settingsdb.getModuleSettings("notes")
-            
-        elif self.module == "todos":
-            self.background, self.foreground = settingsdb.getModuleSettings("todos")
-            
-        elif self.module == "diaries":
-            self.autosave, self.format, self.highlight = settingsdb.getModuleSettings("diaries")
+        self.autosave, self.format, self.background, self.foreground, self.highlight = settingsdb.getModuleSettings(self.module)
         
         if self.module == "notes" or self.module == "diaries":    
             if self.autosave == "enabled":
@@ -510,8 +489,10 @@ class SettingsPage(QWidget):
         
             if self.format == "plain-text":
                 self.format_combobox.setCurrentIndex(0)
+                
             elif self.format == "markdown":
                 self.format_combobox.setCurrentIndex(1)
+                
             elif self.format == "html":
                 self.format_combobox.setCurrentIndex(2)
         
