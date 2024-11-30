@@ -1,13 +1,14 @@
-# Nottodbox (pre-alpha)
+# Nottodbox
 
 <p align="center"><img src="./data/io.github.mukonqi.nottodbox.png" alt="Icon of Nottodbox"></img></a></p>
 <p align="center"><img src="https://img.shields.io/badge/Organize_notes,_to--dos_and_diaries-376296" alt="Organize notes, to-dos and diaries"></img></p>
-<p align="center"><img src="https://img.shields.io/github/downloads/mukonqi/nottodbox/total?label=Downloads" alt="Count of Downloads"></img></p>
-<p align="center"><img src="https://img.shields.io/github/v/release/mukonqi/nottodbox?label=Latest Release" alt="Latest Release"></p>
+<p align="center"><img src="https://img.shields.io/github/downloads/mukonqi/nottodbox/total?label=Downloads" alt="Downloads"></img></p>
+<p align="center"><img src="https://img.shields.io/github/v/release/mukonqi/nottodbox?label=Release" alt="Release"></p>
 
 
 ## Features
 ### Sidebar
+> Quickly navigate document pages.
 - A entry for searching in lists
 - A list for open pages (when double-clicked it opens or focuses selected)
 - A list for history (when double-clicked it opens or focuses selected)
@@ -16,63 +17,82 @@
 - Remember's it's status (visible / invisible), area in window (left / right), mode (fixed / floating)
 
 ### Home
+> See some important things in startup.
 - A shortcut for keeping today's diary and focusing to it (optional)
 - Listing to-dos
 - Listing notes
 
 ### Notes
+> Take notes.
 - Two labels for showing selected notebook and note
 - A entry for searching in list
 - Listing notes
-- For a notebooks:
-    - Creating
-    - Setting background color
-    - Setting text color
+- When a notebook selected:
+    - Creating notebook
+    - Creating note
+    - Resetting
     - Renaming
     - Resetting 
     - Deleting
     - Deleting all
-- For a note:
-    - Creating
-    - Opening
     - Setting background color
     - Setting text color
-    - Renaming
+- When a note selected:
+    - Creating notebook
+    - Creating note
+    - Opening
     - Showing backup (manuel saves updates backups but auto-saves not)
     - Restoring content via backup (old content will be new backup)
     - Clearing content (old content will be new backup)
+    - Renaming
     - Deleting
+    - Deleting all
+    - Setting background color
+    - Setting text color
 
 ### To-dos
+> Make to-do lists.
 - A entry for searcing in list
 - Two labels for showing selected notebook and note
 - Listing to-dos
-- For a to-do list:
-    - Creating
-    - Setting background color
-    - Setting text color
-    - Renaming
+- When a to-do list selected:
+    - Creating notebook
+    - Creating note
     - Resetting
+    - Renaming
+    - Resetting 
     - Deleting
     - Deleting all
-- For a to-do:
-    - Creating
-    - Changing
-    - Editing
+    - Setting background color
+    - Setting text color
+- When a to-do selected:
+    - Creating notebook
+    - Creating note
+    - Changing status
+    - Renaming
+    - Resetting 
     - Deleting
+    - Deleting all
+    - Setting background color
+    - Setting text color
 
 ### Diaries
+> Keep diaries.
 - A label for showing modification information
-- A calendar for selecting and highlighting
+- A calendar for selecting a diary and highlighting it
 - A shortcut for coming back to today
-- Refreshing today information
-- Opening a diary, if does not keeped yet create a it
-- Showing backup (manuel saves updates backups but auto-saves not)
-- Restoring content via backup (old content will be new backup)
-- Clearing content (old content will be new backup)
-- Deleting
+- When a diary selected:
+    - Opening, if does not created yet create it
+    - Showing backup (manuel saves updates backups but auto-saves not)
+    - Restoring content via backup (old content will be new backup)
+    - Clearing content (old content will be new backup)
+    - Renaming
+    - Deleting
+    - Deleting all
+    - Setting highlight color
 
-### Note and Diary Pages
+### Documents
+> Easily edit documents in a style.
 - Text formatter (plain-text format does not supported):
     - Formatting selected section via cursor or word uncer cursor
     - Format options:
@@ -89,13 +109,44 @@
         - Background color (only for HTML format)
 - Standart Qt's text edit box with opening links support
 - Manuel saving
-    - For triggering, user must click the "Save" button or accept the warning question when closing a document.
-    - This can change backups except if old diary pages.
+    - For triggering, click the "Save" button or accept the warning question when closing a document.
+    - This can change backups except outdated diaries.
 - Auto-saving
     - This triggered when the document content's changes.
     - This is disabled and can't be enabled for old diaries.
     - This can't change backups.
 - Format options (plain-text, Markdown and HTML)
+
+### Settings
+> Change global settings.
+- For notes:
+    - Setting auto-save
+    - Setting format
+    - Setting background color
+    - Setting foreground color
+- For todos:
+    - Setting background color
+    - Setting foreground color
+- For diaries:
+    - Setting auto-save
+    - Setting format
+    - Setting highlight color
+
+
+### About
+> See some informations about Nottodbox.
+- The icon and application name
+- Version
+- Commit
+- Link source codes
+- Developer
+- Copyright notification
+- License
+- License text
+
+
+## Installing
+TBA
 
 
 ## Building
@@ -118,10 +169,6 @@
     ninja -C builddir
     ninja -C builddir install
 ```
-
-
-## Installing
-TBA
 
 
 ## Disclaimer
