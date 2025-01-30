@@ -4,7 +4,7 @@
 
 # Nottodbox (io.github.mukonqi.nottodbox)
 
-# Copyright (C) 2024-2025MuKonqi (Muhammed S.)
+# Copyright (C) 2024-2025 Mukonqi (Muhammed S.)
 
 # Nottodbox is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
