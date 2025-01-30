@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-# Copyright (C) 2024 MuKonqi (Muhammed S.)
+# Copyright (C) 2024-2025MuKonqi (Muhammed S.)
 
 # Nottodbox is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -23,11 +23,12 @@ from PySide6.QtCore import Slot
 from PySide6.QtWidgets import *
 from databases.lists import DBForLists
 from widgets.others import HSeperator, PushButton
-from widgets.options import HomePageForLists, OptionsBaseForLists 
+from widgets.options import HomePageForLists, OptionsForLists 
 
 
 username = getpass.getuser()
-userdata = f"/home/{username}/.config/nottodbox/"
+userdata = f"/home/{username}/.config/io.github.mukonqi/nottodbox/"
+
 
 class TodosDB(DBForLists):
     file = "todos.db"
@@ -136,12 +137,15 @@ class TodosHomePage(HomePageForLists):
         self.child_options = TodosChildOptions(self)
         self.child_options.setVisible(False)
         
+    def refreshSettings(self) -> None:
+        self.refreshSettingsForLists()
+        
     @Slot(str, str)
     def shortcutEvent(self, name: str, table: str = "__main__") -> None:
         self.child_options.changeStatus(False, name, table)
         
         
-class TodosChildOptions(OptionsBaseForLists):
+class TodosChildOptions(OptionsForLists):
     def __init__(self, parent):
         super().__init__(parent, "todos", todosdb)
         

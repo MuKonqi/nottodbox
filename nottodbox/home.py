@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-# Copyright (C) 2024 MuKonqi (Muhammed S.)
+# Copyright (C) 2024-2025MuKonqi (Muhammed S.)
 
 # Nottodbox is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -19,16 +19,15 @@
 import getpass
 import subprocess
 from gettext import gettext as _
-from PySide6.QtCore import Slot, QDate
+from PySide6.QtCore import Slot, QDate, QSettings
 from PySide6.QtWidgets import *
-from diaries import diariesdb
 from widgets.lists import TreeView
 from widgets.others import HSeperator, Label, PushButton
 from widgets.pages import NormalPage
 
 
 username = getpass.getuser()
-userdata = f"/home/{username}/.config/nottodbox/"
+userdata = f"/home/{username}/.config/io.github.mukonqi/nottodbox/"
 username = str(subprocess.run("getent passwd $LOGNAME | cut -d: -f5 | cut -d, -f1", shell=True, capture_output=True)
                .stdout).removeprefix("b'").removesuffix("\\n'")
     
@@ -36,10 +35,8 @@ today = QDate.currentDate()
 
 
 class HomeWidget(QWidget):
-    def __init__(self, parent: QMainWindow, todos, notes, format: str, autosave: str):
+    def __init__(self, parent: QMainWindow, todos, notes, diaries):
         super().__init__(parent)
-        
-        self.focused_to_diary = False
         
         self.layout_ = QVBoxLayout(self)
         
@@ -49,7 +46,7 @@ class HomeWidget(QWidget):
         self.diary_button = PushButton(self, _("Focus to Diary for Today"))
         self.diary_button.clicked.connect(self.focusToDiary)
         
-        self.diary = NormalPage(self, "diaries", diariesdb, format, autosave, today.toString("dd.MM.yyyy"))
+        self.diary = NormalPage(self, "diaries", diaries.db, diaries.format, diaries.autosave, today.toString("dd.MM.yyyy"))
         
         self.todos_seperator = HSeperator(self)
         
@@ -62,6 +59,17 @@ class HomeWidget(QWidget):
         self.notes_label = Label(self, _("List of Notes"))
         
         self.notes = TreeView(notes, "home", notes.db, False, notes.treeview.model_)
+        
+        self.qsettings = QSettings("io.github.mukonqi", "nottodbox")
+        
+        self.focused_to_diary = self.qsettings.value("home/focused-to-diary")
+        
+        if self.focused_to_diary is None:
+            self.qsettings.setValue("home/focused-to-diary", "false")
+            
+            self.focused_to_diary = "false"
+            
+        self.focusToDiary(True)
         
         self.setLayout(self.layout_)
         self.layout_.addWidget(self.label_welcome)
@@ -76,20 +84,21 @@ class HomeWidget(QWidget):
         self.layout_.addWidget(self.notes)
     
     @Slot()
-    def focusToDiary(self) -> None:
-        if self.focused_to_diary:
-            self.todos_seperator.setVisible(True)
-            self.todos_label.setVisible(True)
-            self.todos.setVisible(True)
-            self.notes_seperator.setVisible(True)
-            self.notes_label.setVisible(True)
-            self.notes.setVisible(True)
+    def focusToDiary(self, inverted: bool = False) -> None:        
+        if inverted and self.focused_to_diary == "true":
+            self.focusToDiaryBase(True)
             
-            self.diary_button.setText(_("Focus to Diary for Today"))
+        elif inverted and self.focused_to_diary == "false":
+            self.focusToDiaryBase(False)
             
-            self.focused_to_diary = False
+        elif not inverted and self.focused_to_diary == "true":
+            self.focusToDiaryBase(False)
             
-        else:
+        elif not inverted and self.focused_to_diary == "false":
+            self.focusToDiaryBase(True)
+        
+    def focusToDiaryBase(self, focus: bool) -> None:
+        if focus:
             self.todos_seperator.setVisible(False)
             self.todos_label.setVisible(False)
             self.todos.setVisible(False)
@@ -99,4 +108,20 @@ class HomeWidget(QWidget):
             
             self.diary_button.setText(_("Finish Focusing of Diary for Today"))
             
-            self.focused_to_diary = True
+            self.focused_to_diary = "true"
+            
+            self.qsettings.setValue("home/focused-to-diary", "true")
+            
+        else:
+            self.todos_seperator.setVisible(True)
+            self.todos_label.setVisible(True)
+            self.todos.setVisible(True)
+            self.notes_seperator.setVisible(True)
+            self.notes_label.setVisible(True)
+            self.notes.setVisible(True)
+            
+            self.diary_button.setText(_("Focus to Diary for Today"))
+            
+            self.focused_to_diary = "false"
+            
+            self.qsettings.setValue("home/focused-to-diary", "false")

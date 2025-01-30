@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-# Copyright (C) 2024 MuKonqi (Muhammed S.)
+# Copyright (C) 2024-2025MuKonqi (Muhammed S.)
 
 # Nottodbox is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,142 +16,88 @@
 # along with Nottodbox.  If not, see <https://www.gnu.org/licenses/>.
 
 
-import sys
-import getpass
-import sqlite3
 from gettext import gettext as _
-from PySide6.QtCore import Slot, Qt
+from PySide6.QtCore import Slot, Qt, QSettings
 from PySide6.QtGui import QColor
 from PySide6.QtWidgets import *
 from widgets.dialogs import ColorDialog
 from widgets.others import HSeperator, PushButton, VSeperator
 
 
-username = getpass.getuser()
-userdata = f"/home/{username}/.config/nottodbox/"
-
-
-class SettingsDB:
+class Settings(QSettings):
     def __init__(self) -> None:
-        self.db = sqlite3.connect(f"{userdata}settings.db")
-        self.cur = self.db.cursor()
+        super().__init__("io.github.mukonqi", "nottodbox")
         
-        self.createTable()
+        values_ = self.get()
         
-    def checkIfTheTableExists(self) -> bool:
-        try:
-            self.cur.execute(f"select * from __main__")
-            return True
-        
-        except sqlite3.OperationalError:
-            return False
-        
-    def createTable(self) -> bool:
-        self.cur.execute("""
-                         CREATE TABLE IF NOT EXISTS __main__ (
-                             setting TEXT NOT NULL PRIMARY KEY,
-                             value TEXT NOT NULL);
-                             """)
-        self.db.commit()
-        
-        check = self.checkIfTheTableExists()
-        
-        if not check:
-            print("[2] Failed to create main table for settings.db")
-            exit(2)
-            
-        return check
+        for values in values_:
+            if values == [] and not self.reset():
+                print("[2] Failed to set configuration file")
+                exit(2)
     
-    def getModuleSettings(self, module: str) -> tuple[str, str, str, str, str]:
-        try:
-            self.cur.execute(f"select value from __main__ where setting = '{module}-autosave'")
-            autosave = str(self.cur.fetchone()[0])
-
-        except TypeError:
-            if module == "notes" or module == "diaries":
-                self.cur.execute(f"insert into __main__ (setting, value) values ('{module}-autosave', 'enabled')")
-                self.db.commit()
+    def get(self, module_: str | None = None) -> list[str] | list[list[str]]:
+        if module_ is None:
+            values = []
+            
+            for module in ["notes", "todos", "diaries"]:
+                values.append(self.getBase(module))
                 
-            autosave = "enabled"
+            return values
         
-        try:
-            self.cur.execute(f"select value from __main__ where setting = '{module}-format'")
-            format = str(self.cur.fetchone()[0])
+        else:
+            return self.getBase(module_)
 
-        except TypeError:
-            if module == "notes" or module == "diaries":
-                self.cur.execute(f"insert into __main__ (setting, value) values ('{module}-format', 'markdown')")
-                self.db.commit()
+    def getBase(self, module: str) -> list[str]:
+        self.beginGroup(module)
+        
+        values = []
+        
+        for key in self.allKeys():
+            values.append(self.value(key))
+        
+        self.endGroup()
+        
+        return values
+    
+    def reset(self, module_: str | None = None) -> bool:
+        if module_ is None:
+            successful = True
+            
+            for module in ["notes", "todos", "diaries"]:
+                if not self.resetBase(module):
+                    successful = False
                 
-            format = "markdown"
-                
-        try:
-            self.cur.execute(f"select value from __main__ where setting = '{module}-background'")
-            background = str(self.cur.fetchone()[0])
-
-        except TypeError:
-            if module == "notes" or module == "todos":
-                self.cur.execute(f"insert into __main__ (setting, value) values ('{module}-background', 'default')")
-                self.db.commit()
-                
-            background = "default"
+            return successful
         
-        try:
-            self.cur.execute(f"select value from __main__ where setting = '{module}-foreground'")
-            foreground = str(self.cur.fetchone()[0])
-
-        except TypeError:
-            if module == "notes" or module == "todos":
-                self.cur.execute(f"insert into __main__ (setting, value) values ('{module}-foreground', 'default')")
-                self.db.commit()
-            
-            foreground = "default"
+        else:
+            return self.resetBase(module_)
         
-        try:
-            self.cur.execute(f"select value from __main__ where setting = '{module}-highlight'")
-            highlight = str(self.cur.fetchone()[0])
-
-        except TypeError:
-            if module == "diaries":
-                self.cur.execute(f"insert into __main__ (setting, value) values ('{module}-highlight', '#376296')")
-                self.db.commit()
-            
-            highlight = "#376296"
-                   
-        return autosave, format, background, foreground, highlight
-            
-    def saveModuleSettings(self, module: str, autosave: str | None, format: str | None, background: str | None, foreground: str | None, highlight: str | None) -> bool:
-        if module == "notes" or module == "diaries":
-            self.cur.execute(f"update __main__ set value = '{autosave}' where setting = '{module}-autosave'")
-            self.db.commit()
-            
-            self.cur.execute(f"update __main__ set value = '{format}' where setting = '{module}-format'")
-            self.db.commit()
-            
-        if module == "notes" or module == "todos":
-            self.cur.execute(f"update __main__ set value = '{background}' where setting = '{module}-background'")
-            self.db.commit()
-            
-            self.cur.execute(f"update __main__ set value = '{foreground}' where setting = '{module}-foreground'")
-            self.db.commit()
-
-        if module == "diaries":
-            self.cur.execute(f"update __main__ set value = '{highlight}' where setting = '{module}-highlight'")
-            self.db.commit()
-        
-        call_autosave, call_format, call_background, call_foreground, call_highlight = self.getModuleSettings(module)
-            
+    def resetBase(self, module: str) -> bool:
         if module == "notes":
-            return call_autosave == autosave and call_format == format and call_background == background and call_foreground == foreground
-            
+            return self.set(module, "enabled", "default", "default", "markdown", "")
+        
         elif module == "todos":
-            return call_background == background and call_foreground == foreground
-            
+            return self.set(module, "", "default", "default", "", "")
+        
         elif module == "diaries":
-            return call_autosave == autosave and call_format == format and call_highlight == highlight
+            return self.set(module, "enabled", "", "", "markdown", "#376296")
+    
+    def set(self, module: str, autosave: str, background: str, foreground: str, format: str, highlight: str) -> bool:
+        values = locals()
+        values.pop("self")
+        values.pop("module")
+        
+        self.beginGroup(module)
+        
+        for key, value in values.items():
+            self.setValue(key, value)
+
+        self.endGroup()
+        
+        return self.getBase(module) == list(values.values())
         
         
-settingsdb = SettingsDB()
+settings = Settings()
     
 
 class SettingsWidget(QWidget):
@@ -356,19 +302,30 @@ class SettingsPage(QWidget):
                 return False
         
         if self.module == "notes":
-            call = settingsdb.saveModuleSettings(
-                self.module, self.autosave, self.format, self.background, self.foreground, None)
+            call = settings.set(self.module, self.autosave, self.background, self.foreground, self.format, "")
         
         elif self.module == "todos":
-            call = settingsdb.saveModuleSettings(
-                self.module, None, None, self.background, self.foreground, None)
+            call = settings.set(self.module, "", self.background, self.foreground, self.format, "")
         
         elif self.module == "diaries":
-            call = settingsdb.saveModuleSettings(
-                self.module, self.autosave, self.format, None, None, self.highlight)
+            call = settings.set(self.module, self.autosave, "", "", self.format, self.highlight)
         
         if call:
             self.target.refreshSettings()
+            
+            if self.module == "diaries":
+                if self.parent_.parent_.home.diary.call_format == "global":
+                    self.parent_.parent_.home.diary.format = self.format
+                    self.parent_.parent_.home.diary.formatter.updateStatus(self.format)
+                    
+                self.parent_.parent_.home.diary.format_combobox.setItemText(0, "{} {}".format(_("Format:"), _("Follow global ({setting})")
+                                                                                              .format(setting = self.parent_.parent_.home.diary.prettyFormat(self.format))))
+                
+                if self.parent_.parent_.home.diary.call_autosave == "global":
+                    self.parent_.parent_.home.diary.autosave = self.autosave
+                    
+                self.parent_.parent_.home.diary.autosave_combobox.setItemText(0, "{} {}".format(_("Auto-save:"), _("Follow global ({setting})")
+                                                                                                .format(setting = self.parent_.parent_.home.diary.prettyAutosave(self.autosave))))
             
             if messages:
                 QMessageBox.information(self.parent_, _("Successful"), _("New settings are applied."))
@@ -386,16 +343,7 @@ class SettingsPage(QWidget):
             if not self.askFormatChange(True):
                 return False
         
-        if self.module == "notes":
-            call = settingsdb.saveModuleSettings(self.module, "enabled", "markdown", "default", "default", None)
-        
-        elif self.module == "todos":
-            call = settingsdb.saveModuleSettings(self.module, None, None, "default", "default", None)
-        
-        elif self.module == "diaries":
-            call = settingsdb.saveModuleSettings(self.module, "enabled", "markdown", None, None, "#376296")
-        
-        if call:
+        if settings.reset(self.module):
             self.setSettingsFromDB()
                 
             self.target.refreshSettings()
@@ -477,7 +425,7 @@ class SettingsPage(QWidget):
         self.parent_.list.setCurrentRow(self.index)
         
     def setSettingsFromDB(self) -> None:
-        self.autosave, self.format, self.background, self.foreground, self.highlight = settingsdb.getModuleSettings(self.module)
+        self.autosave, self.background, self.foreground, self.format, self.highlight = settings.get(self.module)
         
         if self.module == "notes" or self.module == "diaries":    
             if self.autosave == "enabled":

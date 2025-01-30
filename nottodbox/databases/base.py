@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-# Copyright (C) 2024 MuKonqi (Muhammed S.)
+# Copyright (C) 2024-2025MuKonqi (Muhammed S.)
 
 # Nottodbox is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@ import sqlite3
 
 
 username = getpass.getuser()
-userdata = f"/home/{username}/.config/nottodbox/"
+userdata = f"/home/{username}/.config/io.github.mukonqi/nottodbox/"
 
 
 class DBBase:
@@ -30,7 +30,7 @@ class DBBase:
     widget = None
     
     def __init__(self) -> None:
-        self.db = sqlite3.connect(f"{userdata}{self.file}")
+        self.db = sqlite3.connect(f"{userdata}{self.file}", check_same_thread=False)
         self.cur = self.db.cursor()
         
         self.createMainTable()

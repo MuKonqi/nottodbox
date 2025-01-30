@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-# Copyright (C) 2024 MuKonqi (Muhammed S.)
+# Copyright (C) 2024-2025MuKonqi (Muhammed S.)
 
 # Nottodbox is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -20,8 +20,7 @@ from gettext import gettext as _
 from PySide6.QtCore import Slot, QDate
 from PySide6.QtGui import QColor
 from PySide6.QtWidgets import *
-from settings import settingsdb
-from databases.base import DBBase
+from settings import settings
 from .dialogs import ColorDialog, GetDateDialog
 from .lists import TreeView
 from .others import Action, HSeperator, Label, VSeperator, PushButton
@@ -38,6 +37,9 @@ class TabWidget(QTabWidget):
         self.backups = {}
         self.pages = {}
         
+        self.current_index = 0
+        self.last_closed = None
+        
         self.setTabsClosable(True)
         self.setMovable(True)
         self.setDocumentMode(True)
@@ -45,6 +47,7 @@ class TabWidget(QTabWidget):
         self.setUsesScrollButtons(True)
         
         self.tabCloseRequested.connect(self.closeTab)
+        self.currentChanged.connect(self.tabChanged)
         
     @Slot(int)
     def closeTab(self, index: int) -> None:
@@ -52,37 +55,35 @@ class TabWidget(QTabWidget):
             if index != self.indexOf(self.home):           
                 page = self.tabText(index).replace("&", "")
                     
-                try:
-                    if self.module == "notes":
-                        name, table = str(page).split(" @ ")
+                if self.module == "notes":
+                    name, table = str(page).split(" @ ")
+                
+                elif self.module == "diaries":
+                    name = page
+                    table = "__main__"
+                
+                if not self.pages[(name, table)].closable:
+                    self.question = QMessageBox.question(self, 
+                                                        _("Question"),
+                                                        _("{item} not saved.\nWhat would you like to do?")
+                                                        .format(item = _("{name} note" if self.module == "notes" else "{name} diary").format(name = name)),
+                                                        QMessageBox.StandardButton.Save | QMessageBox.StandardButton.Discard | QMessageBox.StandardButton.Cancel,
+                                                        QMessageBox.StandardButton.Save)
                     
-                    elif self.module == "diaries":
-                        name = page
-                        table = "__main__"
-                    
-                    if not self.pages[(name, table)].closable:
-                        self.question = QMessageBox.question(self, 
-                                                            _("Question"),
-                                                            _("{item} not saved.\nWhat would you like to do?")
-                                                            .format(item = _("{name} note" if self.module == "notes" else "{name} diary").format(name = name)),
-                                                            QMessageBox.StandardButton.Save | QMessageBox.StandardButton.Discard | QMessageBox.StandardButton.Cancel,
-                                                            QMessageBox.StandardButton.Save)
-                        
-                        if self.question == QMessageBox.StandardButton.Save:
-                            if not self.pages[(name, table)].saveChild():
-                                return
-                        
-                        elif self.question != QMessageBox.StandardButton.Discard:
-                            return
-                        
-                    if self.module == "diaries" and QDate.fromString(name, "dd.MM.yyyy") != QDate.currentDate():
-                        if not self.pages[(name, table)].setBackup():
+                    if self.question == QMessageBox.StandardButton.Save:
+                        if not self.pages[(name, table)].saver.saveChild():
                             return
                     
-                    del self.pages[(name, table)]
+                    elif self.question != QMessageBox.StandardButton.Discard:
+                        return
                     
-                except KeyError:
-                    pass
+                if self.module == "diaries" and QDate.fromString(name, "dd.MM.yyyy") != QDate.currentDate():
+                    if not self.pages[(name, table)].setBackup():
+                        return
+                    
+                self.last_closed = self.pages[(name, table)]
+                
+                del self.pages[(name, table)]
                 
                 if not hasattr(self, "closable"):
                     self.closable = True
@@ -95,10 +96,28 @@ class TabWidget(QTabWidget):
                         self.parent_.dock.widget().open_pages.deletePage(self.module, name)
                                             
                 self.removeTab(index)
+                
+    @Slot(int)
+    def tabChanged(self, index: int) -> None:
+        if index != self.current_index:
+            old_widget = self.widget(self.current_index)
+            
+            if old_widget is None:
+                old_widget = self.last_closed
+            
+            if old_widget != self.home:
+                old_widget.saver_thread.quit()
+                
+            new_widget = self.widget(index)
+            
+            if new_widget != self.home:
+                new_widget.saver_thread.start()
+            
+            self.current_index = index
             
 
 class HomePage(QWidget):
-    def __init__(self, parent: TabWidget | QMainWindow, module: str, db: DBBase):
+    def __init__(self, parent: TabWidget | QMainWindow, module: str, db):
         super().__init__(parent)
         
         self.parent_ = parent
@@ -122,13 +141,14 @@ class HomePage(QWidget):
         self.layout_ = QGridLayout(self)
         self.setLayout(self.layout_)
         self.appendAll()
-        self.refreshSettings()
+        
+        self.refreshSettingsBase()
         
     def appendAll(self) -> None:
         pass
         
-    def refreshSettings(self) -> None:
-        self.autosave, self.format, self.background, self.foreground, self.highlight = settingsdb.getModuleSettings(self.module)
+    def refreshSettingsBase(self) -> None:
+        self.autosave, self.background, self.foreground, self.format, self.highlight = settings.get(self.module)
         
     def returnPretty(self, name: str, table: str) -> str:
         if self.module == "notes":
@@ -153,10 +173,29 @@ class HomePage(QWidget):
     @Slot(str, str)
     def shortcutEvent(self, name: str, table: str = "__main__") -> None:
         pass
+    
+    
+class HomePageForDocuments(HomePage):    
+    def refreshSettingsForDocuments(self) -> None:
+        self.refreshSettingsBase()
+        
+        for page in list(self.parent_.pages.values()):
+            if page.call_format == "global":
+                page.format = self.format
+                page.formatter.updateStatus(self.format)
+                
+            page.format_combobox.setItemText(0, "{} {}".format(_("Format:"), _("Follow global ({setting})")
+                                                               .format(setting = page.prettyFormat(self.format))))
+            
+            if page.call_autosave == "global":
+                page.autosave = self.autosave
+                
+            page.autosave_combobox.setItemText(0, "{} {}".format(_("Auto-save:"), _("Follow global ({setting})")
+                                                                 .format(setting = page.prettyAutosave(self.autosave))))
         
         
 class HomePageForLists(HomePage):
-    def __init__(self, parent: TabWidget, module: str, db: DBBase) -> None:
+    def __init__(self, parent: TabWidget, module: str, db) -> None:
         super().__init__(parent, module, db)
         
         db.widget = self
@@ -226,6 +265,13 @@ class HomePageForLists(HomePage):
         elif self.module == "todos":
             return _("to-do list")
         
+    def refreshSettingsForLists(self) -> None:
+        self.refreshSettingsBase()
+        
+        self.treeview.deleteAll()
+        self.treeview.setIndex("", "")
+        self.treeview.appendAll()
+        
     @Slot(str, str)
     def setOptionWidget(self, name: str = "", table: str = "") -> None:
         super().setSelectedItem(name, table)
@@ -260,8 +306,8 @@ class HomePageForLists(HomePage):
         self.child_selected.setText("{}: ".format(self.localizedChild().title()) + name)
     
     
-class OptionsBase(QWidget):
-    def __init__(self, parent: HomePage | HomePageForLists, module: str, db: DBBase) -> None:
+class Options(QWidget):
+    def __init__(self, parent: HomePage | HomePageForLists, module: str, db) -> None:
         super().__init__(parent)
         
         self.parent_ = parent
@@ -516,8 +562,8 @@ class OptionsBase(QWidget):
         return False, "", "", ""
                 
 
-class OptionsBaseForDocuments(OptionsBase):
-    def __init__(self, parent: HomePage | HomePage, module: str, db: DBBase):
+class OptionsForDocuments(Options):
+    def __init__(self, parent: HomePage | HomePage, module: str, db):
         super().__init__(parent, module, db)
         
         self.open_button = PushButton(self, _("Open"))
@@ -612,8 +658,8 @@ class OptionsBaseForDocuments(OptionsBase):
             self.parent_.parent_.parent_.tabwidget.setCurrentWidget(self.parent_.parent_)
                     
     
-class OptionsBaseForLists(OptionsBase):
-    def __init__(self, parent: HomePage | HomePageForLists, module: str, db: DBBase):
+class OptionsForLists(Options):
+    def __init__(self, parent: HomePage | HomePageForLists, module: str, db):
         super().__init__(parent, module, db)
         
         self.create_child_button = PushButton(self, _("Create {}")
@@ -776,8 +822,8 @@ class OptionsBaseForLists(OptionsBase):
                                         .format(item = self.localizedItem(name, table)))
                     
 
-class NoneOptions(OptionsBaseForLists):
-    def __init__(self, parent: HomePageForLists, module: str, db: DBBase) -> None:
+class NoneOptions(OptionsForLists):
+    def __init__(self, parent: HomePageForLists, module: str, db) -> None:
         super().__init__(parent, module, db)
         
         self.delete_button.setVisible(False)
@@ -797,8 +843,8 @@ class NoneOptions(OptionsBaseForLists):
         self.layout_.addWidget(self.delete_all_button)
 
 
-class ParentOptions(OptionsBaseForLists):
-    def __init__(self, parent: HomePageForLists, module: str, db: DBBase) -> None:
+class ParentOptions(OptionsForLists):
+    def __init__(self, parent: HomePageForLists, module: str, db) -> None:
         super().__init__(parent, module, db)
         
         self.reset_button = PushButton(self, _("Reset"))

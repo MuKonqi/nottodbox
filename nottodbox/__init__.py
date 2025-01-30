@@ -4,7 +4,7 @@
 
 # Nottodbox (io.github.mukonqi.nottodbox)
 
-# Copyright (C) 2024 MuKonqi (Muhammed S.)
+# Copyright (C) 2024-2025MuKonqi (Muhammed S.)
 
 # Nottodbox is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -61,9 +61,9 @@ args = parser.parse_args()
 
 
 username = getpass.getuser()
-userdata = f"/home/{username}/.config/nottodbox/"
+userdata = f"/home/{username}/.config/io.github.mukonqi/nottodbox"
 if not os.path.isdir(userdata):
-    os.mkdir(userdata)
+    os.makedirs(userdata)   
 
 
 sys.path.insert(1, '@APPDIR@')

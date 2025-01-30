@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-# Copyright (C) 2024 MuKonqi (Muhammed S.)
+# Copyright (C) 2024-2025MuKonqi (Muhammed S.)
 
 # Nottodbox is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -24,16 +24,16 @@ from PySide6.QtWidgets import *
 from databases.documents import DBForDocuments
 from databases.lists import DBForLists
 from widgets.others import Action, HSeperator
-from widgets.options import TabWidget, HomePageForLists, OptionsBaseForDocuments, OptionsBaseForLists
+from widgets.options import TabWidget, HomePageForDocuments, HomePageForLists, OptionsForDocuments, OptionsForLists
 
 
 username = getpass.getuser()
-userdata = f"/home/{username}/.config/nottodbox/"
+userdata = f"/home/{username}/.config/io.github.mukonqi/nottodbox/"
 
 
 class NotesDB(DBForDocuments, DBForLists):
     file = "notes.db"
-    widget = HomePageForLists
+    widget = HomePageForDocuments | HomePageForLists
         
     def createChild(self, name: str, table: str) -> bool:
         date = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
@@ -140,19 +140,23 @@ class NotesTabWidget(TabWidget):
         self.addTab(self.home, _("Home"))
         
 
-class NotesHomePage(HomePageForLists):
+class NotesHomePage(HomePageForDocuments, HomePageForLists):
     def __init__(self, parent: NotesTabWidget):
         super().__init__(parent, "notes", notesdb)
         
         self.child_options = NotesChildOptions(self)
         self.child_options.setVisible(False)
         
+    def refreshSettings(self) -> None:
+        self.refreshSettingsForDocuments()
+        self.refreshSettingsForLists()
+        
     @Slot(str, str)
     def shortcutEvent(self, name: str, table: str = "__main__") -> None:
         self.child_options.open(False, name, table)
         
 
-class NotesChildOptions(OptionsBaseForDocuments, OptionsBaseForLists):
+class NotesChildOptions(OptionsForDocuments, OptionsForLists):
     def __init__(self, parent: NotesHomePage):
         super().__init__(parent, "notes", notesdb)
         

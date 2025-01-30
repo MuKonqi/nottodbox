@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-# Copyright (C) 2024 MuKonqi (Muhammed S.)
+# Copyright (C) 2024-2025MuKonqi (Muhammed S.)
 
 # Nottodbox is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,7 +17,6 @@
 
 
 import getpass
-import os
 import sqlite3
 from gettext import gettext as _
 from PySide6.QtGui import QStandardItemModel
@@ -28,9 +27,7 @@ from widgets.others import HSeperator, Label, PushButton
 
 
 username = getpass.getuser()
-userdata = f"/home/{username}/.config/nottodbox/"
-if not os.path.isdir(userdata):
-    os.mkdir(userdata)
+userdata = f"/home/{username}/.config/io.github.mukonqi/nottodbox/"
 
 
 class SidebarDB:
@@ -214,7 +211,7 @@ class SidebarTreeView(QTreeView):
     def doubleClickEvent(self, module: str, page: str) -> None:
         if module == "notes":
             name, notebook = str(page).split(" @ ")
-            self.parent_.notes.treeview.doubleClickEvent(name, notebook)
+            self.parent_.notes.home.shortcutEvent(name, notebook)
             
         elif module == "diaries":
             self.parent_.diaries.home.shortcutEvent(page)

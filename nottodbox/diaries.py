@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-# Copyright (C) 2024 MuKonqi (Muhammed S.)
+# Copyright (C) 2024-2025MuKonqi (Muhammed S.)
 
 # Nottodbox is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -27,18 +27,18 @@ from PySide6.QtGui import QMouseEvent, QPainter, QColor
 from PySide6.QtWidgets import *
 from databases.documents import DBForDocuments
 from widgets.dialogs import ColorDialog
-from widgets.options import TabWidget, HomePage, OptionsBaseForDocuments
+from widgets.options import TabWidget, HomePageForDocuments, OptionsForDocuments
 from widgets.others import Action, HSeperator, Label, PushButton, VSeperator
 
 
 username = getpass.getuser()
-userdata = f"/home/{username}/.config/nottodbox/"
+userdata = f"/home/{username}/.config/io.github.mukonqi/nottodbox/"
 
 
 class DiariesDB(DBForDocuments):
     file = "diaries.db"
         
-    def createChild(self, name: str):
+    def createChild(self, name: str, table: str = "__main__"):
         date = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
             
         return super().createChild(
@@ -142,7 +142,7 @@ class DiariesTabWidget(TabWidget):
         self.addTab(self.home, _("Home"))
                     
                     
-class DiariesHomePage(HomePage):
+class DiariesHomePage(HomePageForDocuments):
     def __init__(self, parent: DiariesTabWidget):
         super().__init__(parent, "diaries", diariesdb)
         
@@ -170,7 +170,10 @@ class DiariesHomePage(HomePage):
             self.shortcuts[(name, "__main__")] = Action(self, name)
             self.shortcuts[(name, "__main__")].triggered.connect(
                 lambda state, name = name: self.shortcutEvent(name, "__main__"))
-            self.menu.addAction(self.shortcuts[(name, "__main__")]) 
+            self.menu.addAction(self.shortcuts[(name, "__main__")])
+            
+    def refreshSettings(self) -> None:
+        self.refreshSettingsForDocuments()
         
     @Slot(str)
     def setSelectedItem(self, name: str, table: str = "__main__") -> None:
@@ -189,7 +192,7 @@ class DiariesHomePage(HomePage):
         self.options.open(False, name, table)
         
         
-class DiariesOptions(OptionsBaseForDocuments):
+class DiariesOptions(OptionsForDocuments):
     def __init__(self, parent: DiariesHomePage):
         super().__init__(parent, "diaries", diariesdb)
         

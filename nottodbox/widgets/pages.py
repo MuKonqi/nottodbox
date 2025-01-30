@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-# Copyright (C) 2024 MuKonqi (Muhammed S.)
+# Copyright (C) 2024-2025MuKonqi (Muhammed S.)
 
 # Nottodbox is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@
 
 
 from gettext import gettext as _
-from PySide6.QtCore import Slot, Qt, QDate
+from PySide6.QtCore import Signal, Slot, Qt, QDate, QObject, QThread
 from PySide6.QtGui import QTextCursor, QTextFormat, QTextBlockFormat, QTextCharFormat, QTextListFormat, QDesktopServices, QPalette
 from PySide6.QtWidgets import *
 from databases.base import DBBase
@@ -391,22 +391,13 @@ class BasePage(QWidget):
         elif caller == "backup":
             self.content = self.db.getBackup(self.name, self.table)
             
-        call_format = self.db.getFormat(self.name, self.table)
-            
-        if self.format_ == "plain-text":
-            pretty_format = _("Plain-text").lower()
-            
-        elif self.format_ == "markdown":
-            pretty_format = "Markdown"
-            
-        elif self.format_ == "html":
-            pretty_format = "HTML"
+        self.call_format = self.db.getFormat(self.name, self.table)
         
-        if call_format == "global":
+        if self.call_format == "global":
             self.format = self.format_
             
         else:
-            self.format = call_format
+            self.format = self.call_format
         
         self.input = TextEdit(self)
         self.input.setAcceptRichText(True)
@@ -422,18 +413,18 @@ class BasePage(QWidget):
         
         self.format_combobox = QComboBox(self)
         self.format_combobox.addItems([
-            "{} {}".format(_("Format:"), _("Follow global ({setting})").format(setting = pretty_format)),
+            "{} {}".format(_("Format:"), _("Follow global ({setting})").format(setting = self.prettyFormat())),
             "{} {}".format(_("Format:"), _("Plain-text")),
             "{} {}".format(_("Format:"), "Markdown"),
             "{} {}".format(_("Format:"), "HTML")])
         
-        if call_format == "global":
+        if self.call_format == "global":
             self.format_combobox.setCurrentIndex(0)
-        elif call_format == "plain-text":
+        elif self.call_format == "plain-text":
             self.format_combobox.setCurrentIndex(1)
-        elif call_format == "markdown":
+        elif self.call_format == "markdown":
             self.format_combobox.setCurrentIndex(2)
-        elif call_format == "html":
+        elif self.call_format == "html":
             self.format_combobox.setCurrentIndex(3)
         
         self.format_combobox.setEditable(False)
@@ -441,6 +432,22 @@ class BasePage(QWidget):
         self.format_combobox.currentIndexChanged.connect(self.setFormat)
         
         self.setLayout(self.layout_)
+
+    def prettyFormat(self, global_format_: str | None = None) -> str:
+        if global_format_ is None:
+            global_format = self.format_
+            
+        else:
+            global_format = global_format_
+        
+        if global_format == "plain-text":
+            return _("Plain-text").lower()
+            
+        elif global_format == "markdown":
+            return "Markdown"
+            
+        elif global_format == "html":
+            return "HTML"
             
     @Slot(int)
     def setFormat(self, index: int) -> bool:
@@ -480,7 +487,6 @@ class BasePage(QWidget):
                                  .format(name = self.name))
             
             return False
-        
 
 class BackupPage(BasePage):
     def __init__(self, parent: QWidget, module: str, 
@@ -513,7 +519,7 @@ class BackupPage(BasePage):
             QMessageBox.critical(self, _("Error"), _("Failed to restore backup {of_item}.")
                                  .format(of_item = _("of {name} note") if self.module == "notes" else _("of {name} dated diary"))
                                  .format(name = self.name))
-
+    
 
 class NormalPage(BasePage):
     def __init__(self, parent: QWidget, module: str,
@@ -523,39 +529,42 @@ class NormalPage(BasePage):
         
         self.autosave_ = autosave
         
-        call_autosave = self.db.getAutosave(self.name, self.table)
-                
-        if self.autosave_ == "enabled":
-            pretty_autosave = _("Enabled").lower()
-            
-        elif self.autosave_ == "disabled":
-            pretty_autosave = _("Disabled").lower()
+        self.call_autosave = self.db.getAutosave(self.name, self.table)
 
-        if call_autosave == "global":
+        if self.call_autosave == "global":
             self.autosave = self.autosave_
             
         else:
-            self.autosave = call_autosave
+            self.autosave = self.call_autosave
+            
+        self.saver = Saver(self)
+        self.saver.started.connect(self.saver.saveChild)
+        
+        self.saver_thread = QThread()
+        
+        self.saver.moveToThread(self.saver_thread)
+        
+        self.saver_thread.start()
 
         self.formatter = TextFormatter(self, self.input, self.format)
     
-        self.input.textChanged.connect(lambda: self.saveChild(True))
+        self.input.textChanged.connect(lambda: self.saver.started.emit(True))
         self.input.cursorPositionChanged.connect(self.formatter.updateButtons)
         
         self.button = PushButton(self, _("Save"))
-        self.button.clicked.connect(self.saveChild)
+        self.button.clicked.connect(lambda: self.saver.saveChild())
               
         self.autosave_combobox = QComboBox(self)
         self.autosave_combobox.addItems([
-            "{} {}".format(_("Auto-save:"), _("Follow global ({setting})").format(setting = pretty_autosave)),
+            "{} {}".format(_("Auto-save:"), _("Follow global ({setting})").format(setting = self.prettyAutosave())),
             "{} {}".format(_("Auto-save:"), _("Enabled")),
             "{} {}".format(_("Auto-save:"), _("Disabled"))])
         
-        if call_autosave == "global":
+        if self.call_autosave == "global":
             self.autosave_combobox.setCurrentIndex(0)
-        elif call_autosave == "enabled":
+        elif self.call_autosave == "enabled":
             self.autosave_combobox.setCurrentIndex(1)
-        elif call_autosave == "disabled":
+        elif self.call_autosave == "disabled":
             self.autosave_combobox.setCurrentIndex(2)
         
         self.autosave_combobox.setEditable(False)
@@ -584,7 +593,7 @@ class NormalPage(BasePage):
                 return True
             
             else:
-                create = self.db.createChild("", self.name)
+                create = self.db.createChild(self.name)
                 
                 if create:
                     return True
@@ -593,47 +602,28 @@ class NormalPage(BasePage):
                     QMessageBox.critical(self, _("Error"), _("Failed to create {name} dated diary for changing settings."))
                     return False
                 
-    @Slot(bool)
-    def saveChild(self, autosave: bool = False) -> bool:
-        self.closable = False
+    def getText(self) -> str:
+        if self.format == "plain-text":
+            return self.input.toPlainText()
             
-        if self.outdated == "":
-            if not self.db.createChild(self.name):
-                QMessageBox.critical(self, _("Error"), _("Failed to create {item}.")
-                                    .format(item = _("{name} note") if self.module == "notes" else _("{name} dated diary")))
-                
-                return False
-        
-        if not autosave or (autosave and self.autosave == "enabled"):
-            if self.outdated == "yes":
-                question = QMessageBox.question(
-                    self, _("Question"), _("Diaries are unique to the day they are written.\nDo you really want to change the content?"))
-                
-                if question != QMessageBox.StandardButton.Yes:
-                    return
+        elif self.format == "markdown":
+            return self.input.toMarkdown()
             
-            call = self.db.saveChild(self.getText(),
-                                     self.content,
-                                     autosave,
-                                     self.name,
-                                     self.table)
+        elif self.format == "html":
+            return self.input.toHtml()
 
-            if call:
-                self.closable = True
-                
-                if not autosave:
-                    QMessageBox.information(self, _("Successful"), _("{item} saved.")
-                                            .format(item = _("{name} note") if self.module == "notes" else _("{name} dated diary"))
-                                            .format(name = self.name))
-                    
-                return True
-                
-            else:
-                QMessageBox.critical(self, _("Error"), _("Failed to save {item}.")
-                                     .format(item = _("{name} note") if self.module == "notes" else _("{name} dated diary"))
-                                     .format(name = self.name))
-                
-                return False
+    def prettyAutosave(self, global_autosave_: str | None = None) -> str:
+        if global_autosave_ is None:
+            global_autosave = self.autosave_
+            
+        else:
+            global_autosave = global_autosave_
+            
+        if global_autosave == "enabled":
+            return _("Enabled").lower()
+            
+        elif global_autosave == "disabled":
+            return _("Disabled").lower()
     
     @Slot(int)
     def setAutoSave(self, index: int) -> None:
@@ -678,13 +668,54 @@ class NormalPage(BasePage):
         
         if super().setFormat(index):
             self.formatter.updateStatus(self.format)
+        
+        
+class Saver(QObject):
+    started = Signal(bool)
+    
+    def __init__(self, parent: NormalPage) -> None:
+        super().__init__()
+        
+        self.parent_ = parent
+    
+    @Slot(bool)
+    def saveChild(self, autosave: bool = False) -> bool | None:
+        self.parent_.closable = False
             
-    def getText(self) -> str:
-        if self.format == "plain-text":
-            return self.input.toPlainText()
+        if self.parent_.outdated == "":
+            if not self.parent_.db.createChild(self.parent_.name):
+                QMessageBox.critical(self.parent_, _("Error"), _("Failed to create {item}.")
+                                    .format(item = _("{name} note") if self.parent_.module == "notes" else _("{name} dated diary")))
+                
+                return False
+        
+        if not autosave or (autosave and self.parent_.autosave == "enabled"):
+            if self.parent_.outdated == "yes":
+                question = QMessageBox.question(
+                    self.parent_, _("Question"), _("Diaries are unique to the day they are written.\nDo you really want to change the content?"))
+                
+                if question != QMessageBox.StandardButton.Yes:
+                    return
             
-        elif self.format == "markdown":
-            return self.input.toMarkdown()
-            
-        elif self.format == "html":
-            return self.input.toHtml()
+            call = self.parent_.db.saveChild(self.parent_.getText(),
+                                             self.parent_.content,
+                                             autosave,
+                                             self.parent_.name,
+                                             self.parent_.table)
+
+            if call:
+                self.parent_.closable = True
+                
+                if not autosave:
+                    QMessageBox.information(self.parent_, _("Successful"), _("{item} saved.")
+                                            .format(item = _("{name} note") if self.parent_.module == "notes" else _("{name} dated diary"))
+                                            .format(name = self.parent_.name))
+                    
+                return True
+                
+            else:
+                QMessageBox.critical(self.parent_, _("Error"), _("Failed to save {item}.")
+                                     .format(item = _("{name} note") if self.parent_.module == "notes" else _("{name} dated diary"))
+                                     .format(name = self.parent_.name))
+                
+                return False

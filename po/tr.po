@@ -1,15 +1,15 @@
 # Turkish (Türkçe) language translation for Nottodbox.
-# Copyright (C) 2024 Nottodbox's copyright holder
+# Copyright (C) 2024-2025 Nottodbox's copyright holder
 # This file is distributed under the same license as the Nottodbox package.
-# Muhammed S. <mukonqi@gmail.com>, 2024.
+# Muhammed S. <mukonqi@gmail.com>, 2024-2025.
 #
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: 0.0.7\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-11-29 23:45+0300\n"
-"PO-Revision-Date: 2024-11-30 22:43+0300\n"
+"POT-Creation-Date: 2025-01-30 23:33+0300\n"
+"PO-Revision-Date: 2025-01-30 23:07+0300\n"
 "Last-Translator: Muhammed S. <mukonqi@gmail.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: tr\n"
@@ -26,34 +26,34 @@ msgid "Organize notes, to-dos and diaries"
 msgstr "Notları, yapılacakları ve günlükleri düzenleyin"
 
 #: data/io.github.mukonqi.nottodbox.desktop.in.in:17 nottodbox/diaries.py:142
-#: nottodbox/__init__.py:93 nottodbox/mainwindow.py:64 nottodbox/notes.py:140
+#: nottodbox/__init__.py:93 nottodbox/mainwindow.py:67 nottodbox/notes.py:140
 msgid "Home"
 msgstr "Ev"
 
-#: data/io.github.mukonqi.nottodbox.desktop.in.in:21 nottodbox/mainwindow.py:65
-#: nottodbox/settings.py:169 nottodbox/settings.py:181
-#: nottodbox/widgets/options.py:112 nottodbox/widgets/options.py:409
+#: data/io.github.mukonqi.nottodbox.desktop.in.in:21 nottodbox/mainwindow.py:68
+#: nottodbox/settings.py:115 nottodbox/settings.py:127
+#: nottodbox/widgets/options.py:131 nottodbox/widgets/options.py:455
 msgid "Notes"
 msgstr "Notlar"
 
 #: data/io.github.mukonqi.nottodbox.desktop.in.in:25
-#: nottodbox/widgets/options.py:115 nottodbox/widgets/options.py:415
+#: nottodbox/widgets/options.py:134 nottodbox/widgets/options.py:461
 msgid "To-Dos"
 msgstr "Yapılacaklar"
 
-#: data/io.github.mukonqi.nottodbox.desktop.in.in:29 nottodbox/mainwindow.py:67
-#: nottodbox/settings.py:175 nottodbox/settings.py:183
-#: nottodbox/widgets/options.py:118 nottodbox/widgets/options.py:412
+#: data/io.github.mukonqi.nottodbox.desktop.in.in:29 nottodbox/mainwindow.py:70
+#: nottodbox/settings.py:121 nottodbox/settings.py:129
+#: nottodbox/widgets/options.py:137 nottodbox/widgets/options.py:458
 msgid "Diaries"
 msgstr "Günlükler"
 
-#: data/io.github.mukonqi.nottodbox.desktop.in.in:33 nottodbox/mainwindow.py:68
-#: nottodbox/settings.py:164
+#: data/io.github.mukonqi.nottodbox.desktop.in.in:33 nottodbox/mainwindow.py:71
+#: nottodbox/settings.py:110
 msgid "Settings"
 msgstr "Ayarlar"
 
 #: data/io.github.mukonqi.nottodbox.desktop.in.in:36 nottodbox/about.py:32
-#: nottodbox/mainwindow.py:69
+#: nottodbox/mainwindow.py:72
 msgid "About"
 msgstr "Hakkında"
 
@@ -81,8 +81,8 @@ msgstr "Telif Hakkı (C)"
 msgid "License: GNU General Public License, Version 3 or later"
 msgstr "Lisans: GNU Genel Kamu Lisansı, Sürüm 3 veya sonrası"
 
-#: nottodbox/diaries.py:151 nottodbox/diaries.py:185 nottodbox/diaries.py:186
-#: nottodbox/widgets/lists.py:92
+#: nottodbox/diaries.py:151 nottodbox/diaries.py:188 nottodbox/diaries.py:189
+#: nottodbox/widgets/lists.py:250 nottodbox/widgets/lists.py:254
 msgid "Modification"
 msgstr "Değiştirilme"
 
@@ -90,77 +90,77 @@ msgstr "Değiştirilme"
 msgid "Come Back To Today"
 msgstr "Günümüze Geri Dön"
 
-#: nottodbox/diaries.py:196
+#: nottodbox/diaries.py:199
 msgid "Set Highlight Color"
 msgstr "Vurgu Rengini Ayarla"
 
-#: nottodbox/diaries.py:232 nottodbox/diaries.py:259
-#: nottodbox/mainwindow.py:163 nottodbox/notes.py:204 nottodbox/notes.py:211
-#: nottodbox/settings.py:243 nottodbox/settings.py:275
-#: nottodbox/settings.py:380 nottodbox/settings.py:410 nottodbox/sidebar.py:251
-#: nottodbox/sidebar.py:277 nottodbox/sidebar.py:286 nottodbox/todos.py:179
-#: nottodbox/widgets/options.py:296 nottodbox/widgets/options.py:304
-#: nottodbox/widgets/options.py:310 nottodbox/widgets/options.py:342
-#: nottodbox/widgets/options.py:362 nottodbox/widgets/options.py:508
-#: nottodbox/widgets/options.py:512 nottodbox/widgets/options.py:539
-#: nottodbox/widgets/options.py:559 nottodbox/widgets/options.py:596
-#: nottodbox/widgets/options.py:647 nottodbox/widgets/options.py:661
-#: nottodbox/widgets/options.py:675 nottodbox/widgets/options.py:684
-#: nottodbox/widgets/options.py:744 nottodbox/widgets/options.py:775
-#: nottodbox/widgets/options.py:843 nottodbox/widgets/pages.py:252
-#: nottodbox/widgets/pages.py:279 nottodbox/widgets/pages.py:478
-#: nottodbox/widgets/pages.py:513 nottodbox/widgets/pages.py:593
-#: nottodbox/widgets/pages.py:602 nottodbox/widgets/pages.py:632
-#: nottodbox/widgets/pages.py:660 nottodbox/widgets/pages.py:669
+#: nottodbox/diaries.py:235 nottodbox/diaries.py:262
+#: nottodbox/mainwindow.py:167 nottodbox/notes.py:208 nottodbox/notes.py:215
+#: nottodbox/settings.py:189 nottodbox/settings.py:221
+#: nottodbox/settings.py:337 nottodbox/settings.py:358 nottodbox/sidebar.py:248
+#: nottodbox/sidebar.py:274 nottodbox/sidebar.py:283 nottodbox/todos.py:183
+#: nottodbox/widgets/options.py:342 nottodbox/widgets/options.py:350
+#: nottodbox/widgets/options.py:356 nottodbox/widgets/options.py:388
+#: nottodbox/widgets/options.py:408 nottodbox/widgets/options.py:554
+#: nottodbox/widgets/options.py:558 nottodbox/widgets/options.py:585
+#: nottodbox/widgets/options.py:605 nottodbox/widgets/options.py:642
+#: nottodbox/widgets/options.py:693 nottodbox/widgets/options.py:707
+#: nottodbox/widgets/options.py:721 nottodbox/widgets/options.py:730
+#: nottodbox/widgets/options.py:790 nottodbox/widgets/options.py:821
+#: nottodbox/widgets/options.py:889 nottodbox/widgets/pages.py:252
+#: nottodbox/widgets/pages.py:279 nottodbox/widgets/pages.py:485
+#: nottodbox/widgets/pages.py:519 nottodbox/widgets/pages.py:602
+#: nottodbox/widgets/pages.py:650 nottodbox/widgets/pages.py:659
+#: nottodbox/widgets/pages.py:687 nottodbox/widgets/pages.py:717
 msgid "Error"
 msgstr "Hata"
 
-#: nottodbox/diaries.py:232 nottodbox/notes.py:204
-#: nottodbox/widgets/options.py:661 nottodbox/widgets/options.py:684
-#: nottodbox/widgets/pages.py:602
+#: nottodbox/diaries.py:235 nottodbox/notes.py:208
+#: nottodbox/widgets/options.py:707 nottodbox/widgets/options.py:730
+#: nottodbox/widgets/pages.py:687
 #, python-brace-format
 msgid "Failed to create {item}."
 msgstr "{item} oluşturulamadı."
 
-#: nottodbox/diaries.py:245
+#: nottodbox/diaries.py:248
 #, python-brace-format
 msgid "Select Highlight Color for {item}"
 msgstr "{item} için Vurgu Rengi Seçin"
 
-#: nottodbox/diaries.py:246 nottodbox/diaries.py:260
-#: nottodbox/widgets/options.py:382 nottodbox/widgets/pages.py:603
-#: nottodbox/widgets/pages.py:626 nottodbox/widgets/pages.py:633
+#: nottodbox/diaries.py:249 nottodbox/diaries.py:263
+#: nottodbox/widgets/options.py:428 nottodbox/widgets/pages.py:688
+#: nottodbox/widgets/pages.py:711 nottodbox/widgets/pages.py:718
 #, python-brace-format
 msgid "{name} dated diary"
 msgstr "{name} tarihli günlük"
 
-#: nottodbox/diaries.py:259
+#: nottodbox/diaries.py:262
 #, python-brace-format
 msgid "Failed to set highlight color for {item}."
 msgstr "Vurgu rengi, {item} için ayarlanamadı."
 
-#: nottodbox/diaries.py:270
+#: nottodbox/diaries.py:273
 msgid "Double-click on top to opening a diary."
 msgstr "Bir günlüğü açmak için üstte çift tıklayın."
 
-#: nottodbox/home.py:46
+#: nottodbox/home.py:43
 #, python-brace-format
 msgid "Welcome {username}!"
 msgstr "Merhabalar {username}!"
 
-#: nottodbox/home.py:49 nottodbox/home.py:88
+#: nottodbox/home.py:46 nottodbox/home.py:123
 msgid "Focus to Diary for Today"
 msgstr "Bugünün Günlüğüne Odaklan"
 
-#: nottodbox/home.py:56
+#: nottodbox/home.py:53
 msgid "List of To-dos"
 msgstr "Yapılacakların Listesi"
 
-#: nottodbox/home.py:62
+#: nottodbox/home.py:59
 msgid "List of Notes"
 msgstr "Notların Listesi"
 
-#: nottodbox/home.py:100
+#: nottodbox/home.py:109
 msgid "Finish Focusing of Diary for Today"
 msgstr "Bugünün Günlüğüne Odaklanmayı Bitir"
 
@@ -196,44 +196,45 @@ msgstr "açılacak sayfayı isim ile ayarlayın"
 msgid "home"
 msgstr "ev"
 
-#: nottodbox/mainwindow.py:53
+#: nottodbox/mainwindow.py:56
 msgid "Sidebar"
 msgstr "Kenar Çubuğu"
 
-#: nottodbox/mainwindow.py:54
+#: nottodbox/mainwindow.py:57
 msgid "Show"
 msgstr "Göster"
 
-#: nottodbox/mainwindow.py:55
+#: nottodbox/mainwindow.py:58
 msgid "Hide"
 msgstr "Gizle"
 
-#: nottodbox/mainwindow.py:66 nottodbox/settings.py:172
-#: nottodbox/settings.py:182
+#: nottodbox/mainwindow.py:69 nottodbox/settings.py:118
+#: nottodbox/settings.py:128
 msgid "To-dos"
 msgstr "Yapılacaklar"
 
-#: nottodbox/mainwindow.py:73
+#: nottodbox/mainwindow.py:76
 msgid ""
 "There may be important information and tips here. Don't forget to look here!"
 msgstr "Burada önemli bilgiler ve ipuçları olabilir. Buraya bakmayı unutmayın!"
 
-#: nottodbox/mainwindow.py:103 nottodbox/mainwindow.py:109
-#: nottodbox/widgets/options.py:90 nottodbox/widgets/options.py:609
+#: nottodbox/mainwindow.py:107 nottodbox/mainwindow.py:113
+#: nottodbox/mainwindow.py:181 nottodbox/mainwindow.py:186
+#: nottodbox/widgets/options.py:91 nottodbox/widgets/options.py:655
 msgid " (Backup)"
 msgstr " (Yedek)"
 
-#: nottodbox/mainwindow.py:126 nottodbox/settings.py:228
-#: nottodbox/settings.py:260 nottodbox/settings.py:339
-#: nottodbox/widgets/options.py:65 nottodbox/widgets/options.py:322
-#: nottodbox/widgets/options.py:349 nottodbox/widgets/options.py:469
-#: nottodbox/widgets/options.py:550 nottodbox/widgets/options.py:825
-#: nottodbox/widgets/pages.py:461 nottodbox/widgets/pages.py:502
-#: nottodbox/widgets/pages.py:610
+#: nottodbox/mainwindow.py:130 nottodbox/settings.py:174
+#: nottodbox/settings.py:206 nottodbox/settings.py:285
+#: nottodbox/widgets/options.py:67 nottodbox/widgets/options.py:368
+#: nottodbox/widgets/options.py:395 nottodbox/widgets/options.py:515
+#: nottodbox/widgets/options.py:596 nottodbox/widgets/options.py:871
+#: nottodbox/widgets/pages.py:468 nottodbox/widgets/pages.py:508
+#: nottodbox/widgets/pages.py:695
 msgid "Question"
 msgstr "Soru"
 
-#: nottodbox/mainwindow.py:127
+#: nottodbox/mainwindow.py:131
 msgid ""
 "Some pages are not saved.\n"
 "What would you like to do?"
@@ -241,61 +242,61 @@ msgstr ""
 "Bazı sayfalar kaydedilmedi.\n"
 "Ne yapmak istersiniz?"
 
-#: nottodbox/mainwindow.py:159 nottodbox/settings.py:240
-#: nottodbox/settings.py:272 nottodbox/settings.py:374
-#: nottodbox/settings.py:404 nottodbox/widgets/options.py:555
-#: nottodbox/widgets/options.py:592 nottodbox/widgets/pages.py:508
-#: nottodbox/widgets/pages.py:625
+#: nottodbox/mainwindow.py:163 nottodbox/settings.py:186
+#: nottodbox/settings.py:218 nottodbox/settings.py:331
+#: nottodbox/settings.py:352 nottodbox/widgets/options.py:601
+#: nottodbox/widgets/options.py:638 nottodbox/widgets/pages.py:514
+#: nottodbox/widgets/pages.py:710
 msgid "Successful"
 msgstr "Başarılı"
 
-#: nottodbox/mainwindow.py:159
+#: nottodbox/mainwindow.py:163
 msgid "All pages saved."
 msgstr "Tüm sayfalar kaydedildi."
 
-#: nottodbox/mainwindow.py:163
+#: nottodbox/mainwindow.py:167
 msgid "Failed to save some pages."
 msgstr "Bazı sayfalar kaydedilemedi."
 
-#: nottodbox/notes.py:190 nottodbox/notes.py:193 nottodbox/notes.py:205
+#: nottodbox/notes.py:194 nottodbox/notes.py:197 nottodbox/notes.py:209
 msgid "Unnamed"
 msgstr "Adsız"
 
-#: nottodbox/notes.py:205 nottodbox/widgets/options.py:67
-#: nottodbox/widgets/options.py:379 nottodbox/widgets/pages.py:603
-#: nottodbox/widgets/pages.py:626 nottodbox/widgets/pages.py:633
+#: nottodbox/notes.py:209 nottodbox/widgets/options.py:69
+#: nottodbox/widgets/options.py:425 nottodbox/widgets/pages.py:688
+#: nottodbox/widgets/pages.py:711 nottodbox/widgets/pages.py:718
 #, python-brace-format
 msgid "{name} note"
 msgstr "{name} notu"
 
-#: nottodbox/notes.py:211
+#: nottodbox/notes.py:215
 msgid "Please select a {} or a {}."
 msgstr "Lütfen bir {} veya {} seçin."
 
-#: nottodbox/notes.py:212 nottodbox/widgets/options.py:224
-#: nottodbox/widgets/options.py:443
+#: nottodbox/notes.py:216 nottodbox/widgets/options.py:263
+#: nottodbox/widgets/options.py:489
 msgid "notebook"
 msgstr "not defteri"
 
-#: nottodbox/notes.py:212 nottodbox/sidebar.py:200
-#: nottodbox/widgets/options.py:217 nottodbox/widgets/options.py:369
+#: nottodbox/notes.py:216 nottodbox/sidebar.py:197
+#: nottodbox/widgets/options.py:256 nottodbox/widgets/options.py:415
 msgid "note"
 msgstr "not"
 
-#: nottodbox/settings.py:188 nottodbox/widgets/options.py:804
+#: nottodbox/settings.py:134 nottodbox/widgets/options.py:850
 msgid "Reset"
 msgstr "Sıfırla"
 
-#: nottodbox/settings.py:191
+#: nottodbox/settings.py:137
 msgid "Apply"
 msgstr "Uygula"
 
-#: nottodbox/settings.py:194
+#: nottodbox/settings.py:140
 msgid "Cancel"
 msgstr "İptal et"
 
-#: nottodbox/settings.py:228 nottodbox/settings.py:260
-#: nottodbox/settings.py:339
+#: nottodbox/settings.py:174 nottodbox/settings.py:206
+#: nottodbox/settings.py:285
 msgid ""
 "If you have documents with the format setting set to global, this change may "
 "corrupt them.\n"
@@ -305,165 +306,174 @@ msgstr ""
 "onları bozabilir.\n"
 "Gerçekten ayarları uygulamak istiyor musunuz?"
 
-#: nottodbox/settings.py:240
+#: nottodbox/settings.py:186
 msgid "All new settings applied."
 msgstr "Tüm yeni ayarlar uygulandı."
 
-#: nottodbox/settings.py:243
+#: nottodbox/settings.py:189
 msgid "Failed to apply all new settings."
 msgstr "Tüm yeni ayarlar uygulanamadı."
 
-#: nottodbox/settings.py:272
+#: nottodbox/settings.py:218
 msgid "All setting reset."
 msgstr "Tüm ayarlar sıfırlandı."
 
-#: nottodbox/settings.py:275
+#: nottodbox/settings.py:221
 msgid "Failed to reset all settings."
 msgstr "Tüm ayarlar sıfırlanamadı."
 
-#: nottodbox/settings.py:307 nottodbox/widgets/pages.py:397
-#: nottodbox/widgets/pages.py:426
+#: nottodbox/settings.py:253 nottodbox/widgets/pages.py:417
+#: nottodbox/widgets/pages.py:444
 msgid "Plain-text"
 msgstr "Düz metin"
 
-#: nottodbox/settings.py:312 nottodbox/widgets/pages.py:550
-#: nottodbox/widgets/pages.py:551 nottodbox/widgets/pages.py:552
+#: nottodbox/settings.py:258 nottodbox/settings.py:327
+#: nottodbox/widgets/options.py:193 nottodbox/widgets/pages.py:559
+#: nottodbox/widgets/pages.py:560 nottodbox/widgets/pages.py:561
 msgid "Auto-save:"
 msgstr "Oto. kayıt:"
 
-#: nottodbox/settings.py:313 nottodbox/widgets/pages.py:425
-#: nottodbox/widgets/pages.py:426 nottodbox/widgets/pages.py:427
-#: nottodbox/widgets/pages.py:428
+#: nottodbox/settings.py:259 nottodbox/settings.py:321
+#: nottodbox/widgets/options.py:187 nottodbox/widgets/pages.py:416
+#: nottodbox/widgets/pages.py:417 nottodbox/widgets/pages.py:418
+#: nottodbox/widgets/pages.py:419
 msgid "Format:"
 msgstr "Biçim:"
 
-#: nottodbox/settings.py:322 nottodbox/widgets/pages.py:138
+#: nottodbox/settings.py:268 nottodbox/widgets/pages.py:138
 msgid "Background color"
 msgstr "Arka plan rengi"
 
-#: nottodbox/settings.py:323 nottodbox/widgets/pages.py:135
+#: nottodbox/settings.py:269 nottodbox/widgets/pages.py:135
 msgid "Text color"
 msgstr "Metin rengi"
 
-#: nottodbox/settings.py:329
+#: nottodbox/settings.py:275
 msgid "Highlight color"
 msgstr "Vurgu rengi"
 
-#: nottodbox/settings.py:374
+#: nottodbox/settings.py:321 nottodbox/settings.py:327
+#: nottodbox/widgets/options.py:187 nottodbox/widgets/options.py:193
+#: nottodbox/widgets/pages.py:416 nottodbox/widgets/pages.py:559
+#, python-brace-format
+msgid "Follow global ({setting})"
+msgstr "Küreseli takip et ({setting})"
+
+#: nottodbox/settings.py:331
 msgid "New settings are applied."
 msgstr "Yeni ayarlar uygulandı."
 
-#: nottodbox/settings.py:380
+#: nottodbox/settings.py:337
 msgid "Failed to apply new settings."
 msgstr "Yeni ayarlar uygulanamadı."
 
-#: nottodbox/settings.py:404
+#: nottodbox/settings.py:352
 msgid "Settings are reset."
 msgstr "Ayarlar sıfırlandı."
 
-#: nottodbox/settings.py:410
+#: nottodbox/settings.py:358
 msgid "Failed to reset settings."
 msgstr "Ayarlar sıfırlanamadı."
 
-#: nottodbox/settings.py:418 nottodbox/settings.py:487
-#: nottodbox/widgets/pages.py:532 nottodbox/widgets/pages.py:552
+#: nottodbox/settings.py:366 nottodbox/settings.py:435
+#: nottodbox/widgets/pages.py:561 nottodbox/widgets/pages.py:626
 msgid "Disabled"
 msgstr "Devre dışı"
 
-#: nottodbox/settings.py:422 nottodbox/settings.py:484
-#: nottodbox/widgets/pages.py:529 nottodbox/widgets/pages.py:551
+#: nottodbox/settings.py:370 nottodbox/settings.py:432
+#: nottodbox/widgets/pages.py:560 nottodbox/widgets/pages.py:623
 msgid "Enabled"
 msgstr "Aktif"
 
-#: nottodbox/settings.py:428 nottodbox/widgets/pages.py:157
+#: nottodbox/settings.py:376 nottodbox/widgets/pages.py:157
 msgid "Select Background Color"
 msgstr "Arka Plan Rengi Seçin"
 
-#: nottodbox/settings.py:433 nottodbox/settings.py:445
-#: nottodbox/settings.py:472 nottodbox/settings.py:500
-#: nottodbox/settings.py:503 nottodbox/settings.py:507
+#: nottodbox/settings.py:381 nottodbox/settings.py:393
+#: nottodbox/settings.py:420 nottodbox/settings.py:448
+#: nottodbox/settings.py:451 nottodbox/settings.py:455
 #, python-brace-format
 msgid "Select color (it is {color})"
 msgstr "Renk seçin (şu anda {color})"
 
-#: nottodbox/settings.py:434 nottodbox/settings.py:446
-#: nottodbox/settings.py:473 nottodbox/settings.py:501
-#: nottodbox/settings.py:504 nottodbox/settings.py:508
+#: nottodbox/settings.py:382 nottodbox/settings.py:394
+#: nottodbox/settings.py:421 nottodbox/settings.py:449
+#: nottodbox/settings.py:452 nottodbox/settings.py:456
 msgid "default"
 msgstr "varsayılan"
 
-#: nottodbox/settings.py:440 nottodbox/widgets/pages.py:282
+#: nottodbox/settings.py:388 nottodbox/widgets/pages.py:282
 msgid "Select Text Color"
 msgstr "Metin Rengi Seçin"
 
-#: nottodbox/settings.py:467
+#: nottodbox/settings.py:415
 msgid "Select Highlight Color"
 msgstr "Vurgu Rengi Seçin"
 
-#: nottodbox/sidebar.py:136 nottodbox/widgets/options.py:178
+#: nottodbox/sidebar.py:133 nottodbox/widgets/options.py:217
 msgid "Search..."
 msgstr "Ara..."
 
-#: nottodbox/sidebar.py:139
+#: nottodbox/sidebar.py:136
 msgid "Open Pages"
 msgstr "Açık Sayfalar"
 
-#: nottodbox/sidebar.py:142
+#: nottodbox/sidebar.py:139
 msgid "History"
 msgstr "Geçmiş"
 
-#: nottodbox/sidebar.py:145 nottodbox/widgets/options.py:278
+#: nottodbox/sidebar.py:142 nottodbox/widgets/options.py:324
 msgid "Delete"
 msgstr "Sil"
 
-#: nottodbox/sidebar.py:149
+#: nottodbox/sidebar.py:146
 msgid "Clear"
 msgstr "Temizle"
 
-#: nottodbox/sidebar.py:180 nottodbox/sidebar.py:272
+#: nottodbox/sidebar.py:177 nottodbox/sidebar.py:269
 msgid "Type"
 msgstr "Tür"
 
-#: nottodbox/sidebar.py:180 nottodbox/sidebar.py:272
+#: nottodbox/sidebar.py:177 nottodbox/sidebar.py:269
 msgid "Page"
 msgstr "Sayfa"
 
-#: nottodbox/sidebar.py:192
+#: nottodbox/sidebar.py:189
 msgid "Double-click to going to selected page."
 msgstr "Seçilen sayfaya gitmek için çift tıklayın."
 
-#: nottodbox/sidebar.py:200 nottodbox/widgets/options.py:372
+#: nottodbox/sidebar.py:197 nottodbox/widgets/options.py:418
 msgid "diary"
 msgstr "günlük"
 
-#: nottodbox/sidebar.py:251
+#: nottodbox/sidebar.py:248
 #, python-brace-format
 msgid "Failed to add {page} page to history."
 msgstr "{page} sayfası geçmişe eklenemedi."
 
-#: nottodbox/sidebar.py:277
+#: nottodbox/sidebar.py:274
 msgid "Failed to clear history."
 msgstr "Geçmiş temizlenemedi."
 
-#: nottodbox/sidebar.py:286
+#: nottodbox/sidebar.py:283
 #, python-brace-format
 msgid "Failed to delete {page} page from history."
 msgstr "{page} sayfası geçmişten silinemedi."
 
-#: nottodbox/todos.py:44 nottodbox/widgets/lists.py:135
+#: nottodbox/todos.py:45 nottodbox/widgets/lists.py:136
 msgid "Not completed yet"
 msgstr "Henüz tamamlanmamış"
 
-#: nottodbox/todos.py:148
+#: nottodbox/todos.py:152
 msgid "Change Status"
 msgstr "Durumu Ayarla"
 
-#: nottodbox/todos.py:179
+#: nottodbox/todos.py:183
 #, python-brace-format
 msgid "Failed to change status {of_item}."
 msgstr "{of_item} durumu değiştirilemedi."
 
-#: nottodbox/todos.py:180 nottodbox/widgets/options.py:395
+#: nottodbox/todos.py:184 nottodbox/widgets/options.py:441
 #, python-brace-format
 msgid "of {name} to-do"
 msgstr "{name} yapılacağının"
@@ -476,23 +486,27 @@ msgstr "Küresele ayarla"
 msgid "Set to default"
 msgstr "Varsayılana ayarla"
 
-#: nottodbox/widgets/lists.py:81
+#: nottodbox/widgets/lists.py:85
 msgid "Double-click to opening a note."
 msgstr "Bir not açmak için çift tıklayın."
 
-#: nottodbox/widgets/lists.py:84
+#: nottodbox/widgets/lists.py:88
 msgid "Double-click to changing status of a to-do."
 msgstr "Bir yapılacağın durumunu değiştirmek için çift tıklayın."
 
-#: nottodbox/widgets/lists.py:92
+#: nottodbox/widgets/lists.py:250 nottodbox/widgets/lists.py:254
 msgid "Name"
 msgstr "Ad"
 
-#: nottodbox/widgets/lists.py:92
+#: nottodbox/widgets/lists.py:250 nottodbox/widgets/lists.py:254
 msgid "Creation"
 msgstr "Oluşturulma"
 
-#: nottodbox/widgets/options.py:66
+#: nottodbox/widgets/lists.py:254
+msgid "Completion"
+msgstr "Tamamlanma"
+
+#: nottodbox/widgets/options.py:68
 #, python-brace-format
 msgid ""
 "{item} not saved.\n"
@@ -501,122 +515,122 @@ msgstr ""
 "{item} kaydedilmedi.\n"
 "Ne yapmak istersiniz?"
 
-#: nottodbox/widgets/options.py:220 nottodbox/widgets/options.py:375
+#: nottodbox/widgets/options.py:259 nottodbox/widgets/options.py:421
 msgid "to-do"
 msgstr "yapılacak"
 
-#: nottodbox/widgets/options.py:227 nottodbox/widgets/options.py:446
+#: nottodbox/widgets/options.py:266 nottodbox/widgets/options.py:492
 msgid "to-do list"
 msgstr "yapılacaklar listesi"
 
-#: nottodbox/widgets/options.py:275
+#: nottodbox/widgets/options.py:321
 msgid "Rename"
 msgstr "Yeniden Adlandır"
 
-#: nottodbox/widgets/options.py:281
+#: nottodbox/widgets/options.py:327
 msgid "Delete All"
 msgstr "Her Şeyi Sil"
 
-#: nottodbox/widgets/options.py:296
+#: nottodbox/widgets/options.py:342
 #, python-brace-format
 msgid "There is no {item}."
 msgstr "{item} yok."
 
-#: nottodbox/widgets/options.py:304
+#: nottodbox/widgets/options.py:350
 msgid "The name can not contain these characters: ' and @"
 msgstr "Ad şu karakterleri içeremez: ' ve @"
 
-#: nottodbox/widgets/options.py:310
+#: nottodbox/widgets/options.py:356
 msgid "The name can not be to __main__."
 msgstr "Ad __main__ olamaz."
 
-#: nottodbox/widgets/options.py:322
+#: nottodbox/widgets/options.py:368
 #, python-brace-format
 msgid "Do you really want to delete the {item}?"
 msgstr "Gerçekten {item} silmek istiyor musunuz?"
 
-#: nottodbox/widgets/options.py:342
+#: nottodbox/widgets/options.py:388
 #, python-brace-format
 msgid "Failed to delete {item}."
 msgstr "{item} silinemedi."
 
-#: nottodbox/widgets/options.py:349
+#: nottodbox/widgets/options.py:395
 #, python-brace-format
 msgid "Do you really want to delete all {the_items}?"
 msgstr "Gerçekten tüm {the_items} silmek istiyor musunuz?"
 
-#: nottodbox/widgets/options.py:362
+#: nottodbox/widgets/options.py:408
 #, python-brace-format
 msgid "Failed to delete all {items}."
 msgstr "Tüm {items} silinemedi."
 
-#: nottodbox/widgets/options.py:385
+#: nottodbox/widgets/options.py:431
 #, python-brace-format
 msgid "{name} to-do"
 msgstr "{name} yapılacağı"
 
-#: nottodbox/widgets/options.py:389 nottodbox/widgets/pages.py:479
-#: nottodbox/widgets/pages.py:509 nottodbox/widgets/pages.py:514
-#: nottodbox/widgets/pages.py:661 nottodbox/widgets/pages.py:670
+#: nottodbox/widgets/options.py:435 nottodbox/widgets/pages.py:486
+#: nottodbox/widgets/pages.py:515 nottodbox/widgets/pages.py:520
+#: nottodbox/widgets/pages.py:651 nottodbox/widgets/pages.py:660
 #, python-brace-format
 msgid "of {name} note"
 msgstr "{name} notunun"
 
-#: nottodbox/widgets/options.py:392 nottodbox/widgets/pages.py:479
-#: nottodbox/widgets/pages.py:509 nottodbox/widgets/pages.py:514
-#: nottodbox/widgets/pages.py:661 nottodbox/widgets/pages.py:670
+#: nottodbox/widgets/options.py:438 nottodbox/widgets/pages.py:486
+#: nottodbox/widgets/pages.py:515 nottodbox/widgets/pages.py:520
+#: nottodbox/widgets/pages.py:651 nottodbox/widgets/pages.py:660
 #, python-brace-format
 msgid "of {name} dated diary"
 msgstr "{name} tarihli günlüğün"
 
-#: nottodbox/widgets/options.py:399
+#: nottodbox/widgets/options.py:445
 #, python-brace-format
 msgid "the {name} note"
 msgstr "{name} notunu"
 
-#: nottodbox/widgets/options.py:402
+#: nottodbox/widgets/options.py:448
 #, python-brace-format
 msgid "the {name} dated diary"
 msgstr "{name} tarihli günlüğü"
 
-#: nottodbox/widgets/options.py:405
+#: nottodbox/widgets/options.py:451
 #, python-brace-format
 msgid "the {name} to-do"
 msgstr "{name} yapılacağını"
 
-#: nottodbox/widgets/options.py:419
+#: nottodbox/widgets/options.py:465
 msgid "the notes"
 msgstr "notları"
 
-#: nottodbox/widgets/options.py:422
+#: nottodbox/widgets/options.py:468
 msgid "the diaries"
 msgstr "günlükleri"
 
-#: nottodbox/widgets/options.py:425
+#: nottodbox/widgets/options.py:471
 msgid "the to-dos"
 msgstr "yapılacakları"
 
-#: nottodbox/widgets/options.py:450
+#: nottodbox/widgets/options.py:496
 #, python-brace-format
 msgid "{name} notebook"
 msgstr "{name} not defteri"
 
-#: nottodbox/widgets/options.py:453
+#: nottodbox/widgets/options.py:499
 #, python-brace-format
 msgid "{name} to-do list"
 msgstr "{name} yapılacaklar listesi"
 
-#: nottodbox/widgets/options.py:457
+#: nottodbox/widgets/options.py:503
 #, python-brace-format
 msgid "the {name} notebook"
 msgstr "{name} not defterini"
 
-#: nottodbox/widgets/options.py:460
+#: nottodbox/widgets/options.py:506
 #, python-brace-format
 msgid "the {name} to-do list"
 msgstr "{name} yapılacaklar listesini"
 
-#: nottodbox/widgets/options.py:469
+#: nottodbox/widgets/options.py:515
 msgid ""
 "Diaries are unique to the day they are written.\n"
 "Do you really want to rename the diary?"
@@ -624,120 +638,120 @@ msgstr ""
 "Günlükler yazıldığı güne özellerdir.\n"
 "Gerçekten yeniden adlandırmak istiyor musunuz?"
 
-#: nottodbox/widgets/options.py:475 nottodbox/widgets/options.py:481
+#: nottodbox/widgets/options.py:521 nottodbox/widgets/options.py:527
 #, python-brace-format
 msgid "Rename {the_item}"
 msgstr "{the_item} Yeniden Adlandır"
 
-#: nottodbox/widgets/options.py:476
+#: nottodbox/widgets/options.py:522
 #, python-brace-format
 msgid "Please select a new date for {the_item}."
 msgstr "Lütfen {the_item} için yeni bir tarih seçin."
 
-#: nottodbox/widgets/options.py:482
+#: nottodbox/widgets/options.py:528
 #, python-brace-format
 msgid "Please enter a new name for {the_item}."
 msgstr "Lütfen {the_item} için yeni bir ad girin."
 
-#: nottodbox/widgets/options.py:508
+#: nottodbox/widgets/options.py:554
 #, python-brace-format
 msgid "Failed to rename {item}."
 msgstr "{item} yeniden adlandırılamadı."
 
-#: nottodbox/widgets/options.py:512
+#: nottodbox/widgets/options.py:558
 #, python-brace-format
 msgid "Already existing {newitem}, renaming {the_item} cancalled."
 msgstr "Zaten {newitem} mevcut, {the_item} adlandırma iptal edildi."
 
-#: nottodbox/widgets/options.py:523
+#: nottodbox/widgets/options.py:569
 msgid "Open"
 msgstr "Aç"
 
-#: nottodbox/widgets/options.py:526
+#: nottodbox/widgets/options.py:572
 msgid "Show Backup"
 msgstr "Yedeği Göster"
 
-#: nottodbox/widgets/options.py:529 nottodbox/widgets/pages.py:491
+#: nottodbox/widgets/options.py:575 nottodbox/widgets/pages.py:497
 msgid "Restore Content"
 msgstr "İçeriği Geri Yükle"
 
-#: nottodbox/widgets/options.py:532
+#: nottodbox/widgets/options.py:578
 msgid "Clear Content"
 msgstr "İçeriği Temizle"
 
-#: nottodbox/widgets/options.py:539
+#: nottodbox/widgets/options.py:585
 #, python-brace-format
 msgid "There is no backup for {item}."
 msgstr "{item} için yedek yok."
 
-#: nottodbox/widgets/options.py:550
+#: nottodbox/widgets/options.py:596
 #, python-brace-format
 msgid "Do you really want to clear the content {of_item}?"
 msgstr "Gerçekten {of_item} içeriğini silmek istiyor musunuz?"
 
-#: nottodbox/widgets/options.py:555
+#: nottodbox/widgets/options.py:601
 #, python-brace-format
 msgid "Content {of_item} cleared."
 msgstr "{of_item} içeriği temizlendi."
 
-#: nottodbox/widgets/options.py:559
+#: nottodbox/widgets/options.py:605
 #, python-brace-format
 msgid "Failed to clear content {of_item}."
 msgstr "{of_item} içeriği temizlenemedi."
 
-#: nottodbox/widgets/options.py:592 nottodbox/widgets/pages.py:508
+#: nottodbox/widgets/options.py:638 nottodbox/widgets/pages.py:514
 #, python-brace-format
 msgid "Backup {of_item} restored."
 msgstr "{of_item} yedeği geri yüklendi."
 
-#: nottodbox/widgets/options.py:596 nottodbox/widgets/pages.py:513
+#: nottodbox/widgets/options.py:642 nottodbox/widgets/pages.py:519
 #, python-brace-format
 msgid "Failed to restore backup {of_item}."
 msgstr "{of_item} yedeği geri yüklenemedi."
 
-#: nottodbox/widgets/options.py:619 nottodbox/widgets/options.py:623
-#: nottodbox/widgets/options.py:639 nottodbox/widgets/options.py:667
+#: nottodbox/widgets/options.py:665 nottodbox/widgets/options.py:669
+#: nottodbox/widgets/options.py:685 nottodbox/widgets/options.py:713
 msgid "Create {}"
 msgstr "{} Oluştur"
 
-#: nottodbox/widgets/options.py:627
+#: nottodbox/widgets/options.py:673
 msgid "Set Background Color"
 msgstr "Arka Plan Rengini Ayarla"
 
-#: nottodbox/widgets/options.py:630
+#: nottodbox/widgets/options.py:676
 msgid "Set Text Color"
 msgstr "Metin Rengini Ayarla"
 
-#: nottodbox/widgets/options.py:640 nottodbox/widgets/options.py:668
+#: nottodbox/widgets/options.py:686 nottodbox/widgets/options.py:714
 msgid "Please enter a name for creating a {}."
 msgstr "Lütfen bir {} oluşturmak için bir ad girin."
 
-#: nottodbox/widgets/options.py:647 nottodbox/widgets/options.py:675
+#: nottodbox/widgets/options.py:693 nottodbox/widgets/options.py:721
 #, python-brace-format
 msgid "{item} already created."
 msgstr "{item} zaten oluşturulmuş."
 
-#: nottodbox/widgets/options.py:727
+#: nottodbox/widgets/options.py:773
 #, python-brace-format
 msgid "Select Background Color for {item}"
 msgstr "{item} için Arka Plan Rengi Seçin"
 
-#: nottodbox/widgets/options.py:744
+#: nottodbox/widgets/options.py:790
 #, python-brace-format
 msgid "Failed to set background color for {item}."
 msgstr "Arka plan rengi {item} için ayarlanamadı."
 
-#: nottodbox/widgets/options.py:758
+#: nottodbox/widgets/options.py:804
 #, python-brace-format
 msgid "Select Text Color for {item}"
 msgstr "{item} için Metin Rengi Seçin"
 
-#: nottodbox/widgets/options.py:775
+#: nottodbox/widgets/options.py:821
 #, python-brace-format
 msgid "Failed to set text color for {item}."
 msgstr "Metin rengi, {item} için ayarlanamadı."
 
-#: nottodbox/widgets/options.py:789
+#: nottodbox/widgets/options.py:835
 msgid ""
 "You can select\n"
 "a {}\n"
@@ -749,12 +763,12 @@ msgstr ""
 "veya bir {}\n"
 "seçebilirsiniz."
 
-#: nottodbox/widgets/options.py:825
+#: nottodbox/widgets/options.py:871
 #, python-brace-format
 msgid "Do you really want to reset the {item}?"
 msgstr "Gerçekten {item} sıfırlamak istiyor musunuz?"
 
-#: nottodbox/widgets/options.py:843
+#: nottodbox/widgets/options.py:889
 #, python-brace-format
 msgid "Failed to reset {item}."
 msgstr "{item} sıfırlanamadı."
@@ -914,17 +928,12 @@ msgstr ""
 "Açık bir biçimlendirmeyi kapatmak için bir sözcük yazın ve ardından üzerine "
 "tıklayın."
 
-#: nottodbox/widgets/pages.py:425 nottodbox/widgets/pages.py:550
-#, python-brace-format
-msgid "Follow global ({setting})"
-msgstr "Küreseli takip et ({setting})"
-
-#: nottodbox/widgets/pages.py:440
+#: nottodbox/widgets/pages.py:431
 msgid "Format changes may corrupt the content."
 msgstr "Biçim değişiklikleri içeriği bozalabilir."
 
-#: nottodbox/widgets/pages.py:461 nottodbox/widgets/pages.py:502
-#: nottodbox/widgets/pages.py:610
+#: nottodbox/widgets/pages.py:468 nottodbox/widgets/pages.py:508
+#: nottodbox/widgets/pages.py:695
 msgid ""
 "Diaries are unique to the day they are written.\n"
 "Do you really want to change the content?"
@@ -932,44 +941,44 @@ msgstr ""
 "Günlükler yazıldığı güne özellerdir.\n"
 "Gerçekten içeriği değiştirmek istiyor musunuz?"
 
-#: nottodbox/widgets/pages.py:478
+#: nottodbox/widgets/pages.py:485
 #, python-brace-format
 msgid "Failed to save new format setting {of_item}."
 msgstr "{of_item} yeni biçim ayarı kaydedilemedi."
 
-#: nottodbox/widgets/pages.py:545
+#: nottodbox/widgets/pages.py:554
 msgid "Save"
 msgstr "Kaydet"
 
-#: nottodbox/widgets/pages.py:562
+#: nottodbox/widgets/pages.py:571
 msgid "Auto-saves do not change backups."
 msgstr "Oto. kayıt yedekleri değiştirmez."
 
-#: nottodbox/widgets/pages.py:567
+#: nottodbox/widgets/pages.py:576
 msgid "Auto-save feature disabled for old diaries."
 msgstr "Oto. kaydetme özelliği eski günlükler için devre dışıdır."
 
-#: nottodbox/widgets/pages.py:593
+#: nottodbox/widgets/pages.py:602
 #, python-brace-format
 msgid "Failed to create {name} dated diary for changing settings."
 msgstr "{name} günlüğü ayarları değiştirmek için oluşturulamadı."
 
-#: nottodbox/widgets/pages.py:625
-#, python-brace-format
-msgid "{item} saved."
-msgstr "{item} kaydedildi."
-
-#: nottodbox/widgets/pages.py:632
-#, python-brace-format
-msgid "Failed to save {item}."
-msgstr "{item} kaydedilemedi."
-
-#: nottodbox/widgets/pages.py:660
+#: nottodbox/widgets/pages.py:650
 #, python-brace-format
 msgid "Failed to save new auto-save setting {of_item}."
 msgstr "{of_item} yeni oto. kayıt ayarı kaydedilemedi."
 
-#: nottodbox/widgets/pages.py:669
+#: nottodbox/widgets/pages.py:659
 #, python-brace-format
 msgid "Failed to set backup {of_item}."
 msgstr "{of_item} yedeği geri yüklenemedi."
+
+#: nottodbox/widgets/pages.py:710
+#, python-brace-format
+msgid "{item} saved."
+msgstr "{item} kaydedildi."
+
+#: nottodbox/widgets/pages.py:717
+#, python-brace-format
+msgid "Failed to save {item}."
+msgstr "{item} kaydedilemedi."

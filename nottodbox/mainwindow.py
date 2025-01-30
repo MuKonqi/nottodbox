@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-# Copyright (C) 2024 MuKonqi (Muhammed S.)
+# Copyright (C) 2024-2025MuKonqi (Muhammed S.)
 
 # Nottodbox is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@
 
 import getpass
 from gettext import gettext as _
-from PySide6.QtCore import Qt, QSettings, QByteArray
+from PySide6.QtCore import Slot, Qt, QSettings, QByteArray
 from PySide6.QtGui import QCloseEvent
 from PySide6.QtWidgets import *
 from sidebar import SidebarWidget
@@ -31,7 +31,7 @@ from settings import SettingsWidget
 
 
 username = getpass.getuser()
-userdata = f"/home/{username}/.config/nottodbox/"
+userdata = f"/home/{username}/.config/io.github.mukonqi/nottodbox/"
 
 
 class MainWindow(QMainWindow):
@@ -42,6 +42,8 @@ class MainWindow(QMainWindow):
         self.setMinimumHeight(700)
         self.setGeometry(0, 0, 1000, 700)
         
+        self.current_index = 0
+        
         self.qsettings = QSettings("io.github.mukonqi", "nottodbox")
         
         self.widget = QWidget(self)
@@ -49,6 +51,7 @@ class MainWindow(QMainWindow):
         
         self.tabwidget = QTabWidget(self.widget)
         self.tabwidget.setUsesScrollButtons(True)
+        self.tabwidget.currentChanged.connect(self.tabChanged)
         
         self.menu_sidebar = self.menuBar().addMenu(_("Sidebar"))
         self.menu_sidebar.addAction(_("Show"), lambda: self.dock.setVisible(True))
@@ -57,9 +60,9 @@ class MainWindow(QMainWindow):
         self.notes = NotesTabWidget(self)
         self.todos = TodosHomePage(self)
         self.diaries = DiariesTabWidget(self)
-        self.about = AboutWidget(self)
-        self.home = HomeWidget(self, self.todos, self.notes.home, self.diaries.home.format, self.diaries.home.autosave)
+        self.home = HomeWidget(self, self.todos, self.notes.home, self.diaries.home)
         self.settings = SettingsWidget(self, self.notes.home, self.todos, self.diaries.home)
+        self.about = AboutWidget(self)
 
         self.tabwidget.addTab(self.home, _("Home"))
         self.tabwidget.addTab(self.notes, _("Notes"))
@@ -89,10 +92,11 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self.widget)
     
         self.show()
-        self.restoreGeometry(QByteArray(self.qsettings.value("geometry")))
-        self.restoreState(QByteArray(self.qsettings.value("state")))
+        self.restoreGeometry(QByteArray(self.qsettings.value("mainwindow/geometry")))
+        self.restoreState(QByteArray(self.qsettings.value("mainwindow/state")))
 
-    def closeEvent(self, a0: QCloseEvent | None):                
+    @Slot(QCloseEvent)
+    def closeEvent(self, a0: QCloseEvent):                
         pages = self.dock.widget().open_pages.pages
         
         are_there_unsaved_notes = False
@@ -116,10 +120,10 @@ class MainWindow(QMainWindow):
             is_main_diary_unsaved = True
 
         if not are_there_unsaved_notes and not are_there_unsaved_diaries and not is_main_diary_unsaved:  
-            self.qsettings.setValue("geometry", self.saveGeometry())
-            self.qsettings.setValue("state", self.saveState())
+            self.qsettings.setValue("mainwindow/geometry", self.saveGeometry())
+            self.qsettings.setValue("mainwindow/state", self.saveState())
             
-            return super().closeEvent(a0)
+            closing_confirmed = True
         
         else:
             self.question = QMessageBox.question(self,
@@ -150,7 +154,7 @@ class MainWindow(QMainWindow):
                 if is_main_diary_unsaved:
                     messages = False
                     
-                    call_save_todays_diary = self.home.diary.saveChild(False)
+                    call_save_todays_diary = self.home.diary.saver.saveChild(False)
                     
                     if not call_save_todays_diary:
                         successful = False
@@ -164,13 +168,52 @@ class MainWindow(QMainWindow):
                         
                     return a0.ignore()
                 
-                self.qsettings.setValue("geometry", self.saveGeometry())
-                self.qsettings.setValue("state", self.saveState())
+                self.qsettings.setValue("mainwindow/geometry", self.saveGeometry())
+                self.qsettings.setValue("mainwindow/state", self.saveState())
                         
-                return super().closeEvent(a0)
+                closing_confirmed = True
             
             elif self.question == QMessageBox.StandardButton.Discard:
-                return super().closeEvent(a0)
+                closing_confirmed = True
+                
+        if closing_confirmed:
+            for module, page in pages:
+                if module == "notes" and not page.endswith(_(" (Backup)")):
+                    name, table = str(page).split(" @ ")
+                    
+                    self.notes.pages[(name, table)].saver_thread.quit()
+                    
+                elif module == "diaries" and not page.endswith(_(" (Backup)")):
+                    name = page
+                    
+                    self.diaries.pages[(name, "__main__")].saver_thread.quit()
+                    
+            self.home.diary.saver_thread.quit()
             
-            else:
-                a0.ignore()
+            return super().closeEvent(a0)
+        
+        else:
+            a0.ignore()
+                
+    @Slot(int)
+    def tabChanged(self, index: int):
+        if index != self.current_index:
+            old_widget = self.tabwidget.widget(self.current_index)
+            
+            if old_widget == self.home:
+                self.home.diary.saver_thread.quit()
+
+            elif ((old_widget == self.diaries or old_widget == self.notes) and
+                old_widget.currentWidget() != old_widget.home):
+                old_widget.currentWidget().saver_thread.quit()
+                
+            new_widget = self.tabwidget.widget(index)
+            
+            if new_widget == self.home:
+                self.home.diary.saver_thread.start()
+
+            elif ((new_widget == self.diaries or new_widget == self.notes) and
+                new_widget.currentWidget() != new_widget.home):
+                new_widget.currentWidget().saver_thread.start()
+            
+            self.current_index = index

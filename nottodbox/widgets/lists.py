@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-# Copyright (C) 2024 MuKonqi (Muhammed S.)
+# Copyright (C) 2024-2025MuKonqi (Muhammed S.)
 
 # Nottodbox is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -70,12 +70,16 @@ class TreeView(QTreeView):
         self.db = db
         self.own = own
         
-        self.model_ = QStandardItemModel(self)
+        if model is None:
+            self.model_ = QStandardItemModel(self)
+            self.setHorizontalLabels()
+            
+        else:
+            self.model_ = model
 
         self.proxy = QSortFilterProxyModel(self)
         self.proxy.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
         self.proxy.setRecursiveFilteringEnabled(True)
-        self.proxy.setSourceModel(self.model_)
         
         if self.module == "notes":
             self.setStatusTip(_("Double-click to opening a note."))
@@ -88,15 +92,12 @@ class TreeView(QTreeView):
         self.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
         self.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.header().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
-        
-        self.model_.setHorizontalHeaderLabels([_("Name"), _("Creation"), _("Modification")])
 
         if self.own:
             self.selectionModel().currentRowChanged.connect(
                 lambda: self.parent_.setOptionWidget(self.getChildText(), self.getParentText()))
-            
-        if model is not None:
-            self.proxy.setSourceModel(self.model_)
+
+        self.proxy.setSourceModel(self.model_)
         
         self.doubleClicked.connect(lambda: self.parent_.shortcutEvent(self.getChildText(), self.getParentText()))
         
@@ -184,6 +185,7 @@ class TreeView(QTreeView):
         self.parent_.table_counts.clear()
         self.parent_.child_counts.clear()
         self.model_.clear()
+        self.setHorizontalLabels()
         
     def deleteChild(self, name: str, table: str) -> None:
         self.parent_.table_items[table][0].removeRow(self.parent_.child_counts[(name, table)])
@@ -241,6 +243,15 @@ class TreeView(QTreeView):
         self.proxy.beginResetModel()
         self.proxy.setFilterFixedString(text)
         self.proxy.endResetModel()
+        
+    def setHorizontalLabels(self) -> None:
+        if self.module == "notes":
+            self.model_.setHorizontalHeaderLabels(
+                [_("Name"), _("Creation"), _("Modification")])
+            
+        elif self.module == "todos":
+            self.model_.setHorizontalHeaderLabels(
+                [_("Name"), _("Creation"), "{} / {}".format(_("Modification"), _("Completion"))])
         
     def setIndex(self, child: str, table: str) -> None:        
         if table == "":
