@@ -22,7 +22,7 @@ from PySide6.QtWidgets import *
 
 
 class Action(QAction):
-    def __init__(self, parent: QWidget, text: str):
+    def __init__(self, parent: QWidget, text: str = ""):
         super().__init__(text, parent)
 
 
@@ -34,14 +34,14 @@ class HSeperator(QFrame):
         
         
 class Label(QLabel):
-    def __init__(self, parent: QWidget, text: str):
+    def __init__(self, parent: QWidget, text: str = ""):
         super().__init__(text, parent)
         
         self.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
 
 class PushButton(QPushButton):
-    def __init__(self, parent: QWidget, text: str):
+    def __init__(self, parent: QWidget, text: str = ""):
         super().__init__(text, parent)
         
         self.setFixedHeight(30)

@@ -54,46 +54,47 @@ class TabWidget(QTabWidget):
         if hasattr(self, "home"):
             if index != self.indexOf(self.home):           
                 page = self.tabText(index).replace("&", "")
-                    
-                if self.module == "notes":
-                    name, table = str(page).split(" @ ")
                 
-                elif self.module == "diaries":
-                    name = page
-                    table = "__main__"
-                
-                if not self.pages[(name, table)].closable:
-                    self.question = QMessageBox.question(self, 
-                                                        _("Question"),
-                                                        _("{item} not saved.\nWhat would you like to do?")
-                                                        .format(item = _("{name} note" if self.module == "notes" else "{name} diary").format(name = name)),
-                                                        QMessageBox.StandardButton.Save | QMessageBox.StandardButton.Discard | QMessageBox.StandardButton.Cancel,
-                                                        QMessageBox.StandardButton.Save)
-                    
-                    if self.question == QMessageBox.StandardButton.Save:
-                        if not self.pages[(name, table)].saver.saveChild():
-                            return
-                    
-                    elif self.question != QMessageBox.StandardButton.Discard:
-                        return
-                    
-                if self.module == "diaries" and QDate.fromString(name, "dd.MM.yyyy") != QDate.currentDate():
-                    if not self.pages[(name, table)].setBackup():
-                        return
-                    
-                self.last_closed = self.pages[(name, table)]
-                
-                del self.pages[(name, table)]
-                
-                if not hasattr(self, "closable"):
-                    self.closable = True
-                
-                if not str(page).endswith(_(" (Backup)")):
+                if not page.endswith(_(" (Backup)")):
                     if self.module == "notes":
-                        self.parent_.dock.widget().open_pages.deletePage(self.module, f"{name} @ {table}")
-                        
+                        name, table = str(page).split(" @ ")
+                    
                     elif self.module == "diaries":
-                        self.parent_.dock.widget().open_pages.deletePage(self.module, name)
+                        name = page
+                        table = "__main__"
+                    
+                    if not self.pages[(name, table)].closable:
+                        self.question = QMessageBox.question(self, 
+                                                            _("Question"),
+                                                            _("{item} not saved.\nWhat would you like to do?")
+                                                            .format(item = _("{name} note" if self.module == "notes" else "{name} diary").format(name = name)),
+                                                            QMessageBox.StandardButton.Save | QMessageBox.StandardButton.Discard | QMessageBox.StandardButton.Cancel,
+                                                            QMessageBox.StandardButton.Save)
+                        
+                        if self.question == QMessageBox.StandardButton.Save:
+                            if not self.pages[(name, table)].saver.saveChild():
+                                return
+                        
+                        elif self.question != QMessageBox.StandardButton.Discard:
+                            return
+                        
+                    if self.module == "diaries" and QDate.fromString(name, "dd.MM.yyyy") != QDate.currentDate():
+                        if not self.pages[(name, table)].makeBackup():
+                            return
+                        
+                    self.last_closed = self.pages[(name, table)]
+                    
+                    del self.pages[(name, table)]
+                    
+                    if not hasattr(self, "closable"):
+                        self.closable = True
+                    
+                    if not str(page).endswith(_(" (Backup)")):
+                        if self.module == "notes":
+                            self.parent_.dock.widget().open_pages.deletePage(self.module, f"{name} @ {table}")
+                            
+                        elif self.module == "diaries":
+                            self.parent_.dock.widget().open_pages.deletePage(self.module, name)
                                             
                 self.removeTab(index)
                 
@@ -105,13 +106,13 @@ class TabWidget(QTabWidget):
             if old_widget is None:
                 old_widget = self.last_closed
             
-            if old_widget != self.home:
-                old_widget.saver_thread.quit()
+            if old_widget != self.home and old_widget.mode == "normal":
+                old_widget.disconnectAutosaveConnections()
                 
             new_widget = self.widget(index)
             
-            if new_widget != self.home:
-                new_widget.saver_thread.start()
+            if new_widget != self.home and new_widget.mode == "normal":
+                new_widget.changeAutosaveConnections()
             
             self.current_index = index
             
@@ -189,6 +190,8 @@ class HomePageForDocuments(HomePage):
             
             if page.call_autosave == "global":
                 page.autosave = self.autosave
+                
+                page.changeAutosaveConnections()
                 
             page.autosave_combobox.setItemText(0, "{} {}".format(_("Auto-save:"), _("Follow global ({setting})")
                                                                  .format(setting = page.prettyAutosave(self.autosave))))
@@ -649,7 +652,7 @@ class OptionsForDocuments(Options):
         
         if self.checkIfBackupExists(name, table):
             self.parent_.parent_.backups[(name, table)] = BackupPage(self, self.module, 
-                                                                     self.db, self.parent_.format,
+                                                                     self.db, self.parent_.format, self.parent_.autosave,
                                                                      name, table)
             self.parent_.parent_.addTab(self.parent_.parent_.backups[(name, table)], 
                                         self.parent_.returnPretty(name, table) + _(" (Backup)"))

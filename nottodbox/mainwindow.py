@@ -77,7 +77,7 @@ class MainWindow(QMainWindow):
         
         self.dock = QDockWidget(self)
         self.dock.setObjectName("DockWidget")
-        self.dock.setFixedWidth(125)
+        self.dock.setFixedWidth(150)
         self.dock.setStyleSheet("margin: 0px")
         self.dock.setFeatures(QDockWidget.DockWidgetFeature.DockWidgetClosable |
                               QDockWidget.DockWidgetFeature.DockWidgetFloatable |
@@ -102,6 +102,7 @@ class MainWindow(QMainWindow):
         are_there_unsaved_notes = False
         are_there_unsaved_diaries = False
         is_main_diary_unsaved = False
+        closing_confirmed = False
         
         for module, page in pages:
             if module == "notes" and not page.endswith(_(" (Backup)")):
@@ -201,19 +202,19 @@ class MainWindow(QMainWindow):
             old_widget = self.tabwidget.widget(self.current_index)
             
             if old_widget == self.home:
-                self.home.diary.saver_thread.quit()
+                self.home.diary.disconnectAutosaveConnections()
 
             elif ((old_widget == self.diaries or old_widget == self.notes) and
-                old_widget.currentWidget() != old_widget.home):
-                old_widget.currentWidget().saver_thread.quit()
+                old_widget.currentWidget() != old_widget.home and old_widget.currentWidget().mode == "normal"):
+                old_widget.currentWidget().disconnectAutosaveConnections()
                 
             new_widget = self.tabwidget.widget(index)
             
             if new_widget == self.home:
-                self.home.diary.saver_thread.start()
+                self.home.diary.changeAutosaveConnections()
 
             elif ((new_widget == self.diaries or new_widget == self.notes) and
-                new_widget.currentWidget() != new_widget.home):
-                new_widget.currentWidget().saver_thread.start()
+                new_widget.currentWidget() != new_widget.home and new_widget.currentWidget().mode == "normal"):
+                new_widget.currentWidget().changeAutosaveConnections()
             
             self.current_index = index

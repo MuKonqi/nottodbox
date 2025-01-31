@@ -245,9 +245,9 @@ class SettingsPage(QWidget):
             self.autosave_checkbox = QCheckBox(self.inputs)
             self.autosave_checkbox.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
             try:
-                self.autosave_checkbox.checkStateChanged.connect(self.setAutoSave)
+                self.autosave_checkbox.checkStateChanged.connect(self.setAutosave)
             except:
-                self.autosave_checkbox.stateChanged.connect(self.setAutoSave)
+                self.autosave_checkbox.stateChanged.connect(self.setAutosave)
             
             self.format_combobox = QComboBox(self.inputs)
             self.format_combobox.addItems([_("Plain-text"), "Markdown", "HTML"])
@@ -324,6 +324,8 @@ class SettingsPage(QWidget):
                 if self.parent_.parent_.home.diary.call_autosave == "global":
                     self.parent_.parent_.home.diary.autosave = self.autosave
                     
+                    self.parent_.parent_.home.diary.changeAutosaveConnections()
+                    
                 self.parent_.parent_.home.diary.autosave_combobox.setItemText(0, "{} {}".format(_("Auto-save:"), _("Follow global ({setting})")
                                                                                                 .format(setting = self.parent_.parent_.home.diary.prettyAutosave(self.autosave))))
             
@@ -360,7 +362,7 @@ class SettingsPage(QWidget):
             return False
             
     @Slot(int or Qt.CheckState)
-    def setAutoSave(self, signal: Qt.CheckState | int) -> None:
+    def setAutosave(self, signal: Qt.CheckState | int) -> None:
         if signal == Qt.CheckState.Unchecked or signal == 0:
             self.autosave = "disabled"
             self.autosave_checkbox.setText(_("Disabled"))
