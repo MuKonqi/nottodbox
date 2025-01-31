@@ -152,8 +152,8 @@ class TodosChildOptions(OptionsForLists):
         self.change_status_button = PushButton(self, _("Change Status"))
         self.change_status_button.clicked.connect(self.changeStatus)
         
-        self.layout_.addWidget(self.create_parent_button)
         self.layout_.addWidget(self.create_child_button)
+        self.layout_.addWidget(self.create_parent_button)
         self.layout_.addWidget(HSeperator(self))
         self.layout_.addWidget(self.change_status_button)
         self.layout_.addWidget(HSeperator(self))

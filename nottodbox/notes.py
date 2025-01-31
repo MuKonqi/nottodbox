@@ -160,8 +160,8 @@ class NotesChildOptions(OptionsForDocuments, OptionsForLists):
     def __init__(self, parent: NotesHomePage):
         super().__init__(parent, "notes", notesdb)
         
-        self.layout_.addWidget(self.create_parent_button)
         self.layout_.addWidget(self.create_child_button)
+        self.layout_.addWidget(self.create_parent_button)
         self.layout_.addWidget(HSeperator(self))
         self.layout_.addWidget(self.open_button)
         self.layout_.addWidget(self.show_backup_button)
