@@ -88,7 +88,6 @@ class TreeView(QTreeView):
             self.setStatusTip(_("Double-click to changing status of a to-do."))
         
         self.setModel(self.proxy)
-        self.setAlternatingRowColors(True)
         self.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
         self.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)

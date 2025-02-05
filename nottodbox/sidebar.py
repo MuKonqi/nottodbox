@@ -144,7 +144,6 @@ class SidebarTreeView(QTreeView):
         self.proxy.setSourceModel(self.model_)
         
         self.setModel(self.proxy)
-        self.setAlternatingRowColors(True)
         self.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
         self.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
