@@ -16,7 +16,6 @@
 # along with Nottodbox.  If not, see <https://www.gnu.org/licenses/>.
 
 
-import getpass
 import subprocess
 from gettext import gettext as _
 from PySide6.QtCore import Slot, QDate, QSettings
@@ -26,11 +25,9 @@ from widgets.others import HSeperator, Label, PushButton
 from widgets.pages import NormalPage
 
 
-username = getpass.getuser()
-userdata = f"/home/{username}/.config/io.github.mukonqi/nottodbox/"
-username = str(subprocess.run("getent passwd $LOGNAME | cut -d: -f5 | cut -d, -f1", shell=True, capture_output=True)
+USER_NAME_PRETTY = str(subprocess.run("getent passwd $LOGNAME | cut -d: -f5 | cut -d, -f1", shell=True, capture_output=True)
                .stdout).removeprefix("b'").removesuffix("\\n'")
-    
+
 today = QDate.currentDate()
 
 
@@ -40,7 +37,7 @@ class HomeWidget(QWidget):
         
         self.layout_ = QVBoxLayout(self)
         
-        self.label_welcome = Label(self, _("Welcome {username}!").format(username = username))
+        self.label_welcome = Label(self, _("Welcome {username}!").format(username = USER_NAME_PRETTY))
         self.label_welcome.setStyleSheet("font-size: 16pt; font-weight: 900;")
         
         self.diary_button = PushButton(self, _("Focus to Diary for Today"))

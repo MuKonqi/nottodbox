@@ -52,18 +52,17 @@ group = parser.add_mutually_exclusive_group()
 
 parser.add_argument("-h", "--help", help=_("show this help message"), action="help", default=argparse.SUPPRESS)
 parser.add_argument("-v", "--version", help=_("show the version"), action="version", version="@VERSION@")
-group.add_argument("-i", "--index", help=_("set the page to be opened via number"), default=0,
-                   choices=[1, 2, 3, 4, 5, 6], type=int)
+group.add_argument("-i", "--index", help=_("set the page to be opened via number"), default=1,
+                   choices=[1, 2, 3, 4], type=int)
 group.add_argument("-p", "--page", help=_("set the page to be opened via name"), default=_("home"), 
-                   choices=[__("Home"), __("Notes"), __("To-Dos"), __("Diaries"), __("Settings"), __("About")], type=str)
+                   choices=[__("Home"), __("Notes"), __("To-Dos"), __("Diaries")], type=str)
 
 args = parser.parse_args()
 
 
-username = getpass.getuser()
-userdata = f"/home/{username}/.config/io.github.mukonqi/nottodbox"
-if not os.path.isdir(userdata):
-    os.makedirs(userdata)   
+USER_DATA = f"/home/{getpass.getuser()}/.local/share/io.github.mukonqi/nottodbox"
+if not os.path.isdir(USER_DATA):
+    os.makedirs(USER_DATA)   
 
 
 sys.path.insert(1, '@APPDIR@')
@@ -73,18 +72,28 @@ from mainwindow import MainWindow
 class Application(QApplication):
     def __init__(self, argv: list) -> None:
         super().__init__(argv)
-
-        with open("@APPDIR@/style.qss") as style_file:
-            style = style_file.read()
         
+        self.default_style = self.style().objectName()
+        
+        self.setStyleSheet("""
+                           QDockWidget::title {
+                               padding: 0px;
+                               margin: 0px;
+                               border: 0px;
+                           }
+                           
+                           QTabWidget::tab-bar {
+                               alignment: center;
+                           }
+                           """)
+
         self.setApplicationVersion("@VERSION@")
         self.setApplicationName("nottodbox")
         self.setApplicationDisplayName("Nottodbox")
         self.setDesktopFileName("@DESKTOPFILE@")
-        self.setWindowIcon(QIcon("@ICONFILE_SVG@"))
-        self.setStyleSheet(style)
+        self.setWindowIcon(QIcon("@ICONFILE-SVG@"))
         
-        window = MainWindow()
+        window = MainWindow(self)
         
         if args.index:
             window.tabwidget.setCurrentIndex(args.index - 1)
@@ -101,13 +110,6 @@ class Application(QApplication):
                 
             elif args.page == __("Diaries"):
                 window.tabwidget.setCurrentIndex(3)
-                
-            elif args.page == __("Settings"):
-                window.tabwidget.setCurrentIndex(4)
-                
-            elif args.page == __("About"):
-                window.tabwidget.setCurrentIndex(5)
-
 if __name__ == "__main__":
     application = Application(sys.argv)
 

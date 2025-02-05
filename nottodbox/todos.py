@@ -16,7 +16,6 @@
 # along with Nottodbox.  If not, see <https://www.gnu.org/licenses/>.
 
 
-import getpass
 import datetime
 from gettext import gettext as _
 from PySide6.QtCore import Slot
@@ -24,10 +23,6 @@ from PySide6.QtWidgets import *
 from databases.lists import DBForLists
 from widgets.others import HSeperator, PushButton
 from widgets.options import HomePageForLists, OptionsForLists 
-
-
-username = getpass.getuser()
-userdata = f"/home/{username}/.config/io.github.mukonqi/nottodbox/"
 
 
 class TodosDB(DBForLists):
@@ -165,7 +160,7 @@ class TodosChildOptions(OptionsForLists):
         self.layout_.addWidget(self.set_background_button)
         self.layout_.addWidget(self.set_foreground_button)
         
-    @Slot(bool)
+    @Slot(bool, str)
     def changeStatus(self, state: bool, name: str = None, table: str = None) -> None:
         if name is None:
             name = self.parent_.name

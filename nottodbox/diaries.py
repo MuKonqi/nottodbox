@@ -19,7 +19,6 @@
 # <https://invent.kde.org/office/marknote/-/blob/master/src/documenthandler.cpp>
 
 
-import getpass
 import datetime
 from gettext import gettext as _
 from PySide6.QtCore import Slot, QDate, QRect, QPoint
@@ -29,10 +28,6 @@ from databases.documents import DBForDocuments
 from widgets.dialogs import ColorDialog
 from widgets.options import TabWidget, HomePageForDocuments, OptionsForDocuments
 from widgets.others import Action, HSeperator, Label, PushButton, VSeperator
-
-
-username = getpass.getuser()
-userdata = f"/home/{username}/.config/io.github.mukonqi/nottodbox/"
 
 
 class DiariesDB(DBForDocuments):
@@ -64,16 +59,6 @@ class DiariesDB(DBForDocuments):
                 format TEXT NOT NULL,
                 highlight TEXT NOT NULL
                 );""")
-        
-    def deleteAll(self) -> bool:
-        self.cur.execute("DROP TABLE IF EXISTS __main__")
-        self.db.commit()
-        
-        if self.checkIfTheTableExists():
-            return False
-        
-        else:
-            return self.createMainTable()
         
     def getAll(self) -> list:
         self.cur.execute("select name from __main__")
@@ -196,7 +181,7 @@ class DiariesOptions(OptionsForDocuments):
     def __init__(self, parent: DiariesHomePage):
         super().__init__(parent, "diaries", diariesdb)
         
-        self.set_highlight_button = PushButton(self, _("Set Highlight Color"))
+        self.set_highlight_button = PushButton(self, _("Set {} Color").format(_("Highlight")))
         self.set_highlight_button.clicked.connect(self.setHighlight)
         
         self.layout_.addWidget(self.open_button)
@@ -211,7 +196,7 @@ class DiariesOptions(OptionsForDocuments):
         self.layout_.addWidget(HSeperator(self))
         self.layout_.addWidget(self.set_highlight_button)
         
-    @Slot(bool)
+    @Slot(bool, str)
     def open(self, state: bool, name: str = None, table: str = None) -> None:
         if name is None:
             name = self.parent_.name
@@ -242,7 +227,7 @@ class DiariesOptions(OptionsForDocuments):
         if self.checkIfItExists(name):
             highlight = diariesdb.getHighlight(name)
             
-            ok, status, qcolor = ColorDialog(self, True, 
+            ok, status, qcolor = ColorDialog(self, True, True, 
                 QColor(highlight if highlight != "global" and highlight != "default" 
                     else self.parent_.highlight if highlight == "global" else "#376296"),
                 _("Select Highlight Color for {item}")

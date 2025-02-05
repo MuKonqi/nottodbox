@@ -16,16 +16,11 @@
 # along with Nottodbox.  If not, see <https://www.gnu.org/licenses/>.
 
 
-import getpass
 import datetime
-from .base import DBBase
+from .advanced import DBAdvanced
 
 
-username = getpass.getuser()
-userdata = f"/home/{username}/.config/io.github.mukonqi/nottodbox/"
-
-
-class DBForLists(DBBase):
+class DBForLists(DBAdvanced):
     def createParent(self, sql: list[str], values: tuple[str], name: str) -> bool:
         self.cur.execute(sql[0], values)
         self.db.commit()

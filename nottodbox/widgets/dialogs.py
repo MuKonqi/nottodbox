@@ -16,7 +16,6 @@
 # along with Nottodbox.  If not, see <https://www.gnu.org/licenses/>.
 
 
-import getpass
 from gettext import gettext as _
 from PySide6.QtCore import Qt, QDate
 from PySide6.QtGui import QColor
@@ -24,12 +23,8 @@ from PySide6.QtWidgets import *
 from .others import Label, PushButton
 
 
-username = getpass.getuser()
-userdata = f"/home/{username}/.config/io.github.mukonqi/nottodbox/"
-
-
 class ColorDialog(QColorDialog):
-    def __init__(self, parent: QWidget, show_global: bool, color: QColor | Qt.GlobalColor | int, title: str) -> None:
+    def __init__(self, parent: QWidget, show_global: bool, show_default: bool, color: QColor | Qt.GlobalColor, title: str) -> None:
         super().__init__(color, parent)
         
         self.setOption(QColorDialog.ColorDialogOption.DontUseNativeDialog, True)
@@ -121,9 +116,11 @@ class GetTwoDialog(GetDialogBase):
         
         if self.mode == "text":
             self.top_widget = QLineEdit(self.input)
+            self.top_widget.setClearButtonEnabled(True)
             self.top_widget.setPlaceholderText(top_extra)
             
             self.bottom_widget = QLineEdit(self.input)
+            self.bottom_widget.setClearButtonEnabled(True)
             self.bottom_widget.setPlaceholderText(bottom_extra)
         
         elif self.mode == "number":

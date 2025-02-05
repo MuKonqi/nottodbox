@@ -152,7 +152,7 @@ TBA
 ## Building
 ### Dependencies
 - Python3
-- The following Python libraries: sys, locale, argparse, gettext, getpass, os, subprocess, sqlite3, datetime, webbrowser, PySide6 (they are generally built-in except PySide6)
+- The following Python libraries: sys, locale, argparse, gettext, getpass, os, subprocess, sqlite3, datetime, json, PySide6 (they are generally built-in except PySide6)
 - Qt
 - getent
 - cut

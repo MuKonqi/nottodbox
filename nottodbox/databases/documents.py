@@ -16,15 +16,10 @@
 # along with Nottodbox.  If not, see <https://www.gnu.org/licenses/>.
 
 
-import getpass
-from .base import DBBase
+from .advanced import DBAdvanced
 
 
-username = getpass.getuser()
-userdata = f"/home/{username}/.config/io.github.mukonqi/nottodbox/"
-
-
-class DBForDocuments(DBBase):        
+class DBForDocuments(DBAdvanced):        
     def checkIfTheChildBackupExists(self, name: str, table: str = "__main__") -> bool:
         if self.checkIfTheChildExists(name, table):
             self.cur.execute(f"select backup from '{table}' where name = ?", (name,))

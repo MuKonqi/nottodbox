@@ -1,9 +1,0 @@
-QDockWidget::title {
-    padding: 0px;
-    margin: 0px;
-    border: 0px;
-}
-
-QTabWidget::tab-bar {
-    alignment: center;
-}

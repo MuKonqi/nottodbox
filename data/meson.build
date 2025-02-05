@@ -29,6 +29,12 @@ install_data(
 )
 
 
+install_subdir(
+  join_paths(meson.current_source_dir(), 'color-schemes'),
+  install_dir: join_paths(get_option('prefix'), get_option('datadir'), 'nottodbox', 'data')
+)
+
+
 desktop_file_validater = find_program('desktop-file-validate', required: false)
 
 if desktop_file_validater.found()

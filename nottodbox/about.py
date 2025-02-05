@@ -22,27 +22,28 @@ from PySide6.QtWidgets import *
 from widgets.others import HSeperator, Label
 
 
-class AboutWidget(QWidget):
+class AboutWindow(QDialog):
     def __init__(self, parent: QMainWindow) -> None:
         super().__init__(parent)
         
         self.parent_ = parent
         self.layout_ = QGridLayout(self)
         
-        self.parent_.menuBar().addAction(_("About"), lambda: self.parent_.tabwidget.setCurrentIndex(5))
+        self.parent_.menuBar().addAction(_("About"), lambda: self.exec())
         
         self.icon_and_nottodbox = QWidget(self)
         self.icon_and_nottodbox_layout = QHBoxLayout(self.icon_and_nottodbox)
         
         self.icon = Label(self.icon_and_nottodbox, "")
-        self.icon.setPixmap(QPixmap("@ICONFILE_PNG@"))
+        self.icon.setPixmap(QPixmap("@ICONFILE-PNG@"))
         
         self.nottodbox = Label(self.icon_and_nottodbox, _("Nottodbox"))
         self.nottodbox.setStyleSheet("font-size: 32pt; font-weight: 900;")
         
         self.version_label = Label(self, _("Version") + ': @VERSION@')
         
-        self.commit_label = Label(self, _("Commit") + ': @COMMIT@')
+        self.commit_label = Label(self, _("Commit") + ': <a href="https://github.com/mukonqi/nottodbox/commit/@COMMIT@">@COMMIT@</a>')
+        self.commit_label.setOpenExternalLinks(True)
         
         self.source_label = Label(self, _("Source codes") + ': <a href="https://github.com/mukonqi/nottodbox">GitHub</a>')
         self.source_label.setOpenExternalLinks(True)
@@ -69,6 +70,10 @@ class AboutWidget(QWidget):
         self.icon_and_nottodbox_layout.addWidget(self.nottodbox)
         self.icon_and_nottodbox_layout.addStretch()
         
+        self.buttons = QDialogButtonBox(self)
+        self.buttons.addButton(QDialogButtonBox.StandardButton.Ok)
+        self.buttons.accepted.connect(lambda: self.done(1))
+        
         self.setLayout(self.layout_)
         self.layout_.addWidget(self.icon_and_nottodbox)
         self.layout_.addWidget(self.version_label)
@@ -80,3 +85,8 @@ class AboutWidget(QWidget):
         self.layout_.addWidget(self.copyright_label)
         self.layout_.addWidget(self.license_label)
         self.layout_.addWidget(self.license_textedit)
+        self.layout_.addWidget(HSeperator(self))
+        self.layout_.addWidget(self.buttons)
+        
+        self.setWindowTitle(_("About") + " — Nottodbox")
+        self.setMinimumSize(750, 525)

@@ -16,7 +16,6 @@
 # along with Nottodbox.  If not, see <https://www.gnu.org/licenses/>.
 
 
-import getpass
 import datetime
 from gettext import gettext as _
 from PySide6.QtCore import Slot
@@ -25,10 +24,6 @@ from databases.documents import DBForDocuments
 from databases.lists import DBForLists
 from widgets.others import Action, HSeperator
 from widgets.options import TabWidget, HomePageForDocuments, HomePageForLists, OptionsForDocuments, OptionsForLists
-
-
-username = getpass.getuser()
-userdata = f"/home/{username}/.config/io.github.mukonqi/nottodbox/"
 
 
 class NotesDB(DBForDocuments, DBForLists):
@@ -176,7 +171,7 @@ class NotesChildOptions(OptionsForDocuments, OptionsForLists):
         self.layout_.addWidget(self.set_background_button)
         self.layout_.addWidget(self.set_foreground_button)
         
-    @Slot(bool)
+    @Slot(bool, str)
     def open(self, state: bool, name: str = None, table: str = None) -> None:
         if name is None:
             name = self.parent_.name

@@ -22,20 +22,16 @@ from gettext import gettext as _
 from PySide6.QtGui import QStandardItemModel
 from PySide6.QtCore import Slot, Qt, QSortFilterProxyModel
 from PySide6.QtWidgets import *
+from databases.base import DBBase
 from widgets.lists import StandardItem
 from widgets.others import HSeperator, Label, PushButton
 
 
-username = getpass.getuser()
-userdata = f"/home/{username}/.config/io.github.mukonqi/nottodbox/"
+USER_DATA = f"/home/{getpass.getuser()}/.local/share/io.github.mukonqi/nottodbox"
 
 
-class SidebarDB:
-    def __init__(self) -> None:
-        self.db = sqlite3.connect(f"{userdata}sidebar.db")
-        self.cur = self.db.cursor()
-        
-        self.createTable()
+class HistoryDB(DBBase):
+    file = "history.db"
         
     def appendPage(self, module: str, page: str) -> bool:
         try:
@@ -57,30 +53,13 @@ class SidebarDB:
         except TypeError:
             return False
         
-    def checkIfTheTableExists(self) -> bool:
-        try:
-            self.cur.execute("select * from __main__")
-            return True
-        
-        except sqlite3.OperationalError:
-            return False
-        
-    def createTable(self) -> bool:
-        self.cur.execute("""
-                         CREATE TABLE IF NOT EXISTS __main__ (
-                             module TEXT NOT NULL,
-                             page TEXT NOT NULL
-                             );
-                             """)
-        self.db.commit()
-        
-        check = self.checkIfTheTableExists()
-        
-        if not check:
-            print("[2] Failed to create main table for sidebar.py")
-            exit(2)
-            
-        return check
+    def createMainTable(self) -> bool:
+        return super().createMainTable("""
+                                        CREATE TABLE IF NOT EXISTS __main__ (
+                                            module TEXT NOT NULL,
+                                            page TEXT NOT NULL
+                                            );
+                                            """)
     
     def deletePage(self, module: str, page: str) -> bool:
         call = self.checkIfThePageExists(module, page)
@@ -89,12 +68,7 @@ class SidebarDB:
             self.cur.execute("delete from __main__ where module = ? and page = ?", (module, page))
             self.db.commit()
             
-            call = self.checkIfThePageExists(module, page)
-            
-            if call:
-                return False
-            else:
-                return True
+            return not self.checkIfThePageExists(module, page)
         
         else:
             return True
@@ -102,20 +76,8 @@ class SidebarDB:
     def getAll(self) -> list:
         self.cur.execute("select module, page from __main__")
         return self.cur.fetchall()
-        
-    def recreateTable(self) -> bool:
-        self.cur.execute("DROP TABLE IF EXISTS __main__")
-        self.db.commit()
-        
-        call = self.checkIfTheTableExists()
-        
-        if call:
-            return False
-        else:
-            return self.createTable()
 
-
-sidebardb = SidebarDB()
+historydb = HistoryDB()
 
 
 class SidebarWidget(QWidget):
@@ -182,6 +144,7 @@ class SidebarTreeView(QTreeView):
         self.proxy.setSourceModel(self.model_)
         
         self.setModel(self.proxy)
+        self.setAlternatingRowColors(True)
         self.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
         self.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
@@ -242,7 +205,7 @@ class SidebarOpenPages(SidebarTreeView):
         
         self.parent_.history.appendPage(module, page)
         
-        call = sidebardb.appendPage(module, page)
+        call = historydb.appendPage(module, page)
         
         if not call:
             QMessageBox.critical(self, _("Error"), _("Failed to add {page} page to history.").format(page = page))
@@ -252,7 +215,7 @@ class SidebarHistory(SidebarTreeView):
     def __init__(self, parent: SidebarWidget):
         super().__init__(parent)
         
-        call = sidebardb.getAll()
+        call = historydb.getAll()
         
         for module, page in call:
             self.appendPage(module, page)
@@ -267,17 +230,15 @@ class SidebarHistory(SidebarTreeView):
         
         self.model_.clear()
         self.model_.setHorizontalHeaderLabels([_("Type"), _("Page")])
-        
-        call = sidebardb.recreateTable()
             
-        if not call:
+        if not historydb.deleteAll():
             QMessageBox.critical(self, _("Error"), _("Failed to clear history."))
             
     @Slot(str, str)
     def deletePage(self, module: str, page: str):
         super().deletePage(module, page)
         
-        call = sidebardb.deletePage(module, page)
+        call = historydb.deletePage(module, page)
         
         if not call:
             QMessageBox.critical(self, _("Error"), _("Failed to delete {page} page from history.").format(page = page))

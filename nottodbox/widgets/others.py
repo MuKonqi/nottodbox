@@ -34,10 +34,11 @@ class HSeperator(QFrame):
         
         
 class Label(QLabel):
-    def __init__(self, parent: QWidget, text: str = ""):
+    def __init__(self, parent: QWidget, text: str = "", center: bool = True):
         super().__init__(text, parent)
         
-        self.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        if center:
+            self.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
 
 class PushButton(QPushButton):

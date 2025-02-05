@@ -217,8 +217,8 @@ class HomePageForLists(HomePage):
         self.treeview = TreeView(self, self.module, db)
         
         self.entry = QLineEdit(self)
-        self.entry.setPlaceholderText(_("Search..."))
         self.entry.setClearButtonEnabled(True)
+        self.entry.setPlaceholderText(_("Search..."))
         self.entry.textEdited.connect(self.treeview.setFilter)
         
         self.none_options = NoneOptions(self, self.module, self.db)
@@ -608,7 +608,7 @@ class OptionsForDocuments(Options):
                     QMessageBox.critical(self, _("Error"), _("Failed to clear content {of_item}.")
                                         .format(of_item = self.localizedChildOfItem(name)))
         
-    @Slot(bool)
+    @Slot(bool, str)
     def open(self, state: bool, name: str = None, table: str = None) -> None:
         if name is None:
             name = self.parent_.name
@@ -627,7 +627,7 @@ class OptionsForDocuments(Options):
                 self.parent_.parent_.addTab(self.parent_.parent_.pages[(name, table)], 
                                             self.parent_.returnPretty(name, table))
                 self.parent_.parent_.setCurrentWidget(self.parent_.parent_.pages[(name, table)])
-                self.parent_.parent_.parent_.dock.widget().open_pages.appendPage(self.module, self.parent_.returnPretty(name, table))
+                self.parent_.parent_.parent_.dock.widget().open_pages.createChild(self.module, self.parent_.returnPretty(name, table))
                 
             self.parent_.parent_.parent_.tabwidget.setCurrentWidget(self.parent_.parent_)
             
@@ -673,10 +673,10 @@ class OptionsForLists(Options):
                                                  .format(self.localizedParent().title()))
         self.create_parent_button.clicked.connect(self.createParent)
         
-        self.set_background_button = PushButton(self, _("Set Background Color"))
+        self.set_background_button = PushButton(self, _("Set {} Color").format(_("Background")))
         self.set_background_button.clicked.connect(self.setBackground)
         
-        self.set_foreground_button = PushButton(self, _("Set Text Color"))
+        self.set_foreground_button = PushButton(self, _("Set {} Color").format(_("Text")))
         self.set_foreground_button.clicked.connect(self.setForeground)
     
     @Slot()
@@ -769,7 +769,7 @@ class OptionsForLists(Options):
         if self.checkIfItExists(name, table):
             background = self.db.getBackground(name)
             
-            ok, status, qcolor = ColorDialog(self, True, 
+            ok, status, qcolor = ColorDialog(self, True, True,
                 QColor(background if background != "global" and background != "default"
                        else self.parent_.background if background == "global" and self.parent_.background != "default"
                        else ("#FFFFFF")),
@@ -800,7 +800,7 @@ class OptionsForLists(Options):
         if self.checkIfItExists(name, table):
             foreground = self.db.getForeground(name)
             
-            ok, status, qcolor = ColorDialog(self, True, 
+            ok, status, qcolor = ColorDialog(self, True, True,
                 QColor(foreground if foreground != "global" and foreground != "default"
                        else self.parent_.foreground if foreground == "global" and self.parent_.foreground != "default"
                        else ("#FFFFFF")),
