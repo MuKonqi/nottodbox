@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.0.7\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-06 18:34+0300\n"
-"PO-Revision-Date: 2025-02-06 18:34+0300\n"
+"POT-Creation-Date: 2025-02-06 22:20+0300\n"
+"PO-Revision-Date: 2025-02-06 22:20+0300\n"
 "Last-Translator: Muhammed S. <mukonqi@gmail.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: tr\n"
@@ -95,7 +95,7 @@ msgstr "Günümüze Geri Dön"
 msgid "Set {} Color"
 msgstr "{} Rengini Ayarla"
 
-#: nottodbox/diaries.py:184 nottodbox/settings.py:450 nottodbox/settings.py:717
+#: nottodbox/diaries.py:184 nottodbox/settings.py:454 nottodbox/settings.py:740
 msgid "Highlight"
 msgstr "Vurgu rengi"
 
@@ -228,7 +228,7 @@ msgstr "Burada önemli bilgiler ve ipuçları olabilir. Buraya bakmayı unutmay�
 msgid " (Backup)"
 msgstr " (Yedek)"
 
-#: nottodbox/mainwindow.py:122 nottodbox/settings.py:694
+#: nottodbox/mainwindow.py:122 nottodbox/settings.py:717
 #: nottodbox/widgets/options.py:68 nottodbox/widgets/options.py:371
 #: nottodbox/widgets/options.py:398 nottodbox/widgets/options.py:518
 #: nottodbox/widgets/options.py:599 nottodbox/widgets/options.py:874
@@ -346,7 +346,7 @@ msgid "From selected style ({})"
 msgstr "Seçilen stilden ({})"
 
 #: nottodbox/settings.py:311 nottodbox/settings.py:361
-#: nottodbox/settings.py:469
+#: nottodbox/settings.py:492
 msgid "Custom"
 msgstr "Özel"
 
@@ -371,25 +371,25 @@ msgid "Base"
 msgstr "Taban"
 
 #: nottodbox/settings.py:441
-msgid "Shadow"
-msgstr "Gölge"
+msgid "Alternate base"
+msgstr "Alternatif taban"
 
 #: nottodbox/settings.py:442
-msgid "Accent"
-msgstr "Aksan"
+msgid "Tooltip base"
+msgstr "Araç ipucusu tabanı"
 
-#: nottodbox/settings.py:443 nottodbox/settings.py:679
+#: nottodbox/settings.py:443
+msgid "Tooltip text"
+msgstr "Araç ipucusu metni"
+
+#: nottodbox/settings.py:444
+msgid "Placeholder text"
+msgstr "Yer tutucu metni"
+
+#: nottodbox/settings.py:445 nottodbox/settings.py:702
 #: nottodbox/widgets/options.py:679 nottodbox/widgets/pages.py:717
 msgid "Text"
 msgstr "Metin"
-
-#: nottodbox/settings.py:444
-msgid "Bright text"
-msgstr "Parlak metin"
-
-#: nottodbox/settings.py:445
-msgid "Placeholder text"
-msgstr "Yer tutucu metni"
 
 #: nottodbox/settings.py:446
 msgid "Button"
@@ -400,93 +400,137 @@ msgid "Button text"
 msgstr "Buton metni"
 
 #: nottodbox/settings.py:448
-msgid "Tooltip base"
-msgstr "Araç ipucusu tabanı"
+msgid "Bright text"
+msgstr "Parlak metin"
 
 #: nottodbox/settings.py:449
-msgid "Tooltip text"
-msgstr "Araç ipucusu metni"
+msgid "Light"
+msgstr "Açık"
+
+#: nottodbox/settings.py:450
+msgid "Mid light"
+msgstr "Orta açık"
 
 #: nottodbox/settings.py:451
+msgid "Dark"
+msgstr "Koyu"
+
+#: nottodbox/settings.py:452
+msgid "Mid"
+msgstr "Orta"
+
+#: nottodbox/settings.py:453
+msgid "Shadow"
+msgstr "Gölge"
+
+#: nottodbox/settings.py:455
+msgid "Accent"
+msgstr "Aksan"
+
+#: nottodbox/settings.py:456
 msgid "Highlighted text"
 msgstr "Vurgulanmış metin"
 
-#: nottodbox/settings.py:460 nottodbox/settings.py:520
-#: nottodbox/settings.py:621 nottodbox/settings.py:624
-#: nottodbox/settings.py:628 nottodbox/settings.py:672
-#: nottodbox/settings.py:684 nottodbox/settings.py:722
+#: nottodbox/settings.py:457 nottodbox/widgets/pages.py:533
+msgid "Link"
+msgstr "Bağlantı"
+
+#: nottodbox/settings.py:458
+msgid "Visited link"
+msgstr "Ziyaret edilmiş link"
+
+#: nottodbox/settings.py:471 nottodbox/settings.py:543
+#: nottodbox/settings.py:644 nottodbox/settings.py:647
+#: nottodbox/settings.py:651 nottodbox/settings.py:695
+#: nottodbox/settings.py:707 nottodbox/settings.py:745
 msgid "Select color (selected: {})"
 msgstr "Renk seçin (seçilen: {})"
 
-#: nottodbox/settings.py:460
+#: nottodbox/settings.py:471
 msgid "none"
 msgstr "yok"
 
-#: nottodbox/settings.py:514 nottodbox/settings.py:667
-#: nottodbox/settings.py:679 nottodbox/settings.py:717
+#: nottodbox/settings.py:475
+msgid "Central"
+msgstr "Merkez"
+
+#: nottodbox/settings.py:478
+msgid "3D Bevel and Shadow Effects"
+msgstr "3D Eğim ve Gölge Efektleri"
+
+#: nottodbox/settings.py:481
+msgid "Selected (Marked) Items"
+msgstr "Seçilmiş (İşaretlenmiş) Ögeler"
+
+#: nottodbox/settings.py:484
+msgid "Links"
+msgstr "Bağlantılar"
+
+#: nottodbox/settings.py:537 nottodbox/settings.py:690
+#: nottodbox/settings.py:702 nottodbox/settings.py:740
 #: nottodbox/widgets/pages.py:591 nottodbox/widgets/pages.py:717
 msgid "Select {} Color"
 msgstr "{} Rengi Seçin"
 
-#: nottodbox/settings.py:545 nottodbox/widgets/pages.py:95
+#: nottodbox/settings.py:568 nottodbox/widgets/pages.py:95
 #: nottodbox/widgets/pages.py:168
 msgid "Plain-text"
 msgstr "Düz metin"
 
-#: nottodbox/settings.py:550 nottodbox/settings.py:599
+#: nottodbox/settings.py:573 nottodbox/settings.py:622
 #: nottodbox/widgets/options.py:196 nottodbox/widgets/pages.py:114
 #: nottodbox/widgets/pages.py:115 nottodbox/widgets/pages.py:116
 msgid "Auto-save:"
 msgstr "Oto. kayıt:"
 
-#: nottodbox/settings.py:551 nottodbox/settings.py:591
+#: nottodbox/settings.py:574 nottodbox/settings.py:614
 #: nottodbox/widgets/options.py:188 nottodbox/widgets/pages.py:94
 #: nottodbox/widgets/pages.py:95 nottodbox/widgets/pages.py:96
 #: nottodbox/widgets/pages.py:97
 msgid "Format:"
 msgstr "Biçim:"
 
-#: nottodbox/settings.py:560 nottodbox/widgets/pages.py:538
+#: nottodbox/settings.py:583 nottodbox/widgets/pages.py:538
 msgid "Background color"
 msgstr "Arka plan rengi"
 
-#: nottodbox/settings.py:561 nottodbox/widgets/pages.py:535
+#: nottodbox/settings.py:584 nottodbox/widgets/pages.py:535
 msgid "Text color"
 msgstr "Metin rengi"
 
-#: nottodbox/settings.py:567
+#: nottodbox/settings.py:590
 msgid "Highlight color"
 msgstr "Vurgu rengi"
 
-#: nottodbox/settings.py:591 nottodbox/settings.py:599
+#: nottodbox/settings.py:614 nottodbox/settings.py:622
 #: nottodbox/widgets/options.py:188 nottodbox/widgets/options.py:196
 #: nottodbox/widgets/pages.py:94 nottodbox/widgets/pages.py:114
 #, python-brace-format
 msgid "Follow global ({setting})"
 msgstr "Küreseli takip et ({setting})"
 
-#: nottodbox/settings.py:612 nottodbox/settings.py:661
+#: nottodbox/settings.py:635 nottodbox/settings.py:684
 #: nottodbox/widgets/pages.py:115 nottodbox/widgets/pages.py:155
 msgid "Enabled"
 msgstr "Aktif"
 
-#: nottodbox/settings.py:615 nottodbox/settings.py:657
+#: nottodbox/settings.py:638 nottodbox/settings.py:680
 #: nottodbox/widgets/pages.py:116 nottodbox/widgets/pages.py:158
 msgid "Disabled"
 msgstr "Devre dışı"
 
-#: nottodbox/settings.py:622 nottodbox/settings.py:625
-#: nottodbox/settings.py:629 nottodbox/settings.py:673
-#: nottodbox/settings.py:685 nottodbox/settings.py:723
+#: nottodbox/settings.py:645 nottodbox/settings.py:648
+#: nottodbox/settings.py:652 nottodbox/settings.py:696
+#: nottodbox/settings.py:708 nottodbox/settings.py:746
 msgid "default"
 msgstr "varsayılan"
 
-#: nottodbox/settings.py:667 nottodbox/widgets/options.py:676
+#: nottodbox/settings.py:690 nottodbox/widgets/options.py:676
 #: nottodbox/widgets/pages.py:591
 msgid "Background"
 msgstr "Arka plan"
 
-#: nottodbox/settings.py:694
+#: nottodbox/settings.py:717
 msgid ""
 "If you have documents with the format setting set to global, this change may "
 "corrupt them.\n"
@@ -997,10 +1041,6 @@ msgstr "Yön"
 #: nottodbox/widgets/pages.py:532
 msgid "Table"
 msgstr "Tablo"
-
-#: nottodbox/widgets/pages.py:533
-msgid "Link"
-msgstr "Bağlantı"
 
 #: nottodbox/widgets/pages.py:536
 msgid "Setting text color is only available in HTML format."

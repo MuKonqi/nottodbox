@@ -438,28 +438,51 @@ class CustomColorSchemes(QWidget):
         self.labels = {"Window": _("Window"),
                        "WindowText": _("Window text"),
                        "Base": _("Base"),
-                       "Shadow": _("Shadow"),
-                       "Accent": _("Accent"),
-                       "Text": _("Text"),
-                       "BrightText": _("Bright text"),
-                       "PlaceholderText": _("Placeholder text"),
-                       "Button": _("Button"),
-                       "ButtonText": _("Button text"),
+                       "AlternateBase": _("Alternate base"),
                        "ToolTipBase": _("Tooltip base"),
                        "ToolTipText": _("Tooltip text"),
+                       "PlaceholderText": _("Placeholder text"),
+                       "Text": _("Text"),
+                       "Button": _("Button"),
+                       "ButtonText": _("Button text"),
+                       "BrightText": _("Bright text"),
+                       "Light": _("Light"),
+                       "Midlight": _("Mid light"),
+                       "Dark": _("Dark"),
+                       "Mid": _("Mid"),
+                       "Shadow": _("Shadow"),
                        "Highlight": _("Highlight"),
-                       "HighlightedText": _("Highlighted text")}
+                       "Accent": _("Accent"),
+                       "HighlightedText": _("Highlighted text"),
+                       "Link": _("Link"),
+                       "LinkVisited": _("Visited link")}
         
         self.buttons = {}
         
         self.values = {}
         
+        number = 0
+        
         for color_role in self.labels.keys():
+            number += 1
+                        
             self.values[color_role] = ""
             
             self.buttons[color_role] = PushButton(self, _("Select color (selected: {})").format(_("none")))
             self.buttons[color_role].clicked.connect(lambda state, color_role = color_role: self.setColorRoleValue(False, color_role))
             
+            if number == 1:
+                self.form.addRow(Label(self, _("Central")))
+                
+            elif number == 12:
+                self.form.addRow(Label(self, _("3D Bevel and Shadow Effects")))
+                
+            elif number == 17:
+                self.form.addRow(Label(self, _("Selected (Marked) Items")))
+                
+            elif number == 20:
+                self.form.addRow(Label(self, _("Links")))
+                
             self.form.addRow(f"{self.labels[color_role]}:", self.buttons[color_role])
         
         self.setLayout(self.form)

@@ -7,6 +7,9 @@
 
 
 ## Features
+<details>
+<summary>Show / Hide</summary>
+
 ### Sidebar
 > Quickly navigate document pages.
 - A entry for searching in lists
@@ -28,8 +31,8 @@
 - A entry for searching in list
 - Listing notes
 - When a notebook selected:
-    - Creating notebook
     - Creating note
+    - Creating notebook
     - Resetting
     - Renaming
     - Resetting 
@@ -38,8 +41,8 @@
     - Setting background color
     - Setting text color
 - When a note selected:
-    - Creating notebook
     - Creating note
+    - Creating notebook
     - Opening
     - Showing backup (manuel saves updates backups but auto-saves not)
     - Restoring content via backup (old content will be new backup)
@@ -56,8 +59,8 @@
 - Two labels for showing selected notebook and note
 - Listing to-dos
 - When a to-do list selected:
-    - Creating notebook
-    - Creating note
+    - Creating to-do
+    - Creating to-do list
     - Resetting
     - Renaming
     - Resetting 
@@ -66,8 +69,8 @@
     - Setting background color
     - Setting text color
 - When a to-do selected:
-    - Creating notebook
-    - Creating note
+    - Creating to-do
+    - Creating to-do list
     - Changing status
     - Renaming
     - Resetting 
@@ -118,20 +121,23 @@
 - Format options (plain-text, Markdown and HTML)
 
 ### Settings
-> Change global settings.
-- For notes:
+> Customize Nottodbox.
+- Appearance:
+    - Style
+    - Color scheme
+    - Custom color scheme
+- Notes:
     - Setting auto-save
     - Setting format
     - Setting background color
     - Setting foreground color
-- For todos:
+- To-dos:
     - Setting background color
     - Setting foreground color
-- For diaries:
+- Diaries:
     - Setting auto-save
     - Setting format
     - Setting highlight color
-
 
 ### About
 > See some informations about Nottodbox.
@@ -143,6 +149,7 @@
 - Copyright notification
 - License
 - License text
+</details>
 
 
 ## Installing
@@ -161,7 +168,9 @@ TBA
 - ninja
 
 ### Commands
-- Note: Do not forget to install dependencies.
+> [!WARNING]
+> Do not forget to install dependencies.
+
 ```
     git clone https://github.com/mukonqi/nottodbox.git
     cd nottodbox
@@ -170,11 +179,16 @@ TBA
     ninja -C builddir install
 ```
 
+## Documentations
+[Click here for go there.](/doc/)
+
 
 ## Disclaimer
+> [!CAUTION] 
 > Nottodbox is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-- You can see the license for more details.
+> [!TIP]
+> You can see the license for more details.
 
 
 ## Credit

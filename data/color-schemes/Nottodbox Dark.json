@@ -4,15 +4,16 @@
         "Window": "#0f0f0f",
         "WindowText": "#ffffff",
         "Base": "#2f2f2f",
+        "AlternateBase": "#4f4f4f",
         "ToolTipBase": "#ffffff",
         "ToolTipText": "#ffffff",
         "PlaceholderText": "#ffffff",
         "Text": "#ffffff",
         "Button": "#1f1f1f",
         "ButtonText": "#ffffff",
-        "BrightText": "#ff0000",
+        "BrightText": "#a9a9a9",
         "Highlight": "#376296",
         "Accent": "#507090",
-        "HighlightedText": "#a9a9a9"
+        "HighlightedText": "#2f2f2f"
     } 
 }
