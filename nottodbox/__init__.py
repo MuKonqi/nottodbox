@@ -72,20 +72,6 @@ from mainwindow import MainWindow
 class Application(QApplication):
     def __init__(self, argv: list) -> None:
         super().__init__(argv)
-        
-        self.default_style = self.style().objectName()
-        
-        self.setStyleSheet("""
-                           QDockWidget::title {
-                               padding: 0px;
-                               margin: 0px;
-                               border: 0px;
-                           }
-                           
-                           QTabWidget::tab-bar {
-                               alignment: center;
-                           }
-                           """)
 
         self.setApplicationVersion("@VERSION@")
         self.setApplicationName("nottodbox")
@@ -93,7 +79,7 @@ class Application(QApplication):
         self.setDesktopFileName("@DESKTOPFILE@")
         self.setWindowIcon(QIcon("@ICONFILE-SVG@"))
         
-        window = MainWindow(self)
+        window = MainWindow()
         
         if args.index:
             window.tabwidget.setCurrentIndex(args.index - 1)

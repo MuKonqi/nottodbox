@@ -38,7 +38,10 @@ class AboutWindow(QDialog):
         self.icon.setPixmap(QPixmap("@ICONFILE-PNG@"))
         
         self.nottodbox = Label(self.icon_and_nottodbox, _("Nottodbox"))
-        self.nottodbox.setStyleSheet("font-size: 32pt; font-weight: 900;")
+        font = self.nottodbox.font()
+        font.setBold(True)
+        font.setPointSize(32)
+        self.nottodbox.setFont(font)
         
         self.version_label = Label(self, _("Version") + ': @VERSION@')
         

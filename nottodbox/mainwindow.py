@@ -30,10 +30,8 @@ from settings import SettingsWindow
 
 
 class MainWindow(QMainWindow):
-    def __init__(self, application: QApplication):
+    def __init__(self):
         super().__init__()
-        
-        self.application = application
         
         self.current_index = 0
         
@@ -67,7 +65,6 @@ class MainWindow(QMainWindow):
         self.dock = QDockWidget(self)
         self.dock.setObjectName("DockWidget")
         self.dock.setFixedWidth(150)
-        self.dock.setStyleSheet("margin: 0px")
         self.dock.setFeatures(QDockWidget.DockWidgetFeature.DockWidgetClosable |
                               QDockWidget.DockWidgetFeature.DockWidgetFloatable |
                               QDockWidget.DockWidgetFeature.DockWidgetMovable)

@@ -135,18 +135,17 @@ class SettingsWindow(QDialog):
         self.list_diaries = QListWidgetItem(_("Diaries"), self.list)
         self.list_diaries.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
         
-        scroll_area = QScrollArea(self)
-        scroll_area.setWidgetResizable(True)
-        scroll_area.setStyleSheet("QScrollArea {border: 0px;}")
-        scroll_area.setWidget(AppearanceSettings(self))
-        scroll_area.apply = scroll_area.widget().apply
-        scroll_area.load = scroll_area.widget().load
-        scroll_area.reset = scroll_area.widget().reset
+        appearance_scroll_area = QScrollArea(self)
+        appearance_scroll_area.setWidgetResizable(True)
+        appearance_scroll_area.setWidget(AppearanceSettings(self))
+        appearance_scroll_area.apply = appearance_scroll_area.widget().apply
+        appearance_scroll_area.load = appearance_scroll_area.widget().load
+        appearance_scroll_area.reset = appearance_scroll_area.widget().reset
         
         self.stacked = QStackedWidget(self)
         
         self.pages = [
-            scroll_area,
+            appearance_scroll_area,
             ModuleSettings(self, "notes", notes),
             ModuleSettings(self, "todos",  todos),
             ModuleSettings(self, "diaries", diaries)
@@ -236,7 +235,7 @@ class AppearanceSettings(QWidget):
         
         self.parent_ = parent
         
-        self.default_style = self.parent_.parent_.application.default_style.title()
+        self.default_style = QApplication.style().objectName().title()
         
         self.form = QFormLayout(self)
         
@@ -320,19 +319,21 @@ class AppearanceSettings(QWidget):
     def load(self) -> None:
         self.current_style = settings.value("appearance/style")
         
-        if self.current_style is None:
-            settings.setValue("appearance/style", "")
+        if self.current_style is None or self.current_style == "":
+            if self.current_style is None:
+                settings.setValue("appearance/style", "")
+                
             self.current_style = self.default_style
             self.use_default_style = True
-        
-        elif self.current_style == "":
-            self.current_style = self.default_style
-            self.use_default_style = True
+            
+            self.styles_combobox.setCurrentIndex(0)
             
         else:
             QApplication.setStyle(self.current_style)
             
             self.use_default_style = False
+            
+            self.styles_combobox.setCurrentText(self.current_style)
         
         self.color_schemes = {}
         
@@ -386,13 +387,16 @@ class AppearanceSettings(QWidget):
         self.color_schemes_combobox.setItemText(0, self.color_schemes_list[0])
         
     def loadPalette(self) -> None:
-        if not self.use_default_color_scheme:
+        if self.use_default_color_scheme:
+            palette = QApplication.style().standardPalette()
+            
+        else:
             palette = QPalette()
             
             for key in self.color_schemes[self.current_color_scheme].keys():
-                    palette.setColor(QPalette.ColorRole[key], self.color_schemes[self.current_color_scheme][key])
+                palette.setColor(QPalette.ColorRole[key], self.color_schemes[self.current_color_scheme][key])
             
-            QApplication.setPalette(palette)
+        QApplication.setPalette(palette)
         
     def reset(self) -> bool:
         settings.remove("appearance/style")
@@ -514,7 +518,6 @@ class CustomColorSchemes(QWidget):
                 self.values[color_role] = qcolor.name()
                 
                 self.buttons[color_role].setText(_("Select color (selected: {})").format(_(self.values[color_role])))
-                self.buttons[color_role].setStyleSheet(f"background-color: {self.values[color_role]};")
 
         
 class ModuleSettings(QWidget):
