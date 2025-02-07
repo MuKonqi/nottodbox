@@ -44,14 +44,19 @@ subdir('po')
 
 
 install_data(
-  'LICENSE.txt',
+  join_paths(meson.current_source_dir(), 'LICENSE.txt'),
   install_dir: join_paths(get_option('prefix'), get_option('datadir'), 'nottodbox')
 )
 
-
 install_data(
-  'README.md',
-  install_dir: join_paths(get_option('prefix'), get_option('datadir'), 'nottodbox')
+  join_paths(meson.current_source_dir(), 'README.md'),
+  install_dir: join_paths(get_option('prefix'), get_option('datadir'), 'doc', 'nottodbox')
+)
+
+install_subdir(
+  join_paths(meson.current_source_dir(), 'doc'),
+  install_dir: join_paths(get_option('prefix'), get_option('datadir'), 'doc', 'nottodbox'),
+  strip_directory: true
 )
 
 

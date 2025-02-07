@@ -18,7 +18,11 @@
 > [!WARNING]
 > If you are not going to set a color for a color role, you must delete it from the file.
 
-- The scheme for the file is below:
+> [!TIP]
+> You can go to [Qt's page about color roles](https://doc.qt.io/qt-6/qpalette.html#ColorRole-enum).
+
+> [!IMPORTANT]
+> The scheme for the file is below:
 ```
 {
     "name": "",
