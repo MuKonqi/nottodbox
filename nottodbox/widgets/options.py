@@ -627,7 +627,7 @@ class OptionsForDocuments(Options):
                 self.parent_.parent_.addTab(self.parent_.parent_.pages[(name, table)], 
                                             self.parent_.returnPretty(name, table))
                 self.parent_.parent_.setCurrentWidget(self.parent_.parent_.pages[(name, table)])
-                self.parent_.parent_.parent_.dock.widget().open_pages.createChild(self.module, self.parent_.returnPretty(name, table))
+                self.parent_.parent_.parent_.dock.widget().open_pages.appendPage(self.module, self.parent_.returnPretty(name, table))
                 
             self.parent_.parent_.parent_.tabwidget.setCurrentWidget(self.parent_.parent_)
             
