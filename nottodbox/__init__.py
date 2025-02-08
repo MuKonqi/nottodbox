@@ -82,20 +82,22 @@ class Application(QApplication):
         window = MainWindow()
         
         if args.index:
-            window.tabwidget.setCurrentIndex(args.index - 1)
+            window.tabwidget.tabbar.setCurrentIndex(args.index - 1)
         
         elif args.page:
             if args.page == _("Home"):
-                window.tabwidget.setCurrentIndex(0)
+                window.tabwidget.tabbar.setCurrentIndex(0)
             
             elif args.page == __("Notes"):
-                window.tabwidget.setCurrentIndex(1)
+                window.tabwidget.tabbar.setCurrentIndex(1)
                 
             elif args.page == __("To-Dos"):
-                window.tabwidget.setCurrentIndex(2)
+                window.tabwidget.tabbar.setCurrentIndex(2)
                 
             elif args.page == __("Diaries"):
-                window.tabwidget.setCurrentIndex(3)
+                window.tabwidget.tabbar.setCurrentIndex(3)
+                
+
 if __name__ == "__main__":
     application = Application(sys.argv)
 

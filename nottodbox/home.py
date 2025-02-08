@@ -65,9 +65,9 @@ class HomeWidget(QWidget):
         self.focused_to_diary = self.qsettings.value("home/focused-to-diary")
         
         if self.focused_to_diary is None:
-            self.qsettings.setValue("home/focused-to-diary", "false")
+            self.qsettings.setValue("home/focused-to-diary", "disabled")
             
-            self.focused_to_diary = "false"
+            self.focused_to_diary = "disabled"
             
         self.focusToDiary(True)
         
@@ -85,16 +85,16 @@ class HomeWidget(QWidget):
     
     @Slot()
     def focusToDiary(self, inverted: bool = False) -> None:        
-        if inverted and self.focused_to_diary == "true":
+        if inverted and self.focused_to_diary == "enabled":
             self.focusToDiaryBase(True)
             
-        elif inverted and self.focused_to_diary == "false":
+        elif inverted and self.focused_to_diary == "disabled":
             self.focusToDiaryBase(False)
             
-        elif not inverted and self.focused_to_diary == "true":
+        elif not inverted and self.focused_to_diary == "enabled":
             self.focusToDiaryBase(False)
             
-        elif not inverted and self.focused_to_diary == "false":
+        elif not inverted and self.focused_to_diary == "disabled":
             self.focusToDiaryBase(True)
         
     def focusToDiaryBase(self, focus: bool) -> None:
@@ -108,9 +108,9 @@ class HomeWidget(QWidget):
             
             self.diary_button.setText(_("Finish Focusing of Diary for Today"))
             
-            self.focused_to_diary = "true"
+            self.focused_to_diary = "enabled"
             
-            self.qsettings.setValue("home/focused-to-diary", "true")
+            self.qsettings.setValue("home/focused-to-diary", "enabled")
             
         else:
             self.todos_seperator.setVisible(True)
@@ -122,6 +122,6 @@ class HomeWidget(QWidget):
             
             self.diary_button.setText(_("Focus to Diary for Today"))
             
-            self.focused_to_diary = "false"
+            self.focused_to_diary = "disabled"
             
-            self.qsettings.setValue("home/focused-to-diary", "false")
+            self.qsettings.setValue("home/focused-to-diary", "disabled")

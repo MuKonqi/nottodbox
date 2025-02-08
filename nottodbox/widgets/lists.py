@@ -17,7 +17,7 @@
 
 
 from gettext import gettext as _
-from PySide6.QtCore import Slot, Qt, QSortFilterProxyModel, QItemSelectionModel
+from PySide6.QtCore import Slot, Qt, QSortFilterProxyModel, QItemSelectionModel, QSettings
 from PySide6.QtGui import QStandardItemModel, QStandardItem, QMouseEvent, QColor
 from PySide6.QtWidgets import *
 from databases.lists import DBForLists
@@ -91,6 +91,8 @@ class TreeView(QTreeView):
         self.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
         self.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+        self.setAlternatingRowColors(True if QSettings("io.github.mukonqi", "nottodbox").
+                                     value("appearance/alternate-row-colors") == "enabled" else False)
         self.header().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
 
         if self.own:

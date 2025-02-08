@@ -33,34 +33,13 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         
-        self.current_index = 0
-        
         self.qsettings = QSettings("io.github.mukonqi", "nottodbox")
         
-        self.widget = QWidget(self)
-        self.layout_ = QVBoxLayout(self.widget)
-        
-        self.tabwidget = QTabWidget(self.widget)
-        self.tabwidget.setUsesScrollButtons(True)
-        self.tabwidget.currentChanged.connect(self.tabChanged)
+        self.tabwidget = TabWidget(self)
         
         self.menu_sidebar = self.menuBar().addMenu(_("Sidebar"))
         self.menu_sidebar.addAction(_("Show"), lambda: self.dock.setVisible(True))
         self.menu_sidebar.addAction(_("Hide"), lambda: self.dock.setVisible(False))
-
-        self.notes = NotesTabWidget(self)
-        self.todos = TodosHomePage(self)
-        self.diaries = DiariesTabWidget(self)
-        self.home = HomeWidget(self, self.todos, self.notes.home, self.diaries.home)
-        self.settings = SettingsWindow(self, self.notes.home, self.todos, self.diaries.home)
-        self.about = AboutWindow(self)
-
-        self.tabwidget.addTab(self.home, _("Home"))
-        self.tabwidget.addTab(self.notes, _("Notes"))
-        self.tabwidget.addTab(self.todos, _("To-dos"))
-        self.tabwidget.addTab(self.diaries, _("Diaries"))
-        
-        self.statusbar = QStatusBar(self)
         
         self.dock = QDockWidget(self)
         self.dock.setObjectName("DockWidget")
@@ -70,21 +49,27 @@ class MainWindow(QMainWindow):
                               QDockWidget.DockWidgetFeature.DockWidgetMovable)
         self.dock.setAllowedAreas(Qt.DockWidgetArea.LeftDockWidgetArea |
                                   Qt.DockWidgetArea.RightDockWidgetArea)
+
+        self.notes = NotesTabWidget(self)
+        self.todos = TodosHomePage(self)
+        self.diaries = DiariesTabWidget(self)
+        self.home = HomeWidget(self, self.todos, self.notes.home, self.diaries.home)
+        self.settings = SettingsWindow(self, self.notes.home, self.todos, self.diaries.home)
+        self.about = AboutWindow(self)
+
+        self.tabwidget.load()
+        
         self.dock.setWidget(SidebarWidget(self, self.notes, self.diaries))
-            
-        self.widget.setLayout(self.layout_)
-        self.layout_.addWidget(self.tabwidget)
-        self.setCentralWidget(self.widget)
     
         self.show()
-        self.setStatusBar(self.statusbar)
-        self.setStatusTip(_("There may be important information and tips here. Don't forget to look here!"))
         self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.dock)
+        self.setCentralWidget(self.tabwidget)
+        self.setStatusBar(QStatusBar(self))
+        self.setStatusTip(_("There may be important information and tips here. Don't forget to look here!"))
         self.restoreGeometry(QByteArray(self.qsettings.value("mainwindow/geometry")))
         self.restoreState(QByteArray(self.qsettings.value("mainwindow/state")))
         self.setMinimumWidth(1000)
         self.setMinimumHeight(700)
-        self.setGeometry(0, 0, 1000, 700)
 
     @Slot(QCloseEvent)
     def closeEvent(self, a0: QCloseEvent):                
@@ -186,26 +171,65 @@ class MainWindow(QMainWindow):
         
         else:
             a0.ignore()
-                
-    @Slot(int)
-    def tabChanged(self, index: int):
-        if index != self.current_index:
-            old_widget = self.tabwidget.widget(self.current_index)
             
-            if old_widget == self.home:
-                self.home.diary.disconnectAutosaveConnections()
+            
+class TabWidget(QWidget):
+    def __init__(self, parent: MainWindow) -> None:
+        super().__init__(parent)
+        
+        self.parent_ = parent
+        
+        self.current_index = 0
+        
+        self.layout_ = QGridLayout(self)
+        
+        self.tabbar = QTabBar(self)
+        self.tabbar.setUsesScrollButtons(True)
+        self.tabbar.currentChanged.connect(self.tabChanged)
+        
+        self.container = QStackedWidget(self)
+        
+    def load(self) -> None:
+        self.pages = [self.parent_.home, self.parent_.notes, self.parent_.todos, self.parent_.diaries]
+        
+        for page in self.pages:
+            self.container.addWidget(page)
+            
+        self.tabbar.addTab(_("Home"))
+        self.tabbar.addTab(_("Notes"))
+        self.tabbar.addTab(_("To-dos"))
+        self.tabbar.addTab(_("Diaries"))
+        
+        self.setLayout(self.layout_)
+        self.layout_.addItem(QSpacerItem(0, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding), 0, 0)
+        self.layout_.addWidget(self.tabbar, 0, 1)
+        self.layout_.addItem(QSpacerItem(0, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding), 0, 2)
+        self.layout_.addWidget(self.container, 1, 0, 1, 3)
+        
+    @Slot(int)
+    def tabChanged(self, index: int) -> None:
+        self.container.setCurrentIndex(index)
+        
+        if index != self.current_index:
+            old_widget = self.container.widget(self.current_index)
+            
+            if old_widget == self.parent_.home:
+                self.parent_.home.diary.disconnectAutosaveConnections()
 
-            elif ((old_widget == self.diaries or old_widget == self.notes) and
+            elif ((old_widget == self.parent_.diaries or old_widget == self.parent_.notes) and
                 old_widget.currentWidget() != old_widget.home and old_widget.currentWidget().mode == "normal"):
                 old_widget.currentWidget().disconnectAutosaveConnections()
                 
-            new_widget = self.tabwidget.widget(index)
+            new_widget = self.container.widget(index)
             
-            if new_widget == self.home:
-                self.home.diary.changeAutosaveConnections()
+            if new_widget == self.parent_.home:
+                self.parent_.home.diary.changeAutosaveConnections()
 
-            elif ((new_widget == self.diaries or new_widget == self.notes) and
+            elif ((new_widget == self.parent_.diaries or new_widget == self.parent_.notes) and
                 new_widget.currentWidget() != new_widget.home and new_widget.currentWidget().mode == "normal"):
                 new_widget.currentWidget().changeAutosaveConnections()
             
             self.current_index = index
+            
+    def setCurrentWidget(self, widget: QWidget) -> None:
+        self.tabbar.setCurrentIndex(self.container.indexOf(widget))

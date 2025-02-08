@@ -20,7 +20,7 @@ import getpass
 import sqlite3
 from gettext import gettext as _
 from PySide6.QtGui import QStandardItemModel
-from PySide6.QtCore import Slot, Qt, QSortFilterProxyModel
+from PySide6.QtCore import Slot, Qt, QSortFilterProxyModel, QSettings
 from PySide6.QtWidgets import *
 from databases.base import DBBase
 from widgets.lists import StandardItem
@@ -62,9 +62,7 @@ class HistoryDB(DBBase):
                                             """)
     
     def deletePage(self, module: str, page: str) -> bool:
-        call = self.checkIfThePageExists(module, page)
-        
-        if call:
+        if self.checkIfThePageExists(module, page):
             self.cur.execute("delete from __main__ where module = ? and page = ?", (module, page))
             self.db.commit()
             
@@ -147,6 +145,8 @@ class SidebarTreeView(QTreeView):
         self.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
         self.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+        self.setAlternatingRowColors(True if QSettings("io.github.mukonqi", "nottodbox").
+                                     value("appearance/alternate-row-colors") == "enabled" else False)
         self.header().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
         self.setStatusTip(_("Double-click to going to selected page."))
         
@@ -204,9 +204,7 @@ class SidebarOpenPages(SidebarTreeView):
         
         self.parent_.history.appendPage(module, page)
         
-        call = historydb.appendPage(module, page)
-        
-        if not call:
+        if not historydb.appendPage(module, page):
             QMessageBox.critical(self, _("Error"), _("Failed to add {page} page to history.").format(page = page))
             
 
@@ -214,9 +212,7 @@ class SidebarHistory(SidebarTreeView):
     def __init__(self, parent: SidebarWidget):
         super().__init__(parent)
         
-        call = historydb.getAll()
-        
-        for module, page in call:
+        for module, page in historydb.getAll():
             self.appendPage(module, page)
             
     def appendPage(self, module: str, page: str):
@@ -236,8 +232,6 @@ class SidebarHistory(SidebarTreeView):
     @Slot(str, str)
     def deletePage(self, module: str, page: str):
         super().deletePage(module, page)
-        
-        call = historydb.deletePage(module, page)
-        
-        if not call:
+
+        if not historydb.deletePage(module, page):
             QMessageBox.critical(self, _("Error"), _("Failed to delete {page} page from history.").format(page = page))

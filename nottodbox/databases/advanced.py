@@ -77,7 +77,7 @@ class DBAdvanced(DBBase):
         self.cur.execute(f"delete from '{table}' where name = ?", (name,))
         self.db.commit()
         
-        if self.file == "diaries.db" and table == "__main__":
+        if self.file != "diaries.db" and table == "__main__":
             self.cur.execute(f"DROP TABLE IF EXISTS '{name}'")
             self.db.commit()
         

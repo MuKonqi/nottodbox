@@ -32,7 +32,6 @@ class DBForLists(DBAdvanced):
     
     def deleteAll(self) -> bool:
         successful = True
-        calls = {}
         
         self.cur.execute("select name from __main__")
         lists = self.cur.fetchall()
@@ -40,9 +39,7 @@ class DBForLists(DBAdvanced):
         for item in lists:
             item = item[0]
             
-            calls[item] = self.delete(item)
-            
-            if not calls[item]:
+            if not self.delete(item):
                 successful = False
         
         if successful:

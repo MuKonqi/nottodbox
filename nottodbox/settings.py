@@ -142,7 +142,7 @@ class SettingsWindow(QDialog):
         appearance_scroll_area.load = appearance_scroll_area.widget().load
         appearance_scroll_area.reset = appearance_scroll_area.widget().reset
         
-        self.stacked = QStackedWidget(self)
+        self.container = QStackedWidget(self)
         
         self.pages = [
             appearance_scroll_area,
@@ -168,7 +168,7 @@ class SettingsWindow(QDialog):
         self.list.addItem(self.list_diaries)
         
         for page in self.pages:
-            self.stacked.addWidget(page)
+            self.container.addWidget(page)
         
         self.buttons.addButton(self.reset_button, QDialogButtonBox.ButtonRole.ResetRole)
         self.buttons.addButton(self.apply_button, QDialogButtonBox.ButtonRole.ApplyRole)
@@ -177,12 +177,12 @@ class SettingsWindow(QDialog):
         self.setLayout(self.layout_)
         self.layout_.addWidget(self.list, 0, 0, 3, 1)
         self.layout_.addWidget(VSeperator(self), 0, 1, 3, 1)
-        self.layout_.addWidget(self.stacked, 0, 2, 1, 1)
+        self.layout_.addWidget(self.container, 0, 2, 1, 1)
         self.layout_.addWidget(HSeperator(self), 1, 2, 1, 1)
         self.layout_.addWidget(self.buttons, 2, 2, 1, 1)
         
         self.list.setCurrentRow(0)
-        self.list.currentRowChanged.connect(lambda: self.stacked.setCurrentIndex(self.list.currentRow()))
+        self.list.currentRowChanged.connect(lambda: self.container.setCurrentIndex(self.list.currentRow()))
         
         self.setWindowTitle(_("Settings") + " — Nottodbox")
         self.setMinimumSize(750, 525)
@@ -239,12 +239,15 @@ class AppearanceSettings(QWidget):
         
         self.form = QFormLayout(self)
         
-        self.styles_list = QStyleFactory.keys()
-        self.styles_list.insert(0, _("System default ({})").format(self.default_style))
+        self.alternate_row_colors_checkbox = QCheckBox(self)
+        self.alternate_row_colors_checkbox.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
+        try:
+            self.alternate_row_colors_checkbox.checkStateChanged.connect(self.alternateRowColorsChanged)
+        except:
+            self.alternate_row_colors_checkbox.stateChanged.connect(self.alternateRowColorsChanged)
         
         self.styles_combobox = QComboBox(self)
         self.styles_combobox.setEditable(False)
-        self.styles_combobox.addItems(self.styles_list)
         
         self.color_schemes_combobox = QComboBox(self)
         self.color_schemes_combobox.setEditable(False)
@@ -254,6 +257,7 @@ class AppearanceSettings(QWidget):
         self.load()
         
         self.setLayout(self.form)
+        self.form.addRow(_("Alternate row colors for lists:"), self.alternate_row_colors_checkbox)
         self.form.addRow(_("Style:*"), self.styles_combobox)
         self.form.addRow(_("Color scheme:"), self.color_schemes_combobox)
         self.form.addRow(_("Custom color scheme:"), self.custom_color_schemes.name)
@@ -265,8 +269,30 @@ class AppearanceSettings(QWidget):
         self.styles_combobox.currentTextChanged.connect(self.styleChanged)
         self.color_schemes_combobox.currentTextChanged.connect(self.colorSchemeChanged)
         
+    @Slot(int or Qt.CheckState)
+    def alternateRowColorsChanged(self, signal: Qt.CheckState | int) -> None:
+        if signal == Qt.CheckState.Unchecked or signal == 0:
+            self.alternate_row_colors = "disabled"
+            self.alternate_row_colors_checkbox.setText(_("Disabled"))
+        
+        elif signal == Qt.CheckState.Checked or signal == 2:
+            self.alternate_row_colors = "enabled"
+            self.alternate_row_colors_checkbox.setText(_("Enabled"))
+        
     def apply(self) -> bool:
         successful = True
+        
+        settings.setValue("appearance/alternate-row-colors", self.alternate_row_colors)
+        
+        if settings.value("appearance/alternate-row-colors") != self.alternate_row_colors:
+            successful = False
+            
+        pages = [self.parent_.parent_.dock.widget().open_pages, self.parent_.parent_.dock.widget().history,
+                self.parent_.parent_.home.notes, self.parent_.parent_.home.todos, 
+                self.parent_.parent_.notes.home.treeview, self.parent_.parent_.todos.treeview]
+        
+        for page in pages:
+            page.setAlternatingRowColors(True if self.alternate_row_colors == "enabled" else False)
         
         if self.use_default_style:
             settings.setValue("appearance/style", "")
@@ -317,6 +343,27 @@ class AppearanceSettings(QWidget):
             self.custom_color_schemes.setEnabled(False)
         
     def load(self) -> None:
+        self.alternate_row_colors = settings.value("appearance/alternate-row-colors")
+        
+        if self.alternate_row_colors is None or self.alternate_row_colors == "":
+            if self.alternate_row_colors is None:
+                settings.setValue("appearance/alternate-row-colors", "disabled")
+                
+            self.alternate_row_colors = "disabled"
+           
+        if self.alternate_row_colors == "enabled": 
+            self.alternate_row_colors_checkbox.setChecked(True)
+            self.alternate_row_colors_checkbox.setText(_("Enabled"))
+            
+        elif self.alternate_row_colors == "disabled":
+            self.alternate_row_colors_checkbox.setChecked(False)
+            self.alternate_row_colors_checkbox.setText(_("Disabled"))
+            
+        self.styles_list = QStyleFactory.keys()
+        self.styles_list.insert(0, _("System default ({})").format(self.default_style))
+        
+        self.styles_combobox.addItems(self.styles_list)
+        
         self.current_style = settings.value("appearance/style")
         
         if self.current_style is None or self.current_style == "":

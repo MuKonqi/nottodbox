@@ -268,11 +268,10 @@ class DiariesCalendarWidget(QCalendarWidget):
     def paintCell(self, painter: QPainter | None, rect: QRect, date: QDate | datetime.date) -> None:
         super().paintCell(painter, rect, date)
         
-        call = diariesdb.getAllWithHighlights()
         dates = []
         highlights = {}
         
-        for name, highlight in call:
+        for name, highlight in diariesdb.getAllWithHighlights():
             dates.append(QDate.fromString(name, "dd.MM.yyyy"))
             highlights[QDate.fromString(name, "dd.MM.yyyy")] = highlight
 

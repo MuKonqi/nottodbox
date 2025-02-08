@@ -186,9 +186,7 @@ class NotesChildOptions(OptionsForDocuments, OptionsForLists):
                                 if str(table_range).startswith(table))
 
                 except:
-                    call = notesdb.createChild(_("Unnamed"), table)
-                    
-                    if call:
+                    if notesdb.createChild(_("Unnamed"), table):
                         name = _("Unnamed")
                         
                         self.parent_.shortcuts[(name, table)] = Action(self, f"{name} @ {table}")
