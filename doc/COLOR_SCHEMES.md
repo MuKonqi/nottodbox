@@ -7,7 +7,7 @@
 
 ## File scheme
 > [!TIP]
-> You can create color scheme easily with in Settings/Apperance/Custom color scheme.
+> You can create color scheme easily with in Nottodbox's apparence settings.
 
 > [!WARNING]
 > The file name (not color scheme name!) must end with .json.

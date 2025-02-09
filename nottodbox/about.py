@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-# Copyright (C) 2024-2025 Mukonqi (Muhammed S.)
+# Copyright (C) 2024-2025 MuKonqi (Muhammed S.)
 
 # Nottodbox is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -22,14 +22,14 @@ from PySide6.QtWidgets import *
 from widgets.others import HSeperator, Label
 
 
-class AboutWindow(QDialog):
+class AboutWidget(QWidget):
     def __init__(self, parent: QMainWindow) -> None:
         super().__init__(parent)
         
         self.parent_ = parent
         self.layout_ = QGridLayout(self)
         
-        self.parent_.menuBar().addAction(_("About"), lambda: self.exec())
+        self.parent_.menuBar().addAction(_("About"), lambda: self.parent_.tabwidget.tabbar.setCurrentIndex(5))
         
         self.icon_and_nottodbox = QWidget(self)
         self.icon_and_nottodbox_layout = QHBoxLayout(self.icon_and_nottodbox)
@@ -54,7 +54,7 @@ class AboutWindow(QDialog):
         self.developer_label = Label(self, _("Developer") + ': <a href="https://mukonqi.github.io">MuKonqi (Muhammed S.)</a>')
         self.developer_label.setOpenExternalLinks(True)
         
-        self.copyright_label = Label(self, _("Copyright (C)") + f': 2024-2025 Mukonqi (Muhammed S.)')
+        self.copyright_label = Label(self, _("Copyright (C)") + f': 2024-2025 MuKonqi (Muhammed S.)')
         
         self.license_label = Label(self, _("License: GNU General Public License, Version 3 or later"))
         
@@ -73,10 +73,6 @@ class AboutWindow(QDialog):
         self.icon_and_nottodbox_layout.addWidget(self.nottodbox)
         self.icon_and_nottodbox_layout.addStretch()
         
-        self.buttons = QDialogButtonBox(self)
-        self.buttons.addButton(QDialogButtonBox.StandardButton.Ok)
-        self.buttons.accepted.connect(lambda: self.done(1))
-        
         self.setLayout(self.layout_)
         self.layout_.addWidget(self.icon_and_nottodbox)
         self.layout_.addWidget(self.version_label)
@@ -88,8 +84,6 @@ class AboutWindow(QDialog):
         self.layout_.addWidget(self.copyright_label)
         self.layout_.addWidget(self.license_label)
         self.layout_.addWidget(self.license_textedit)
-        self.layout_.addWidget(HSeperator(self))
-        self.layout_.addWidget(self.buttons)
         
         self.setWindowTitle(_("About") + " — Nottodbox")
         self.setMinimumSize(750, 525)

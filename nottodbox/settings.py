@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-# Copyright (C) 2024-2025 Mukonqi (Muhammed S.)
+# Copyright (C) 2024-2025 MuKonqi (Muhammed S.)
 
 # Nottodbox is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -24,7 +24,7 @@ from PySide6.QtCore import Slot, Qt, QSettings
 from PySide6.QtGui import QColor, QPalette
 from PySide6.QtWidgets import *
 from widgets.dialogs import ColorDialog
-from widgets.others import HSeperator, Label, PushButton, VSeperator
+from widgets.others import Combobox, HSeperator, Label, PushButton, VSeperator
 
 
 USER_NAME = getpass.getuser()
@@ -111,14 +111,14 @@ class Settings(QSettings):
 settings = Settings()
     
 
-class SettingsWindow(QDialog):
+class SettingsWidget(QWidget):
     def __init__(self, parent: QMainWindow, notes, todos, diaries) -> None:        
         super().__init__(parent)
         
         self.parent_ = parent
         self.layout_ = QGridLayout(self)
         
-        self.parent_.menuBar().addAction(_("Settings"), lambda: self.exec())
+        self.menu = self.parent_.menuBar().addMenu(_("Settings"))
         
         self.list = QListWidget(self)
         self.list.setFixedWidth(100)
@@ -137,7 +137,7 @@ class SettingsWindow(QDialog):
         
         appearance_scroll_area = QScrollArea(self)
         appearance_scroll_area.setWidgetResizable(True)
-        appearance_scroll_area.setWidget(AppearanceSettings(self))
+        appearance_scroll_area.setWidget(AppearanceSettings(self, 0))
         appearance_scroll_area.apply = appearance_scroll_area.widget().apply
         appearance_scroll_area.load = appearance_scroll_area.widget().load
         appearance_scroll_area.reset = appearance_scroll_area.widget().reset
@@ -146,10 +146,18 @@ class SettingsWindow(QDialog):
         
         self.pages = [
             appearance_scroll_area,
-            ModuleSettings(self, "notes", notes),
-            ModuleSettings(self, "todos",  todos),
-            ModuleSettings(self, "diaries", diaries)
+            ModuleSettings(self, 1, "notes", notes),
+            ModuleSettings(self, 2, "todos",  todos),
+            ModuleSettings(self, 3, "diaries", diaries)
         ]
+        
+        for page in self.pages:
+            self.container.addWidget(page)
+            
+        self.list.addItem(self.list_appearance)
+        self.list.addItem(self.list_notes)
+        self.list.addItem(self.list_todos)
+        self.list.addItem(self.list_diaries)
         
         self.buttons = QDialogButtonBox(self)
         
@@ -161,14 +169,6 @@ class SettingsWindow(QDialog):
         
         self.cancel_button = PushButton(self.buttons, _("Cancel"))
         self.cancel_button.clicked.connect(self.cancel)
-        
-        self.list.addItem(self.list_appearance)
-        self.list.addItem(self.list_notes)
-        self.list.addItem(self.list_todos)
-        self.list.addItem(self.list_diaries)
-        
-        for page in self.pages:
-            self.container.addWidget(page)
         
         self.buttons.addButton(self.reset_button, QDialogButtonBox.ButtonRole.ResetRole)
         self.buttons.addButton(self.apply_button, QDialogButtonBox.ButtonRole.ApplyRole)
@@ -198,12 +198,8 @@ class SettingsWindow(QDialog):
         if successful:
             QMessageBox.information(self, _("Successful"), _("All new settings applied."))
             
-            self.done(1)
-            
         else:
             QMessageBox.critical(self, _("Error"), _("Failed to apply all new settings."))
-            
-            self.done(0)
     
     @Slot()
     def cancel(self) -> None:
@@ -221,17 +217,28 @@ class SettingsWindow(QDialog):
         if successful:
             QMessageBox.information(self, _("Successful"), _("All setting reset."))
             
-            self.done(1)
-            
         else:
             QMessageBox.critical(self, _("Error"), _("Failed to reset all settings."))
             
-            self.done(0)
+            
+class BaseSettings(QWidget):
+    def __init__(self, parent: SettingsWidget, index: int) -> None:
+        super().__init__(parent)
+        
+        self.parent_ = parent
+        self.index = index
+        
+        self.parent_.menu.addAction(self.parent_.list.item(self.index).text(), self.openPage)
+    
+    @Slot()
+    def openPage(self) -> None:
+        self.parent_.parent_.tabwidget.tabbar.setCurrentIndex(4)
+        self.parent_.list.setCurrentRow(self.index)
             
 
-class AppearanceSettings(QWidget):
-    def __init__(self, parent: SettingsWindow) -> None:
-        super().__init__(parent)
+class AppearanceSettings(BaseSettings):
+    def __init__(self, parent: SettingsWidget, index: int) -> None:
+        super().__init__(parent, index)
         
         self.parent_ = parent
         
@@ -249,21 +256,32 @@ class AppearanceSettings(QWidget):
         self.styles_combobox = QComboBox(self)
         self.styles_combobox.setEditable(False)
         
-        self.color_schemes_combobox = QComboBox(self)
+        self.color_schemes_widget = QWidget(self)
+        self.color_schemes_widget_layout = QHBoxLayout(self.color_schemes_widget)
+        self.color_schemes_widget_layout.setContentsMargins(0, 0, 0, 0)
+        
+        self.color_schemes_combobox = Combobox(self.color_schemes_widget)
         self.color_schemes_combobox.setEditable(False)
+        
+        self.color_schemes_delete = PushButton(self.color_schemes_widget, _("Delete"))
+        self.color_schemes_delete.clicked.connect(self.deleteColorScheme)
         
         self.custom_color_schemes = CustomColorSchemes(self)
         
         self.load()
         
+        self.color_schemes_widget.setLayout(self.color_schemes_widget_layout)
+        self.color_schemes_widget_layout.addWidget(self.color_schemes_combobox)
+        self.color_schemes_widget_layout.addWidget(self.color_schemes_delete)
+        
         self.setLayout(self.form)
         self.form.addRow(_("Alternate row colors for lists:"), self.alternate_row_colors_checkbox)
         self.form.addRow(_("Style:*"), self.styles_combobox)
-        self.form.addRow(_("Color scheme:"), self.color_schemes_combobox)
+        self.form.addRow(_("Color scheme:"), self.color_schemes_widget)
         self.form.addRow(_("Custom color scheme:"), self.custom_color_schemes.name)
         self.form.addWidget(self.custom_color_schemes)
         self.form.addRow(HSeperator(self))
-        self.form.addRow(Label(self, _("If PySide6 is installed with Pip, some system themes may not detected by Qt."), False))
+        self.form.addRow(Label(self, _("If PySide6 is installed with Pip, some system themes may not detected by Qt.*"), False))
         self.form.addItem(QSpacerItem(0, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding))
         
         self.styles_combobox.currentTextChanged.connect(self.styleChanged)
@@ -338,9 +356,34 @@ class AppearanceSettings(QWidget):
             self.custom_color_schemes.setEnabled(True)
             
         else:
+            self.setDeleteColorSchemeButton(value)
+                
             self.current_color_scheme = value
             self.use_default_color_scheme = False
             self.custom_color_schemes.setEnabled(False)
+    
+    def setDeleteColorSchemeButton(self, value: str) -> None:
+        if value in self.user_color_schemes:
+            self.color_schemes_delete.setEnabled(True)
+            
+        else:
+            self.color_schemes_delete.setEnabled(False)
+            
+    @Slot()
+    def deleteColorScheme(self) -> None:
+        if (self.current_color_scheme in self.user_color_schemes and 
+            os.path.isfile(self.user_color_schemes[self.current_color_scheme])):
+                os.remove(self.user_color_schemes[self.current_color_scheme])
+                
+                self.color_schemes_list.remove(self.current_color_scheme)
+                del self.color_schemes[self.current_color_scheme]
+                del self.user_color_schemes[self.current_color_scheme]
+                
+                if self.applied_color_scheme == self.current_color_scheme:
+                    self.color_schemes_combobox.setCurrentIndex(0)
+                    self.loadPalette()
+                
+                self.color_schemes_combobox.addItems(self.color_schemes_list)
         
     def load(self) -> None:
         self.alternate_row_colors = settings.value("appearance/alternate-row-colors")
@@ -390,6 +433,8 @@ class AppearanceSettings(QWidget):
                     data = json.load(file)
                     
                     self.color_schemes[data["name"]] = data["colors"]
+                
+        self.user_color_schemes = {}
         
         for entry in os.scandir(USER_COLOR_SCHEMES_DIR):
             if entry.is_file() and entry.name.endswith(".json"):
@@ -402,6 +447,8 @@ class AppearanceSettings(QWidget):
                         
                     else:
                         self.color_schemes[data["name"]] = data["colors"]
+                        
+                self.user_color_schemes[data["name"]] = entry.path
         
         self.color_schemes_list = list(self.color_schemes.keys())
         self.color_schemes_list.insert(0, _("From selected style ({})"))
@@ -425,6 +472,10 @@ class AppearanceSettings(QWidget):
             self.use_default_color_scheme = True
             
             self.color_schemes_combobox.setCurrentIndex(0)
+            
+        self.applied_color_scheme = self.current_color_scheme
+        
+        self.setDeleteColorSchemeButton(self.current_color_scheme)
         
         self.loadOnlySomeTexts()
         self.loadPalette()
@@ -435,9 +486,13 @@ class AppearanceSettings(QWidget):
         
     def loadPalette(self) -> None:
         if self.use_default_color_scheme:
+            self.applied_color_scheme = ""
+            
             palette = QApplication.style().standardPalette()
             
         else:
+            self.applied_color_scheme = self.current_color_scheme
+            
             palette = QPalette()
             
             for key in self.color_schemes[self.current_color_scheme].keys():
@@ -560,7 +615,8 @@ class CustomColorSchemes(QWidget):
                 
             if data == check_data:
                 self.parent_.color_schemes[name] = color_scheme
-                self.parent_.color_schemes_list.insert(len(self.parent_.color_schemes_list) - 2, name)
+                self.parent_.user_color_schemes[name] = f"{USER_COLOR_SCHEMES_DIR}/{name}.json"
+                self.parent_.color_schemes_list.insert(len(self.parent_.color_schemes_list) - 1, name)
                 self.parent_.color_schemes_combobox.addItems(self.parent_.color_schemes_list)
                 self.parent_.color_schemes_combobox.setCurrentText(name)
                 
@@ -590,9 +646,9 @@ class CustomColorSchemes(QWidget):
                 self.buttons[color_role].setText(_("Select color (selected: {})").format(_(self.values[color_role])))
 
         
-class ModuleSettings(QWidget):
-    def __init__(self, parent: SettingsWindow, module: str, target) -> None:
-        super().__init__(parent)
+class ModuleSettings(BaseSettings):
+    def __init__(self, parent: SettingsWidget, index: int, module: str, target) -> None:
+        super().__init__(parent, index)
         
         self.parent_ = parent
         self.module = module

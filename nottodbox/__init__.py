@@ -4,7 +4,7 @@
 
 # Nottodbox (io.github.mukonqi.nottodbox)
 
-# Copyright (C) 2024-2025 Mukonqi (Muhammed S.)
+# Copyright (C) 2024-2025 MuKonqi (Muhammed S.)
 
 # Nottodbox is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -53,9 +53,9 @@ group = parser.add_mutually_exclusive_group()
 parser.add_argument("-h", "--help", help=_("show this help message"), action="help", default=argparse.SUPPRESS)
 parser.add_argument("-v", "--version", help=_("show the version"), action="version", version="@VERSION@")
 group.add_argument("-i", "--index", help=_("set the page to be opened via number"), default=1,
-                   choices=[1, 2, 3, 4], type=int)
+                   choices=[1, 2, 3, 4, 5, 6], type=int)
 group.add_argument("-p", "--page", help=_("set the page to be opened via name"), default=_("home"), 
-                   choices=[__("Home"), __("Notes"), __("To-Dos"), __("Diaries")], type=str)
+                   choices=[__("Home"), __("Notes"), __("To-Dos"), __("Diaries"), __("Settings"), __("About")], type=str)
 
 args = parser.parse_args()
 
@@ -96,6 +96,12 @@ class Application(QApplication):
                 
             elif args.page == __("Diaries"):
                 window.tabwidget.tabbar.setCurrentIndex(3)
+                
+            elif args.page == __("Settings"):
+                window.tabwidget.tabbar.setCurrentIndex(4)
+                
+            elif args.page == __("About"):
+                window.tabwidget.tabbar.setCurrentIndex(5)
                 
 
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-# Copyright (C) 2024-2025 Mukonqi (Muhammed S.)
+# Copyright (C) 2024-2025 MuKonqi (Muhammed S.)
 
 # Nottodbox is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -25,8 +25,8 @@ from home import HomeWidget
 from notes import NotesTabWidget, notesdb
 from todos import TodosHomePage
 from diaries import DiariesTabWidget, diariesdb
-from about import AboutWindow
-from settings import SettingsWindow
+from about import AboutWidget
+from settings import SettingsWidget
 
 
 class MainWindow(QMainWindow):
@@ -54,8 +54,8 @@ class MainWindow(QMainWindow):
         self.todos = TodosHomePage(self)
         self.diaries = DiariesTabWidget(self)
         self.home = HomeWidget(self, self.todos, self.notes.home, self.diaries.home)
-        self.settings = SettingsWindow(self, self.notes.home, self.todos, self.diaries.home)
-        self.about = AboutWindow(self)
+        self.settings = SettingsWidget(self, self.notes.home, self.todos, self.diaries.home)
+        self.about = AboutWidget(self)
 
         self.tabwidget.load()
         
@@ -181,16 +181,19 @@ class TabWidget(QWidget):
         
         self.current_index = 0
         
-        self.layout_ = QGridLayout(self)
+        self.layout_ = QVBoxLayout(self)
         
         self.tabbar = QTabBar(self)
         self.tabbar.setUsesScrollButtons(True)
+        self.tabbar.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self.tabbar.currentChanged.connect(self.tabChanged)
         
         self.container = QStackedWidget(self)
         
     def load(self) -> None:
-        self.pages = [self.parent_.home, self.parent_.notes, self.parent_.todos, self.parent_.diaries]
+        self.pages = [self.parent_.home, 
+                      self.parent_.notes, self.parent_.todos, self.parent_.diaries, 
+                      self.parent_.settings, self.parent_.about]
         
         for page in self.pages:
             self.container.addWidget(page)
@@ -199,12 +202,12 @@ class TabWidget(QWidget):
         self.tabbar.addTab(_("Notes"))
         self.tabbar.addTab(_("To-dos"))
         self.tabbar.addTab(_("Diaries"))
+        self.tabbar.addTab(_("Settings"))
+        self.tabbar.addTab(_("About"))
         
         self.setLayout(self.layout_)
-        self.layout_.addItem(QSpacerItem(0, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding), 0, 0)
-        self.layout_.addWidget(self.tabbar, 0, 1)
-        self.layout_.addItem(QSpacerItem(0, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding), 0, 2)
-        self.layout_.addWidget(self.container, 1, 0, 1, 3)
+        self.layout_.addWidget(self.tabbar)
+        self.layout_.addWidget(self.container)
         
     @Slot(int)
     def tabChanged(self, index: int) -> None:

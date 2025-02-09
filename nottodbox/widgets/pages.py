@@ -2,7 +2,7 @@
 
 # Credit: While making TextFormatter class, <https://invent.kde.org/office/marknote/-/blob/master/src/documenthandler.cpp> helped me as a referance.
 
-# Copyright (C) 2024-2025 Mukonqi (Muhammed S.)
+# Copyright (C) 2024-2025 MuKonqi (Muhammed S.)
 
 # Nottodbox is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

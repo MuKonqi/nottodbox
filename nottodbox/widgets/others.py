@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-# Copyright (C) 2024-2025 Mukonqi (Muhammed S.)
+# Copyright (C) 2024-2025 MuKonqi (Muhammed S.)
 
 # Nottodbox is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,6 +16,7 @@
 # along with Nottodbox.  If not, see <https://www.gnu.org/licenses/>.
 
 
+import typing
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QAction
 from PySide6.QtWidgets import *
@@ -24,6 +25,12 @@ from PySide6.QtWidgets import *
 class Action(QAction):
     def __init__(self, parent: QWidget, text: str = ""):
         super().__init__(text, parent)
+        
+
+class Combobox(QComboBox):
+    def addItems(self, texts: list[str] | tuple[str]):
+        self.clear()
+        return super().addItems(texts)
 
 
 class HSeperator(QFrame):
