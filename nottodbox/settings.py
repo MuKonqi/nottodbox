@@ -260,25 +260,36 @@ class AppearanceSettings(BaseSettings):
         self.color_schemes_widget_layout = QHBoxLayout(self.color_schemes_widget)
         self.color_schemes_widget_layout.setContentsMargins(0, 0, 0, 0)
         
+        self.color_schemes_buttons = QWidget(self.color_schemes_widget)
+        self.color_schemes_buttons_layout = QHBoxLayout(self.color_schemes_buttons)
+        self.color_schemes_buttons_layout.setContentsMargins(0, 0, 0, 0)
+        
         self.color_schemes_combobox = Combobox(self.color_schemes_widget)
         self.color_schemes_combobox.setEditable(False)
         
-        self.color_schemes_delete = PushButton(self.color_schemes_widget, _("Delete"))
+        self.color_schemes_delete = PushButton(self.color_schemes_buttons, _("Delete"))
         self.color_schemes_delete.clicked.connect(self.deleteColorScheme)
+        
+        self.color_schemes_rename = PushButton(self.color_schemes_buttons, _("Rename"))
+        self.color_schemes_rename.clicked.connect(self.renameColorScheme)
         
         self.custom_color_schemes = CustomColorSchemes(self)
         
         self.load()
         
+        self.color_schemes_buttons.setLayout(self.color_schemes_buttons_layout)
+        self.color_schemes_buttons_layout.addWidget(self.color_schemes_delete)
+        self.color_schemes_buttons_layout.addWidget(self.color_schemes_rename)
+        
         self.color_schemes_widget.setLayout(self.color_schemes_widget_layout)
         self.color_schemes_widget_layout.addWidget(self.color_schemes_combobox)
-        self.color_schemes_widget_layout.addWidget(self.color_schemes_delete)
+        self.color_schemes_widget_layout.addWidget(self.color_schemes_buttons)
         
         self.setLayout(self.form)
-        self.form.addRow(_("Alternate row colors for lists:"), self.alternate_row_colors_checkbox)
-        self.form.addRow(_("Style:*"), self.styles_combobox)
-        self.form.addRow(_("Color scheme:"), self.color_schemes_widget)
-        self.form.addRow(_("Custom color scheme:"), self.custom_color_schemes.name)
+        self.form.addRow("{}{}".format(_("Alternate row colors for lists"), ":"), self.alternate_row_colors_checkbox)
+        self.form.addRow("{}{}".format(_("Style"), ":"), self.styles_combobox)
+        self.form.addRow("{}{}".format(_("Color scheme"), ":"), self.color_schemes_widget)
+        self.form.addRow("{} {}{}".format(_("Custom"), _("Color scheme").lower(), ":"), self.custom_color_schemes.name)
         self.form.addWidget(self.custom_color_schemes)
         self.form.addRow(HSeperator(self))
         self.form.addRow(Label(self, _("If PySide6 is installed with Pip, some system themes may not detected by Qt.*"), False))
@@ -356,30 +367,35 @@ class AppearanceSettings(BaseSettings):
             self.custom_color_schemes.setEnabled(True)
             
         else:
-            self.setDeleteColorSchemeButton(value)
+            self.setColorSchemeButtons(value)
                 
             self.current_color_scheme = value
             self.use_default_color_scheme = False
             self.custom_color_schemes.setEnabled(False)
     
-    def setDeleteColorSchemeButton(self, value: str) -> None:
+    def setColorSchemeButtons(self, value: str) -> None:
         if value in self.user_color_schemes:
-            self.color_schemes_delete.setEnabled(True)
+            self.color_schemes_buttons.setEnabled(True)
             
         else:
-            self.color_schemes_delete.setEnabled(False)
+            self.color_schemes_buttons.setEnabled(False)
             
     @Slot()
     def deleteColorScheme(self) -> None:
-        if (self.current_color_scheme in self.user_color_schemes and 
-            os.path.isfile(self.user_color_schemes[self.current_color_scheme])):
-                os.remove(self.user_color_schemes[self.current_color_scheme])
+        name = self.current_color_scheme
+        
+        if (name in self.user_color_schemes and 
+            os.path.isfile(self.user_color_schemes[name])):
+                os.remove(self.user_color_schemes[name])
                 
-                self.color_schemes_list.remove(self.current_color_scheme)
-                del self.color_schemes[self.current_color_scheme]
-                del self.user_color_schemes[self.current_color_scheme]
+                if settings.value("appearance/color-scheme") == name:
+                    settings.setValue("appearance/color-scheme", "")
                 
-                if self.applied_color_scheme == self.current_color_scheme:
+                self.color_schemes_list.remove(name)
+                del self.color_schemes[name]
+                del self.user_color_schemes[name]
+                
+                if self.applied_color_scheme == name:
                     self.color_schemes_combobox.setCurrentIndex(0)
                     self.loadPalette()
                 
@@ -475,7 +491,7 @@ class AppearanceSettings(BaseSettings):
             
         self.applied_color_scheme = self.current_color_scheme
         
-        self.setDeleteColorSchemeButton(self.current_color_scheme)
+        self.setColorSchemeButtons(self.current_color_scheme)
         
         self.loadOnlySomeTexts()
         self.loadPalette()
@@ -499,6 +515,43 @@ class AppearanceSettings(BaseSettings):
                 palette.setColor(QPalette.ColorRole[key], self.color_schemes[self.current_color_scheme][key])
             
         QApplication.setPalette(palette)
+        
+    @Slot()
+    def renameColorScheme(self) -> None:
+        name = self.current_color_scheme
+        
+        newname, topwindow = QInputDialog.getText(self,
+                                                _("Rename {the_item}").format(the_item = _("the {name} color scheme").format(name = name)).title(), 
+                                                _("Please enter a new name for {the_item}.").format(the_item = _("the {name} color scheme").format(name = name)))
+        
+        if topwindow and newname != "":
+            if not os.path.exists(os.path.join(USER_COLOR_SCHEMES_DIR, f"{newname}.json")):
+                os.rename(os.path.join(USER_COLOR_SCHEMES_DIR, f"{name}.json"), os.path.join(USER_COLOR_SCHEMES_DIR, f"{newname}.json"))
+                
+                with open(os.path.join(USER_COLOR_SCHEMES_DIR, f"{newname}.json")) as file:
+                    data = json.load(file)
+                    
+                data["name"] = newname
+                
+                with open(os.path.join(USER_COLOR_SCHEMES_DIR, f"{newname}.json"), "w") as file:
+                    json.dump(data, file)
+                    
+                if settings.value("appearance/color-scheme") == name:
+                    settings.setValue("appearance/color-scheme", newname)
+                
+                self.color_schemes[newname] = self.color_schemes.pop(name)
+                
+                self.user_color_schemes[newname] = self.user_color_schemes.pop(name)
+                self.user_color_schemes[newname] = os.path.join(USER_COLOR_SCHEMES_DIR, f"{newname}.json")
+                
+                self.color_schemes_list[self.color_schemes_list.index(name)] = newname
+                
+                self.color_schemes_combobox.addItems(self.color_schemes_list)
+                self.color_schemes_combobox.setCurrentText(newname)
+                
+            else:
+                QMessageBox.critical(self, _("Error"), _("Already existing {newitem}, renaming {the_item} cancalled.")
+                                    .format(newitem = newname, the_item = _("the {name} color scheme").format(name = name)))
         
     def reset(self) -> bool:
         settings.remove("appearance/style")
@@ -607,15 +660,15 @@ class CustomColorSchemes(QWidget):
                 
             data["colors"] = color_scheme
             
-            with open(f"{USER_COLOR_SCHEMES_DIR}/{name}.json", "w") as file:
+            with open(os.path.join(USER_COLOR_SCHEMES_DIR, f"{name}.json"), "w") as file:
                 json.dump(data, file)
                 
-            with open(f"{USER_COLOR_SCHEMES_DIR}/{name}.json") as file:
+            with open(os.path.join(USER_COLOR_SCHEMES_DIR, f"{name}.json")) as file:
                 check_data = json.load(file)
                 
             if data == check_data:
                 self.parent_.color_schemes[name] = color_scheme
-                self.parent_.user_color_schemes[name] = f"{USER_COLOR_SCHEMES_DIR}/{name}.json"
+                self.parent_.user_color_schemes[name] = os.path.join(USER_COLOR_SCHEMES_DIR, f"{name}.json")
                 self.parent_.color_schemes_list.insert(len(self.parent_.color_schemes_list) - 1, name)
                 self.parent_.color_schemes_combobox.addItems(self.parent_.color_schemes_list)
                 self.parent_.color_schemes_combobox.setCurrentText(name)
