@@ -267,27 +267,32 @@ class AppearanceSettings(BaseSettings):
         self.color_schemes_combobox = Combobox(self.color_schemes_widget)
         self.color_schemes_combobox.setEditable(False)
         
+        self.color_schemes_rename = PushButton(self.color_schemes_buttons, _("Rename"))
+        self.color_schemes_rename.clicked.connect(self.renameColorScheme)
+
         self.color_schemes_delete = PushButton(self.color_schemes_buttons, _("Delete"))
         self.color_schemes_delete.clicked.connect(self.deleteColorScheme)
         
-        self.color_schemes_rename = PushButton(self.color_schemes_buttons, _("Rename"))
-        self.color_schemes_rename.clicked.connect(self.renameColorScheme)
+        self.color_schemes_import = PushButton(self.color_schemes_widget, _("Import"))
+        self.color_schemes_import.clicked.connect(self.importColorScheme)
         
         self.custom_color_schemes = CustomColorSchemes(self)
         
         self.load()
         
         self.color_schemes_buttons.setLayout(self.color_schemes_buttons_layout)
-        self.color_schemes_buttons_layout.addWidget(self.color_schemes_delete)
         self.color_schemes_buttons_layout.addWidget(self.color_schemes_rename)
+        self.color_schemes_buttons_layout.addWidget(self.color_schemes_delete)
         
         self.color_schemes_widget.setLayout(self.color_schemes_widget_layout)
         self.color_schemes_widget_layout.addWidget(self.color_schemes_combobox)
         self.color_schemes_widget_layout.addWidget(self.color_schemes_buttons)
+        self.color_schemes_widget_layout.addWidget(VSeperator(self.color_schemes_widget))
+        self.color_schemes_widget_layout.addWidget(self.color_schemes_import)
         
         self.setLayout(self.form)
-        self.form.addRow("{}{}".format(_("Alternate row colors for lists"), ":"), self.alternate_row_colors_checkbox)
-        self.form.addRow("{}{}".format(_("Style"), ":"), self.styles_combobox)
+        self.form.addRow("{}{}".format(_("Alternate row colors"), ":"), self.alternate_row_colors_checkbox)
+        self.form.addRow("{}{}*".format(_("Style"), ":"), self.styles_combobox)
         self.form.addRow("{}{}".format(_("Color scheme"), ":"), self.color_schemes_widget)
         self.form.addRow("{} {}{}".format(_("Custom"), _("Color scheme").lower(), ":"), self.custom_color_schemes.name)
         self.form.addWidget(self.custom_color_schemes)
@@ -445,26 +450,28 @@ class AppearanceSettings(BaseSettings):
         
         for entry in os.scandir(SYSTEM_COLOR_SCHEMES_DIR):
             if entry.is_file() and entry.name.endswith(".json"):
-                with open(entry.path) as file:
-                    data = json.load(file)
+                with open(entry.path) as f:
+                    data = json.load(f)
                     
-                    self.color_schemes[data["name"]] = data["colors"]
+                self.color_schemes[data["name"]] = data["colors"]
                 
         self.user_color_schemes = {}
         
         for entry in os.scandir(USER_COLOR_SCHEMES_DIR):
             if entry.is_file() and entry.name.endswith(".json"):
-                with open(entry.path) as file:
-                    data = json.load(file)
+                with open(entry.path) as f:
+                    data = json.load(f)
+
+                if data["name"] in self.color_schemes.copy().keys():
+                    self.color_schemes["{} {}".format(data["name"], _("(System)"))] = self.color_schemes.pop(data["name"])
+                    self.color_schemes["{} {}".format(data["name"], _("(User)"))] = data["colors"]
                     
-                    if data["name"] in self.color_schemes.copy().keys():
-                        self.color_schemes[data["name"] + _("(System)")] = data.pop("name")
-                        self.color_schemes[data["name"] + _("(User)")] = data["colors"]
-                        
-                    else:
-                        self.color_schemes[data["name"]] = data["colors"]
-                        
-                self.user_color_schemes[data["name"]] = entry.path
+                    self.user_color_schemes["{} {}".format(data["name"], _("(User)"))] = entry.path
+                    
+                else:
+                    self.color_schemes[data["name"]] = data["colors"]
+                    
+                    self.user_color_schemes[data["name"]] = entry.path
         
         self.color_schemes_list = list(self.color_schemes.keys())
         self.color_schemes_list.insert(0, _("From selected style ({})"))
@@ -517,6 +524,32 @@ class AppearanceSettings(BaseSettings):
         QApplication.setPalette(palette)
         
     @Slot()
+    def importColorScheme(self) -> None:
+        files = QFileDialog.getOpenFileNames(self,
+                                            _("Import a {the_item}").format(the_item = _("Color scheme")).title(),
+                                            "",
+                                            _("Color schemes (*.json)"))[0]
+        
+        for file in files:
+            if file.endswith(".json"):
+                with open(file, "r") as f:
+                    data = json.load(f)
+                    
+                name = data["name"]
+                
+                if name is not None and name != "" and data["colors"] != {}:
+                    with open(os.path.join(USER_COLOR_SCHEMES_DIR, f"{name}.json"), "w") as f:
+                        json.dump(data, f)
+                        
+                    self.color_schemes[name] = data["colors"]
+                        
+                self.user_color_schemes[name] = os.path.join(USER_COLOR_SCHEMES_DIR, f"{name}.json")
+                
+                self.color_schemes_list.insert(len(self.color_schemes_list) - 1, name)
+                
+                self.color_schemes_combobox.addItems(self.color_schemes_list)
+                
+    @Slot()
     def renameColorScheme(self) -> None:
         name = self.current_color_scheme
         
@@ -528,13 +561,13 @@ class AppearanceSettings(BaseSettings):
             if not os.path.exists(os.path.join(USER_COLOR_SCHEMES_DIR, f"{newname}.json")):
                 os.rename(os.path.join(USER_COLOR_SCHEMES_DIR, f"{name}.json"), os.path.join(USER_COLOR_SCHEMES_DIR, f"{newname}.json"))
                 
-                with open(os.path.join(USER_COLOR_SCHEMES_DIR, f"{newname}.json")) as file:
-                    data = json.load(file)
+                with open(os.path.join(USER_COLOR_SCHEMES_DIR, f"{newname}.json")) as f:
+                    data = json.load(f)
                     
                 data["name"] = newname
                 
-                with open(os.path.join(USER_COLOR_SCHEMES_DIR, f"{newname}.json"), "w") as file:
-                    json.dump(data, file)
+                with open(os.path.join(USER_COLOR_SCHEMES_DIR, f"{newname}.json"), "w") as f:
+                    json.dump(data, f)
                     
                 if settings.value("appearance/color-scheme") == name:
                     settings.setValue("appearance/color-scheme", newname)
@@ -660,11 +693,11 @@ class CustomColorSchemes(QWidget):
                 
             data["colors"] = color_scheme
             
-            with open(os.path.join(USER_COLOR_SCHEMES_DIR, f"{name}.json"), "w") as file:
-                json.dump(data, file)
+            with open(os.path.join(USER_COLOR_SCHEMES_DIR, f"{name}.json"), "w") as f:
+                json.dump(data, f)
                 
-            with open(os.path.join(USER_COLOR_SCHEMES_DIR, f"{name}.json")) as file:
-                check_data = json.load(file)
+            with open(os.path.join(USER_COLOR_SCHEMES_DIR, f"{name}.json")) as f:
+                check_data = json.load(f)
                 
             if data == check_data:
                 self.parent_.color_schemes[name] = color_scheme
