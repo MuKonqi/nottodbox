@@ -525,14 +525,14 @@ class AppearanceSettings(BaseSettings):
         
     @Slot()
     def importColorScheme(self) -> None:
-        files = QFileDialog.getOpenFileNames(self,
+        paths = QFileDialog.getOpenFileNames(self,
                                             _("Import a {the_item}").format(the_item = _("Color scheme")).title(),
                                             "",
                                             _("Color schemes (*.json)"))[0]
         
-        for file in files:
-            if file.endswith(".json"):
-                with open(file, "r") as f:
+        for path in paths:
+            if path.endswith(".json"):
+                with open(path) as f:
                     data = json.load(f)
                     
                 name = data["name"]
