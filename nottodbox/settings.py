@@ -18,9 +18,10 @@
 
 import getpass
 import os
-import json
+import configparser
+import json 
 from gettext import gettext as _
-from PySide6.QtCore import Slot, Qt, QSettings
+from PySide6.QtCore import Slot, Qt, QSettings, QStandardPaths
 from PySide6.QtGui import QColor, QPalette
 from PySide6.QtWidgets import *
 from widgets.dialogs import ColorDialog
@@ -29,10 +30,17 @@ from widgets.others import Combobox, HSeperator, Label, PushButton, VSeperator
 
 USER_NAME = getpass.getuser()
 
-SYSTEM_COLOR_SCHEMES_DIR = "@COLOR-SCHEMES@"
-USER_COLOR_SCHEMES_DIR = f"/home/{USER_NAME}/.local/share/io.github.mukonqi/nottodbox/color-schemes"
-if not os.path.isdir(USER_COLOR_SCHEMES_DIR):
-    os.makedirs(USER_COLOR_SCHEMES_DIR)
+COLOR_SCHEMES_DIRS = []
+
+KDE_COLOR_SCHEMES_DIRS = QStandardPaths.locateAll(
+    QStandardPaths.StandardLocation.GenericDataLocation, "color-schemes", QStandardPaths.LocateOption.LocateDirectory)
+
+NOTTODBOX_COLOR_SCHEMES_DIRS = ["@COLOR-SCHEMES@", f"/home/{USER_NAME}/.local/share/io.github.mukonqi/nottodbox/color-schemes"]
+if not os.path.isdir(NOTTODBOX_COLOR_SCHEMES_DIRS[1]):
+    os.makedirs(NOTTODBOX_COLOR_SCHEMES_DIRS[1])
+
+COLOR_SCHEMES_DIRS.extend(KDE_COLOR_SCHEMES_DIRS)
+COLOR_SCHEMES_DIRS.extend(NOTTODBOX_COLOR_SCHEMES_DIRS)
 
 
 class Settings(QSettings):
@@ -297,8 +305,16 @@ class AppearanceSettings(BaseSettings):
         self.form.addRow("{} {}{}".format(_("Custom"), _("Color scheme").lower(), ":"), self.custom_color_schemes.name)
         self.form.addWidget(self.custom_color_schemes)
         self.form.addRow(HSeperator(self))
-        self.form.addRow(Label(self, _("If PySide6 is installed with Pip, some system themes may not detected by Qt.*"), False))
-        self.form.addItem(QSpacerItem(0, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding))
+        
+        self.form.addRow(Label(
+            self, _("*If PySide6 is installed with Pip, some system themes may not detected by Qt."), Qt.AlignmentFlag.AlignLeft))
+        
+        dir_number = 0
+        
+        for text in self.sources:
+            dir_number += 1
+            
+            self.form.addRow(Label(self, f"{self.superscript_dir_number(dir_number)}{text}", Qt.AlignmentFlag.AlignLeft))
         
         self.styles_combobox.currentTextChanged.connect(self.styleChanged)
         self.color_schemes_combobox.currentTextChanged.connect(self.colorSchemeChanged)
@@ -371,40 +387,84 @@ class AppearanceSettings(BaseSettings):
         elif value == _("Custom"):
             self.custom_color_schemes.setEnabled(True)
             
-        else:
-            self.setColorSchemeButtons(value)
-                
+        else: 
             self.current_color_scheme = value
             self.use_default_color_scheme = False
             self.custom_color_schemes.setEnabled(False)
-    
-    def setColorSchemeButtons(self, value: str) -> None:
-        if value in self.user_color_schemes:
-            self.color_schemes_buttons.setEnabled(True)
             
-        else:
-            self.color_schemes_buttons.setEnabled(False)
+            self.setColorSchemeButtons(value)
+            
+    def convertToHexColor(self, color_str: str) -> str:
+        color_rgb = [int(color) for color in color_str.split(",")]
+        
+        return QColor(color_rgb[0], color_rgb[1], color_rgb[2]).name()
+    
+    def convertToColorScheme(self, config: configparser.ConfigParser) -> dict:        
+        data = {}
+        
+        data["Window"] = self.convertToHexColor(config["Colors:Window"]["BackgroundNormal"])
+        data["WindowText"] = self.convertToHexColor(config["Colors:Window"]["ForegroundNormal"])
+        data["Base"] = self.convertToHexColor(config["Colors:View"]["BackgroundNormal"])
+        data["AlternateBase"] = self.convertToHexColor(config["Colors:View"]["BackgroundAlternate"])
+        data["ToolTipBase"] = self.convertToHexColor(config["Colors:Tooltip"]["BackgroundNormal"])
+        data["ToolTipText"] = self.convertToHexColor(config["Colors:Tooltip"]["ForegroundNormal"])
+        data["PlaceholderText"] = self.convertToHexColor(config["Colors:View"]["ForegroundInactive"])
+        data["Text"] = self.convertToHexColor(config["Colors:View"]["ForegroundNormal"])
+        data["Button"] = self.convertToHexColor(config["Colors:Button"]["BackgroundNormal"])
+        data["ButtonText"] = self.convertToHexColor(config["Colors:Button"]["ForegroundNormal"])
+        data["Highlight"] = self.convertToHexColor(config["Colors:Selection"]["BackgroundNormal"])
+        data["Accent"] =self.convertToHexColor( config["Colors:Selection"]["ForegroundNormal"])
+        data["HighlightedText"] = self.convertToHexColor(config["Colors:Selection"]["BackgroundNormal"])
+        data["Link"] = self.convertToHexColor(config["Colors:View"]["ForegroundLink"])
+        data["LinkVisited"] = self.convertToHexColor(config["Colors:View"]["ForegroundVisited"])
+        
+        return data
             
     @Slot()
     def deleteColorScheme(self) -> None:
         name = self.current_color_scheme
         
-        if (name in self.user_color_schemes and 
-            os.path.isfile(self.user_color_schemes[name])):
-                os.remove(self.user_color_schemes[name])
+        if os.path.isfile(self.color_schemes[name]) and os.path.dirname(self.color_schemes[name]) == NOTTODBOX_COLOR_SCHEMES_DIRS[1]:
+            os.remove(self.color_schemes[name])
+            
+            if settings.value("appearance/color-scheme") == name:
+                settings.setValue("appearance/color-scheme", "")
+            
+            self.color_schemes_list.remove(name)
+            del self.color_schemes[name]
+            
+            if self.applied_color_scheme == name:
+                self.color_schemes_combobox.setCurrentIndex(0)
+                self.loadPalette()
+            
+            self.color_schemes_combobox.addItems(self.color_schemes_list)
+            
+    def getColorSchemeName(self, path: str) -> str:
+        with open(path) as f:
+            if os.path.dirname(path) in KDE_COLOR_SCHEMES_DIRS and path.endswith(".colors"):
+                config = configparser.ConfigParser()
+                config.read_file(f)
                 
-                if settings.value("appearance/color-scheme") == name:
-                    settings.setValue("appearance/color-scheme", "")
+                name = config["General"]["Name"]
                 
-                self.color_schemes_list.remove(name)
-                del self.color_schemes[name]
-                del self.user_color_schemes[name]
+            elif os.path.dirname(path) in NOTTODBOX_COLOR_SCHEMES_DIRS and path.endswith(".json"):
                 
-                if self.applied_color_scheme == name:
-                    self.color_schemes_combobox.setCurrentIndex(0)
-                    self.loadPalette()
+                name = json.load(f)["name"]
                 
-                self.color_schemes_combobox.addItems(self.color_schemes_list)
+            self.color_schemes[f"{name}{self.superscript_dir_number(path)}"] = path
+                
+        return name
+    
+    def getColorSchemeData(self, path: str) -> dict:
+        with open(path) as f:
+            if os.path.dirname(path) in KDE_COLOR_SCHEMES_DIRS and path.endswith(".colors"):
+                config = configparser.ConfigParser()
+                config.read_file(f)
+                
+                return self.convertToColorScheme(config)
+            
+            elif os.path.dirname(path) in NOTTODBOX_COLOR_SCHEMES_DIRS and path.endswith(".json"):
+                return json.load(f)["colors"]
         
     def load(self) -> None:
         self.alternate_row_colors = settings.value("appearance/alternate-row-colors")
@@ -448,30 +508,28 @@ class AppearanceSettings(BaseSettings):
         
         self.color_schemes = {}
         
-        for entry in os.scandir(SYSTEM_COLOR_SCHEMES_DIR):
-            if entry.is_file() and entry.name.endswith(".json"):
-                with open(entry.path) as f:
-                    data = json.load(f)
-                    
-                self.color_schemes[data["name"]] = data["colors"]
-                
-        self.user_color_schemes = {}
+        self.sources = []
         
-        for entry in os.scandir(USER_COLOR_SCHEMES_DIR):
-            if entry.is_file() and entry.name.endswith(".json"):
-                with open(entry.path) as f:
-                    data = json.load(f)
-
-                if data["name"] in self.color_schemes.copy().keys():
-                    self.color_schemes["{} {}".format(data["name"], _("(System)"))] = self.color_schemes.pop(data["name"])
-                    self.color_schemes["{} {}".format(data["name"], _("(User)"))] = data["colors"]
-                    
-                    self.user_color_schemes["{} {}".format(data["name"], _("(User)"))] = entry.path
-                    
-                else:
-                    self.color_schemes[data["name"]] = data["colors"]
-                    
-                    self.user_color_schemes[data["name"]] = entry.path
+        dir_number = 0
+        
+        for dir in COLOR_SCHEMES_DIRS:
+            dir_number += 1
+            
+            if dir == "/usr/share/color-schemes":
+                self.sources.append(_("System and KDE-style color scheme"))
+                
+            elif dir == f"/home/{getpass.getuser()}/.local/share/color-schemes":
+                self.sources.append(_("User and KDE-style color scheme"))
+                
+            elif dir == NOTTODBOX_COLOR_SCHEMES_DIRS[0]:
+                self.sources.append(_("System and Nottodbox-style color scheme"))
+                
+            elif dir == NOTTODBOX_COLOR_SCHEMES_DIRS[1]:
+                self.sources.append(_("User and Nottodbox-style color scheme"))
+            
+            for entry in os.scandir(dir):
+                if entry.is_file():
+                    self.getColorSchemeName(entry.path)
         
         self.color_schemes_list = list(self.color_schemes.keys())
         self.color_schemes_list.insert(0, _("From selected style ({})"))
@@ -516,10 +574,12 @@ class AppearanceSettings(BaseSettings):
         else:
             self.applied_color_scheme = self.current_color_scheme
             
+            data = self.getColorSchemeData(self.color_schemes[self.current_color_scheme])
+                    
             palette = QPalette()
             
-            for key in self.color_schemes[self.current_color_scheme].keys():
-                palette.setColor(QPalette.ColorRole[key], self.color_schemes[self.current_color_scheme][key])
+            for color_role in data:
+                palette.setColor(QPalette.ColorRole[color_role], data[color_role])
             
         QApplication.setPalette(palette)
         
@@ -528,63 +588,59 @@ class AppearanceSettings(BaseSettings):
         paths = QFileDialog.getOpenFileNames(self,
                                             _("Import a {the_item}").format(the_item = _("Color scheme")).title(),
                                             "",
-                                            _("Color schemes (*.json)"))[0]
+                                            _("Color schemes (*.colors, .json)"))[0]
         
         for path in paths:
-            if path.endswith(".json"):
-                with open(path) as f:
-                    data = json.load(f)
-                    
-                name = data["name"]
+            data = {}
+        
+            data["name"] = self.getColorSchemeName(path)
+            data["colors"] = self.getColorSchemeData(path)
                 
-                if name is not None and name != "" and data["colors"] != {}:
-                    with open(os.path.join(USER_COLOR_SCHEMES_DIR, f"{name}.json"), "w") as f:
-                        json.dump(data, f)
-                        
-                    self.color_schemes[name] = data["colors"]
-                        
-                self.user_color_schemes[name] = os.path.join(USER_COLOR_SCHEMES_DIR, f"{name}.json")
+            if data["name"] is not None and data["name"] != "" and data["colors"] != {}:
+                with open(os.path.join(NOTTODBOX_COLOR_SCHEMES_DIRS[1], f"{data['name']}.json"), "w") as f:
+                    json.dump(data, f)
                 
-                self.color_schemes_list.insert(len(self.color_schemes_list) - 1, name)
+                self.color_schemes_list.insert(len(self.color_schemes_list) - 1, data["name"])
                 
                 self.color_schemes_combobox.addItems(self.color_schemes_list)
                 
     @Slot()
     def renameColorScheme(self) -> None:
         name = self.current_color_scheme
+        path = self.color_schemes[name]
         
         newname, topwindow = QInputDialog.getText(self,
                                                 _("Rename {the_item}").format(the_item = _("the {name} color scheme").format(name = name)).title(), 
                                                 _("Please enter a new name for {the_item}.").format(the_item = _("the {name} color scheme").format(name = name)))
         
-        if topwindow and newname != "":
-            if not os.path.exists(os.path.join(USER_COLOR_SCHEMES_DIR, f"{newname}.json")):
-                os.rename(os.path.join(USER_COLOR_SCHEMES_DIR, f"{name}.json"), os.path.join(USER_COLOR_SCHEMES_DIR, f"{newname}.json"))
+        if topwindow and newname != "":            
+            if (not os.path.exists(os.path.join(NOTTODBOX_COLOR_SCHEMES_DIRS[1], f"{newname}.json")) 
+                and os.path.dirname(path) == NOTTODBOX_COLOR_SCHEMES_DIRS[1] 
+                and os.path.isfile(path)):
                 
-                with open(os.path.join(USER_COLOR_SCHEMES_DIR, f"{newname}.json")) as f:
+                with open(path) as f:
                     data = json.load(f)
                     
                 data["name"] = newname
                 
-                with open(os.path.join(USER_COLOR_SCHEMES_DIR, f"{newname}.json"), "w") as f:
+                if name in os.path.basename(self.color_schemes[name]):
+                    path = os.path.join(NOTTODBOX_COLOR_SCHEMES_DIRS[1], f"{newname}.json")
+                    
+                    os.rename(path, os.path.join(NOTTODBOX_COLOR_SCHEMES_DIRS[1], f"{newname}.json"))
+                
+                with open(path, "w") as f:
                     json.dump(data, f)
                     
                 if settings.value("appearance/color-scheme") == name:
                     settings.setValue("appearance/color-scheme", newname)
                 
-                self.color_schemes[newname] = self.color_schemes.pop(name)
-                
-                self.user_color_schemes[newname] = self.user_color_schemes.pop(name)
-                self.user_color_schemes[newname] = os.path.join(USER_COLOR_SCHEMES_DIR, f"{newname}.json")
-                
-                self.color_schemes_list[self.color_schemes_list.index(name)] = newname
-                
+                self.color_schemes[f"{newname}{self.superscript_dir_number(path)}"] = path
+                self.color_schemes_list[self.color_schemes_list.index(name)] = f"{newname}{self.superscript_dir_number(path)}"
                 self.color_schemes_combobox.addItems(self.color_schemes_list)
-                self.color_schemes_combobox.setCurrentText(newname)
+                self.color_schemes_combobox.setCurrentText(f"{newname}{self.superscript_dir_number(path)}")
                 
             else:
-                QMessageBox.critical(self, _("Error"), _("Already existing {newitem}, renaming {the_item} cancalled.")
-                                    .format(newitem = newname, the_item = _("the {name} color scheme").format(name = name)))
+                QMessageBox.critical(self, _("Error"), _("This color scheme can not be renamed."))
         
     def reset(self) -> bool:
         settings.remove("appearance/style")
@@ -598,6 +654,13 @@ class AppearanceSettings(BaseSettings):
         else:
             return False
         
+    def setColorSchemeButtons(self, value: str) -> None:
+        if self.current_color_scheme != "" and os.path.dirname(self.color_schemes[value]) == NOTTODBOX_COLOR_SCHEMES_DIRS[1]:
+            self.color_schemes_buttons.setEnabled(True)
+            
+        else:
+            self.color_schemes_buttons.setEnabled(False)
+        
     @Slot(str)
     def styleChanged(self, value: str) -> None:
         if value == _("System default ({})").format(self.default_style):
@@ -609,6 +672,36 @@ class AppearanceSettings(BaseSettings):
             self.use_default_style = False
             
         self.loadOnlySomeTexts()
+
+    def superscript_dir_number(self, value: str | int) -> str:
+        if type(value) == int:
+            number = value
+            
+        else:
+            dir_number = 0
+            
+            for dir in COLOR_SCHEMES_DIRS:
+                dir_number += 1
+            
+                if os.path.dirname(value) == dir:
+                    number = dir_number
+                    
+                    break
+            
+        if number == 1:
+            return "\u00b9"
+        
+        elif number == 2:
+            return "\u00b2"
+        
+        elif number == 3:
+            return "\u00b3"
+        
+        elif number == 4:
+            return "\u2074"
+        
+        else:
+            return number
     
     
 class CustomColorSchemes(QWidget):
@@ -693,18 +786,19 @@ class CustomColorSchemes(QWidget):
                 
             data["colors"] = color_scheme
             
-            with open(os.path.join(USER_COLOR_SCHEMES_DIR, f"{name}.json"), "w") as f:
+            with open(os.path.join(NOTTODBOX_COLOR_SCHEMES_DIRS[1], f"{name}.json"), "w") as f:
                 json.dump(data, f)
                 
-            with open(os.path.join(USER_COLOR_SCHEMES_DIR, f"{name}.json")) as f:
+            with open(os.path.join(NOTTODBOX_COLOR_SCHEMES_DIRS[1], f"{name}.json")) as f:
                 check_data = json.load(f)
                 
+            pretty_name = f"{name}{self.parent_.superscript_dir_number(4)}"
+                
             if data == check_data:
-                self.parent_.color_schemes[name] = color_scheme
-                self.parent_.user_color_schemes[name] = os.path.join(USER_COLOR_SCHEMES_DIR, f"{name}.json")
-                self.parent_.color_schemes_list.insert(len(self.parent_.color_schemes_list) - 1, name)
+                self.parent_.color_schemes[pretty_name] = os.path.join(NOTTODBOX_COLOR_SCHEMES_DIRS[1], f"{name}.json")
+                self.parent_.color_schemes_list.insert(len(self.parent_.color_schemes_list) - 1, pretty_name)
                 self.parent_.color_schemes_combobox.addItems(self.parent_.color_schemes_list)
-                self.parent_.color_schemes_combobox.setCurrentText(name)
+                self.parent_.color_schemes_combobox.setCurrentText(pretty_name)
                 
                 return True
             
