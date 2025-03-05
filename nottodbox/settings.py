@@ -784,7 +784,7 @@ class ColorSelectionWidget(QWidget):
         
     @Slot()
     def setColor(self) -> None:
-        ok, status, qcolor = ColorDialog(self, False, False, 
+        ok, status, qcolor = ColorDialog(self, False, True, 
                                          QColor(self.values[self.color_role] if self.color_role in self.values else "#000000"), 
                                          _("Select {} Color").format(self.labels[self.color_role].title())).getColor()
         
@@ -795,6 +795,14 @@ class ColorSelectionWidget(QWidget):
                 self.selector.setText(_("Select color (selected: {})").format(_(self.values[self.color_role])))
                 
                 self.viewer.fill(self.values[self.color_role])
+                self.label.setPixmap(self.viewer)
+                
+            elif status == "default":
+                self.values[self.color_role] = ""
+                
+                self.selector.setText(_("Select color (selected: {})").format(_("none")))
+                
+                self.viewer.fill(Qt.GlobalColor.transparent)
                 self.label.setPixmap(self.viewer)
 
         
