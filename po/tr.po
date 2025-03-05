@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.0.7\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-04 22:25+0300\n"
-"PO-Revision-Date: 2025-03-04 22:25+0300\n"
+"POT-Creation-Date: 2025-03-05 05:44+0300\n"
+"PO-Revision-Date: 2025-03-05 05:44+0300\n"
 "Last-Translator: Muhammed S. <mukonqi@gmail.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: tr\n"
@@ -1015,20 +1015,20 @@ msgid "System default ({})"
 msgstr "Sistem varsayılanı ({})"
 
 #: nottodbox/nottodbox/settings.py:519
-msgid "System and KDE-style color scheme"
-msgstr "Sistem ve KDE-stili renk şeması"
+msgid "From the system directory for KDE-format color schemes"
+msgstr "KDE-biçimi renk şeması için sistem klasöründen"
 
 #: nottodbox/nottodbox/settings.py:522
-msgid "User and KDE-style color scheme"
-msgstr "Kullanıcı ve KDE-stili renk şeması"
+msgid "From the user directory for KDE-format color schemes"
+msgstr "KDE-biçimi renk şeması için kullanıcı klasöründen"
 
 #: nottodbox/nottodbox/settings.py:525
-msgid "System and Nottodbox-style color scheme"
-msgstr "Sistem ve Nottodbox-stili renk şeması"
+msgid "From the system directory for Nottodbox-format color schemes"
+msgstr "Nottodbox-biçimi renk şeması için sistem klasöründen"
 
 #: nottodbox/nottodbox/settings.py:528
-msgid "User and Nottodbox-style color scheme"
-msgstr "Kullanıcı ve Nottodbox-stili renk şeması"
+msgid "From the user directory for Nottodbox-format color schemes"
+msgstr "Nottodbox-biçimi renk şeması için kullanıcı klasöründen"
 
 #: nottodbox/nottodbox/settings.py:589
 #, python-brace-format
@@ -1036,8 +1036,8 @@ msgid "Import a {the_item}"
 msgstr "{the_item} içeri aktar"
 
 #: nottodbox/nottodbox/settings.py:591
-msgid "Color schemes (*.colors, .json)"
-msgstr "Renk şemaları (*colors, .json)"
+msgid "Color schemes (*.colors *.json)"
+msgstr "Renk şemaları (*colors *.json)"
 
 #: nottodbox/nottodbox/settings.py:613 nottodbox/nottodbox/settings.py:614
 #, python-brace-format

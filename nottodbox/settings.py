@@ -314,7 +314,7 @@ class AppearanceSettings(BaseSettings):
         for text in self.sources:
             dir_number += 1
             
-            self.form.addRow(Label(self, f"{self.superscript_dir_number(dir_number)}{text}", Qt.AlignmentFlag.AlignLeft))
+            self.form.addRow(Label(self, f"{self.superscriptDirNumber(dir_number)}{text}", Qt.AlignmentFlag.AlignLeft))
         
         self.styles_combobox.currentTextChanged.connect(self.styleChanged)
         self.color_schemes_combobox.currentTextChanged.connect(self.colorSchemeChanged)
@@ -441,29 +441,29 @@ class AppearanceSettings(BaseSettings):
             
     def getColorSchemeName(self, path: str) -> str:
         with open(path) as f:
-            if os.path.dirname(path) in KDE_COLOR_SCHEMES_DIRS and path.endswith(".colors"):
+            if path.endswith(".colors"):
                 config = configparser.ConfigParser()
                 config.read_file(f)
                 
                 name = config["General"]["Name"]
                 
-            elif os.path.dirname(path) in NOTTODBOX_COLOR_SCHEMES_DIRS and path.endswith(".json"):
+            elif path.endswith(".json"):
                 
                 name = json.load(f)["name"]
                 
-            self.color_schemes[f"{name}{self.superscript_dir_number(path)}"] = path
+            self.color_schemes[f"{name}{self.superscriptDirNumber(path)}"] = path
                 
         return name
     
     def getColorSchemeData(self, path: str) -> dict:
         with open(path) as f:
-            if os.path.dirname(path) in KDE_COLOR_SCHEMES_DIRS and path.endswith(".colors"):
+            if path.endswith(".colors"):
                 config = configparser.ConfigParser()
                 config.read_file(f)
                 
                 return self.convertToColorScheme(config)
             
-            elif os.path.dirname(path) in NOTTODBOX_COLOR_SCHEMES_DIRS and path.endswith(".json"):
+            elif path.endswith(".json"):
                 return json.load(f)["colors"]
         
     def load(self) -> None:
@@ -516,16 +516,16 @@ class AppearanceSettings(BaseSettings):
             dir_number += 1
             
             if dir == "/usr/share/color-schemes":
-                self.sources.append(_("System and KDE-style color scheme"))
+                self.sources.append(_("From the system directory for KDE-format color schemes"))
                 
             elif dir == f"/home/{getpass.getuser()}/.local/share/color-schemes":
-                self.sources.append(_("User and KDE-style color scheme"))
+                self.sources.append(_("From the user directory for KDE-format color schemes"))
                 
             elif dir == NOTTODBOX_COLOR_SCHEMES_DIRS[0]:
-                self.sources.append(_("System and Nottodbox-style color scheme"))
+                self.sources.append(_("From the system directory for Nottodbox-format color schemes"))
                 
             elif dir == NOTTODBOX_COLOR_SCHEMES_DIRS[1]:
-                self.sources.append(_("User and Nottodbox-style color scheme"))
+                self.sources.append(_("From the user directory for Nottodbox-format color schemes"))
             
             for entry in os.scandir(dir):
                 if entry.is_file():
@@ -588,7 +588,7 @@ class AppearanceSettings(BaseSettings):
         paths = QFileDialog.getOpenFileNames(self,
                                             _("Import a {the_item}").format(the_item = _("Color scheme")).title(),
                                             "",
-                                            _("Color schemes (*.colors, .json)"))[0]
+                                            _("Color schemes (*.colors *.json)"))[0]
         
         for path in paths:
             data = {}
@@ -600,7 +600,7 @@ class AppearanceSettings(BaseSettings):
                 with open(os.path.join(NOTTODBOX_COLOR_SCHEMES_DIRS[1], f"{data['name']}.json"), "w") as f:
                     json.dump(data, f)
                 
-                self.color_schemes_list.insert(len(self.color_schemes_list) - 1, data["name"])
+                self.color_schemes_list.insert(len(self.color_schemes_list) - 1, f"{data['name']}{self.superscriptDirNumber(path)}")
                 
                 self.color_schemes_combobox.addItems(self.color_schemes_list)
                 
@@ -634,10 +634,10 @@ class AppearanceSettings(BaseSettings):
                 if settings.value("appearance/color-scheme") == name:
                     settings.setValue("appearance/color-scheme", newname)
                 
-                self.color_schemes[f"{newname}{self.superscript_dir_number(path)}"] = path
-                self.color_schemes_list[self.color_schemes_list.index(name)] = f"{newname}{self.superscript_dir_number(path)}"
+                self.color_schemes[f"{newname}{self.superscriptDirNumber(path)}"] = path
+                self.color_schemes_list[self.color_schemes_list.index(name)] = f"{newname}{self.superscriptDirNumber(path)}"
                 self.color_schemes_combobox.addItems(self.color_schemes_list)
-                self.color_schemes_combobox.setCurrentText(f"{newname}{self.superscript_dir_number(path)}")
+                self.color_schemes_combobox.setCurrentText(f"{newname}{self.superscriptDirNumber(path)}")
                 
             else:
                 QMessageBox.critical(self, _("Error"), _("This color scheme can not be renamed."))
@@ -673,7 +673,7 @@ class AppearanceSettings(BaseSettings):
             
         self.loadOnlySomeTexts()
 
-    def superscript_dir_number(self, value: str | int) -> str:
+    def superscriptDirNumber(self, value: str | int) -> str:
         if type(value) == int:
             number = value
             
@@ -683,7 +683,7 @@ class AppearanceSettings(BaseSettings):
             for dir in COLOR_SCHEMES_DIRS:
                 dir_number += 1
             
-                if os.path.dirname(value) == dir:
+                if os.path.dirname(value) == dir or dir_number == 4:
                     number = dir_number
                     
                     break
@@ -792,7 +792,7 @@ class CustomColorSchemes(QWidget):
             with open(os.path.join(NOTTODBOX_COLOR_SCHEMES_DIRS[1], f"{name}.json")) as f:
                 check_data = json.load(f)
                 
-            pretty_name = f"{name}{self.parent_.superscript_dir_number(4)}"
+            pretty_name = f"{name}{self.parent_.superscriptDirNumber(4)}"
                 
             if data == check_data:
                 self.parent_.color_schemes[pretty_name] = os.path.join(NOTTODBOX_COLOR_SCHEMES_DIRS[1], f"{name}.json")
