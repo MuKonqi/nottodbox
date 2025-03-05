@@ -77,6 +77,8 @@ class HistoryDB(DBBase):
 
 historydb = HistoryDB()
 
+qsettings = QSettings("io.github.mukonqi", "nottodbox")
+
 
 class SidebarWidget(QWidget):
     def __init__(self, parent: QMainWindow, notes: QTabWidget, diaries: QTabWidget):
@@ -118,10 +120,23 @@ class SidebarWidget(QWidget):
         self.layout_.addWidget(self.delete_button)
         self.layout_.addWidget(self.clear_button)
         
+        self.refreshSettings()
+        
     @Slot(str)
-    def setFilter(self, text: str):
+    def setFilter(self, text: str) -> None:
         self.open_pages.setFilter(text)
         self.history.setFilter(text)
+        
+    def refreshSettings(self) -> None:
+        alternate_row_colors = qsettings.value("sidebar/alternate-row-colors")
+        
+        if alternate_row_colors == "enabled":
+            self.open_pages.setAlternatingRowColors(True)
+            self.history.setAlternatingRowColors(True)
+            
+        elif alternate_row_colors == "disabled":
+            self.open_pages.setAlternatingRowColors(False)
+            self.history.setAlternatingRowColors(False)
         
         
 class SidebarTreeView(QTreeView):

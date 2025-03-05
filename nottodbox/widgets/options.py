@@ -149,8 +149,8 @@ class HomePage(QWidget):
         pass
         
     def refreshSettingsBase(self) -> None:
-        self.autosave, self.background, self.foreground, self.format, self.highlight = settings.get(self.module)
-        
+        self.alternate_row_colors, self.autosave, self.background, self.foreground, self.format, self.highlight = settings.get(self.module)
+
     def returnPretty(self, name: str, table: str) -> str:
         if self.module == "notes":
             return f"{name} @ {table}"
@@ -274,6 +274,12 @@ class HomePageForLists(HomePage):
         self.treeview.deleteAll()
         self.treeview.setIndex("", "")
         self.treeview.appendAll()
+        
+        if self.alternate_row_colors == "enabled":
+            self.treeview.setAlternatingRowColors(True)
+            
+        elif self.alternate_row_colors == "disabled":
+            self.treeview.setAlternatingRowColors(False)
         
     @Slot(str, str)
     def setOptionWidget(self, name: str = "", table: str = "") -> None:

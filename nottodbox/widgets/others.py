@@ -16,21 +16,9 @@
 # along with Nottodbox.  If not, see <https://www.gnu.org/licenses/>.
 
 
-import typing
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QAction
 from PySide6.QtWidgets import *
-
-
-class Action(QAction):
-    def __init__(self, parent: QWidget, text: str = ""):
-        super().__init__(text, parent)
-        
-
-class Combobox(QComboBox):
-    def addItems(self, texts: list[str] | tuple[str]):
-        self.clear()
-        return super().addItems(texts)
 
 
 class HSeperator(QFrame):
@@ -39,12 +27,27 @@ class HSeperator(QFrame):
         
         self.setFrameShape(QFrame.Shape.HLine)
         
+
+class VSeperator(QFrame):
+    def __init__(self, parent: QWidget):
+        super().__init__(parent)
+        
+        self.setFrameShape(QFrame.Shape.VLine)
+        
         
 class Label(QLabel):
-    def __init__(self, parent: QWidget, text: str = "", alignment: Qt.AlignmentFlag = Qt.AlignmentFlag.AlignCenter):
+    def __init__(self, parent: QWidget, text: str = "", alignment: Qt.AlignmentFlag | int = Qt.AlignmentFlag.AlignCenter):
         super().__init__(text, parent)
         
+        if type(alignment) == int:
+            alignment = Qt.AlignmentFlag(alignment)
+        
         self.setAlignment(alignment)
+        
+
+class Action(QAction):
+    def __init__(self, parent: QWidget, text: str = ""):
+        super().__init__(text, parent)
         
 
 class PushButton(QPushButton):
@@ -52,10 +55,9 @@ class PushButton(QPushButton):
         super().__init__(text, parent)
         
         self.setFixedHeight(30)
-
-
-class VSeperator(QFrame):
-    def __init__(self, parent: QWidget):
-        super().__init__(parent)
         
-        self.setFrameShape(QFrame.Shape.VLine)
+        
+class Combobox(QComboBox):
+    def addItems(self, texts: list[str] | tuple[str]):
+        self.clear()
+        return super().addItems(texts)

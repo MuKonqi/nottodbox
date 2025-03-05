@@ -22,7 +22,7 @@ import configparser
 import json 
 from gettext import gettext as _
 from PySide6.QtCore import Slot, Qt, QSettings, QStandardPaths
-from PySide6.QtGui import QColor, QPalette
+from PySide6.QtGui import QColor, QPalette, QPixmap
 from PySide6.QtWidgets import *
 from widgets.dialogs import ColorDialog
 from widgets.others import Combobox, HSeperator, Label, PushButton, VSeperator
@@ -34,6 +34,7 @@ COLOR_SCHEMES_DIRS = []
 
 KDE_COLOR_SCHEMES_DIRS = QStandardPaths.locateAll(
     QStandardPaths.StandardLocation.GenericDataLocation, "color-schemes", QStandardPaths.LocateOption.LocateDirectory)
+KDE_COLOR_SCHEMES_DIRS.reverse()
 
 NOTTODBOX_COLOR_SCHEMES_DIRS = ["@COLOR-SCHEMES@", f"/home/{USER_NAME}/.local/share/io.github.mukonqi/nottodbox/color-schemes"]
 if not os.path.isdir(NOTTODBOX_COLOR_SCHEMES_DIRS[1]):
@@ -58,7 +59,7 @@ class Settings(QSettings):
         if module_ is None:
             values = []
             
-            for module in ["notes", "todos", "diaries"]:
+            for module in ["sidebar", "notes", "todos", "diaries"]:
                 values.append(self.getBase(module))
                 
             return values
@@ -82,7 +83,7 @@ class Settings(QSettings):
         if module_ is None:
             successful = True
             
-            for module in ["notes", "todos", "diaries"]:
+            for module in ["sidebar", "notes", "todos", "diaries"]:
                 if not self.resetBase(module):
                     successful = False
                 
@@ -92,16 +93,19 @@ class Settings(QSettings):
             return self.resetBase(module_)
         
     def resetBase(self, module: str) -> bool:
-        if module == "notes":
-            return self.set(module, "enabled", "default", "default", "markdown", "")
+        if module == "sidebar":
+            return self.set(module, "disabled", "", "", "", "", "")
+        
+        elif module == "notes":
+            return self.set(module, "disabled", "enabled", "default", "default", "markdown", "")
         
         elif module == "todos":
-            return self.set(module, "", "default", "default", "", "")
+            return self.set(module, "disabled", "", "default", "default", "", "")
         
         elif module == "diaries":
-            return self.set(module, "enabled", "", "", "markdown", "#376296")
+            return self.set(module, "", "enabled", "", "", "markdown", "#376296")
     
-    def set(self, module: str, autosave: str, background: str, foreground: str, format: str, highlight: str) -> bool:
+    def set(self, module: str, alternate_row_colors: str, autosave: str, background: str, foreground: str, format: str, highlight: str) -> bool:
         values = locals()
         values.pop("self")
         values.pop("module")
@@ -120,7 +124,7 @@ settings = Settings()
     
 
 class SettingsWidget(QWidget):
-    def __init__(self, parent: QMainWindow, notes, todos, diaries) -> None:        
+    def __init__(self, parent: QMainWindow, sidebar, notes, todos, diaries) -> None:        
         super().__init__(parent)
         
         self.parent_ = parent
@@ -133,6 +137,9 @@ class SettingsWidget(QWidget):
         
         self.list_appearance = QListWidgetItem(_("Appearance"), self.list)
         self.list_appearance.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+        
+        self.list_sidebar = QListWidgetItem(_("Sidebar"), self.list)
+        self.list_sidebar.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
         
         self.list_notes = QListWidgetItem(_("Notes"), self.list)
         self.list_notes.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -154,9 +161,10 @@ class SettingsWidget(QWidget):
         
         self.pages = [
             appearance_scroll_area,
-            ModuleSettings(self, 1, "notes", notes),
-            ModuleSettings(self, 2, "todos",  todos),
-            ModuleSettings(self, 3, "diaries", diaries)
+            ModuleSettings(self, 1, "sidebar", sidebar),
+            ModuleSettings(self, 2, "notes", notes),
+            ModuleSettings(self, 3, "todos",  todos),
+            ModuleSettings(self, 4, "diaries", diaries)
         ]
         
         for page in self.pages:
@@ -254,13 +262,6 @@ class AppearanceSettings(BaseSettings):
         
         self.form = QFormLayout(self)
         
-        self.alternate_row_colors_checkbox = QCheckBox(self)
-        self.alternate_row_colors_checkbox.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
-        try:
-            self.alternate_row_colors_checkbox.checkStateChanged.connect(self.alternateRowColorsChanged)
-        except:
-            self.alternate_row_colors_checkbox.stateChanged.connect(self.alternateRowColorsChanged)
-        
         self.styles_combobox = QComboBox(self)
         self.styles_combobox.setEditable(False)
         
@@ -299,50 +300,29 @@ class AppearanceSettings(BaseSettings):
         self.color_schemes_widget_layout.addWidget(self.color_schemes_import)
         
         self.setLayout(self.form)
-        self.form.addRow("{}{}".format(_("Alternate row colors"), ":"), self.alternate_row_colors_checkbox)
-        self.form.addRow("{}{}*".format(_("Style"), ":"), self.styles_combobox)
-        self.form.addRow("{}{}".format(_("Color scheme"), ":"), self.color_schemes_widget)
-        self.form.addRow("{} {}{}".format(_("Custom"), _("Color scheme").lower(), ":"), self.custom_color_schemes.name)
+        self.form.addRow(Label(self, _("Style")))
+        self.form.addRow("{}*:".format(_("Style")), self.styles_combobox)
+        self.form.addRow(Label(self, _("Color scheme").title()))
+        self.form.addRow("{}:".format(_("Color scheme")), self.color_schemes_widget)
+        self.form.addRow("{} {}:".format(_("Custom"), _("Color scheme").lower()), self.custom_color_schemes.name)
         self.form.addWidget(self.custom_color_schemes)
         self.form.addRow(HSeperator(self))
-        
-        self.form.addRow(Label(
-            self, _("*If PySide6 is installed with Pip, some system themes may not detected by Qt."), Qt.AlignmentFlag.AlignLeft))
-        
-        dir_number = 0
-        
-        for text in self.sources:
-            dir_number += 1
-            
-            self.form.addRow(Label(self, f"{self.superscriptDirNumber(dir_number)}{text}", Qt.AlignmentFlag.AlignLeft))
+        self.form.addRow(Label(self, 
+                               _("*If PySide6 is installed with Pip, some system themes may not detected by Qt."), 0x0001))
+        self.form.addRow(Label(self, 
+                               "{}{}".format(self.superscriptDirNumber(1), _('From the system directory for KDE-format color schemes')), 0x0001))
+        self.form.addRow(Label(self, 
+                               "{}{}".format(self.superscriptDirNumber(2), _('From the user directory for KDE-format color schemes')), 0x0001))
+        self.form.addRow(Label(self, 
+                               "{}{}".format(self.superscriptDirNumber(3), _('From the system directory for Nottodbox-format color schemes')), 0x0001))
+        self.form.addRow(Label(self, 
+                               "{}{}".format(self.superscriptDirNumber(4), _('From the user directory for Nottodbox-format color schemes')), 0x0001))
         
         self.styles_combobox.currentTextChanged.connect(self.styleChanged)
         self.color_schemes_combobox.currentTextChanged.connect(self.colorSchemeChanged)
         
-    @Slot(int or Qt.CheckState)
-    def alternateRowColorsChanged(self, signal: Qt.CheckState | int) -> None:
-        if signal == Qt.CheckState.Unchecked or signal == 0:
-            self.alternate_row_colors = "disabled"
-            self.alternate_row_colors_checkbox.setText(_("Disabled"))
-        
-        elif signal == Qt.CheckState.Checked or signal == 2:
-            self.alternate_row_colors = "enabled"
-            self.alternate_row_colors_checkbox.setText(_("Enabled"))
-        
     def apply(self) -> bool:
         successful = True
-        
-        settings.setValue("appearance/alternate-row-colors", self.alternate_row_colors)
-        
-        if settings.value("appearance/alternate-row-colors") != self.alternate_row_colors:
-            successful = False
-            
-        pages = [self.parent_.parent_.dock.widget().open_pages, self.parent_.parent_.dock.widget().history,
-                self.parent_.parent_.home.notes, self.parent_.parent_.home.todos, 
-                self.parent_.parent_.notes.home.treeview, self.parent_.parent_.todos.treeview]
-        
-        for page in pages:
-            page.setAlternatingRowColors(True if self.alternate_row_colors == "enabled" else False)
         
         if self.use_default_style:
             settings.setValue("appearance/style", "")
@@ -466,23 +446,7 @@ class AppearanceSettings(BaseSettings):
             elif path.endswith(".json"):
                 return json.load(f)["colors"]
         
-    def load(self) -> None:
-        self.alternate_row_colors = settings.value("appearance/alternate-row-colors")
-        
-        if self.alternate_row_colors is None or self.alternate_row_colors == "":
-            if self.alternate_row_colors is None:
-                settings.setValue("appearance/alternate-row-colors", "disabled")
-                
-            self.alternate_row_colors = "disabled"
-           
-        if self.alternate_row_colors == "enabled": 
-            self.alternate_row_colors_checkbox.setChecked(True)
-            self.alternate_row_colors_checkbox.setText(_("Enabled"))
-            
-        elif self.alternate_row_colors == "disabled":
-            self.alternate_row_colors_checkbox.setChecked(False)
-            self.alternate_row_colors_checkbox.setText(_("Disabled"))
-            
+    def load(self) -> None:    
         self.styles_list = QStyleFactory.keys()
         self.styles_list.insert(0, _("System default ({})").format(self.default_style))
         
@@ -508,25 +472,7 @@ class AppearanceSettings(BaseSettings):
         
         self.color_schemes = {}
         
-        self.sources = []
-        
-        dir_number = 0
-        
         for dir in COLOR_SCHEMES_DIRS:
-            dir_number += 1
-            
-            if dir == "/usr/share/color-schemes":
-                self.sources.append(_("From the system directory for KDE-format color schemes"))
-                
-            elif dir == f"/home/{getpass.getuser()}/.local/share/color-schemes":
-                self.sources.append(_("From the user directory for KDE-format color schemes"))
-                
-            elif dir == NOTTODBOX_COLOR_SCHEMES_DIRS[0]:
-                self.sources.append(_("From the system directory for Nottodbox-format color schemes"))
-                
-            elif dir == NOTTODBOX_COLOR_SCHEMES_DIRS[1]:
-                self.sources.append(_("From the user directory for Nottodbox-format color schemes"))
-            
             for entry in os.scandir(dir):
                 if entry.is_file():
                     self.getColorSchemeName(entry.path)
@@ -749,8 +695,7 @@ class CustomColorSchemes(QWidget):
                         
             self.values[color_role] = ""
             
-            self.buttons[color_role] = PushButton(self, _("Select color (selected: {})").format(_("none")))
-            self.buttons[color_role].clicked.connect(lambda state, color_role = color_role: self.setColorRoleValue(False, color_role))
+            self.buttons[color_role] = ColorSelectionWidget(self, color_role, self.labels, self.values)
             
             if number == 1:
                 self.form.addRow(Label(self, _("Central")))
@@ -812,18 +757,45 @@ class CustomColorSchemes(QWidget):
     def setEnabled(self, enabled: bool) -> None:
         super().setEnabled(enabled)
         self.name.setEnabled(enabled)
-            
-    @Slot(bool, str)
-    def setColorRoleValue(self, state: bool, color_role: str) -> None:
+                
+
+class ColorSelectionWidget(QWidget):
+    def __init__(self, parent: QWidget, color_role: QPalette.ColorRole, labels: dict, values: dict) -> None:
+        super().__init__(parent)
+        
+        self.color_role = color_role
+        self.labels = labels
+        self.values = values
+        
+        self.layout_ = QHBoxLayout(self)
+        self.layout_.setContentsMargins(0, 0, 0, 0)
+        
+        self.selector = PushButton(self, _("Select color (selected: {})").format(_("none")))
+        self.selector.clicked.connect(self.setColor)
+        
+        self.label = Label(self)
+        
+        self.viewer = QPixmap(self.selector.height(), self.selector.height())
+
+        self.layout_.addWidget(self.selector)
+        self.layout_.addWidget(self.label)
+        
+        self.setLayout(self.layout_)
+        
+    @Slot()
+    def setColor(self) -> None:
         ok, status, qcolor = ColorDialog(self, False, False, 
-                                         QColor(self.values[color_role] if color_role in self.values else "#000000"), 
-                                         _("Select {} Color").format(self.labels[color_role].title())).getColor()
+                                         QColor(self.values[self.color_role] if self.color_role in self.values else "#000000"), 
+                                         _("Select {} Color").format(self.labels[self.color_role].title())).getColor()
         
         if ok:
             if status == "new":
-                self.values[color_role] = qcolor.name()
+                self.values[self.color_role] = qcolor.name()
                 
-                self.buttons[color_role].setText(_("Select color (selected: {})").format(_(self.values[color_role])))
+                self.selector.setText(_("Select color (selected: {})").format(_(self.values[self.color_role])))
+                
+                self.viewer.fill(self.values[self.color_role])
+                self.label.setPixmap(self.viewer)
 
         
 class ModuleSettings(BaseSettings):
@@ -838,6 +810,34 @@ class ModuleSettings(BaseSettings):
         self.do_not_check = True
         
         self.form = QFormLayout(self)
+        
+        if self.module == "sidebar" or self.module == "notes" or self.module == "todos":
+            self.alternate_row_colors_checkbox = QCheckBox(self)
+            self.alternate_row_colors_checkbox.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
+            try:
+                self.alternate_row_colors_checkbox.checkStateChanged.connect(self.alternateRowColorsChanged)
+            except:
+                self.alternate_row_colors_checkbox.stateChanged.connect(self.alternateRowColorsChanged)
+            
+            self.form.addRow(Label(self, _("List")))
+            self.form.addRow("{}:".format(_("Alternate row colors")), self.alternate_row_colors_checkbox)
+            
+        if self.module == "notes" or self.module == "todos":
+            self.background_button = PushButton(self)
+            self.background_button.clicked.connect(self.setBackground)
+            
+            self.foreground_button = PushButton(self)
+            self.foreground_button.clicked.connect(self.setForeground)
+            
+            self.form.addRow("{}:".format(_("Default background color for items")), self.background_button)
+            self.form.addRow("{}:".format(_("Default text color for items")), self.foreground_button)
+            
+        if self.module == "diaries":
+            self.highlight_button = PushButton(self)
+            self.highlight_button.clicked.connect(self.setHighlight)
+            
+            self.form.addRow(Label(self, _("List")))
+            self.form.addRow("{}:".format(_("Default highlight color for items")), self.highlight_button)
             
         if self.module == "notes" or self.module == "diaries":    
             self.autosave_checkbox = QCheckBox(self)
@@ -853,38 +853,36 @@ class ModuleSettings(BaseSettings):
             self.format_combobox.setEditable(False)
             self.format_combobox.currentIndexChanged.connect(self.setFormat)
                 
+            self.form.addRow(Label(self, _("Document")))
             self.form.addRow(_("Auto-save:"), self.autosave_checkbox)
             self.form.addRow(_("Format:"), self.format_combobox)
-        
-        if self.module == "notes" or self.module == "todos":
-            self.background_button = PushButton(self)
-            self.background_button.clicked.connect(self.setBackground)
-            
-            self.foreground_button = PushButton(self)
-            self.foreground_button.clicked.connect(self.setForeground)
-            
-            self.form.addRow("{}:".format(_("Background color")), self.background_button)
-            self.form.addRow("{}:".format(_("Text color")), self.foreground_button)
-            
-        if self.module == "diaries":
-            self.highlight_button = PushButton(self)
-            self.highlight_button.clicked.connect(self.setHighlight)
-            
-            self.form.addRow("{}:".format(_("Highlight color")), self.highlight_button)
             
         self.setLayout(self.form)
         
         self.load()
         
+    @Slot(int or Qt.CheckState)
+    def alternateRowColorsChanged(self, signal: Qt.CheckState | int) -> None:
+        if signal == Qt.CheckState.Unchecked or signal == 0:
+            self.alternate_row_colors = "disabled"
+            self.alternate_row_colors_checkbox.setText(_("Disabled"))
+        
+        elif signal == Qt.CheckState.Checked or signal == 2:
+            self.alternate_row_colors = "enabled"
+            self.alternate_row_colors_checkbox.setText(_("Enabled"))
+        
     def apply(self) -> bool:
+        if self.module == "sidebar":
+            call = settings.set(self.module, self.alternate_row_colors, "", "", "", "", "")
+        
         if self.module == "notes":
-            call = settings.set(self.module, self.autosave, self.background, self.foreground, self.format, "")
+            call = settings.set(self.module, self.alternate_row_colors, self.autosave, self.background, self.foreground, self.format, "")
         
         elif self.module == "todos":
-            call = settings.set(self.module, "", self.background, self.foreground, self.format, "")
+            call = settings.set(self.module, self.alternate_row_colors, "", self.background, self.foreground, self.format, "")
         
         elif self.module == "diaries":
-            call = settings.set(self.module, self.autosave, "", "", self.format, self.highlight)
+            call = settings.set(self.module, "", self.autosave, "", "", self.format, self.highlight)
         
         if call:
             self.target.refreshSettings()
@@ -911,8 +909,27 @@ class ModuleSettings(BaseSettings):
             return False
         
     def load(self) -> None:
-        self.autosave, self.background, self.foreground, self.format, self.highlight = settings.get(self.module)
+        self.alternate_row_colors, self.autosave, self.background, self.foreground, self.format, self.highlight = settings.get(self.module)
+           
+        if self.alternate_row_colors == "enabled": 
+            self.alternate_row_colors_checkbox.setChecked(True)
+            self.alternate_row_colors_checkbox.setText(_("Enabled"))
+            
+        elif self.alternate_row_colors == "disabled":
+            self.alternate_row_colors_checkbox.setChecked(False)
+            self.alternate_row_colors_checkbox.setText(_("Disabled"))
         
+        if self.module == "notes" or self.module == "todos":
+            self.background_button.setText(_("Select color (selected: {})")
+                                           .format(_("default") if self.background == "default" else self.background))
+            
+            self.foreground_button.setText(_("Select color (selected: {})")
+                                           .format(_("default") if self.foreground == "default" else self.foreground))
+            
+        if self.module == "diaries":
+            self.highlight_button.setText(_("Select color (selected: {})")
+                                          .format(_("default") if self.highlight == "default" else self.highlight))
+
         if self.module == "notes" or self.module == "diaries":    
             if self.autosave == "enabled":
                 self.autosave_checkbox.setText(_("Enabled"))
@@ -922,17 +939,6 @@ class ModuleSettings(BaseSettings):
                 self.autosave_checkbox.setChecked(False)
         
             self.loadOnlyFormat()
-        
-        if self.module == "notes" or self.module == "todos":
-            self.background_button.setText(_("Select color (selected: {})")
-                                           .format(_("default") if self.background == "default" else self.background))
-            
-            self.foreground_button.setText(_("Select color (selected: {})")
-                                           .format(_("default") if self.foreground == "default" else self.foreground))
-
-        if self.module == "diaries":
-            self.highlight_button.setText(_("Select color (selected: {})")
-                                          .format(_("default") if self.highlight == "default" else self.highlight))
             
     def loadOnlyFormat(self) -> None:
         if self.module == "notes" or self.module == "diaries":  

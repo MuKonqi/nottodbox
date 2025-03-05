@@ -49,17 +49,18 @@ class MainWindow(QMainWindow):
                               QDockWidget.DockWidgetFeature.DockWidgetMovable)
         self.dock.setAllowedAreas(Qt.DockWidgetArea.LeftDockWidgetArea |
                                   Qt.DockWidgetArea.RightDockWidgetArea)
-
+        
+        self.about = AboutWidget(self)
         self.notes = NotesTabWidget(self)
         self.todos = TodosHomePage(self)
         self.diaries = DiariesTabWidget(self)
         self.home = HomeWidget(self, self.todos, self.notes.home, self.diaries.home)
-        self.settings = SettingsWidget(self, self.notes.home, self.todos, self.diaries.home)
-        self.about = AboutWidget(self)
+        self.sidebar = SidebarWidget(self, self.notes, self.diaries)
+        self.settings = SettingsWidget(self, self.sidebar, self.notes.home, self.todos, self.diaries.home)
 
         self.tabwidget.load()
         
-        self.dock.setWidget(SidebarWidget(self, self.notes, self.diaries))
+        self.dock.setWidget(self.sidebar)
     
         self.show()
         self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.dock)
