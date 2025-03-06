@@ -17,7 +17,7 @@ gnome = import('gnome')
 
 
 python_bin = python.find_installation('python3',
-  modules: ['sys', 'locale', 'argparse', 'gettext', 'getpass', 'os', 'subprocess', 'sqlite3', 'datetime', 'json', 'PySide6'])
+  modules: ['sys', 'locale', 'argparse', 'gettext', 'getpass', 'os', 'subprocess', 'sqlite3', 'datetime', 'configparser', 'json', 'PySide6'])
 
 if not python_bin.found()
   error('Python3 or required Python libraries can not found!')

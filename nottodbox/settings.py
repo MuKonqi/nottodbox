@@ -285,9 +285,9 @@ class AppearanceSettings(BaseSettings):
         self.color_schemes_import = PushButton(self.color_schemes_widget, _("Import"))
         self.color_schemes_import.clicked.connect(self.importColorScheme)
         
-        self.custom_color_schemes = CustomColorSchemes(self)
-        
         self.load()
+        
+        self.custom_color_schemes = CustomColorSchemes(self)
         
         self.color_schemes_buttons.setLayout(self.color_schemes_buttons_layout)
         self.color_schemes_buttons_layout.addWidget(self.color_schemes_rename)
@@ -379,7 +379,7 @@ class AppearanceSettings(BaseSettings):
         
         return QColor(color_rgb[0], color_rgb[1], color_rgb[2]).name()
     
-    def convertToColorScheme(self, config: configparser.ConfigParser) -> dict:        
+    def convertColorScheme(self, config: configparser.ConfigParser) -> dict:        
         data = {}
         
         data["Window"] = self.convertToHexColor(config["Colors:Window"]["BackgroundNormal"])
@@ -418,8 +418,9 @@ class AppearanceSettings(BaseSettings):
                 self.loadPalette()
             
             self.color_schemes_combobox.addItems(self.color_schemes_list)
+            self.custom_color_schemes.createList()
             
-    def getColorSchemeName(self, path: str) -> str:
+    def getColorSchemeName(self, path: str, check: bool = False) -> str:
         with open(path) as f:
             if path.endswith(".colors"):
                 config = configparser.ConfigParser()
@@ -431,7 +432,18 @@ class AppearanceSettings(BaseSettings):
                 
                 name = json.load(f)["name"]
                 
-            self.color_schemes[f"{name}{self.superscriptDirNumber(path)}"] = path
+        pretty_name = f"{name}{self.superscriptDirNumber(path)}"
+        
+        if check and pretty_name in self.color_schemes_list:
+            question = QMessageBox.question(self, 
+                                            _("Question"),
+                                            _("A color scheme with the name '{the_item}' already exists.\nDo you want to overwrite it?")
+                                            .format(the_item = _("the {name} color scheme").format(name = pretty_name)))
+            
+            if question != QMessageBox.StandardButton.Yes:
+                return ""
+        
+        self.color_schemes[f"{name}{self.superscriptDirNumber(path)}"] = path
                 
         return name
     
@@ -441,7 +453,7 @@ class AppearanceSettings(BaseSettings):
                 config = configparser.ConfigParser()
                 config.read_file(f)
                 
-                return self.convertToColorScheme(config)
+                return self.convertColorScheme(config)
             
             elif path.endswith(".json"):
                 return json.load(f)["colors"]
@@ -550,6 +562,8 @@ class AppearanceSettings(BaseSettings):
                 
                 self.color_schemes_combobox.addItems(self.color_schemes_list)
                 
+                self.custom_color_schemes.createList()
+                
     @Slot()
     def renameColorScheme(self) -> None:
         name = self.current_color_scheme
@@ -581,12 +595,17 @@ class AppearanceSettings(BaseSettings):
                     settings.setValue("appearance/color-scheme", newname)
                 
                 self.color_schemes[f"{newname}{self.superscriptDirNumber(path)}"] = path
+                
                 self.color_schemes_list[self.color_schemes_list.index(name)] = f"{newname}{self.superscriptDirNumber(path)}"
+                
                 self.color_schemes_combobox.addItems(self.color_schemes_list)
                 self.color_schemes_combobox.setCurrentText(f"{newname}{self.superscriptDirNumber(path)}")
                 
+                self.custom_color_schemes.createList()
+                
             else:
-                QMessageBox.critical(self, _("Error"), _("This color scheme can not be renamed."))
+                QMessageBox.critical(self, _("Error"), _("{the_item} color scheme can not be renamed.")
+                                     .format(the_item = _("the {name} color scheme").format(name = name)))
         
     def reset(self) -> bool:
         settings.remove("appearance/style")
@@ -661,6 +680,14 @@ class CustomColorSchemes(QWidget):
         self.name.setPlaceholderText(f"Color scheme by {USER_NAME}")
         
         self.form = QFormLayout(self)
+        
+        self.combobox = Combobox(self)
+        
+        self.createList()
+        
+        self.combobox.currentTextChanged.connect(self.baseColorSchemeChanged)
+        
+        self.form.addRow("{}:".format(_("Base color scheme")), self.combobox)
                
         self.labels = {"Window": _("Window"),
                        "WindowText": _("Window text"),
@@ -698,7 +725,7 @@ class CustomColorSchemes(QWidget):
             self.buttons[color_role] = ColorSelectionWidget(self, color_role, self.labels, self.values)
             
             if number == 1:
-                self.form.addRow(Label(self, _("Central")))
+                self.form.addRow(Label(self, _("General")))
                 
             elif number == 12:
                 self.form.addRow(Label(self, _("3D Bevel and Shadow Effects")))
@@ -721,6 +748,17 @@ class CustomColorSchemes(QWidget):
             if name == "":
                 name = self.name.placeholderText()
             
+            pretty_name = f"{name}{self.parent_.superscriptDirNumber(4)}"
+            
+            if pretty_name in self.parent_.color_schemes_list:
+                question = QMessageBox.question(self, 
+                                                _("Question"),
+                                                _("A color scheme with the name '{the_item}' already exists.\nDo you want to overwrite it?")
+                                                .format(the_item = _("the {name} color scheme").format(name = pretty_name)))
+                
+                if question != QMessageBox.StandardButton.Yes:
+                    return False
+            
             data = {"name": name}
             
             color_scheme = {}
@@ -737,13 +775,15 @@ class CustomColorSchemes(QWidget):
             with open(os.path.join(NOTTODBOX_COLOR_SCHEMES_DIRS[1], f"{name}.json")) as f:
                 check_data = json.load(f)
                 
-            pretty_name = f"{name}{self.parent_.superscriptDirNumber(4)}"
-                
             if data == check_data:
                 self.parent_.color_schemes[pretty_name] = os.path.join(NOTTODBOX_COLOR_SCHEMES_DIRS[1], f"{name}.json")
+                
                 self.parent_.color_schemes_list.insert(len(self.parent_.color_schemes_list) - 1, pretty_name)
+                
                 self.parent_.color_schemes_combobox.addItems(self.parent_.color_schemes_list)
                 self.parent_.color_schemes_combobox.setCurrentText(pretty_name)
+                
+                self.createList()
                 
                 return True
             
@@ -752,11 +792,31 @@ class CustomColorSchemes(QWidget):
         
         else:
             return True
+        
+    @Slot(str)
+    def baseColorSchemeChanged(self, name: str) -> None:
+        if name == _("none").title():
+            for color_role in self.labels.keys():
+                self.buttons[color_role].setColor("")
+        
+        elif name in self.color_schemes_list:
+            data = self.parent_.getColorSchemeData(self.parent_.color_schemes[name])
+            
+            for color_role in self.labels.keys():
+                self.buttons[color_role].setColor(data[color_role] if color_role in data else "")
+                
+    def createList(self) -> None:
+        self.color_schemes_list = self.parent_.color_schemes_list.copy()
+        self.color_schemes_list[0] = _("none").title()
+        self.color_schemes_list.pop(-1)
+        
+        self.combobox.addItems(self.color_schemes_list)
     
     @Slot(bool)
     def setEnabled(self, enabled: bool) -> None:
         super().setEnabled(enabled)
         self.name.setEnabled(enabled)
+        self.combobox.setEnabled(enabled)
                 
 
 class ColorSelectionWidget(QWidget):
@@ -771,7 +831,7 @@ class ColorSelectionWidget(QWidget):
         self.layout_.setContentsMargins(0, 0, 0, 0)
         
         self.selector = PushButton(self, _("Select color (selected: {})").format(_("none")))
-        self.selector.clicked.connect(self.setColor)
+        self.selector.clicked.connect(self.chooseColor)
         
         self.label = Label(self)
         
@@ -783,27 +843,26 @@ class ColorSelectionWidget(QWidget):
         self.setLayout(self.layout_)
         
     @Slot()
-    def setColor(self) -> None:
+    def chooseColor(self) -> None:
         ok, status, qcolor = ColorDialog(self, False, True, 
                                          QColor(self.values[self.color_role] if self.color_role in self.values else "#000000"), 
                                          _("Select {} Color").format(self.labels[self.color_role].title())).getColor()
         
         if ok:
             if status == "new":
-                self.values[self.color_role] = qcolor.name()
-                
-                self.selector.setText(_("Select color (selected: {})").format(_(self.values[self.color_role])))
-                
-                self.viewer.fill(self.values[self.color_role])
-                self.label.setPixmap(self.viewer)
+                self.setColor(qcolor.name())
                 
             elif status == "default":
-                self.values[self.color_role] = ""
+                self.setColor("")
                 
-                self.selector.setText(_("Select color (selected: {})").format(_("none")))
-                
-                self.viewer.fill(Qt.GlobalColor.transparent)
-                self.label.setPixmap(self.viewer)
+    def setColor(self, color: str) -> None:
+        self.values[self.color_role] = color
+        
+        self.selector.setText(_("Select color (selected: {})")
+                              .format(self.values[self.color_role] if color != "" else _("none")))
+        
+        self.viewer.fill(color if color != "" else Qt.GlobalColor.transparent)
+        self.label.setPixmap(self.viewer)
 
         
 class ModuleSettings(BaseSettings):

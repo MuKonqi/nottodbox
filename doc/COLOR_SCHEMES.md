@@ -1,13 +1,15 @@
 # Color Schemes
+> [!CAUTION]
+> This guide is only for Nottodbox-format (.json) color schemes.
 
 ## File location
 - If you want a color scheme to be added to the program, put the file in [data/color-schemes](/data/color-schemes/).
 
-- If you want a color scheme to only you, put the file in .local/share/nottodbox/color-schemes.
+- If you want a color scheme to only you, put the file in .local/share/nottodbox/color-schemes in your home directory.
 
 ## File scheme
 > [!TIP]
-> You can create color scheme easily with in Nottodbox's apparence settings.
+> You can create color scheme easily with in Nottodbox's appareance settings.
 
 > [!WARNING]
 > The file name (not color scheme name!) must end with .json.
@@ -21,8 +23,6 @@
 > [!TIP]
 > You can go to [Qt's page about color roles](https://doc.qt.io/qt-6/qpalette.html#ColorRole-enum).
 
-> [!IMPORTANT]
-> The scheme for the file is below:
 ```
 {
     "name": "",

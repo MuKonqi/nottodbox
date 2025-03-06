@@ -123,21 +123,24 @@
 ### Settings
 > Customize Nottodbox.
 - Appearance:
-    - Style
-    - Color scheme
-    - Custom color scheme
+    - Setting style
+    - Setting color scheme
+    - Creating custom color schemes
+- Sidebar:
+    - Setting alternate row color for lists
 - Notes:
-    - Setting auto-save
-    - Setting format
-    - Setting background color
-    - Setting foreground color
+    - Setting alternate row color for lists
+    - Setting default background color for items
+    - Setting default foreground color for item
+    - Setting auto-save for documents
+    - Setting format for documents
 - To-dos:
-    - Setting background color
-    - Setting foreground color
+    - Setting default background color for items
+    - Setting default foreground color for items
 - Diaries:
-    - Setting auto-save
-    - Setting format
-    - Setting highlight color
+    - Setting default highlight color for items
+    - Setting auto-save for documents
+    - Setting format for documents
 
 ### About
 > See some informations about Nottodbox.
@@ -159,7 +162,7 @@ TBA
 ## Building
 ### Dependencies
 - Python3
-- The following Python libraries: sys, locale, argparse, gettext, getpass, os, subprocess, sqlite3, datetime, json, PySide6 (they are generally built-in except PySide6)
+- The following Python libraries: sys, locale, argparse, gettext, getpass, os, subprocess, sqlite3, datetime, configparser, json, PySide6 (they are generally built-in except PySide6)
 - Qt
 - getent
 - cut
@@ -175,7 +178,6 @@ TBA
     git clone https://github.com/mukonqi/nottodbox.git
     cd nottodbox
     meson setup . builddir
-    ninja -C builddir
     ninja -C builddir install
 ```
 
