@@ -30,15 +30,33 @@ from widgets.others import Combobox, HSeperator, Label, PushButton, VSeperator
 
 USER_NAME = getpass.getuser()
 
+
 COLOR_SCHEMES_DIRS = []
+
 
 KDE_COLOR_SCHEMES_DIRS = QStandardPaths.locateAll(
     QStandardPaths.StandardLocation.GenericDataLocation, "color-schemes", QStandardPaths.LocateOption.LocateDirectory)
 KDE_COLOR_SCHEMES_DIRS.reverse()
 
+KDE_COLOR_SCHEMES_FOUND = True
+KDE_SYSTEM_COLOR_SCHEMES_FOUND = True
+KDE_USER_COLOR_SCHEMES_FOUND = True
+
+if KDE_COLOR_SCHEMES_DIRS == []:
+    KDE_COLOR_SCHEMES_FOUND = False
+    
+elif len(KDE_COLOR_SCHEMES_DIRS) == 1:
+    if KDE_COLOR_SCHEMES_DIRS[0] == "/usr/share/color-schemes":
+        KDE_USER_COLOR_SCHEMES_FOUND = False
+    
+    elif KDE_COLOR_SCHEMES_DIRS[0] == f"/home/{USER_NAME}/.local/share/color-schemes":
+        KDE_SYSTEM_COLOR_SCHEMES_FOUND = False
+
+
 NOTTODBOX_COLOR_SCHEMES_DIRS = ["@COLOR-SCHEMES@", f"/home/{USER_NAME}/.local/share/io.github.mukonqi/nottodbox/color-schemes"]
 if not os.path.isdir(NOTTODBOX_COLOR_SCHEMES_DIRS[1]):
     os.makedirs(NOTTODBOX_COLOR_SCHEMES_DIRS[1])
+
 
 COLOR_SCHEMES_DIRS.extend(KDE_COLOR_SCHEMES_DIRS)
 COLOR_SCHEMES_DIRS.extend(NOTTODBOX_COLOR_SCHEMES_DIRS)
@@ -420,7 +438,7 @@ class AppearanceSettings(BaseSettings):
             self.color_schemes_combobox.addItems(self.color_schemes_list)
             self.custom_color_schemes.createList()
             
-    def getColorSchemeName(self, path: str, check: bool = False) -> str:
+    def getColorSchemeName(self, path: str, check: bool = False) -> tuple[str, bool]:
         with open(path) as f:
             if path.endswith(".colors"):
                 config = configparser.ConfigParser()
@@ -432,7 +450,9 @@ class AppearanceSettings(BaseSettings):
                 
                 name = json.load(f)["name"]
                 
-        pretty_name = f"{name}{self.superscriptDirNumber(path)}"
+        overwrited = False
+                
+        pretty_name = f"{name}{self.superscriptDirNumber(path if not check else 4)}"
         
         if check and pretty_name in self.color_schemes_list:
             question = QMessageBox.question(self, 
@@ -441,11 +461,15 @@ class AppearanceSettings(BaseSettings):
                                             .format(name = pretty_name))
             
             if question != QMessageBox.StandardButton.Yes:
-                return ""
-        
-        self.color_schemes[pretty_name] = path
+                return "", False
+            
+            else:
+                overwrited = True
                 
-        return name
+        if not check:
+            self.color_schemes[pretty_name] = path
+                
+        return name, overwrited
     
     def getColorSchemeData(self, path: str) -> dict:
         with open(path) as f:
@@ -551,14 +575,19 @@ class AppearanceSettings(BaseSettings):
         for path in paths:
             data = {}
         
-            data["name"] = self.getColorSchemeName(path, True)
+            data["name"], overwrited = self.getColorSchemeName(path, True)
             data["colors"] = self.getColorSchemeData(path)
+            
+            pretty_name = f"{data['name']}{self.superscriptDirNumber(4)}"
                 
-            if data["name"] is not None and data["name"] != "" and data["colors"] != {}:
+            if data["name"] != "" and data["colors"] != {}:
                 with open(os.path.join(NOTTODBOX_COLOR_SCHEMES_DIRS[1], f"{data['name']}.json"), "w") as f:
                     json.dump(data, f)
+                    
+                self.color_schemes[pretty_name] = os.path.join(NOTTODBOX_COLOR_SCHEMES_DIRS[1], f"{data['name']}.json")
                 
-                self.color_schemes_list.insert(len(self.color_schemes_list) - 1, f"{data['name']}{self.superscriptDirNumber(path)}")
+                if not overwrited:
+                    self.color_schemes_list.insert(len(self.color_schemes_list) - 1, pretty_name)
                 
                 self.color_schemes_combobox.addItems(self.color_schemes_list)
                 
@@ -594,12 +623,12 @@ class AppearanceSettings(BaseSettings):
                 if settings.value("appearance/color-scheme") == name:
                     settings.setValue("appearance/color-scheme", newname)
                 
-                self.color_schemes[f"{newname}{self.superscriptDirNumber(path)}"] = path
+                self.color_schemes[f"{newname}{self.superscriptDirNumber(4)}"] = path
                 
-                self.color_schemes_list[self.color_schemes_list.index(name)] = f"{newname}{self.superscriptDirNumber(path)}"
+                self.color_schemes_list[self.color_schemes_list.index(name)] = f"{newname}{self.superscriptDirNumber(4)}"
                 
                 self.color_schemes_combobox.addItems(self.color_schemes_list)
-                self.color_schemes_combobox.setCurrentText(f"{newname}{self.superscriptDirNumber(path)}")
+                self.color_schemes_combobox.setCurrentText(f"{newname}{self.superscriptDirNumber(4)}")
                 
                 self.custom_color_schemes.createList()
                 
@@ -643,15 +672,25 @@ class AppearanceSettings(BaseSettings):
             number = value
             
         else:
-            dir_number = 0
+            if not KDE_COLOR_SCHEMES_FOUND:
+                dir_number = 2
+                
+            elif not KDE_SYSTEM_COLOR_SCHEMES_FOUND:
+                dir_number = 1
+                
+            else:
+                dir_number = 0
             
             for dir in COLOR_SCHEMES_DIRS:
                 dir_number += 1
-            
+                
                 if os.path.dirname(value) == dir or dir_number == 4:
                     number = dir_number
                     
                     break
+                
+                if dir_number == 1 and not KDE_USER_COLOR_SCHEMES_FOUND:
+                    dir_number += 1
             
         if number == 1:
             return "\u00b9"
@@ -743,6 +782,8 @@ class CustomColorSchemes(QWidget):
         
     def apply(self) -> bool:
         if self.parent_.color_schemes_combobox.currentText() == _("Custom"):
+            overwrited = False
+            
             name = self.name.text()
             
             if name == "":
@@ -756,7 +797,10 @@ class CustomColorSchemes(QWidget):
                                                 _("A color scheme with the name '{name}' already exists.\nDo you want to overwrite it?")
                                                 .format(name = pretty_name))
                 
-                if question != QMessageBox.StandardButton.Yes:
+                if question == QMessageBox.StandardButton.Yes:
+                    overwrited = True
+                    
+                else:
                     return False
             
             data = {"name": name}
@@ -778,7 +822,8 @@ class CustomColorSchemes(QWidget):
             if data == check_data:
                 self.parent_.color_schemes[pretty_name] = os.path.join(NOTTODBOX_COLOR_SCHEMES_DIRS[1], f"{name}.json")
                 
-                self.parent_.color_schemes_list.insert(len(self.parent_.color_schemes_list) - 1, pretty_name)
+                if not overwrited:
+                    self.parent_.color_schemes_list.insert(len(self.parent_.color_schemes_list) - 1, pretty_name)
                 
                 self.parent_.color_schemes_combobox.addItems(self.parent_.color_schemes_list)
                 self.parent_.color_schemes_combobox.setCurrentText(pretty_name)
