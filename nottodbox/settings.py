@@ -437,13 +437,13 @@ class AppearanceSettings(BaseSettings):
         if check and pretty_name in self.color_schemes_list:
             question = QMessageBox.question(self, 
                                             _("Question"),
-                                            _("A color scheme with the name '{the_item}' already exists.\nDo you want to overwrite it?")
-                                            .format(the_item = _("the {name} color scheme").format(name = pretty_name)))
+                                            _("A color scheme with the name '{name}' already exists.\nDo you want to overwrite it?")
+                                            .format(name = pretty_name))
             
             if question != QMessageBox.StandardButton.Yes:
                 return ""
         
-        self.color_schemes[f"{name}{self.superscriptDirNumber(path)}"] = path
+        self.color_schemes[pretty_name] = path
                 
         return name
     
@@ -551,7 +551,7 @@ class AppearanceSettings(BaseSettings):
         for path in paths:
             data = {}
         
-            data["name"] = self.getColorSchemeName(path)
+            data["name"] = self.getColorSchemeName(path, True)
             data["colors"] = self.getColorSchemeData(path)
                 
             if data["name"] is not None and data["name"] != "" and data["colors"] != {}:
@@ -571,7 +571,7 @@ class AppearanceSettings(BaseSettings):
         
         newname, topwindow = QInputDialog.getText(self,
                                                 _("Rename {the_item}").format(the_item = _("the {name} color scheme").format(name = name)).title(), 
-                                                _("Please enter a new name for {the_item}.").format(the_item = _("the {name} color scheme").format(name = name)))
+                                                _("Please enter a new name for {item}.").format(item = _("{name} color scheme").format(name = name)))
         
         if topwindow and newname != "":            
             if (not os.path.exists(os.path.join(NOTTODBOX_COLOR_SCHEMES_DIRS[1], f"{newname}.json")) 
@@ -604,8 +604,8 @@ class AppearanceSettings(BaseSettings):
                 self.custom_color_schemes.createList()
                 
             else:
-                QMessageBox.critical(self, _("Error"), _("{the_item} color scheme can not be renamed.")
-                                     .format(the_item = _("the {name} color scheme").format(name = name)))
+                QMessageBox.critical(self, _("Error"), _("{item} color scheme can not be renamed.")
+                                     .format(item = _("{name} color scheme").format(name = name)))
         
     def reset(self) -> bool:
         settings.remove("appearance/style")
@@ -753,8 +753,8 @@ class CustomColorSchemes(QWidget):
             if pretty_name in self.parent_.color_schemes_list:
                 question = QMessageBox.question(self, 
                                                 _("Question"),
-                                                _("A color scheme with the name '{the_item}' already exists.\nDo you want to overwrite it?")
-                                                .format(the_item = _("the {name} color scheme").format(name = pretty_name)))
+                                                _("A color scheme with the name '{name}' already exists.\nDo you want to overwrite it?")
+                                                .format(name = pretty_name))
                 
                 if question != QMessageBox.StandardButton.Yes:
                     return False

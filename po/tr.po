@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.0.7\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-06 22:20+0300\n"
-"PO-Revision-Date: 2025-03-06 22:20+0300\n"
+"POT-Creation-Date: 2025-03-07 05:57+0300\n"
+"PO-Revision-Date: 2025-03-06 05:57+0300\n"
 "Last-Translator: Muhammed S. <mukonqi@gmail.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: tr\n"
@@ -389,7 +389,6 @@ msgid "Please select a new date for {the_item}."
 msgstr "Lütfen {the_item} için yeni bir tarih seçin."
 
 #: nottodbox/nottodbox/widgets/options.py:537
-#: nottodbox/nottodbox/settings.py:574
 #, python-brace-format
 msgid "Please enter a new name for {the_item}."
 msgstr "Lütfen {the_item} için yeni bir ad girin."
@@ -1028,18 +1027,11 @@ msgstr "Seçilen stilden ({})"
 #: nottodbox/nottodbox/settings.py:440 nottodbox/nottodbox/settings.py:756
 #, python-brace-format
 msgid ""
-"A color scheme with the name '{the_item}' already exists.\n"
+"A color scheme with the name '{name}' already exists.\n"
 "Do you want to overwrite it?"
 msgstr ""
-"'{the_item}' adlı bir renk şeması zaten mevcuttur.\n"
+"'{name}' adlı bir renk şeması zaten mevcuttur.\n"
 "Üstüne yazmak istiyor musunuz?"
-
-#: nottodbox/nottodbox/settings.py:441 nottodbox/nottodbox/settings.py:573
-#: nottodbox/nottodbox/settings.py:574 nottodbox/nottodbox/settings.py:608
-#: nottodbox/nottodbox/settings.py:757
-#, python-brace-format
-msgid "the {name} color scheme"
-msgstr "{name} renk şemasını"
 
 #: nottodbox/nottodbox/settings.py:463 nottodbox/nottodbox/settings.py:631
 msgid "System default ({})"
@@ -1054,10 +1046,25 @@ msgstr "{the_item} içeri aktar"
 msgid "Color schemes (*.colors *.json)"
 msgstr "Renk şemaları (*colors *.json)"
 
+#: nottodbox/nottodbox/settings.py:573
+#, python-brace-format
+msgid "the {name} color scheme"
+msgstr "{name} renk şemasını"
+
+#: nottodbox/nottodbox/settings.py:574
+#, python-brace-format
+msgid "Please enter a new name for {item}."
+msgstr "Lütfen {item} için yeni bir ad girin."
+
+#: nottodbox/nottodbox/settings.py:574 nottodbox/nottodbox/settings.py:608
+#, python-brace-format
+msgid "{name} color scheme"
+msgstr "{name} renk şeması"
+
 #: nottodbox/nottodbox/settings.py:607
 #, python-brace-format
-msgid "{the_item} color scheme can not be renamed."
-msgstr "{the_item} yeniden adlandırılamaz."
+msgid "{item} color scheme can not be renamed."
+msgstr "{item} yeniden adlandırılamaz."
 
 #: nottodbox/nottodbox/settings.py:690
 msgid "Base color scheme"
