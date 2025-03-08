@@ -186,7 +186,7 @@ class TabWidget(QWidget):
         
         self.tabbar = QTabBar(self)
         self.tabbar.setUsesScrollButtons(True)
-        self.tabbar.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        self.tabbar.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
         self.tabbar.currentChanged.connect(self.tabChanged)
         
         self.container = QStackedWidget(self)
