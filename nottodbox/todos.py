@@ -135,6 +135,12 @@ class TodosHomePage(HomePageForLists):
     def refreshSettings(self) -> None:
         self.refreshSettingsForLists()
         
+        if self.alternate_row_colors == "enabled":
+            self.parent_.home.todos.setAlternatingRowColors(True)
+            
+        elif self.alternate_row_colors == "disabled":
+            self.parent_.home.todos.setAlternatingRowColors(False)
+        
     @Slot(str, str)
     def shortcutEvent(self, name: str, table: str = "__main__") -> None:
         self.child_options.changeStatus(False, name, table)

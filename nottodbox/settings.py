@@ -726,7 +726,7 @@ class CustomColorSchemes(QWidget):
         
         self.combobox.currentTextChanged.connect(self.baseColorSchemeChanged)
         
-        self.form.addRow("{}:".format(_("Base color scheme")), self.combobox)
+        self.form.addRow("{}:".format(_("Color scheme to be organized")), self.combobox)
                
         self.labels = {"Window": _("Window"),
                        "WindowText": _("Window text"),
@@ -941,15 +941,15 @@ class ModuleSettings(BaseSettings):
             self.foreground_button = PushButton(self)
             self.foreground_button.clicked.connect(self.setForeground)
             
-            self.form.addRow("{}:".format(_("Default background color for items")), self.background_button)
-            self.form.addRow("{}:".format(_("Default text color for items")), self.foreground_button)
+            self.form.addRow("{}:".format(_("Default background color of items")), self.background_button)
+            self.form.addRow("{}:".format(_("Default text color of items")), self.foreground_button)
             
         if self.module == "diaries":
             self.highlight_button = PushButton(self)
             self.highlight_button.clicked.connect(self.setHighlight)
             
             self.form.addRow(Label(self, _("List")))
-            self.form.addRow("{}:".format(_("Default highlight color for items")), self.highlight_button)
+            self.form.addRow("{}:".format(_("Default creation state color of items")), self.highlight_button)
             
         if self.module == "notes" or self.module == "diaries":    
             self.autosave_checkbox = QCheckBox(self)
@@ -998,22 +998,6 @@ class ModuleSettings(BaseSettings):
         
         if call:
             self.target.refreshSettings()
-            
-            if self.module == "diaries":
-                if self.parent_.parent_.home.diary.call_format == "global":
-                    self.parent_.parent_.home.diary.format = self.format
-                    self.parent_.parent_.home.diary.formatter.updateStatus(self.format)
-                    
-                self.parent_.parent_.home.diary.format_combobox.setItemText(0, "{} {}".format(_("Format:"), _("Follow global ({setting})")
-                                                                                              .format(setting = self.parent_.parent_.home.diary.prettyFormat(self.format))))
-                
-                if self.parent_.parent_.home.diary.call_autosave == "global":
-                    self.parent_.parent_.home.diary.autosave = self.autosave
-                    
-                    self.parent_.parent_.home.diary.changeAutosaveConnections()
-                    
-                self.parent_.parent_.home.diary.autosave_combobox.setItemText(0, "{} {}".format(_("Auto-save:"), _("Follow global ({setting})")
-                                                                                                .format(setting = self.parent_.parent_.home.diary.prettyAutosave(self.autosave))))
                 
             return True
         

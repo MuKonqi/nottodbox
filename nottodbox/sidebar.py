@@ -128,7 +128,7 @@ class SidebarWidget(QWidget):
         self.history.setFilter(text)
         
     def refreshSettings(self) -> None:
-        alternate_row_colors = qsettings.value("sidebar/alternate-row-colors")
+        alternate_row_colors = qsettings.value("sidebar/alternate_row_colors")
         
         if alternate_row_colors == "enabled":
             self.open_pages.setAlternatingRowColors(True)
