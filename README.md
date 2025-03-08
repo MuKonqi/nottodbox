@@ -176,9 +176,8 @@ TBA
 
 ```
     git clone https://github.com/mukonqi/nottodbox.git
-    cd nottodbox
-    meson setup . builddir
-    ninja -C builddir install
+    meson setup nottodbox/builddir nottodbox
+    meson install -C nottodbox/builddir
 ```
 
 ## Documentations

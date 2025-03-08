@@ -50,13 +50,13 @@ class MainWindow(QMainWindow):
         self.dock.setAllowedAreas(Qt.DockWidgetArea.LeftDockWidgetArea |
                                   Qt.DockWidgetArea.RightDockWidgetArea)
         
-        self.about = AboutWidget(self)
         self.notes = NotesTabWidget(self)
         self.todos = TodosHomePage(self)
         self.diaries = DiariesTabWidget(self)
         self.home = HomeWidget(self, self.todos, self.notes.home, self.diaries.home)
         self.sidebar = SidebarWidget(self, self.notes, self.diaries)
         self.settings = SettingsWidget(self, self.sidebar, self.notes.home, self.todos, self.diaries.home)
+        self.about = AboutWidget(self)
 
         self.tabwidget.load()
         
