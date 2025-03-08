@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.0.7\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-08 22:11+0300\n"
-"PO-Revision-Date: 2025-03-08 22:11+0300\n"
+"POT-Creation-Date: 2025-03-08 22:30+0300\n"
+"PO-Revision-Date: 2025-03-08 22:30+0300\n"
 "Last-Translator: Muhammed S. <mukonqi@gmail.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: tr\n"
@@ -856,19 +856,19 @@ msgstr "Bir günlüğü açmak için üstte çift tıklayın."
 msgid "Welcome {username}!"
 msgstr "Merhabalar {username}!"
 
-#: nottodbox/nottodbox/home.py:46 nottodbox/nottodbox/home.py:123
+#: nottodbox/nottodbox/home.py:46 nottodbox/nottodbox/home.py:124
 msgid "Focus to Diary for Today"
 msgstr "Bugünün Günlüğüne Odaklan"
 
-#: nottodbox/nottodbox/home.py:53
+#: nottodbox/nottodbox/home.py:54
 msgid "List of To-dos"
 msgstr "Yapılacakların Listesi"
 
-#: nottodbox/nottodbox/home.py:59
+#: nottodbox/nottodbox/home.py:60
 msgid "List of Notes"
 msgstr "Notların Listesi"
 
-#: nottodbox/nottodbox/home.py:109
+#: nottodbox/nottodbox/home.py:110
 msgid "Finish Focusing of Diary for Today"
 msgstr "Bugünün Günlüğüne Odaklanmayı Bitir"
 

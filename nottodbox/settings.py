@@ -360,15 +360,15 @@ class AppearanceSettings(BaseSettings):
             successful = False
         
         if self.use_default_color_scheme:
-            settings.setValue("appearance/color-scheme", "")
+            settings.setValue("appearance/color_scheme", "")
             
-            if settings.value("appearance/color-scheme") != "":
+            if settings.value("appearance/color_scheme") != "":
                 successful = False
             
         else:
-            settings.setValue("appearance/color-scheme", self.current_color_scheme)
+            settings.setValue("appearance/color_scheme", self.current_color_scheme)
             
-            if settings.value("appearance/color-scheme") != self.current_color_scheme:
+            if settings.value("appearance/color_scheme") != self.current_color_scheme:
                 successful = False
                 
         self.loadPalette()
@@ -425,8 +425,8 @@ class AppearanceSettings(BaseSettings):
         if os.path.isfile(self.color_schemes[name]) and os.path.dirname(self.color_schemes[name]) == NOTTODBOX_COLOR_SCHEMES_DIRS[1]:
             os.remove(self.color_schemes[name])
             
-            if settings.value("appearance/color-scheme") == name:
-                settings.setValue("appearance/color-scheme", "")
+            if settings.value("appearance/color_scheme") == name:
+                settings.setValue("appearance/color_scheme", "")
             
             self.color_schemes_list.remove(name)
             del self.color_schemes[name]
@@ -519,7 +519,7 @@ class AppearanceSettings(BaseSettings):
         
         self.color_schemes_combobox.addItems(self.color_schemes_list)
         
-        self.current_color_scheme = settings.value("appearance/color-scheme")
+        self.current_color_scheme = settings.value("appearance/color_scheme")
         
         if self.current_color_scheme in self.color_schemes.keys():
             self.use_default_color_scheme = False
@@ -528,7 +528,7 @@ class AppearanceSettings(BaseSettings):
         
         else:
             if self.current_color_scheme is None:
-                settings.setValue("appearance/color-scheme", "")
+                settings.setValue("appearance/color_scheme", "")
 
             self.current_color_scheme = ""
 
@@ -620,8 +620,8 @@ class AppearanceSettings(BaseSettings):
                 with open(path, "w") as f:
                     json.dump(data, f)
                     
-                if settings.value("appearance/color-scheme") == name:
-                    settings.setValue("appearance/color-scheme", newname)
+                if settings.value("appearance/color_scheme") == name:
+                    settings.setValue("appearance/color_scheme", newname)
                 
                 self.color_schemes[f"{newname}{self.superscriptDirNumber(4)}"] = path
                 
@@ -638,9 +638,9 @@ class AppearanceSettings(BaseSettings):
         
     def reset(self) -> bool:
         settings.remove("appearance/style")
-        settings.remove("appearance/color-scheme")
+        settings.remove("appearance/color_scheme")
         
-        if settings.value("appearance/style") is None and settings.value("appearance/color-scheme") is None:
+        if settings.value("appearance/style") is None and settings.value("appearance/color_scheme") is None:
             self.load()
             
             return self.apply()

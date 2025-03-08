@@ -47,6 +47,7 @@ class HomeWidget(QWidget):
         self.diary_button.clicked.connect(self.focusToDiary)
         
         self.diary = NormalPage(self, "diaries", diaries.db, diaries.format, diaries.autosave, today.toString("dd.MM.yyyy"))
+        self.diary.layout_.setContentsMargins(0, 0, 0, 0)
         
         self.todos_seperator = HSeperator(self)
         
@@ -62,10 +63,10 @@ class HomeWidget(QWidget):
         
         self.qsettings = QSettings("io.github.mukonqi", "nottodbox")
         
-        self.focused_to_diary = self.qsettings.value("home/focused-to-diary")
+        self.focused_to_diary = self.qsettings.value("home/focuses_to_diary")
         
         if self.focused_to_diary is None:
-            self.qsettings.setValue("home/focused-to-diary", "disabled")
+            self.qsettings.setValue("home/focuses_to_diary", "disabled")
             
             self.focused_to_diary = "disabled"
             
@@ -110,7 +111,7 @@ class HomeWidget(QWidget):
             
             self.focused_to_diary = "enabled"
             
-            self.qsettings.setValue("home/focused-to-diary", "enabled")
+            self.qsettings.setValue("home/focuses_to_diary", "enabled")
             
         else:
             self.todos_seperator.setVisible(True)
@@ -124,4 +125,4 @@ class HomeWidget(QWidget):
             
             self.focused_to_diary = "disabled"
             
-            self.qsettings.setValue("home/focused-to-diary", "disabled")
+            self.qsettings.setValue("home/focuses_to_diary", "disabled")
