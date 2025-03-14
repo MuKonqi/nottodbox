@@ -1,7 +1,7 @@
 version: 1
 script:
   - rm -rf AppDir | true
-  - python3 -m pip install --system --ignore-installed --prefix=/usr --root=AppDir -r PySide6-Essentials
+  - python3 -m pip install --system --ignore-installed --prefix=/usr --root=AppDir PySide6-Essentials
   - meson setup --wipe builddir .
   - meson install --destdir AppDir -C builddir
   - rm -rf AppDir/usr/local/lib/python3.10/dist-packages/PySide6/Qt/qml/
