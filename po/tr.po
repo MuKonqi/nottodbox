@@ -6,10 +6,10 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: 0.0.7\n"
+"Project-Id-Version: 0.0.8\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-08 22:30+0300\n"
-"PO-Revision-Date: 2025-03-08 22:30+0300\n"
+"POT-Creation-Date: 2025-03-15 00:54+0300\n"
+"PO-Revision-Date: 2025-03-15 00:54+0300\n"
 "Last-Translator: Muhammed S. <mukonqi@gmail.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: tr\n"
@@ -18,21 +18,25 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 
 #: nottodbox/data/io.github.mukonqi.nottodbox.desktop.in.in:3
+#: nottodbox/data/io.github.mukonqi.nottodbox.metainfo.xml:5
 #: nottodbox/nottodbox/about.py:40
 msgid "Nottodbox"
 msgstr "Nottodbox"
 
 #: nottodbox/data/io.github.mukonqi.nottodbox.desktop.in.in:4
+#: nottodbox/data/io.github.mukonqi.nottodbox.metainfo.xml:6
 msgid "Organize notes, to-dos and diaries"
 msgstr "Notları, yapılacakları ve günlükleri düzenleyin"
 
 #: nottodbox/data/io.github.mukonqi.nottodbox.desktop.in.in:17
+#: nottodbox/data/io.github.mukonqi.nottodbox.metainfo.xml:43
 #: nottodbox/nottodbox/diaries.py:127 nottodbox/nottodbox/__init__.py:88
 #: nottodbox/nottodbox/mainwindow.py:202 nottodbox/nottodbox/notes.py:135
 msgid "Home"
 msgstr "Ev"
 
 #: nottodbox/data/io.github.mukonqi.nottodbox.desktop.in.in:21
+#: nottodbox/data/io.github.mukonqi.nottodbox.metainfo.xml:51
 #: nottodbox/nottodbox/widgets/options.py:132
 #: nottodbox/nottodbox/widgets/options.py:464
 #: nottodbox/nottodbox/mainwindow.py:203 nottodbox/nottodbox/settings.py:162
@@ -46,6 +50,7 @@ msgid "To-Dos"
 msgstr "Yapılacaklar"
 
 #: nottodbox/data/io.github.mukonqi.nottodbox.desktop.in.in:29
+#: nottodbox/data/io.github.mukonqi.nottodbox.metainfo.xml:59
 #: nottodbox/nottodbox/widgets/options.py:138
 #: nottodbox/nottodbox/widgets/options.py:467
 #: nottodbox/nottodbox/mainwindow.py:205 nottodbox/nottodbox/settings.py:168
@@ -53,16 +58,35 @@ msgid "Diaries"
 msgstr "Günlükler"
 
 #: nottodbox/data/io.github.mukonqi.nottodbox.desktop.in.in:33
+#: nottodbox/data/io.github.mukonqi.nottodbox.metainfo.xml:63
 #: nottodbox/nottodbox/mainwindow.py:206 nottodbox/nottodbox/settings.py:151
 #: nottodbox/nottodbox/settings.py:221
 msgid "Settings"
 msgstr "Ayarlar"
 
 #: nottodbox/data/io.github.mukonqi.nottodbox.desktop.in.in:36
+#: nottodbox/data/io.github.mukonqi.nottodbox.metainfo.xml:67
 #: nottodbox/nottodbox/about.py:32 nottodbox/nottodbox/about.py:88
 #: nottodbox/nottodbox/mainwindow.py:207
 msgid "About"
 msgstr "Hakkında"
+
+#: nottodbox/data/io.github.mukonqi.nottodbox.metainfo.xml:10
+msgid ""
+"Organize your notes, to-dos and diaries with highly customizable WYSIWYG-"
+"like editor."
+msgstr ""
+"Notlarınızı, yapılacaklarınızı ve günlüklerinizi yüksek derecede "
+"özelleştirilebilir WYSIWYG benzeri bir düzenleyiciyle organize edin."
+
+#: nottodbox/data/io.github.mukonqi.nottodbox.metainfo.xml:47
+msgid "Home (dark mode)"
+msgstr "Ev (koyu mod)"
+
+#: nottodbox/data/io.github.mukonqi.nottodbox.metainfo.xml:55
+#: nottodbox/nottodbox/mainwindow.py:204 nottodbox/nottodbox/settings.py:165
+msgid "To-dos"
+msgstr "Yapılacaklar"
 
 #: nottodbox/nottodbox/widgets/dialogs.py:35
 msgid "Set to global"
@@ -937,10 +961,6 @@ msgstr "Tüm sayfalar kaydedildi."
 msgid "Failed to save some pages."
 msgstr "Bazı sayfalar kaydedilemedi."
 
-#: nottodbox/nottodbox/mainwindow.py:204 nottodbox/nottodbox/settings.py:165
-msgid "To-dos"
-msgstr "Yapılacaklar"
-
 #: nottodbox/nottodbox/notes.py:195 nottodbox/nottodbox/notes.py:196
 #: nottodbox/nottodbox/notes.py:208
 msgid "Unnamed"
@@ -1067,7 +1087,7 @@ msgid "{item} color scheme can not be renamed."
 msgstr "{item} yeniden adlandırılamaz."
 
 #: nottodbox/nottodbox/settings.py:729
-msgid "Color scheme to be organized"
+msgid "Color scheme to be edited"
 msgstr "Düzenlenecek renk şeması"
 
 #: nottodbox/nottodbox/settings.py:731

@@ -1,0 +1,43 @@
+version: 1
+script:
+  - rm -rf AppDir | true
+  - python3 -m pip install --system --ignore-installed --prefix=/usr --root=AppDir -r PySide6-Essentials
+  - meson setup --wipe builddir .
+  - meson install --destdir AppDir -C builddir
+  - rm -rf AppDir/usr/local/lib/python3.10/dist-packages/PySide6/Qt/qml/
+  - rm -f AppDir/usr/local/lib/python3.10/dist-packages/PySide6/{assistant,designer,linguist,lrelease,lupdate}
+  - rm -f AppDir/usr/local/lib/python3.10/dist-packages/PySide6/{Qt3D*,QtBluetooth*,QtCharts*,QtConcurrent*,QtDataVisualization*,QtDesigner*,QtHelp*,QtMultimedia*,QtNetwork*,QtOpenGL*,QtPositioning*,QtPrintSupport*,QtQml*,QtQuick*,QtRemoteObjects*,QtScxml*,QtSensors*,QtSerialPort*,QtSql*,QtStateMachine*,QtSvg*,QtTest*,QtWeb*,QtXml*}
+
+AppDir:
+  path: ./AppDir
+
+  app_info:
+    id: io.mukonqi.github.nottodbox
+    name: Nottodbox
+    icon: nottodbox
+    version: 0.0.8
+    exec: usr/bin/python3
+    exec_args: "$APPDIR/usr/local/share/__init__.py $@"
+
+  apt:
+    arch: amd64
+    sources:
+      - sourceline: 'deb [arch=amd64] http://archive.ubuntu.com/ubuntu/ bionic main restricted universe multiverse'
+        key_url: 'http://keyserver.ubuntu.com/pks/lookup?op=get&search=0x3b4fe6acc0b21f32'
+
+    include:
+      - python3
+      - libxcb-cursor0
+      - breeze
+    
+    exclude: []
+
+  runtime:
+    env:
+      PYTHONHOME: '${APPDIR}/usr'
+      PYTHONPATH: '${APPDIR}/usr/lib/python3.12/site-packages'
+
+AppImage:
+  update-information: 'gh-releases-zsync|mukonqi|nottodbox|latest|Nottodbox-*x86_64.AppImage.zsync'
+  sign-key: None
+  arch: x86_64

@@ -6,6 +6,21 @@
 <p align="center"><img src="https://img.shields.io/github/v/release/mukonqi/nottodbox?label=Release" alt="Release"></p>
 
 
+## Screenshots
+<details>
+<summary>Show / Hide</summary>
+
+![Home](/.github/screenshots/home.png)<br>
+![Home (Dark)](/.github/screenshots/home-dark.png)<br>
+![Notes](/.github/screenshots/notes.png)<br>
+![Todos](/.github/screenshots/todos.png)<br>
+![Diaries](/.github/screenshots/diaries.png)<br>
+![Settings](/.github/screenshots/settings.png)<br>
+![About](/.github/screenshots/about.png)<br>
+
+</details>
+
+
 ## Features
 <details>
 <summary>Show / Hide</summary>
@@ -168,7 +183,6 @@ TBA
 - cut
 - git
 - meson
-- ninja
 
 ### Commands
 > [!WARNING]
@@ -181,8 +195,7 @@ TBA
 ```
 
 ## Documentations
-[Click here for go there.](/doc/)
-
+- [Nottodbox-style Color Schemes](/docs/NottodboxStyleColorSchemes.md)
 
 ## Disclaimer
 > [!CAUTION] 

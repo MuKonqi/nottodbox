@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+    <id>io.github.mukonqi.nottodbox</id>
+  
+    <name>Nottodbox</name>
+    <summary>Organize notes, to-dos and diaries</summary>
+    <icon type="stock">nottodbox</icon>
+  
+    <description>
+        <p>
+            Organize your notes, to-dos and diaries with highly customizable WYSIWYG-like editor.
+        </p>
+    </description>
+
+    <categories>
+        <category>Office</category>
+        <category>Utility</category>
+    </categories>
+
+    <keywords>
+        <keyword translate="no">nottodbox</keyword>
+        <keyword>editor</keyword>
+        <keyword>wysiwyg</keyword>
+        <keyword>note</keyword>
+        <keyword>to-do</keyword>
+        <keyword>diary</keyword>
+    </keywords>
+
+    <url>
+        <homepage>https://github.com/mukonqi/nottodbox</homepage>
+        <bugtracker>https://github.com/mukonqi/nottodbox/issues</bugtracker>
+    </url>
+  
+    <launchable type="desktop-id">io.github.mukonqi.nottodbox.desktop</launchable>
+
+    <metadata_license>FSFAP</metadata_license>
+    <project_license>GPL-3.0-or-later</project_license>
+
+    <developer>io.github.mukonqi</developer>
+
+    <screenshots>
+        <screenshot type="source">
+            <caption>Home</caption>
+            <image>https://raw.githubusercontent.com/mukonqi/nottodbox/main/.github/screenshots/home.png</image>
+        </screenshot>
+        <screenshot type="source">
+            <caption>Home (dark mode)</caption>
+            <image>https://raw.githubusercontent.com/mukonqi/nottodbox/main/.github/screenshots/home-dark.png</image>
+        </screenshot>
+        <screenshot type="source">
+            <caption>Notes</caption>
+            <image>https://raw.githubusercontent.com/mukonqi/nottodbox/main/.github/screenshots/notes.png</image>
+        </screenshot>
+        <screenshot type="source">
+            <caption>To-dos</caption>
+            <image>https://raw.githubusercontent.com/mukonqi/nottodbox/main/.github/screenshots/todos.png</image>
+        </screenshot>
+        <screenshot type="source">
+            <caption>Diaries</caption>
+            <image>https://raw.githubusercontent.com/mukonqi/nottodbox/main/.github/screenshots/diaries.png</image>
+        </screenshot>
+        <screenshot type="source">
+            <caption>Settings</caption>
+            <image>https://raw.githubusercontent.com/mukonqi/nottodbox/main/.github/screenshots/settings.png</image>
+        </screenshot>
+        <screenshot type="source">
+            <caption>About</caption>
+            <image>https://raw.githubusercontent.com/mukonqi/nottodbox/main/.github/screenshots/about.png</image>
+        </screenshot>
+    </screenshots>
+</component>

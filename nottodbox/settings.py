@@ -412,7 +412,7 @@ class AppearanceSettings(BaseSettings):
         data["ButtonText"] = self.convertToHexColor(config["Colors:Button"]["ForegroundNormal"])
         data["Highlight"] = self.convertToHexColor(config["Colors:Selection"]["BackgroundNormal"])
         data["Accent"] =self.convertToHexColor( config["Colors:Selection"]["ForegroundNormal"])
-        data["HighlightedText"] = self.convertToHexColor(config["Colors:Selection"]["BackgroundNormal"])
+        data["HighlightedText"] = self.convertToHexColor(config["Colors:Selection"]["ForegroundNormal"])
         data["Link"] = self.convertToHexColor(config["Colors:View"]["ForegroundLink"])
         data["LinkVisited"] = self.convertToHexColor(config["Colors:View"]["ForegroundVisited"])
         
@@ -726,7 +726,7 @@ class CustomColorSchemes(QWidget):
         
         self.combobox.currentTextChanged.connect(self.baseColorSchemeChanged)
         
-        self.form.addRow("{}:".format(_("Color scheme to be organized")), self.combobox)
+        self.form.addRow("{}:".format(_("Color scheme to be edited")), self.combobox)
                
         self.labels = {"Window": _("Window"),
                        "WindowText": _("Window text"),

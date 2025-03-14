@@ -1,6 +1,6 @@
 project (
   'nottodbox',
-  version: '0.0.7',
+  version: '0.0.8',
   license: 'GPL-3.0-or-later'
 )
 
@@ -54,7 +54,7 @@ install_data(
 )
 
 install_subdir(
-  join_paths(meson.current_source_dir(), 'doc'),
+  join_paths(meson.current_source_dir(), 'docs'),
   install_dir: join_paths(get_option('prefix'), get_option('datadir'), 'doc', 'nottodbox'),
   strip_directory: true
 )

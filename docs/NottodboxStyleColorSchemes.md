@@ -1,6 +1,4 @@
-# Color Schemes
-> [!CAUTION]
-> This guide is only for Nottodbox-format (.json) color schemes.
+# Nottodbox-style Color Schemes
 
 ## File location
 - If you want a color scheme to be added to the program, put the file in [data/color-schemes](/data/color-schemes/).

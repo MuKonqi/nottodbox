@@ -43,6 +43,14 @@ if desktop_file_validater.found()
 endif
 
 
+metainfo_file_validater = find_program('appstreamcli', required: false)
+
+if metainfo_file_validater.found()
+  test('Validate AppStream meta info file...', 
+      metainfo_file_validater, args: ['validate', join_paths(meson.current_source_dir(), project_id + '.metainfo.xml')])
+endif
+
+
 run_command(find_program('chmod'), 'a+x', 
   join_paths(meson.current_build_dir(), project_id + '.desktop.in'), 
   check: true)
