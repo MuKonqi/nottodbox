@@ -5,6 +5,7 @@ script:
   - mkdir -p AppDir/usr/local/share/icons
   - cp -r nottodbox AppDir/usr/local/lib/python3.12/dist-packages
   - cp -r share/icons AppDir/usr/local/share/icons
+  - cp LICENSE.txt AppDir/usr/local/lib/python3.12/dist-packages/nottodbox
   - python3 po/merge.py
   - python3 -m pip install --ignore-installed --prefix=/usr --no-cache-dir --root=AppDir PySide6-Essentials
   - rm -rf AppDir/usr/local/lib/python3.12/dist-packages/PySide6/Qt/qml/
