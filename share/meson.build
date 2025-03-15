@@ -1,13 +1,5 @@
-conf_desktop = configuration_data()
-
-conf_desktop.set('BINDIR', join_paths(get_option('prefix'), get_option('bindir')))
-
 i18n.merge_file(
-  input: configure_file(
-      input: join_paths('applications', project_id + '.desktop.in.in'),
-      output: project_id + '.desktop.in',
-      configuration: conf_desktop
-  ),
+  input: join_paths('applications', project_id + '.desktop.in'),
   output: project_id + '.desktop',
   po_dir: join_paths(meson.project_source_root(), 'po'),
   type: 'desktop',
@@ -23,7 +15,7 @@ if desktop_file_validater.found()
 endif
 
 run_command(find_program('chmod'), 'a+x', 
-  join_paths(meson.current_build_dir(), project_id + '.desktop.in'), 
+  join_paths(meson.current_source_dir(), 'applications', project_id + '.desktop.in'), 
   check: true)
 
 

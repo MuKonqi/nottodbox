@@ -3,7 +3,7 @@ Name=Nottodbox
 Comment=Organize notes, to-dos and diaries
 
 Type=Application
-Exec=@BINDIR@/nottodbox
+Exec=nottodbox
 Terminal=false
 Icon=io.github.mukonqi.nottodbox
 StartupWMClass=nottodbox

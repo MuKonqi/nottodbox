@@ -1,12 +1,15 @@
+# AppImage
+AppDir/
+
 # Editor
 .vscode/
-
-# Meson
-builddir/
 
 # Gettext
 *.pot
 *.mo
+
+# Meson
+builddir/
 
 # Python
 *__pycache__
