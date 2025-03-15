@@ -8,6 +8,12 @@ with open("po/LINGUAS") as f:
 for lang in linguas:
     if not os.path.isdir(f"AppDir/usr/local/lib/python3.12/dist-packages/nottodbox/locale/{lang}/LC_MESSAGES"):
         os.makedirs(f"AppDir/usr/local/lib/python3.12/dist-packages/nottodbox/locale/{lang}/LC_MESSAGES")
+        
+    if not os.path.isdir(f"AppDir/usr/local/share/applications/"):
+        os.makedirs("AppDir/usr/local/share/applications/")
+        
+    if not os.path.isdir(f"AppDir/usr/local/share/metainfo/"):
+        os.makedirs("AppDir/usr/local/share/metainfo/")
     
     subprocess.run(["msgfmt", f"po/{lang}.po"])
     shutil.move("messages.mo", f"AppDir/usr/local/lib/python3.12/dist-packages/nottodbox/locale/{lang}/LC_MESSAGES/nottodbox.mo")
