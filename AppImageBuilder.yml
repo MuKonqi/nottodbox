@@ -3,7 +3,7 @@ script:
   - rm -rf AppDir | true
   - mkdir -p AppDir/usr/local/lib/python3.12/dist-packages
   - cp -r nottodbox AppDir/usr/local/lib/python3.12/dist-packages
-  - cp -r share/icons AppDir/usr
+  - cp -r share/icons AppDir/usr/share
   - python3 -m pip install --ignore-installed --prefix=/usr --no-cache-dir --root=AppDir PySide6-Essentials
 
 AppDir:
