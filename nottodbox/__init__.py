@@ -65,8 +65,7 @@ if not os.path.isdir(USER_DATA):
     os.makedirs(USER_DATA)   
 
 
-if os.path.isdir("@APP_DIR@"):
-    sys.path.insert(1, "@APP_DIR@")
+sys.path.insert(1, "@APP_DIR@" if os.path.isdir("@APP_DIR@") else os.path.join(sys.path[len(sys.path) - 1], "nottodbox"))
 
 
 from mainwindow import MainWindow

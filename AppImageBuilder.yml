@@ -5,6 +5,7 @@ script:
   - mkdir -p AppDir/usr/local/share/icons
   - cp -r nottodbox AppDir/usr/local/lib/python3.12/dist-packages
   - cp -r share/icons AppDir/usr/local/share/icons
+  - python3 po/merge.py
   - python3 -m pip install --ignore-installed --prefix=/usr --no-cache-dir --root=AppDir PySide6-Essentials
 
 AppDir:
@@ -14,7 +15,7 @@ AppDir:
     id: io.github.mukonqi.nottodbox
     name: nottodbox
     icon: io.github.mukonqi.nottodbox
-    version: 0.0.8
+    version: v0.0.8
     exec: usr/bin/python3
     exec_args: "-m nottodbox $@"
 

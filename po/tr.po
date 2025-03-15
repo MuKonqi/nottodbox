@@ -6,10 +6,10 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: 0.0.8\n"
+"Project-Id-Version: v0.0.8\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-15 17:12+0300\n"
-"PO-Revision-Date: 2025-03-15 17:12+0300\n"
+"POT-Creation-Date: 2025-03-15 20:36+0300\n"
+"PO-Revision-Date: 2025-03-15 20:36+0300\n"
 "Last-Translator: Muhammed S. <mukonqi@gmail.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: tr\n"
@@ -30,7 +30,7 @@ msgstr "Notları, yapılacakları ve günlükleri düzenleyin"
 
 #: share/applications/io.github.mukonqi.nottodbox.desktop.in.in:17
 #: share/metainfo/io.github.mukonqi.nottodbox.metainfo.xml.in:41
-#: nottodbox/diaries.py:127 nottodbox/__init__.py:91
+#: nottodbox/diaries.py:127 nottodbox/__init__.py:90
 #: nottodbox/mainwindow.py:202 nottodbox/notes.py:135
 msgid "Home"
 msgstr "Ev"
