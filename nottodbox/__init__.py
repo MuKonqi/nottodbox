@@ -19,16 +19,18 @@
 # You should have received a copy of the GNU General Public License
 # along with Nottodbox.  If not, see <https://www.gnu.org/licenses/>.
 
+
 import sys
 import getpass
 import argparse
 import os
 import gettext
+import pkgutil
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QApplication
 
 
-gettext.bindtextdomain("nottodbox", "@LOCALE_DIR@" if os.path.isdir("@LOCALE_DIR@") else "/usr/local/share/locale")
+gettext.bindtextdomain("nottodbox", "@LOCALE_DIR@" if os.path.isdir("@LOCALE_DIR@") else str(pkgutil.get_data(__name__, "locale")))
 gettext.textdomain("nottodbox")
 
 _ = gettext.gettext
@@ -65,7 +67,11 @@ if not os.path.isdir(USER_DATA):
     os.makedirs(USER_DATA)   
 
 
-sys.path.insert(1, "@APP_DIR@" if os.path.isdir("@APP_DIR@") else os.path.join(sys.path[len(sys.path) - 1], "nottodbox"))
+if os.path.isdir("@APP_DIR@"):
+    sys.path.insert(1, "@APP_DIR@")
+    
+else:
+    __path__ = pkgutil.extend_path(__path__, __name__)
 
 
 from mainwindow import MainWindow

@@ -17,6 +17,7 @@
 
 
 import os
+import pkgutil
 from gettext import gettext as _
 from PySide6.QtGui import QFontDatabase, QIcon
 from PySide6.QtWidgets import *
@@ -56,7 +57,7 @@ class AboutWidget(QWidget):
         
         self.license_label = Label(self, _("License: GNU General Public License, Version 3 or later"))
         
-        with open("@APP_DIR@/LICENSE.txt" if os.path.isfile("@APP_DIR@/LICENSE.txt") else "/usr/local/share/nottodbox/LICENSE.txt") as license_file:
+        with open("@APP_DIR@/LICENSE.txt" if os.path.isfile("@APP_DIR@/LICENSE.txt") else str(pkgutil.get_data(__name__, "LICENSE.txt"))) as license_file:
             license_text = license_file.read()
         
         self.license_textedit = QTextEdit(self)

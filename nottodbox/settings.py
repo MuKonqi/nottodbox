@@ -19,7 +19,8 @@
 import getpass
 import os
 import configparser
-import json 
+import json
+import pkgutil
 from gettext import gettext as _
 from PySide6.QtCore import Slot, Qt, QSettings, QStandardPaths
 from PySide6.QtGui import QColor, QPalette, QPixmap
@@ -55,11 +56,12 @@ elif len(KDE_COLOR_SCHEMES_DIRS) == 1:
         KDE_SYSTEM_COLOR_SCHEMES_FOUND = False
 
 
-if os.path.isdir("@COLOR-SCHEMES_DIR@"):
-    NOTTODBOX_COLOR_SCHEMES_DIRS = ["@COLOR-SCHEMES_DIR@", f"/home/{USER_NAME}/.local/share/nottodbox/color-schemes"]
+
+NOTTODBOX_COLOR_SCHEMES_DIRS = ["@COLOR-SCHEMES_DIR@" if os.path.isdir("@COLOR-SCHEMES_DIR@") else str(pkgutil.get_data(__name__, "color-schemes")), 
+                                f"/home/{USER_NAME}/.local/share/nottodbox/color-schemes"]
     
-    if not os.path.isdir(NOTTODBOX_COLOR_SCHEMES_DIRS[1]):
-        os.makedirs(NOTTODBOX_COLOR_SCHEMES_DIRS[1])
+if not os.path.isdir(NOTTODBOX_COLOR_SCHEMES_DIRS[1]):
+    os.makedirs(NOTTODBOX_COLOR_SCHEMES_DIRS[1])
 
 else:
     NOTTODBOX_COLOR_SCHEMES_DIRS = QStandardPaths.locateAll(
