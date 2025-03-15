@@ -4,7 +4,7 @@ script:
   - mkdir -p AppDir/usr/local/lib/python3.12/dist-packages
   - cp -r nottodbox AppDir/usr/local/lib/python3.12/dist-packages
   - cp -r share/icons AppDir/usr
-  - python3 -m pip install --ignore-installed --prefix=/usr --no-cache-dir --root=AppDir -r PySide6-Essentials
+  - python3 -m pip install --ignore-installed --prefix=/usr --no-cache-dir --root=AppDir PySide6-Essentials
 
 AppDir:
   path: ./AppDir
@@ -25,7 +25,7 @@ AppDir:
 
     include:
       - python3
-      - python3-pkg-resourcues
+      - python3-pkg-resources
       - libxcb-cursor0
     
     exclude: []
