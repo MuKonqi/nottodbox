@@ -25,12 +25,11 @@ import getpass
 import argparse
 import os
 import gettext
-import pkgutil
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QApplication
 
 
-gettext.bindtextdomain("nottodbox", "@LOCALE_DIR@" if os.path.isdir("@LOCALE_DIR@") else str(pkgutil.get_data(__name__, "locale")))
+gettext.bindtextdomain("nottodbox", "@LOCALE_DIR@" if os.path.isdir("@LOCALE_DIR@") else f"{os.path.dirname(__file__)}/locale")
 gettext.textdomain("nottodbox")
 
 _ = gettext.gettext
@@ -67,11 +66,7 @@ if not os.path.isdir(USER_DATA):
     os.makedirs(USER_DATA)   
 
 
-if os.path.isdir("@APP_DIR@"):
-    sys.path.insert(1, "@APP_DIR@")
-    
-else:
-    __path__ = pkgutil.extend_path(__path__, __name__)
+sys.path.insert(1, "@APP_DIR@" if os.path.isdir("@APP_DIR@") else os.path.dirname(__file__))
 
 
 from mainwindow import MainWindow

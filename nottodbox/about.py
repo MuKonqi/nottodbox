@@ -17,7 +17,6 @@
 
 
 import os
-import pkgutil
 from gettext import gettext as _
 from PySide6.QtGui import QFontDatabase, QIcon
 from PySide6.QtWidgets import *
@@ -57,14 +56,6 @@ class AboutWidget(QWidget):
         
         self.license_label = Label(self, _("License: GNU General Public License, Version 3 or later"))
         
-        with open("@APP_DIR@/LICENSE.txt" if os.path.isfile("@APP_DIR@/LICENSE.txt") else str(pkgutil.get_data(__name__, "LICENSE.txt"))) as license_file:
-            license_text = license_file.read()
-        
-        self.license_textedit = QTextEdit(self)
-        self.license_textedit.setCurrentFont(QFontDatabase.systemFont(QFontDatabase.SystemFont.FixedFont))
-        self.license_textedit.setText(license_text)
-        self.license_textedit.setReadOnly(True)
-        
         self.icon_and_nottodbox.setLayout(self.icon_and_nottodbox_layout)
         self.icon_and_nottodbox_layout.setSpacing(6)
         self.icon_and_nottodbox_layout.addStretch()
@@ -81,7 +72,17 @@ class AboutWidget(QWidget):
         self.layout_.addWidget(HSeperator(self))
         self.layout_.addWidget(self.copyright_label)
         self.layout_.addWidget(self.license_label)
-        self.layout_.addWidget(self.license_textedit)
         
-        self.setWindowTitle(_("About") + " — Nottodbox")
-        self.setMinimumSize(750, 525)
+        try:
+            with open("@APP_DIR@/LICENSE.txt" if os.path.isfile("@APP_DIR@/LICENSE.txt") else f"{os.path.dirname(__file__)}/LICENSE.txt") as license_file:
+                license_text = license_file.read()
+                
+            self.license_textedit = QTextEdit(self)
+            
+            self.license_textedit.setCurrentFont(QFontDatabase.systemFont(QFontDatabase.SystemFont.FixedFont))
+            self.license_textedit.setText(license_text)
+            self.license_textedit.setReadOnly(True)
+            self.layout_.addWidget(self.license_textedit)
+            
+        except:
+            return
