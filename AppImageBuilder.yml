@@ -8,10 +8,10 @@ script:
   - python3 po/merge.py
   - python3 -m pip install --ignore-installed --prefix=/usr --no-cache-dir --root=AppDir PySide6-Essentials
   - rm -rf AppDir/usr/local/lib/python3.12/dist-packages/PySide6/Qt/qml/
-  - rm -rf AppDir/usr/local/lib/python3.12/dist-packages/PySide6/Qt/lib/!(libicudata*|libicuuc*|libicui18n*|libQt6OpenGL*|libQt6XcbQpa*|libQt6Wayland*|libQt6Egl*|libQt6Core*|libQt6Gui*|libQt6Widgets*)
   - rm -f AppDir/usr/local/lib/python3.12/dist-packages/PySide6/{assistant,designer,linguist,lrelease,lupdate}
   - rm -f AppDir/usr/local/lib/python3.12/dist-packages/PySide6/{Qt3D*,QtBluetooth*,QtCharts*,QtConcurrent*,QtDataVisualization*,QtDBus*,QtDesigner*,QtGraps*,QtHelp*,QtHttpServer*,QtLocation*,QtMultimedia*,QtNetwork*,QtOpenGL*,QtPdf*,QtPositioning*,QtPrintSupport*,QtQml*,QtQuick*,QtRemoteObjects*,QtScxml*,QtSensors*,QtSerialPort*,QtSql*,QtStateMachine*,QtSvg*,QtTest*,QtWeb*,QtXml*}
-  
+  - shopt -s extglob
+  - rm -rf AppDir/usr/local/lib/python3.12/dist-packages/PySide6/Qt/lib/!(libicudata*|libicuuc*|libicui18n*|libQt6OpenGL*|libQt6XcbQpa*|libQt6Wayland*|libQt6Egl*|libQt6Core*|libQt6Gui*|libQt6Widgets*)
 
 AppDir:
   path: ./AppDir
