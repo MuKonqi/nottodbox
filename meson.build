@@ -38,9 +38,9 @@ if not cut.found()
 endif
 
 
-subdir('data')
 subdir('nottodbox')
 subdir('po')
+subdir('share')
 
 
 install_data(
@@ -50,12 +50,12 @@ install_data(
 
 install_data(
   join_paths(meson.current_source_dir(), 'README.md'),
-  install_dir: join_paths(get_option('prefix'), get_option('datadir'), 'doc', 'nottodbox')
+  install_dir: join_paths(get_option('prefix'), get_option('datadir'), 'docs', 'nottodbox')
 )
 
 install_subdir(
   join_paths(meson.current_source_dir(), 'docs'),
-  install_dir: join_paths(get_option('prefix'), get_option('datadir'), 'doc', 'nottodbox'),
+  install_dir: join_paths(get_option('prefix'), get_option('datadir'), 'docs', 'nottodbox'),
   strip_directory: true
 )
 

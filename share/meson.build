@@ -13,25 +13,28 @@ i18n.merge_file(
   po_dir: join_paths(meson.project_source_root(), 'po'),
   type: 'desktop',
   install: true,
-  install_dir: join_paths(get_option('prefix'), get_option('datadir', ), 'applications')
+  install_dir: join_paths(get_option('prefix'), get_option('datadir'), 'applications')
 )
 
 
-install_data(
-  project_id + '.svg',
-  install_dir: join_paths(get_option('prefix'), get_option('datadir'), 'icons/hicolor/scalable/apps')
-)
-
-
-install_data(
-  project_id + '.png',
-  install_dir: join_paths(get_option('prefix'), get_option('datadir'), 'icons/hicolor/96x96/apps')
+i18n.merge_file(
+  input: project_id + '.metainfo.xml.in',
+  output: project_id + '.metainfo.xml',
+  po_dir: join_paths(meson.project_source_root(), 'po'),
+  install: true,
+  install_dir: join_paths(get_option('prefix'), get_option('datadir'), 'metainfo')
 )
 
 
 install_subdir(
   join_paths(meson.current_source_dir(), 'color-schemes'),
   install_dir: join_paths(get_option('prefix'), get_option('datadir'), 'nottodbox', 'data')
+)
+
+
+install_subdir(
+  join_paths(meson.current_source_dir(), 'icons'),
+  install_dir: join_paths(get_option('prefix'), get_option('datadir'))
 )
 
 
@@ -53,4 +56,9 @@ endif
 
 run_command(find_program('chmod'), 'a+x', 
   join_paths(meson.current_build_dir(), project_id + '.desktop.in'), 
+  check: true)
+
+
+run_command(find_program('chmod'), 'a+x', 
+  join_paths(meson.current_build_dir(), project_id + '.desktop'), 
   check: true)
