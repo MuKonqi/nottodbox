@@ -28,7 +28,6 @@ AppDir:
     include:
       - python3
       - libxcb-cursor0
-      - breeze
     
     exclude: []
 
