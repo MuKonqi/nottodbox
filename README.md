@@ -6,6 +6,10 @@
 <p align="center"><img src="https://img.shields.io/github/v/release/mukonqi/nottodbox?label=Release" alt="Release"></p>
 
 
+## Install
+[<img src="https://docs.appimage.org/_images/download-appimage-banner.svg" alt="Download as an AppImage" />](https://github.com/mukonqi/nottodbox/releases) 
+
+
 ## Screenshots
 <details>
 <summary>Show / Hide</summary>
@@ -170,11 +174,7 @@
 </details>
 
 
-## Installing
-TBA
-
-
-## Building
+## Build
 ### Dependencies
 - Python3
 - The following Python libraries: sys, locale, argparse, gettext, getpass, os, subprocess, sqlite3, datetime, configparser, json, PySide6 (they are generally built-in except PySide6)
@@ -194,8 +194,10 @@ TBA
     meson install -C nottodbox/builddir
 ```
 
+
 ## Documentations
 - [Nottodbox-style Color Schemes](/docs/NottodboxStyleColorSchemes.md)
+
 
 ## Disclaimer
 > [!CAUTION] 
