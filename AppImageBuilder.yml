@@ -14,7 +14,7 @@ AppDir:
   app_info:
     id: io.mukonqi.github.nottodbox
     name: Nottodbox
-    icon: nottodbox
+    icon: io.mukonqi.github.nottodbox
     version: 0.0.8
     exec: usr/bin/python3
     exec_args: "$APPDIR/usr/local/share/__init__.py $@"
