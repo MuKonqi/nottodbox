@@ -45,7 +45,7 @@ endif
 
 install_subdir(
   join_paths(meson.current_source_dir(), 'color-schemes'),
-  install_dir: join_paths(get_option('prefix'), get_option('datadir'), 'nottodbox', 'data')
+  install_dir: join_paths(get_option('prefix'), get_option('datadir'), 'nottodbox')
 )
 
 

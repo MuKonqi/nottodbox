@@ -16,8 +16,9 @@
 # along with Nottodbox.  If not, see <https://www.gnu.org/licenses/>.
 
 
+import os
 from gettext import gettext as _
-from PySide6.QtGui import QFontDatabase, QPixmap
+from PySide6.QtGui import QFontDatabase, QIcon
 from PySide6.QtWidgets import *
 from widgets.others import HSeperator, Label
 
@@ -35,7 +36,7 @@ class AboutWidget(QWidget):
         self.icon_and_nottodbox_layout = QHBoxLayout(self.icon_and_nottodbox)
         
         self.icon = Label(self.icon_and_nottodbox, "")
-        self.icon.setPixmap(QPixmap("@ICONFILE-PNG@"))
+        self.icon.setPixmap(QIcon.fromTheme("io.github.mukonqi.nottodbox").pixmap(96, 96))
         
         self.nottodbox = Label(self.icon_and_nottodbox, _("Nottodbox"))
         font = self.nottodbox.font()
@@ -43,10 +44,7 @@ class AboutWidget(QWidget):
         font.setPointSize(32)
         self.nottodbox.setFont(font)
         
-        self.version_label = Label(self, _("Version") + ': @VERSION@')
-        
-        self.commit_label = Label(self, _("Commit") + ': <a href="https://github.com/mukonqi/nottodbox/commit/@COMMIT@">@COMMIT@</a>')
-        self.commit_label.setOpenExternalLinks(True)
+        self.version_label = Label(self, _("Version") + ': v0.0.8')
         
         self.source_label = Label(self, _("Source codes") + ': <a href="https://github.com/mukonqi/nottodbox">GitHub</a>')
         self.source_label.setOpenExternalLinks(True)
@@ -58,7 +56,7 @@ class AboutWidget(QWidget):
         
         self.license_label = Label(self, _("License: GNU General Public License, Version 3 or later"))
         
-        with open("@APPDIR@/LICENSE.txt") as license_file:
+        with open("@APP_DIR@/LICENSE.txt" if os.path.isfile("@APP_DIR@/LICENSE.txt") else "/usr/local/share/nottodbox/LICENSE.txt") as license_file:
             license_text = license_file.read()
         
         self.license_textedit = QTextEdit(self)
@@ -76,7 +74,6 @@ class AboutWidget(QWidget):
         self.setLayout(self.layout_)
         self.layout_.addWidget(self.icon_and_nottodbox)
         self.layout_.addWidget(self.version_label)
-        self.layout_.addWidget(self.commit_label)
         self.layout_.addWidget(self.source_label)
         self.layout_.addWidget(HSeperator(self))
         self.layout_.addWidget(self.developer_label)

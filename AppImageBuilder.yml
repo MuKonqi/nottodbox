@@ -1,9 +1,10 @@
 version: 1
 script:
   - rm -rf AppDir | true
-  - python3 -m pip install --prefix=usr --ignore-installed --root=AppDir PySide6-Essentials
-  - meson setup --wipe builddir .
-  - meson install --destdir AppDir -C builddir
+  - mkdir -p AppDir/usr/local/lib/python3.12/dist-packages
+  - cp -r nottodbox AppDir/usr/local/lib/python3.12/dist-packages
+  - cp -r share/icons AppDir/usr
+  - python3 -m pip install --ignore-installed --prefix=/usr --no-cache-dir --root=AppDir -r PySide6-Essentials
 
 AppDir:
   path: ./AppDir
@@ -14,7 +15,7 @@ AppDir:
     icon: io.github.mukonqi.nottodbox
     version: 0.0.8
     exec: usr/bin/python3
-    exec_args: "$APPDIR/usr/local/share/__init__.py $@"
+    exec_args: "-m nottodbox $@"
 
   apt:
     arch: amd64
@@ -24,6 +25,7 @@ AppDir:
 
     include:
       - python3
+      - python3-pkg-resourcues
       - libxcb-cursor0
     
     exclude: []
@@ -31,7 +33,7 @@ AppDir:
   runtime:
     env:
       PYTHONHOME: '${APPDIR}/usr'
-      PYTHONPATH: '${APPDIR}/usr/local/lib/python3.12/site-packages'
+      PYTHONPATH: '${APPDIR}/usr/local/lib/python3.12/dist-packages'
 
 AppImage:
   update-information: 'gh-releases-zsync|mukonqi|nottodbox|latest|Nottodbox-*x86_64.AppImage.zsync'

@@ -35,7 +35,9 @@ COLOR_SCHEMES_DIRS = []
 
 
 KDE_COLOR_SCHEMES_DIRS = QStandardPaths.locateAll(
-    QStandardPaths.StandardLocation.GenericDataLocation, "color-schemes", QStandardPaths.LocateOption.LocateDirectory)
+    QStandardPaths.StandardLocation.GenericDataLocation, 
+    "color-schemes", 
+    QStandardPaths.LocateOption.LocateDirectory)
 KDE_COLOR_SCHEMES_DIRS.reverse()
 
 KDE_COLOR_SCHEMES_FOUND = True
@@ -53,9 +55,21 @@ elif len(KDE_COLOR_SCHEMES_DIRS) == 1:
         KDE_SYSTEM_COLOR_SCHEMES_FOUND = False
 
 
-NOTTODBOX_COLOR_SCHEMES_DIRS = ["@COLOR-SCHEMES@", f"/home/{USER_NAME}/.local/share/io.github.mukonqi/nottodbox/color-schemes"]
-if not os.path.isdir(NOTTODBOX_COLOR_SCHEMES_DIRS[1]):
-    os.makedirs(NOTTODBOX_COLOR_SCHEMES_DIRS[1])
+if os.path.isdir("@COLOR-SCHEMES_DIR@"):
+    NOTTODBOX_COLOR_SCHEMES_DIRS = ["@COLOR-SCHEMES_DIR@", f"/home/{USER_NAME}/.local/share/nottodbox/color-schemes"]
+    
+    if not os.path.isdir(NOTTODBOX_COLOR_SCHEMES_DIRS[1]):
+        os.makedirs(NOTTODBOX_COLOR_SCHEMES_DIRS[1])
+
+else:
+    NOTTODBOX_COLOR_SCHEMES_DIRS = QStandardPaths.locateAll(
+        QStandardPaths.StandardLocation.GenericDataLocation, 
+        os.path.join("nottodbox", "color-schemes"), 
+        QStandardPaths.LocateOption.LocateDirectory)
+
+    if not f"/home/{USER_NAME}/.local/share/nottodbox/color-schemes" in NOTTODBOX_COLOR_SCHEMES_DIRS:
+        os.makedirs(f"/home/{USER_NAME}/.local/share/nottodbox/color-schemes")
+        NOTTODBOX_COLOR_SCHEMES_DIRS.append(f"/home/{USER_NAME}/.local/share/nottodbox/color-schemes")
 
 
 COLOR_SCHEMES_DIRS.extend(KDE_COLOR_SCHEMES_DIRS)

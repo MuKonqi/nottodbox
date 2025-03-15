@@ -1,14 +1,10 @@
 project (
-  'nottodbox',
-  version: '0.0.8',
-  license: 'GPL-3.0-or-later'
+  'nottodbox'
 )
 
 
 project_id = 'io.github.mukonqi.nottodbox'
-project_name = meson.project_name()
-project_version = meson.project_version()
-project_commit = run_command(find_program('git'), 'rev-parse', '--short', 'HEAD', capture: true, check: true).stdout().replace('\n', '')
+project_name = 'nottodbox'
 
 
 python = import('python')

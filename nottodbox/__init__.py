@@ -28,7 +28,7 @@ from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QApplication
 
 
-gettext.bindtextdomain("nottodbox", "@LOCALEDIR@")
+gettext.bindtextdomain("nottodbox", "@LOCALE_DIR@" if os.path.isdir("@LOCALE_DIR@") else "/usr/local/share/locale")
 gettext.textdomain("nottodbox")
 
 _ = gettext.gettext
@@ -51,7 +51,7 @@ parser._optionals.title = _("optional arguments")
 group = parser.add_mutually_exclusive_group()
 
 parser.add_argument("-h", "--help", help=_("show this help message"), action="help", default=argparse.SUPPRESS)
-parser.add_argument("-v", "--version", help=_("show the version"), action="version", version="@VERSION@")
+parser.add_argument("-v", "--version", help=_("show the version"), action="version", version="v0.0.8")
 group.add_argument("-i", "--index", help=_("set the page to be opened via number"), default=1,
                    choices=[1, 2, 3, 4, 5, 6], type=int)
 group.add_argument("-p", "--page", help=_("set the page to be opened via name"), default=_("home"), 
@@ -60,12 +60,15 @@ group.add_argument("-p", "--page", help=_("set the page to be opened via name"),
 args = parser.parse_args()
 
 
-USER_DATA = f"/home/{getpass.getuser()}/.local/share/io.github.mukonqi/nottodbox"
+USER_DATA = f"/home/{getpass.getuser()}/.local/share/nottodbox"
 if not os.path.isdir(USER_DATA):
     os.makedirs(USER_DATA)   
 
 
-sys.path.insert(1, '@APPDIR@')
+if os.path.isdir("@APP_DIR@"):
+    sys.path.insert(1, "@APP_DIR@")
+
+
 from mainwindow import MainWindow
 
 
@@ -73,11 +76,11 @@ class Application(QApplication):
     def __init__(self, argv: list) -> None:
         super().__init__(argv)
 
-        self.setApplicationVersion("@VERSION@")
+        self.setApplicationVersion("v0.0.8")
         self.setApplicationName("nottodbox")
         self.setApplicationDisplayName("Nottodbox")
-        self.setDesktopFileName("@DESKTOPFILE@")
-        self.setWindowIcon(QIcon("@ICONFILE-SVG@"))
+        self.setDesktopFileName("io.github.mukonqi.nottodbox")
+        self.setWindowIcon(QIcon.fromTheme("io.github.mukonqi.nottodbox"))
         
         window = MainWindow()
         

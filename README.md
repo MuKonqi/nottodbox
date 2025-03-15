@@ -1,6 +1,6 @@
 # Nottodbox
 
-<p align="center"><img src="./share/icons/hicolor/256x256/apps/io.github.mukonqi.nottodbox.png" alt="Icon of Nottodbox"></img></a></p>
+<p align="center"><img src="./share/icons/hicolor/96x96/apps/io.github.mukonqi.nottodbox.png" alt="Icon of Nottodbox"></img></a></p>
 <p align="center"><img src="https://img.shields.io/badge/Organize_notes,_to--dos_and_diaries-376296" alt="Organize notes, to-dos and diaries"></img></p>
 <p align="center"><img src="https://img.shields.io/github/downloads/mukonqi/nottodbox/total?label=Downloads" alt="Downloads"></img></p>
 <p align="center"><img src="https://img.shields.io/github/v/release/mukonqi/nottodbox?label=Release" alt="Release"></p>
