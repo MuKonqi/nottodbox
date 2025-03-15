@@ -1,7 +1,6 @@
 version: 1
 script:
   - rm -rf AppDir | true
-  - python3 -m pip install PySide6-Essentials
   - python3 -m pip install --prefix=usr --ignore-installed --root=AppDir PySide6-Essentials
   - meson setup --wipe builddir .
   - meson install --destdir AppDir -C builddir
