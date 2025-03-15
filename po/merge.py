@@ -11,5 +11,3 @@ for lang in linguas:
     
     subprocess.run(["msgfmt", f"po/{lang}.po"])
     shutil.move("messages.mo", f"AppDir/usr/local/lib/python3.12/dist-packages/nottodbox/locale/{lang}/LC_MESSAGES/nottodbox.mo")
-    
-    subprocess.run(["msgfmt", "--desktop", "--template", "share/applications/io.github.mukonqi.nottodbox.desktop.in", "-l", lang, "-o", "AppDir/io.github.mukonqi.nottodbox.desktop", f"po/{lang}.po"])
