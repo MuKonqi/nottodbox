@@ -107,7 +107,6 @@ class Application(QApplication):
                 window.tabwidget.tabbar.setCurrentIndex(5)
                 
 
-if __name__ == "__main__":
-    application = Application(sys.argv)
+application = Application(sys.argv)
 
-    sys.exit(application.exec())
+sys.exit(application.exec())
