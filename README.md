@@ -165,7 +165,6 @@
 > See some informations about Nottodbox.
 - The icon and application name
 - Version
-- Commit
 - Link source codes
 - Developer
 - Copyright notification
@@ -174,7 +173,7 @@
 </details>
 
 
-## Build
+## Other Usage Methods
 ### Dependencies
 - Python3
 - The following Python libraries: sys, locale, argparse, gettext, getpass, os, subprocess, sqlite3, datetime, configparser, json, PySide6 (they are generally built-in except PySide6)
@@ -182,16 +181,24 @@
 - getent
 - cut
 - git
-- meson
+- meson (only for "Building with Meson" option)
 
-### Commands
-> [!WARNING]
-> Do not forget to install dependencies.
-
+1. 
 ```
-    git clone https://github.com/mukonqi/nottodbox.git
-    meson setup nottodbox/builddir nottodbox
-    meson install -C nottodbox/builddir
+git clone https://github.com/mukonqi/nottodbox.git
+```
+
+### Building with Meson
+2. 
+```
+meson setup nottodbox/builddir nottodbox
+meson install -C nottodbox/builddir
+```
+
+## Running from Source Code
+2. 
+```
+python3 -m nottodbox
 ```
 
 
@@ -208,4 +215,6 @@
 
 
 ## Credit
-While making [nottodbox/widgets/pages.py](./nottodbox/widgets/pages.py)'s TextFormatter class, [KDE - Marknote: master/src/documenthandler.cpp](https://invent.kde.org/office/marknote/-/blob/master/src/documenthandler.cpp) helped me as a referance.
+- While making [nottodbox/widgets/pages.py](./nottodbox/widgets/pages.py)'s TextFormatter class, [KDE - Marknote: master/src/documenthandler.cpp](https://invent.kde.org/office/marknote/-/blob/master/src/documenthandler.cpp) helped me as a referance.
+
+- While adding AppImage packaging, [DavidoTek - ProtonUp-Qt](https://github.com/DavidoTek/ProtonUp-Qt)'s [appimage-ci.yml](https://github.com/DavidoTek/ProtonUp-Qt/blob/main/.github/workflows/appimage-ci.yml) and [AppImageBuilder.yml](https://github.com/DavidoTek/ProtonUp-Qt/blob/main/AppImageBuilder.yml) helped me as a reference.

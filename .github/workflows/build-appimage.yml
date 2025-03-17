@@ -1,3 +1,5 @@
+# Credit: While making this file <https://github.com/DavidoTek/ProtonUp-Qt/blob/main/AppImageBuilder.yml> helped me as a reference.
+
 name: Build AppImage
 
 on:
