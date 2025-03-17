@@ -32,7 +32,7 @@ configure_file(
 
 install_subdir(
   meson.current_source_dir(),
-  exclude_directories: ['__pycache__'],
+  exclude_directories: ['__pycache__', 'databases/__pycache__', 'widgets/__pycache__'],
   exclude_files: ['meson.build', 'about.py', 'settings.py'],
   install_dir: join_paths(get_option('prefix'), get_option('datadir'))
 )

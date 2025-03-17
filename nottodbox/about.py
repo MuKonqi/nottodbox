@@ -36,7 +36,7 @@ class AboutWidget(QWidget):
         self.icon_and_nottodbox_layout = QHBoxLayout(self.icon_and_nottodbox)
         
         self.icon = Label(self.icon_and_nottodbox, "")
-        self.icon.setPixmap(QIcon.fromTheme("io.github.mukonqi.nottodbox").pixmap(96, 96))
+        self.icon.setPixmap(QIcon.fromTheme("io.github.mukonqi.nottodbox", self.parent_.application.getIcon()).pixmap(96, 96))
         
         self.nottodbox = Label(self.icon_and_nottodbox, _("Nottodbox"))
         font = self.nottodbox.font()
@@ -73,16 +73,14 @@ class AboutWidget(QWidget):
         self.layout_.addWidget(self.copyright_label)
         self.layout_.addWidget(self.license_label)
         
-        try:
-            with open("@APP_DIR@/LICENSE.txt" if os.path.isfile("@APP_DIR@/LICENSE.txt") else f"{os.path.dirname(__file__)}/LICENSE.txt") as license_file:
-                license_text = license_file.read()
-                
-            self.license_textedit = QTextEdit(self)
+        with open("@APP_DIR@/LICENSE.txt" if os.path.isfile("@APP_DIR@/LICENSE.txt") else 
+                    f"{os.path.dirname(__file__)}/LICENSE.txt" if os.path.isfile(f"{os.path.dirname(__file__)}/LICENSE.txt") else
+                    f"{os.path.dirname(os.path.dirname(__file__))}/LICENSE.txt") as license_file:
+            license_text = license_file.read()
             
-            self.license_textedit.setCurrentFont(QFontDatabase.systemFont(QFontDatabase.SystemFont.FixedFont))
-            self.license_textedit.setText(license_text)
-            self.license_textedit.setReadOnly(True)
-            self.layout_.addWidget(self.license_textedit)
-            
-        except:
-            return
+        self.license_textedit = QTextEdit(self)
+        
+        self.license_textedit.setCurrentFont(QFontDatabase.systemFont(QFontDatabase.SystemFont.FixedFont))
+        self.license_textedit.setText(license_text)
+        self.license_textedit.setReadOnly(True)
+        self.layout_.addWidget(self.license_textedit)

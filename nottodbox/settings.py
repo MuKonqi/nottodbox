@@ -331,7 +331,7 @@ class AppearanceSettings(BaseSettings):
         self.form.addWidget(self.custom_color_schemes)
         self.form.addRow(HSeperator(self))
         self.form.addRow(Label(self, 
-                               _("*If PySide6 is installed with Pip, some system themes may not detected by Qt."), 0x0001))
+                               _("*If PySide6 is installed with Pip or you are using Nottodbox's AppImage package some system themes may not detected."), 0x0001))
         self.form.addRow(Label(self, 
                                "{}{}".format(self.superscriptDirNumber(1), _('From the system directory for KDE-format color schemes')), 0x0001))
         self.form.addRow(Label(self, 
