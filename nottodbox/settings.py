@@ -382,7 +382,7 @@ class AppearanceSettings(BaseSettings):
     
     @Slot(str)
     def colorSchemeChanged(self, value: str) -> None:
-        if value == _("From selected style ({})").format(self.current_style):
+        if value == _("System default"):
             self.current_color_scheme = ""
             self.use_default_color_scheme = True
             self.custom_color_schemes.setEnabled(False)
@@ -489,7 +489,7 @@ class AppearanceSettings(BaseSettings):
         
     def load(self) -> None:    
         self.styles_list = QStyleFactory.keys()
-        self.styles_list.insert(0, _("System default ({})").format(self.default_style))
+        self.styles_list.insert(0, "{} ({})".format(_("System default"), self.default_style))
         
         self.styles_combobox.addItems(self.styles_list)
         
@@ -519,7 +519,7 @@ class AppearanceSettings(BaseSettings):
                     self.getColorSchemeName(entry.path)
         
         self.color_schemes_list = list(self.color_schemes.keys())
-        self.color_schemes_list.insert(0, _("From selected style ({})"))
+        self.color_schemes_list.insert(0, _("System default"))
         self.color_schemes_list.append(_("Custom"))
         
         self.color_schemes_combobox.addItems(self.color_schemes_list)
@@ -549,7 +549,7 @@ class AppearanceSettings(BaseSettings):
         self.loadPalette()
         
     def loadOnlySomeTexts(self) -> None:
-        self.color_schemes_list[0] = _("From selected style ({})").format(self.current_style)
+        self.color_schemes_list[0] = _("System default")
         self.color_schemes_combobox.setItemText(0, self.color_schemes_list[0])
         
     def loadPalette(self) -> None:
@@ -662,7 +662,7 @@ class AppearanceSettings(BaseSettings):
         
     @Slot(str)
     def styleChanged(self, value: str) -> None:
-        if value == _("System default ({})").format(self.default_style):
+        if value == "{} ({})".format(_("System default"), self.default_style):
             self.current_style = self.default_style
             self.use_default_style = True
         

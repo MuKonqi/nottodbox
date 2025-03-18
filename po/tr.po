@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: v0.0.8\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-17 22:08+0300\n"
-"PO-Revision-Date: 2025-03-18 22:08+0300\n"
+"POT-Creation-Date: 2025-03-18 20:45+0300\n"
+"PO-Revision-Date: 2025-03-18 20:45+0300\n"
 "Last-Translator: Muhammed S. <mukonqi@gmail.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: tr\n"
@@ -967,10 +967,11 @@ msgstr "Nottodbox-biçimi renk şemaları için olan sistem klasöründen"
 msgid "From the user directory for Nottodbox-format color schemes"
 msgstr "Notodbox-biçimi renk şemaları için olan kullanıcı klasöründen"
 
-#: nottodbox/settings.py:385 nottodbox/settings.py:522
-#: nottodbox/settings.py:552
-msgid "From selected style ({})"
-msgstr "Seçilen stilden ({})"
+#: nottodbox/settings.py:385 nottodbox/settings.py:492
+#: nottodbox/settings.py:522 nottodbox/settings.py:552
+#: nottodbox/settings.py:665
+msgid "System default"
+msgstr "Sistem varsayılanı"
 
 #: nottodbox/settings.py:465 nottodbox/settings.py:802
 #, python-brace-format
@@ -980,10 +981,6 @@ msgid ""
 msgstr ""
 "'{name}' adlı bir renk şeması zaten mevcuttur.\n"
 "Üstüne yazmak istiyor musunuz?"
-
-#: nottodbox/settings.py:492 nottodbox/settings.py:665
-msgid "System default ({})"
-msgstr "Sistem varsayılanı ({})"
 
 #: nottodbox/settings.py:576
 #, python-brace-format
@@ -1200,6 +1197,3 @@ msgstr "Durumu Ayarla"
 #, python-brace-format
 msgid "Failed to change status {of_item}."
 msgstr "{of_item} durumu değiştirilemedi."
-
-#~ msgid "Commit"
-#~ msgstr "İşleme"
