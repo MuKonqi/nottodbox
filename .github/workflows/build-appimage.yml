@@ -17,7 +17,7 @@ jobs:
     - uses: actions/checkout@v1
     
     - name: Install Dependencies
-      run: sudo apt install -y appstream desktop-file-utils gettext python3 python3-pip
+      run: sudo apt install -y appstream binutils coreutils desktop-file-utils fakeroot fuse gettext libgdk-pixbuf2.0-dev patchelf python3 python3-pip python3-setuptools squashfs-tools strace util-linux zsync
 
     - name: Download AppImageBuilder
       run: pip3 install appimage-builder
