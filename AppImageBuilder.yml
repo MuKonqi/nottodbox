@@ -47,6 +47,6 @@ AppDir:
       PYTHONPATH: '${APPDIR}/usr/local/lib/python3.12/dist-packages'
 
 AppImage:
-  update-information: 'gh-releases-zsync|mukonqi|nottodbox|latest|Nottodbox-*x86_64.AppImage.zsync'
+  update-information: 'gh-releases-zsync|MuKonqi|nottodbox|latest|nottodbox-*x86_64.AppImage.zsync'
   sign-key: None
   arch: x86_64
