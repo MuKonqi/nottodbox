@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: v0.0.8\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-18 20:45+0300\n"
-"PO-Revision-Date: 2025-03-18 20:45+0300\n"
+"POT-Creation-Date: 2025-03-20 22:32+0300\n"
+"PO-Revision-Date: 2025-03-20 22:32+0300\n"
 "Last-Translator: Muhammed S. <mukonqi@gmail.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: tr\n"
@@ -764,19 +764,19 @@ msgstr "Metin biçimlendiricisi yedekler için mevcut değildir."
 msgid "Version"
 msgstr "Sürüm"
 
-#: nottodbox/about.py:49
+#: nottodbox/about.py:50
 msgid "Source codes"
 msgstr "Kaynak kodları"
 
-#: nottodbox/about.py:52
+#: nottodbox/about.py:53
 msgid "Developer"
 msgstr "Geliştirici"
 
-#: nottodbox/about.py:55
+#: nottodbox/about.py:56
 msgid "Copyright (C)"
 msgstr "Telif Hakkı (C)"
 
-#: nottodbox/about.py:57
+#: nottodbox/about.py:58
 msgid "License: GNU General Public License, Version 3 or later"
 msgstr "Lisans: GNU Genel Kamu Lisansı, Sürüm 3 veya sonrası"
 
