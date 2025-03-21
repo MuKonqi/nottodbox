@@ -1,6 +1,6 @@
 # Credit: While making this file <https://github.com/DavidoTek/ProtonUp-Qt/blob/main/AppImageBuilder.yml> helped me as a reference.
 
-name: AppImage
+name: Build AppImage
 
 on:
   push:
@@ -17,7 +17,7 @@ jobs:
     - uses: actions/checkout@v1
     
     - name: Install Dependencies
-      run: pacman -S --noconfirm appstream binutils coreutils desktop-file-utils fakeroot fuse2 gettext gdk-pixbuf2 patchelf python python-pip python-setuptools squashfs-tools strace util-linux zsync
+      run: pacman -Sy --noconfirm appstream binutils coreutils desktop-file-utils fakeroot fuse2 gettext gdk-pixbuf2 patchelf python python-pip python-setuptools squashfs-tools strace util-linux zsync
 
     - name: Download AppImageBuilder
       run: pip3 install appimage-builder
