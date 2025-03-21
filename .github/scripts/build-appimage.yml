@@ -27,7 +27,6 @@ AppDir:
       - python
       - pyside6
       - xcb-util-cursor
-      - glib2
     options:
       SigLevel: "Optional TrustAll"
 
