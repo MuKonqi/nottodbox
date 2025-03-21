@@ -23,7 +23,7 @@ jobs:
       run: pipx install appimage-builder
     
     - name: Build package
-      run: appimage-builder --recipe .github/scripts/build-appimage.yml
+      run: /github/home/.local/bin/appimage-builder --recipe .github/scripts/build-appimage.yml
 
     - name: Upload package
       uses: "marvinpinto/action-automatic-releases@latest"
