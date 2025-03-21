@@ -24,6 +24,7 @@ AppDir:
   pacman:
     Architecture: x86_64
     include:
+      - breeze
       - python
       - pyside6
       - xcb-util-cursor
