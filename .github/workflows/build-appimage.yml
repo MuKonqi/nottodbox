@@ -15,6 +15,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
+
+    - name: Download Dependencies
+      run: pacman -Sy wget
     
     - name: Download AppImage Builder
       run: |
@@ -28,7 +31,7 @@ jobs:
       uses: "marvinpinto/action-automatic-releases@latest"
       with:
         repo_token: "${{ secrets.GITHUB_TOKEN }}"
-        automatic_release_tag: "appimage"
+        automatic_release_tag: "nightly"
         prerelease: true
-        title: "New AppImage Pre-release"
+        title: "Nightly"
         files: ./nottodbox*.AppImage*
