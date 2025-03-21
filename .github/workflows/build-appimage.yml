@@ -16,20 +16,14 @@ jobs:
     steps:
     - uses: actions/checkout@v1
 
-    - name: Set environment for appimage-builder
-      run: |
-        pacman -Sy --noconfirm fuse2 python wget
-        ln -s /usr/lib/libfakeroot/libfakeroot-0.so /usr/lib/libfakeroot/libfakeroot-sysv.so
-        ln -s /usr/bin/faked /usr/bin/faked-sysv
-        ln -s /usr/bin/fakeroot /usr/binfakeroot-sysv
+    - name: Install dependencies
+      run: pacman -Sy appstream binutils desktop-file-utils fakeroot gdk-pixbuf2 gettext patchelf python python-pip python-pipx python-setuptools squashfs-tools strace wget zsyn
     
     - name: Download appimage-builder
-      run: |
-        wget -O appimage-builder-x86_64.AppImage https://github.com/AppImageCrafters/appimage-builder/releases/download/v1.1.0/appimage-builder-1.1.0-x86_64.AppImage
-        chmod +x appimage-builder-x86_64.AppImage
+      run: pipx install appimage-builder
     
     - name: Build package
-      run: ./appimage-builder-x86_64.AppImage --appimage-extract-and-run --recipe .github/scripts/build-appimage.yml
+      run: appimage-builder --recipe .github/scripts/build-appimage.yml
 
     - name: Upload package
       uses: "marvinpinto/action-automatic-releases@latest"
