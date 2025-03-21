@@ -1,29 +1,29 @@
 # Credit: While making this file <https://github.com/DavidoTek/ProtonUp-Qt/blob/main/AppImageBuilder.yml> helped me as a reference.
 
-name: Build AppImage
+name: AppImage
 
 on:
   push:
-    tags:
-    - '*'
-
+    tags: '*'
+  pull_request:
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-24.04
+    container: archlinux:latest
 
     steps:
     - uses: actions/checkout@v1
     
     - name: Install Dependencies
-      run: sudo apt install -y appstream binutils coreutils desktop-file-utils fakeroot fuse gettext libgdk-pixbuf2.0-dev patchelf python3 python3-pip python3-setuptools squashfs-tools strace util-linux zsync
+      run: pacman -S --noconfirm appstream binutils coreutils desktop-file-utils fakeroot fuse2 gettext gdk-pixbuf2 patchelf python python-pip python-setuptools squashfs-tools strace util-linux zsync
 
     - name: Download AppImageBuilder
       run: pip3 install appimage-builder
     
     - name: Build AppImage
-      run: appimage-builder
+      run: appimage-builder --recipe .github/scripts/appimage.yml
 
     - name: Upload AppImage
       uses: "marvinpinto/action-automatic-releases@latest"
@@ -31,5 +31,5 @@ jobs:
         repo_token: "${{ secrets.GITHUB_TOKEN }}"
         automatic_release_tag: "appimage"
         prerelease: true
-        title: "New AppImage Release"
+        title: "New AppImage Pre-release"
         files: ./nottodbox*.AppImage*

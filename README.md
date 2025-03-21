@@ -202,10 +202,6 @@ python3 -m nottodbox
 ```
 
 
-## Documentations
-- [Nottodbox-style Color Schemes](/docs/NottodboxStyleColorSchemes.md)
-
-
 ## Disclaimer
 > [!CAUTION] 
 > Nottodbox is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
