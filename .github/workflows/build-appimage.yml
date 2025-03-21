@@ -16,18 +16,18 @@ jobs:
     steps:
     - uses: actions/checkout@v1
 
-    - name: Download Dependencies
-      run: pacman -Sy --noconfirm wget
+    - name: Download dependencies
+      run: pacman -Sy --noconfirm wget fuse2
     
-    - name: Download AppImage Builder
+    - name: Download appimage-builder
       run: |
         wget -O appimage-builder-x86_64.AppImage https://github.com/AppImageCrafters/appimage-builder/releases/download/v1.1.0/appimage-builder-1.1.0-x86_64.AppImage
         chmod +x appimage-builder-x86_64.AppImage
     
-    - name: Build AppImage
+    - name: Build package
       run: ./appimage-builder-x86_64.AppImage --recipe .github/scripts/build-appimage.yml
 
-    - name: Upload AppImage
+    - name: Upload package
       uses: "marvinpinto/action-automatic-releases@latest"
       with:
         repo_token: "${{ secrets.GITHUB_TOKEN }}"
