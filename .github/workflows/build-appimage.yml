@@ -18,8 +18,8 @@ jobs:
     
     - name: Download AppImage Builder
       run: |
-        - wget -O appimage-builder-x86_64.AppImage https://github.com/AppImageCrafters/appimage-builder/releases/download/v1.1.0/appimage-builder-1.1.0-x86_64.AppImage
-        - chmod +x appimage-builder-x86_64.AppImage
+        wget -O appimage-builder-x86_64.AppImage https://github.com/AppImageCrafters/appimage-builder/releases/download/v1.1.0/appimage-builder-1.1.0-x86_64.AppImage
+        chmod +x appimage-builder-x86_64.AppImage
     
     - name: Build AppImage
       run: ./appimage-builder-x86_64.AppImage --recipe .github/scripts/build-appimage.yml
