@@ -11,24 +11,21 @@ on:
 jobs:
   build:
     runs-on: ubuntu-24.04
-    container: 
-      image: archlinux:latest
-      options: --cap-add SYS_ADMIN --device /dev/fuse
+    container: archlinux:latest
 
     steps:
     - uses: actions/checkout@v1
 
     - name: Download dependencies
-      run: pacman -Sy --noconfirm fuse2 wget which
+      run: pacman -Sy --noconfirm fuse2 wget
     
     - name: Download appimage-builder
       run: |
         wget -O appimage-builder-x86_64.AppImage https://github.com/AppImageCrafters/appimage-builder/releases/download/v1.1.0/appimage-builder-1.1.0-x86_64.AppImage
         chmod +x appimage-builder-x86_64.AppImage
-        chmod u+s "$(which fusermount)"
     
     - name: Build package
-      run: ./appimage-builder-x86_64.AppImage --recipe .github/scripts/build-appimage.yml
+      run: ./appimage-builder-x86_64.AppImage --appimage-extract-and-run --recipe .github/scripts/build-appimage.yml
 
     - name: Upload package
       uses: "marvinpinto/action-automatic-releases@latest"
