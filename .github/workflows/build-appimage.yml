@@ -16,8 +16,12 @@ jobs:
     steps:
     - uses: actions/checkout@v1
 
-    - name: Download dependencies
-      run: pacman -Sy --noconfirm fakeroot fuse2 python wget
+    - name: Set environment for appimage-builder
+      run: |
+        pacman -Sy --noconfirm fuse2 python wget
+        ln -s /usr/lib/libfakeroot/libfakeroot-0.so /usr/lib/libfakeroot/libfakeroot-sysv.so
+        ln -s /usr/bin/faked /usr/bin/faked-sysv
+        ln -s /usr/bin/fakeroot /usr/binfakeroot-sysv
     
     - name: Download appimage-builder
       run: |
