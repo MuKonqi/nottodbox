@@ -17,7 +17,7 @@ jobs:
     - uses: actions/checkout@v1
 
     - name: Install dependencies
-      run: pacman -Sy --noconfirm appstream binutils desktop-file-utils fakeroot gdk-pixbuf2 gettext patchelf python python-pip python-pipx python-setuptools squashfs-tools strace wget zsync
+      run: pacman -Sy --noconfirm appstream binutils desktop-file-utils fakeroot gdk-pixbuf2 gettext gtk-update-icon-cache patchelf python python-pip python-pipx python-setuptools squashfs-tools strace wget zsync
     
     - name: Download appimage-builder
       run: pipx install appimage-builder
