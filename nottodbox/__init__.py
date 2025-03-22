@@ -62,8 +62,7 @@ args = parser.parse_args()
 
 
 USER_DATA = f"/home/{getpass.getuser()}/.local/share/nottodbox"
-if not os.path.isdir(USER_DATA):
-    os.makedirs(USER_DATA)   
+os.makedirs(USER_DATA, exist_ok=True)   
 
 
 sys.path.insert(1, "@APP_DIR@" if os.path.isdir("@APP_DIR@") else os.path.dirname(__file__))
@@ -107,7 +106,7 @@ class Application(QApplication):
                 window.tabwidget.tabbar.setCurrentIndex(5)
                 
     def getIcon(self) -> QIcon:
-        if os.path.dirname(os.path.dirname(__file__)) == "dist-packages":
+        if os.path.dirname(os.path.dirname(__file__)) == "site-packages":
             return QIcon(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), 
                                       "share", "icons", "hicolor", "96x96", "apps", "io.github.mukonqi.nottodbox.png"))
             

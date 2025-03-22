@@ -20,20 +20,6 @@ if not python_bin.found()
 endif
 
 
-getent = find_program('getent')
-
-if not getent.found()
-  error('Getent can not found!')
-endif
-
-
-cut = find_program('cut')
-
-if not cut.found()
-  error('Cut can not found!')
-endif
-
-
 subdir('nottodbox')
 subdir('po')
 subdir('share')

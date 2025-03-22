@@ -40,6 +40,7 @@
 
 ### Home
 > See some important things in startup.
+- A welcome text
 - A shortcut for keeping today's diary and focusing to it (optional)
 - Listing to-dos
 - Listing notes
@@ -178,8 +179,6 @@
 - Python3
 - The following Python libraries: sys, locale, argparse, gettext, getpass, os, subprocess, sqlite3, datetime, configparser, json, PySide6 (they are generally built-in except PySide6)
 - Qt
-- getent
-- cut
 - git
 - meson (only for "Building with Meson" option)
 

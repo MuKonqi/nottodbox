@@ -58,9 +58,7 @@ elif len(KDE_COLOR_SCHEMES_DIRS) == 1:
 
 NOTTODBOX_COLOR_SCHEMES_DIRS = ["@COLOR-SCHEMES_DIR@" if os.path.isdir("@COLOR-SCHEMES_DIR@") else f"{os.path.dirname(__file__)}/color-schemes", 
                                 f"/home/{USER_NAME}/.local/share/nottodbox/color-schemes"]
-    
-if not os.path.isdir(NOTTODBOX_COLOR_SCHEMES_DIRS[1]):
-    os.makedirs(NOTTODBOX_COLOR_SCHEMES_DIRS[1])
+os.makedirs(NOTTODBOX_COLOR_SCHEMES_DIRS[1], exist_ok=True)
 
 
 COLOR_SCHEMES_DIRS.extend(KDE_COLOR_SCHEMES_DIRS)

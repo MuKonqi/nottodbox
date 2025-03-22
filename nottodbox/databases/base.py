@@ -22,8 +22,7 @@ import sqlite3
 
 
 USER_DATABASES = f"/home/{getpass.getuser()}/.local/share/nottodbox/databases"
-if not os.path.isdir(USER_DATABASES):
-    os.makedirs(USER_DATABASES)
+os.makedirs(USER_DATABASES, exist_ok=True)
 
 
 class DBBase:
