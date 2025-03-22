@@ -30,10 +30,8 @@ from settings import SettingsWidget
 
 
 class MainWindow(QMainWindow):
-    def __init__(self, application: QApplication):
+    def __init__(self):
         super().__init__()
-        
-        self.application = application
         
         self.qsettings = QSettings("io.github.mukonqi", "nottodbox")
         

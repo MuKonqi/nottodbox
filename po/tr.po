@@ -6,10 +6,10 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: v0.0.8-2\n"
+"Project-Id-Version: v0.0.8-3\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-22 14:19+0300\n"
-"PO-Revision-Date: 2025-03-22 14:19+0300\n"
+"POT-Creation-Date: 2025-03-22 19:10+0300\n"
+"PO-Revision-Date: 2025-03-22 19:10+0300\n"
 "Last-Translator: Muhammed S. <mukonqi@gmail.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: tr\n"
@@ -30,15 +30,15 @@ msgstr "Notları, yapılacakları ve günlükleri düzenleyin"
 
 #: share/applications/io.github.mukonqi.nottodbox.desktop.in:17
 #: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:41
-#: nottodbox/diaries.py:127 nottodbox/__init__.py:90
-#: nottodbox/mainwindow.py:204 nottodbox/notes.py:135
+#: nottodbox/diaries.py:127 nottodbox/__init__.py:92
+#: nottodbox/mainwindow.py:202 nottodbox/notes.py:135
 msgid "Home"
 msgstr "Ev"
 
 #: share/applications/io.github.mukonqi.nottodbox.desktop.in:21
 #: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:49
 #: nottodbox/widgets/options.py:132 nottodbox/widgets/options.py:464
-#: nottodbox/mainwindow.py:205 nottodbox/settings.py:165
+#: nottodbox/mainwindow.py:203 nottodbox/settings.py:165
 msgid "Notes"
 msgstr "Notlar"
 
@@ -50,20 +50,20 @@ msgstr "Yapılacaklar"
 #: share/applications/io.github.mukonqi.nottodbox.desktop.in:29
 #: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:57
 #: nottodbox/widgets/options.py:138 nottodbox/widgets/options.py:467
-#: nottodbox/mainwindow.py:207 nottodbox/settings.py:171
+#: nottodbox/mainwindow.py:205 nottodbox/settings.py:171
 msgid "Diaries"
 msgstr "Günlükler"
 
 #: share/applications/io.github.mukonqi.nottodbox.desktop.in:33
 #: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:61
-#: nottodbox/mainwindow.py:208 nottodbox/settings.py:154
+#: nottodbox/mainwindow.py:206 nottodbox/settings.py:154
 #: nottodbox/settings.py:224
 msgid "Settings"
 msgstr "Ayarlar"
 
 #: share/applications/io.github.mukonqi.nottodbox.desktop.in:36
 #: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:65
-#: nottodbox/about.py:33 nottodbox/mainwindow.py:209
+#: nottodbox/about.py:33 nottodbox/mainwindow.py:207
 msgid "About"
 msgstr "Hakkında"
 
@@ -80,7 +80,7 @@ msgid "Home (dark mode)"
 msgstr "Ev (koyu mod)"
 
 #: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:53
-#: nottodbox/mainwindow.py:206 nottodbox/settings.py:168
+#: nottodbox/mainwindow.py:204 nottodbox/settings.py:168
 msgid "To-dos"
 msgstr "Yapılacaklar"
 
@@ -122,9 +122,9 @@ msgid "Completion"
 msgstr "Tamamlanma"
 
 #: nottodbox/widgets/options.py:58 nottodbox/widgets/options.py:92
-#: nottodbox/widgets/options.py:664 nottodbox/mainwindow.py:87
-#: nottodbox/mainwindow.py:93 nottodbox/mainwindow.py:161
-#: nottodbox/mainwindow.py:166
+#: nottodbox/widgets/options.py:664 nottodbox/mainwindow.py:85
+#: nottodbox/mainwindow.py:91 nottodbox/mainwindow.py:159
+#: nottodbox/mainwindow.py:164
 msgid " (Backup)"
 msgstr " (Yedek)"
 
@@ -132,7 +132,7 @@ msgstr " (Yedek)"
 #: nottodbox/widgets/options.py:404 nottodbox/widgets/options.py:524
 #: nottodbox/widgets/options.py:605 nottodbox/widgets/options.py:880
 #: nottodbox/widgets/pages.py:219 nottodbox/widgets/pages.py:258
-#: nottodbox/widgets/pages.py:399 nottodbox/mainwindow.py:110
+#: nottodbox/widgets/pages.py:399 nottodbox/mainwindow.py:108
 #: nottodbox/settings.py:462 nottodbox/settings.py:799
 #: nottodbox/settings.py:1105
 msgid "Question"
@@ -223,7 +223,7 @@ msgstr "Her Şeyi Sil"
 #: nottodbox/widgets/pages.py:391 nottodbox/widgets/pages.py:421
 #: nottodbox/widgets/pages.py:686 nottodbox/widgets/pages.py:714
 #: nottodbox/diaries.py:235 nottodbox/diaries.py:262
-#: nottodbox/mainwindow.py:147 nottodbox/notes.py:207 nottodbox/notes.py:214
+#: nottodbox/mainwindow.py:145 nottodbox/notes.py:207 nottodbox/notes.py:214
 #: nottodbox/settings.py:239 nottodbox/settings.py:258
 #: nottodbox/settings.py:639 nottodbox/sidebar.py:223 nottodbox/sidebar.py:245
 #: nottodbox/sidebar.py:252 nottodbox/todos.py:184
@@ -407,7 +407,7 @@ msgstr "Gerçekten {of_item} içeriğini silmek istiyor musunuz?"
 
 #: nottodbox/widgets/options.py:610 nottodbox/widgets/options.py:647
 #: nottodbox/widgets/pages.py:264 nottodbox/widgets/pages.py:414
-#: nottodbox/mainwindow.py:143 nottodbox/settings.py:236
+#: nottodbox/mainwindow.py:141 nottodbox/settings.py:236
 #: nottodbox/settings.py:255
 msgid "Successful"
 msgstr "Başarılı"
@@ -856,24 +856,24 @@ msgstr "açılacak sayfayı isim ile ayarlayın"
 msgid "home"
 msgstr "ev"
 
-#: nottodbox/mainwindow.py:42 nottodbox/settings.py:162
+#: nottodbox/mainwindow.py:40 nottodbox/settings.py:162
 msgid "Sidebar"
 msgstr "Kenar Çubuğu"
 
-#: nottodbox/mainwindow.py:43
+#: nottodbox/mainwindow.py:41
 msgid "Show"
 msgstr "Göster"
 
-#: nottodbox/mainwindow.py:44
+#: nottodbox/mainwindow.py:42
 msgid "Hide"
 msgstr "Gizle"
 
-#: nottodbox/mainwindow.py:71
+#: nottodbox/mainwindow.py:69
 msgid ""
 "There may be important information and tips here. Don't forget to look here!"
 msgstr "Burada önemli bilgiler ve ipuçları olabilir. Buraya bakmayı unutmayın!"
 
-#: nottodbox/mainwindow.py:111
+#: nottodbox/mainwindow.py:109
 msgid ""
 "Some pages are not saved.\n"
 "What would you like to do?"
@@ -881,11 +881,11 @@ msgstr ""
 "Bazı sayfalar kaydedilmedi.\n"
 "Ne yapmak istersiniz?"
 
-#: nottodbox/mainwindow.py:143
+#: nottodbox/mainwindow.py:141
 msgid "All pages saved."
 msgstr "Tüm sayfalar kaydedildi."
 
-#: nottodbox/mainwindow.py:147
+#: nottodbox/mainwindow.py:145
 msgid "Failed to save some pages."
 msgstr "Bazı sayfalar kaydedilemedi."
 

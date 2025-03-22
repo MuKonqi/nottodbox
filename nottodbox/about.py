@@ -18,7 +18,7 @@
 
 import os
 from gettext import gettext as _
-from PySide6.QtGui import QFontDatabase, QIcon
+from PySide6.QtGui import QFontDatabase
 from PySide6.QtWidgets import *
 from widgets.others import HSeperator, Label
 
@@ -35,8 +35,8 @@ class AboutWidget(QWidget):
         self.icon_and_nottodbox = QWidget(self)
         self.icon_and_nottodbox_layout = QHBoxLayout(self.icon_and_nottodbox)
         
-        self.icon = Label(self.icon_and_nottodbox, "")
-        self.icon.setPixmap(QIcon.fromTheme("io.github.mukonqi.nottodbox", self.parent_.application.getIcon()).pixmap(96, 96))
+        self.icon = Label(self.icon_and_nottodbox)
+        self.icon.setPixmap(self.windowIcon().pixmap(96, 96))
         
         self.nottodbox = Label(self.icon_and_nottodbox, _("Nottodbox"))
         font = self.nottodbox.font()
@@ -44,7 +44,7 @@ class AboutWidget(QWidget):
         font.setPointSize(32)
         self.nottodbox.setFont(font)
         
-        self.version_label = Label(self, _("Version") + ': <a href="https://github.com/mukonqi/nottodbox/releases/tag/v0.0.8-2">v0.0.8-2</a>')
+        self.version_label = Label(self, _("Version") + ': <a href="https://github.com/mukonqi/nottodbox/releases/tag/v0.0.8-3">v0.0.8-3</a>')
         self.version_label.setOpenExternalLinks(True)
         
         self.source_label = Label(self, _("Source codes") + ': <a href="https://github.com/mukonqi/nottodbox">GitHub</a>')
