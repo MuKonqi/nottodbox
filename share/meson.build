@@ -20,8 +20,8 @@ run_command(find_program('chmod'), 'a+x',
 
 
 i18n.merge_file(
-  input: join_paths('metainfo', project_id + '.metainfo.xml.in'),
-  output: project_id + '.metainfo.xml',
+  input: join_paths('metainfo', project_id + '.appdata.xml.in'),
+  output: project_id + '.appdata.xml',
   po_dir: join_paths(meson.project_source_root(), 'po'),
   install: true,
   install_dir: join_paths(get_option('prefix'), get_option('datadir'), 'metainfo')
@@ -31,7 +31,7 @@ metainfo_file_validater = find_program('appstreamcli', required: false)
 
 if metainfo_file_validater.found()
   test('Validate AppStream meta info file...', 
-      metainfo_file_validater, args: ['validate', join_paths(meson.current_build_dir(), project_id + '.metainfo.xml')])
+      metainfo_file_validater, args: ['validate', join_paths(meson.current_build_dir(), project_id + '.appdata.xml')])
 endif
 
 

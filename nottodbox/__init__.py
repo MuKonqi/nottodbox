@@ -78,7 +78,7 @@ class Application(QApplication):
         self.setApplicationVersion("v0.0.8")
         self.setApplicationName("nottodbox")
         self.setApplicationDisplayName("Nottodbox")
-        self.setDesktopFileName("io.github.mukonqi.nottodbox")
+        self.setDesktopFileName(os.path.join(self.getBaseDir(), "applications", "io.github.mukonqi.nottodbox.desktop"))
         self.setWindowIcon(QIcon.fromTheme("io.github.mukonqi.nottodbox", self.getIcon()))
         
         window = MainWindow(self)
@@ -105,14 +105,19 @@ class Application(QApplication):
             elif args.page == __("About"):
                 window.tabwidget.tabbar.setCurrentIndex(5)
                 
+    def getBaseDir(self) -> str:
+        if os.path.dirname(os.path.dirname(__file__)) == "site-packages":
+            return os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), "share")
+        
+        else:
+            return os.path.join(os.path.dirname(os.path.dirname(__file__)), "share")
+                
     def getIcon(self) -> QIcon:
         if os.path.dirname(os.path.dirname(__file__)) == "site-packages":
-            return QIcon(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), 
-                                      "share", "icons", "hicolor", "96x96", "apps", "io.github.mukonqi.nottodbox.png"))
+            return QIcon(os.path.join(self.getBaseDir(), "icons", "hicolor", "96x96", "apps", "io.github.mukonqi.nottodbox.png"))
             
         else:
-            return QIcon(os.path.join(os.path.dirname(os.path.dirname(__file__)),
-                                      "share", "icons", "hicolor", "96x96", "apps", "io.github.mukonqi.nottodbox.png"))
+            return QIcon(os.path.join(self.getBaseDir(), "icons", "hicolor", "96x96", "apps", "io.github.mukonqi.nottodbox.png"))
                 
 
 application = Application(sys.argv)
