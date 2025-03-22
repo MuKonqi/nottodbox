@@ -10,17 +10,17 @@
 [<img src="https://docs.appimage.org/_images/download-appimage-banner.svg" alt="Download as an AppImage" />](https://github.com/mukonqi/nottodbox/releases) 
 
 
-## Screenshots
+## Images
 <details>
 <summary>Show / Hide</summary>
 
-![Home](/.github/screenshots/home.png)<br>
-![Home (Dark)](/.github/screenshots/home-dark.png)<br>
-![Notes](/.github/screenshots/notes.png)<br>
-![Todos](/.github/screenshots/todos.png)<br>
-![Diaries](/.github/screenshots/diaries.png)<br>
-![Settings](/.github/screenshots/settings.png)<br>
-![About](/.github/screenshots/about.png)<br>
+![Home](/.github/images/home.png)<br>
+![Home (Dark)](/.github/images/home-dark.png)<br>
+![Notes](/.github/images/notes.png)<br>
+![Todos](/.github/images/todos.png)<br>
+![Diaries](/.github/images/diaries.png)<br>
+![Settings](/.github/images/settings.png)<br>
+![About](/.github/images/about.png)<br>
 
 </details>
 
