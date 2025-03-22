@@ -44,7 +44,7 @@ class AboutWidget(QWidget):
         font.setPointSize(32)
         self.nottodbox.setFont(font)
         
-        self.version_label = Label(self, _("Version") + ': <a href="https://github.com/mukonqi/nottodbox/releases/tag/v0.0.8">v0.0.8</a>')
+        self.version_label = Label(self, _("Version") + ': <a href="https://github.com/mukonqi/nottodbox/releases/tag/v0.0.8-2">v0.0.8-2</a>')
         self.version_label.setOpenExternalLinks(True)
         
         self.source_label = Label(self, _("Source codes") + ': <a href="https://github.com/mukonqi/nottodbox">GitHub</a>')
