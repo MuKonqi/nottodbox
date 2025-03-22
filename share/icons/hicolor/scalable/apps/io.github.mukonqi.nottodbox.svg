@@ -7,9 +7,9 @@
    viewBox="0 0 12.7 12.7"
    version="1.1"
    id="svg1"
-   inkscape:version="1.4 (e7c3feb100, 2024-10-09)"
+   inkscape:version="1.4 (e7c3feb, 2024-10-09)"
    sodipodi:docname="io.github.mukonqi.nottodbox.svg"
-   inkscape:export-filename="io.github.mukonqi.nottodbox.png"
+   inkscape:export-filename="../../96x96/apps/io.github.mukonqi.nottodbox.png"
    inkscape:export-xdpi="192"
    inkscape:export-ydpi="192"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
@@ -27,14 +27,14 @@
      inkscape:deskcolor="#2f2f2f"
      inkscape:document-units="px"
      inkscape:zoom="16.645833"
-     inkscape:cx="23.969963"
+     inkscape:cx="24"
      inkscape:cy="24"
      inkscape:window-width="1920"
-     inkscape:window-height="1002"
+     inkscape:window-height="1006"
      inkscape:window-x="0"
      inkscape:window-y="0"
      inkscape:window-maximized="1"
-     inkscape:current-layer="layer7"
+     inkscape:current-layer="g11"
      showguides="true" />
   <defs
      id="defs1">
@@ -355,45 +355,45 @@
          d="M 9.9145832,3.96875 H 10.9875 a 0.125,0.125 45 0 1 0.125,0.125 V 4.6375 a 0.125,0.125 135 0 1 -0.125,0.125 H 9.9145832 a 0.125,0.125 45 0 1 -0.125,-0.125 V 4.09375 a 0.125,0.125 135 0 1 0.125,-0.125 z"
          transform="matrix(1,0,0,0.66666668,0,1.8520833)"
          inkscape:label="top" />
-    </g>
-    <g
-       inkscape:groupmode="layer"
-       id="layer13"
-       inkscape:label="pen">
-      <path
-         sodipodi:type="star"
-         style="fill:#2f2f2f;stroke-width:0.264583;fill-opacity:1"
-         id="path10"
-         inkscape:flatsided="true"
-         sodipodi:sides="3"
-         sodipodi:cx="10.164768"
-         sodipodi:cy="9.0839176"
-         sodipodi:r1="0.94253355"
-         sodipodi:r2="0.47126678"
-         sodipodi:arg1="-0.52359878"
-         sodipodi:arg2="0.52359878"
-         inkscape:rounded="0"
-         inkscape:randomized="0"
-         d="M 10.981026,8.6126508 10.164768,10.026451 9.3485102,8.6126508 Z"
-         inkscape:transform-center-y="0.26458322"
-         transform="matrix(0.48621269,0,0,1.1228601,5.5088024,-0.67496875)"
-         inkscape:label="tip" />
-      <rect
-         style="fill:#ffd42a;stroke-width:0.194571"
-         id="rect8"
-         width="0.79374999"
-         height="6.3499999"
-         x="10.054167"
-         y="2.6458333"
-         inkscape:label="body" />
-      <rect
-         style="fill:#d40055;stroke-width:0.264583"
-         id="rect9"
-         width="0.79374999"
-         height="0.52916664"
-         x="10.054167"
-         y="2.1166666"
-         inkscape:label="eraser" />
+      <g
+         inkscape:groupmode="layer"
+         id="layer13"
+         inkscape:label="pen">
+        <path
+           sodipodi:type="star"
+           style="fill:#2f2f2f;stroke-width:0.264583;fill-opacity:1"
+           id="path10"
+           inkscape:flatsided="true"
+           sodipodi:sides="3"
+           sodipodi:cx="10.164768"
+           sodipodi:cy="9.0839176"
+           sodipodi:r1="0.94253355"
+           sodipodi:r2="0.47126678"
+           sodipodi:arg1="-0.52359878"
+           sodipodi:arg2="0.52359878"
+           inkscape:rounded="0"
+           inkscape:randomized="0"
+           d="M 10.981026,8.6126508 10.164768,10.026451 9.3485102,8.6126508 Z"
+           inkscape:transform-center-y="0.26458322"
+           transform="matrix(0.48621269,0,0,1.1228601,5.5088024,-0.67496875)"
+           inkscape:label="tip" />
+        <rect
+           style="fill:#ffd42a;stroke-width:0.194571"
+           id="rect8"
+           width="0.79374999"
+           height="6.3499999"
+           x="10.054167"
+           y="2.6458333"
+           inkscape:label="body" />
+        <rect
+           style="fill:#d40055;stroke-width:0.264583"
+           id="rect9"
+           width="0.79374999"
+           height="0.52916664"
+           x="10.054167"
+           y="2.1166666"
+           inkscape:label="eraser" />
+      </g>
     </g>
     <g
        inkscape:groupmode="layer"
@@ -449,6 +449,85 @@
          id="layer12"
          inkscape:label="body"
          style="fill:#2f2f2f;fill-opacity:1" />
+    </g>
+    <g
+       inkscape:groupmode="layer"
+       id="g27"
+       inkscape:label="uncompleted"
+       style="fill:#2f2f2f;fill-opacity:1"
+       transform="translate(0,5.8208334)">
+      <g
+         inkscape:groupmode="layer"
+         id="g11"
+         inkscape:label="minus"
+         style="fill:#2f2f2f;fill-opacity:1">
+        <rect
+           style="fill:#2f2f2f;fill-opacity:1;stroke-width:0.0881017"
+           id="rect11"
+           width="0.26458332"
+           height="0.79374999"
+           x="-3.0427084"
+           y="2.6458333"
+           transform="rotate(-90)" />
+      </g>
+      <g
+         inkscape:groupmode="layer"
+         id="g26"
+         inkscape:label="bracket"
+         style="fill:#2f2f2f;fill-opacity:1">
+        <rect
+           style="fill:#2f2f2f;fill-opacity:1;stroke-width:0.0719347"
+           id="rect12"
+           width="0.26458332"
+           height="0.52916664"
+           x="-3.7041667"
+           y="3.4395833"
+           transform="rotate(-90)"
+           inkscape:label="bottom right" />
+        <rect
+           style="fill:#2f2f2f;fill-opacity:1;stroke-width:0.124595"
+           id="rect13"
+           width="0.26458332"
+           height="1.5875"
+           x="3.7041667"
+           y="2.1166666"
+           inkscape:label="right" />
+        <rect
+           style="fill:#2f2f2f;fill-opacity:1;stroke-width:0.0719347"
+           id="rect14"
+           width="0.26458332"
+           height="0.52916664"
+           x="-2.3812499"
+           y="3.4395833"
+           transform="rotate(-90)"
+           inkscape:label="top right" />
+        <rect
+           style="fill:#2f2f2f;fill-opacity:1;stroke-width:0.0719347"
+           id="rect15"
+           width="0.26458332"
+           height="0.52916664"
+           x="-3.7041667"
+           y="2.1166666"
+           transform="rotate(-90)"
+           inkscape:label="bottom left" />
+        <rect
+           style="fill:#2f2f2f;fill-opacity:1;stroke-width:0.124595"
+           id="rect25"
+           width="0.26458332"
+           height="1.5875"
+           x="2.1166666"
+           y="2.1166666"
+           inkscape:label="left" />
+        <rect
+           style="fill:#2f2f2f;fill-opacity:1;stroke-width:0.0719347"
+           id="rect26"
+           width="0.26458332"
+           height="0.52916664"
+           x="-2.3812499"
+           y="2.1166666"
+           transform="rotate(-90)"
+           inkscape:label="top left" />
+      </g>
     </g>
     <g
        inkscape:groupmode="layer"
