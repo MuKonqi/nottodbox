@@ -177,7 +177,7 @@
 ## Other Usage Methods
 ### Dependencies
 - Python3
-- The following Python libraries: sys, locale, argparse, gettext, getpass, os, subprocess, sqlite3, datetime, configparser, json, PySide6 (they are generally built-in except PySide6)
+- The following Python libraries: sys, argparse, gettext, getpass, os, sqlite3, datetime, configparser, json, PySide6 (they are generally built-in except PySide6)
 - Qt
 - git
 - meson (only for "Building with Meson" option)
