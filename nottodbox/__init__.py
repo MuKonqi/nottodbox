@@ -52,7 +52,7 @@ parser._optionals.title = _("optional arguments")
 group = parser.add_mutually_exclusive_group()
 
 parser.add_argument("-h", "--help", help=_("show this help message"), action="help", default=argparse.SUPPRESS)
-parser.add_argument("-v", "--version", help=_("show the version"), action="version", version="v0.0.8-3")
+parser.add_argument("-v", "--version", help=_("show the version"), action="version", version="v0.0.8-4")
 group.add_argument("-i", "--index", help=_("set the page to be opened via number"), default=1,
                    choices=[1, 2, 3, 4, 5, 6], type=int)
 group.add_argument("-p", "--page", help=_("set the page to be opened via name"), default=_("home"), 
@@ -76,7 +76,7 @@ class Application(QApplication):
     def __init__(self, argv: list) -> None:
         super().__init__(argv)
 
-        self.setApplicationVersion("v0.0.8-3")
+        self.setApplicationVersion("v0.0.8-4")
         self.setApplicationName("nottodbox")
         self.setApplicationDisplayName("Nottodbox")
         self.setDesktopFileName(os.path.join(self.getBaseDir(), "applications", f"{APP_ID}.desktop"))

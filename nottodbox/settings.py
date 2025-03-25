@@ -33,7 +33,6 @@ USER_NAME = getpass.getuser()
 
 COLOR_SCHEMES_DIRS = []
 
-
 KDE_COLOR_SCHEMES_DIRS = QStandardPaths.locateAll(
     QStandardPaths.StandardLocation.GenericDataLocation, 
     "color-schemes", 
@@ -54,12 +53,9 @@ elif len(KDE_COLOR_SCHEMES_DIRS) == 1:
     elif KDE_COLOR_SCHEMES_DIRS[0] == f"/home/{USER_NAME}/.local/share/color-schemes":
         KDE_SYSTEM_COLOR_SCHEMES_FOUND = False
 
-
-
 NOTTODBOX_COLOR_SCHEMES_DIRS = ["@COLOR-SCHEMES_DIR@" if os.path.isdir("@COLOR-SCHEMES_DIR@") else f"{os.path.dirname(__file__)}/color-schemes", 
                                 f"/home/{USER_NAME}/.local/share/nottodbox/color-schemes"]
 os.makedirs(NOTTODBOX_COLOR_SCHEMES_DIRS[1], exist_ok=True)
-
 
 COLOR_SCHEMES_DIRS.extend(KDE_COLOR_SCHEMES_DIRS)
 COLOR_SCHEMES_DIRS.extend(NOTTODBOX_COLOR_SCHEMES_DIRS)
@@ -171,21 +167,14 @@ class SettingsWidget(QWidget):
         self.list_diaries = QListWidgetItem(_("Diaries"), self.list)
         self.list_diaries.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
         
-        appearance_scroll_area = QScrollArea(self)
-        appearance_scroll_area.setWidgetResizable(True)
-        appearance_scroll_area.setWidget(AppearanceSettings(self, 0))
-        appearance_scroll_area.apply = appearance_scroll_area.widget().apply
-        appearance_scroll_area.load = appearance_scroll_area.widget().load
-        appearance_scroll_area.reset = appearance_scroll_area.widget().reset
-        
         self.container = QStackedWidget(self)
         
         self.pages = [
-            appearance_scroll_area,
-            ModuleSettings(self, 1, "sidebar", sidebar),
-            ModuleSettings(self, 2, "notes", notes),
-            ModuleSettings(self, 3, "todos",  todos),
-            ModuleSettings(self, 4, "diaries", diaries)
+            self.makeScrollable(AppearanceSettings(self, 0)),
+            self.makeScrollable(ModuleSettings(self, 1, "sidebar", sidebar)),
+            self.makeScrollable(ModuleSettings(self, 2, "notes", notes)),
+            self.makeScrollable(ModuleSettings(self, 3, "todos",  todos)),
+            self.makeScrollable(ModuleSettings(self, 4, "diaries", diaries))
         ]
         
         for page in self.pages:
@@ -242,6 +231,16 @@ class SettingsWidget(QWidget):
     def cancel(self) -> None:
         for page in self.pages:
             page.load()
+            
+    def makeScrollable(self, page: QWidget) -> QScrollArea:
+        appearance_scroll_area = QScrollArea(self)
+        appearance_scroll_area.setWidgetResizable(True)
+        appearance_scroll_area.setWidget(page)
+        appearance_scroll_area.apply = appearance_scroll_area.widget().apply
+        appearance_scroll_area.load = appearance_scroll_area.widget().load
+        appearance_scroll_area.reset = appearance_scroll_area.widget().reset
+        
+        return appearance_scroll_area
     
     @Slot()
     def reset(self) -> None:
@@ -291,16 +290,14 @@ class AppearanceSettings(BaseSettings):
         self.color_schemes_widget_layout.setContentsMargins(0, 0, 0, 0)
         
         self.color_schemes_buttons = QWidget(self.color_schemes_widget)
-        self.color_schemes_buttons_layout = QHBoxLayout(self.color_schemes_buttons)
-        self.color_schemes_buttons_layout.setContentsMargins(0, 0, 0, 0)
         
         self.color_schemes_combobox = Combobox(self.color_schemes_widget)
         self.color_schemes_combobox.setEditable(False)
         
-        self.color_schemes_rename = PushButton(self.color_schemes_buttons, _("Rename"))
+        self.color_schemes_rename = PushButton(self.color_schemes_widget, _("Rename"))
         self.color_schemes_rename.clicked.connect(self.renameColorScheme)
 
-        self.color_schemes_delete = PushButton(self.color_schemes_buttons, _("Delete"))
+        self.color_schemes_delete = PushButton(self.color_schemes_widget, _("Delete"))
         self.color_schemes_delete.clicked.connect(self.deleteColorScheme)
         
         self.color_schemes_import = PushButton(self.color_schemes_widget, _("Import"))
@@ -310,13 +307,10 @@ class AppearanceSettings(BaseSettings):
         
         self.custom_color_schemes = CustomColorSchemes(self)
         
-        self.color_schemes_buttons.setLayout(self.color_schemes_buttons_layout)
-        self.color_schemes_buttons_layout.addWidget(self.color_schemes_rename)
-        self.color_schemes_buttons_layout.addWidget(self.color_schemes_delete)
-        
         self.color_schemes_widget.setLayout(self.color_schemes_widget_layout)
         self.color_schemes_widget_layout.addWidget(self.color_schemes_combobox)
-        self.color_schemes_widget_layout.addWidget(self.color_schemes_buttons)
+        self.color_schemes_widget_layout.addWidget(self.color_schemes_rename)
+        self.color_schemes_widget_layout.addWidget(self.color_schemes_delete)
         self.color_schemes_widget_layout.addWidget(VSeperator(self.color_schemes_widget))
         self.color_schemes_widget_layout.addWidget(self.color_schemes_import)
         
@@ -328,16 +322,17 @@ class AppearanceSettings(BaseSettings):
         self.form.addRow("{} {}:".format(_("Custom"), _("Color scheme").lower()), self.custom_color_schemes.name)
         self.form.addWidget(self.custom_color_schemes)
         self.form.addRow(HSeperator(self))
+        self.form.addRow(Label(self, "*{}<ul>- {}<br>- {}</ul>".format(_("Some styles may not be detected in two cases:"),
+                                                                 _("If PySide6 is installed with Pip"), 
+                                                                 _("If you are using the AppImage version of Nottodbox")), 0x0001))
         self.form.addRow(Label(self, 
-                               _("*If PySide6 is installed with Pip or you are using Nottodbox's AppImage package some system themes may not detected."), 0x0001))
+                               "<br>{}{}".format(self.superscriptDirNumber(1), _('From the system directory for KDE-format color schemes')), 0x0001))
         self.form.addRow(Label(self, 
-                               "{}{}".format(self.superscriptDirNumber(1), _('From the system directory for KDE-format color schemes')), 0x0001))
+                               "<br>{}{}".format(self.superscriptDirNumber(2), _('From the user directory for KDE-format color schemes')), 0x0001))
         self.form.addRow(Label(self, 
-                               "{}{}".format(self.superscriptDirNumber(2), _('From the user directory for KDE-format color schemes')), 0x0001))
+                               "<br>{}{}".format(self.superscriptDirNumber(3), _('From the system directory for Nottodbox-format color schemes')), 0x0001))
         self.form.addRow(Label(self, 
-                               "{}{}".format(self.superscriptDirNumber(3), _('From the system directory for Nottodbox-format color schemes')), 0x0001))
-        self.form.addRow(Label(self, 
-                               "{}{}".format(self.superscriptDirNumber(4), _('From the user directory for Nottodbox-format color schemes')), 0x0001))
+                               "<br>{}{}".format(self.superscriptDirNumber(4), _('From the user directory for Nottodbox-format color schemes')), 0x0001))
         
         self.styles_combobox.currentTextChanged.connect(self.styleChanged)
         self.color_schemes_combobox.currentTextChanged.connect(self.colorSchemeChanged)
@@ -653,10 +648,12 @@ class AppearanceSettings(BaseSettings):
         
     def setColorSchemeButtons(self, value: str) -> None:
         if self.current_color_scheme != "" and os.path.dirname(self.color_schemes[value]) == NOTTODBOX_COLOR_SCHEMES_DIRS[1]:
-            self.color_schemes_buttons.setEnabled(True)
+            self.color_schemes_rename.setEnabled(True)
+            self.color_schemes_delete.setEnabled(True)
             
         else:
-            self.color_schemes_buttons.setEnabled(False)
+            self.color_schemes_rename.setEnabled(False)
+            self.color_schemes_delete.setEnabled(False)
         
     @Slot(str)
     def styleChanged(self, value: str) -> None:
