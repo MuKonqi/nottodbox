@@ -2,7 +2,8 @@ name: Build AppImage
 
 on:
   pull_request:
-  push:
+  push: 
+    tags: "*"
   workflow_dispatch:
 
 jobs:
