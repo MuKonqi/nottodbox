@@ -39,3 +39,4 @@ jobs:
         body_path: "CHANGELOG.html"
         files: ./nottodbox*.AppImage*
         tag_name: nightly
+        prerelease: true
