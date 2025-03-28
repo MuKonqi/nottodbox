@@ -26,8 +26,16 @@ jobs:
     - name: Get changelog
       run: python3 .github/scripts/changelog.py
 
-    - name: Release
+    - name: Stable release
+      uses: softprops/action-gh-release@v2.2.1
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        body_path: "CHANGELOG.html"
+        files: ./nottodbox*.AppImage*
+
+    - name: Nightly release
       uses: softprops/action-gh-release@v2.2.1
       with:
         body_path: "CHANGELOG.html"
         files: ./nottodbox*.AppImage*
+        tag_name: nightly
