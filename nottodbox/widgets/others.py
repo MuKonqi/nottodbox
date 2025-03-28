@@ -21,18 +21,22 @@ from PySide6.QtGui import QAction
 from PySide6.QtWidgets import *
 
 
+class Action(QAction):
+    def __init__(self, parent: QWidget, text: str = ""):
+        super().__init__(text, parent)
+        
+        
+class Combobox(QComboBox):
+    def addItems(self, texts: list[str] | tuple[str]):
+        self.clear()
+        return super().addItems(texts)
+
+
 class HSeperator(QFrame):
     def __init__(self, parent: QWidget):
         super().__init__(parent)
         
         self.setFrameShape(QFrame.Shape.HLine)
-        
-
-class VSeperator(QFrame):
-    def __init__(self, parent: QWidget):
-        super().__init__(parent)
-        
-        self.setFrameShape(QFrame.Shape.VLine)
         
         
 class Label(QLabel):
@@ -45,19 +49,15 @@ class Label(QLabel):
         self.setAlignment(alignment)
         
 
-class Action(QAction):
-    def __init__(self, parent: QWidget, text: str = ""):
-        super().__init__(text, parent)
+class VSeperator(QFrame):
+    def __init__(self, parent: QWidget):
+        super().__init__(parent)
         
+        self.setFrameShape(QFrame.Shape.VLine)
+  
 
 class PushButton(QPushButton):
     def __init__(self, parent: QWidget, text: str = ""):
         super().__init__(text, parent)
         
         self.setFixedHeight(30)
-        
-        
-class Combobox(QComboBox):
-    def addItems(self, texts: list[str] | tuple[str]):
-        self.clear()
-        return super().addItems(texts)

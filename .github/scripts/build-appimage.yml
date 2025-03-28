@@ -1,14 +1,15 @@
-# Credit: While making this file <https://github.com/DavidoTek/ProtonUp-Qt/blob/main/AppImageBuilder.yml> helped me as a reference.
+# Credit: While making this file's script section <https://github.com/DavidoTek/ProtonUp-Qt/blob/main/AppImageBuilder.yml> helped me as a reference.
 
 version: 1
 script:
   - rm -rf AppDir | true
   - mkdir -p AppDir/usr/lib/python3.13/site-packages
   - mkdir -p AppDir/usr/share/icons
+  - sed -i 's/APP_MODE = "@MODE@"/APP_MODE = "appimage"/' nottodbox/consts.py
   - cp -r nottodbox AppDir/usr/lib/python3.13/site-packages
   - cp -r share/icons AppDir/usr/share
   - cp LICENSE.txt AppDir/usr/lib/python3.13/site-packages/nottodbox
-  - python3 po/merge.py
+  - python3 .github/scripts/translations.py --appimage
   - pip install --ignore-installed --prefix=/usr --no-cache-dir --root=AppDir PySide6-Essentials
   - rm -rf AppDir/usr/lib/python3.13/site-packages/PySide6/Qt/{qml,libexec,translations}
   - rm -f AppDir/usr/lib/python3.13/site-packages/PySide6/{assistant,designer,linguist,lrelease,lupdate}
@@ -23,7 +24,7 @@ AppDir:
     id: io.github.mukonqi.nottodbox
     name: nottodbox
     icon: io.github.mukonqi.nottodbox
-    version: v0.0.8-4
+    version: v0.0.9
     exec: usr/bin/python3
     exec_args: "-m nottodbox $@"
 

@@ -16,21 +16,13 @@
 # along with Nottodbox.  If not, see <https://www.gnu.org/licenses/>.
 
 
-import getpass
 from gettext import gettext as _
 from PySide6.QtCore import Slot, QDate, QSettings
 from PySide6.QtWidgets import *
 from widgets.lists import TreeView
 from widgets.others import HSeperator, Label, PushButton
 from widgets.pages import NormalPage
-
-
-with open("/etc/passwd") as f:
-    passwd = f.readlines()
-    
-    for row in passwd:
-        if row.startswith(getpass.getuser()):
-            USER_NAME_PRETTY = row.split(":")[4]
+from consts import USER_NAME_PRETTY
 
 today = QDate.currentDate()
 

@@ -1,9 +1,8 @@
-# Credit: While making this file <https://github.com/DavidoTek/ProtonUp-Qt/blob/main/AppImageBuilder.yml> helped me as a reference.
-
 name: Build AppImage
 
 on:
   pull_request:
+  push:
   workflow_dispatch:
 
 jobs:
@@ -12,7 +11,7 @@ jobs:
     container: archlinux:latest
 
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v4
 
     - name: Install dependencies
       run: pacman -Sy --noconfirm appstream binutils desktop-file-utils fakeroot gdk-pixbuf2 gettext gtk-update-icon-cache patchelf python python-pip python-pipx python-setuptools squashfs-tools strace wget zsync
@@ -23,11 +22,11 @@ jobs:
     - name: Build package
       run: /github/home/.local/bin/appimage-builder --recipe .github/scripts/build-appimage.yml
 
-    - name: Upload package
-      uses: "marvinpinto/action-automatic-releases@latest"
+    - name: Get changelog
+      run: python3 .github/scripts/changelog.py
+
+    - name: Release
+      uses: softprops/action-gh-release@v2.2.1
       with:
-        repo_token: "${{ secrets.GITHUB_TOKEN }}"
-        automatic_release_tag: "nightly"
-        prerelease: true
-        title: "Nightly"
+        body_path: "CHANGELOG.html"
         files: ./nottodbox*.AppImage*

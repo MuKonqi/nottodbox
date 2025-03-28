@@ -3,13 +3,13 @@ Name=Nottodbox
 Comment=Organize notes, to-dos and diaries
 
 Type=Application
-Exec=nottodbox
+Exec=@BINDIR@/nottodbox
 Terminal=false
 Icon=io.github.mukonqi.nottodbox
 StartupWMClass=nottodbox
 
 Categories=Utility;TextEditor;Qt;
-Actions=Home;Notes;Todos;Diaries;Settings;About;
+Actions=Home;Notes;Todos;Diaries;Settings;
 
 [Desktop Action Home]
 Exec=@BINDIR@/nottodbox -i 1
@@ -30,7 +30,3 @@ Name=Diaries
 [Desktop Action Settings]
 Exec=@BINDIR@/nottodbox -i 5
 Name=Settings
-
-[Desktop Action About]
-Exec=@BINDIR@/nottodbox -i 6
-Name=About

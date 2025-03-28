@@ -16,13 +16,8 @@
 # along with Nottodbox.  If not, see <https://www.gnu.org/licenses/>.
 
 
-import getpass
-import os
 import sqlite3
-
-
-USER_DATABASES = f"/home/{getpass.getuser()}/.local/share/nottodbox/databases"
-os.makedirs(USER_DATABASES, exist_ok=True)
+from consts import USER_DATABASES_DIR
 
 
 class DBBase:
@@ -30,7 +25,7 @@ class DBBase:
     widget = None
     
     def __init__(self) -> None:
-        self.db = sqlite3.connect(f"{USER_DATABASES}/{self.file}", check_same_thread=False)
+        self.db = sqlite3.connect(f"{USER_DATABASES_DIR}/{self.file}", check_same_thread=False)
         self.cur = self.db.cursor()
         
         self.createMainTable()

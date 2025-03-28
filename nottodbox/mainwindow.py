@@ -25,7 +25,6 @@ from home import HomeWidget
 from notes import NotesTabWidget, notesdb
 from todos import TodosHomePage
 from diaries import DiariesTabWidget, diariesdb
-from about import AboutWidget
 from settings import SettingsWidget
 
 
@@ -35,14 +34,8 @@ class MainWindow(QMainWindow):
         
         self.qsettings = QSettings("io.github.mukonqi", "nottodbox")
         
-        self.tabwidget = TabWidget(self)
-        
-        self.menu_sidebar = self.menuBar().addMenu(_("Sidebar"))
-        self.menu_sidebar.addAction(_("Show"), lambda: self.dock.setVisible(True))
-        self.menu_sidebar.addAction(_("Hide"), lambda: self.dock.setVisible(False))
-        
         self.dock = QDockWidget(self)
-        self.dock.setObjectName("DockWidget")
+        self.dock.setObjectName("Dock")
         self.dock.setFixedWidth(150)
         self.dock.setFeatures(QDockWidget.DockWidgetFeature.DockWidgetClosable |
                               QDockWidget.DockWidgetFeature.DockWidgetFloatable |
@@ -50,27 +43,48 @@ class MainWindow(QMainWindow):
         self.dock.setAllowedAreas(Qt.DockWidgetArea.LeftDockWidgetArea |
                                   Qt.DockWidgetArea.RightDockWidgetArea)
         
+        self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.dock)
+        
+        self.tabbar = QDockWidget(self)
+        self.tabbar.setObjectName("TabBar")
+        self.tabbar.setFixedHeight(self.tabbar.height() + 20)
+        self.tabbar.setFeatures(QDockWidget.DockWidgetFeature.NoDockWidgetFeatures)
+        self.tabbar.setAllowedAreas(Qt.DockWidgetArea.TopDockWidgetArea)
+        self.tabbar.setTitleBarWidget(QWidget(self.tabbar))
+        self.addDockWidget(Qt.DockWidgetArea.TopDockWidgetArea, self.tabbar)
+        
+        self.show()
+        self.restoreGeometry(QByteArray(self.qsettings.value("mainwindow/geometry")))
+        self.restoreState(QByteArray(self.qsettings.value("mainwindow/state")))
+        self.setMinimumWidth(1000)
+        self.setMinimumHeight(700)
+        
+        self.tabwidget = TabWidget(self)
+        
+        self.menu_sidebar = self.menuBar().addMenu(_("Sidebar"))
+        self.menu_sidebar.addAction(_("Show / Hide"), lambda: self.dock.setVisible(True if not self.dock.isVisible() else False))
+        
         self.notes = NotesTabWidget(self)
         self.todos = TodosHomePage(self)
         self.diaries = DiariesTabWidget(self)
         self.home = HomeWidget(self, self.todos, self.notes.home, self.diaries.home)
         self.sidebar = SidebarWidget(self, self.notes, self.diaries)
         self.settings = SettingsWidget(self, self.sidebar, self.notes.home, self.todos, self.diaries.home)
-        self.about = AboutWidget(self)
-
-        self.tabwidget.load()
         
-        self.dock.setWidget(self.sidebar)
-    
-        self.show()
-        self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.dock)
+        self.tabwidget.addPage(_("Home"), self.home)
+        self.tabwidget.addPage(_("Notes"), self.notes, True)
+        self.tabwidget.addPage(_("To-dos"), self.todos)
+        self.tabwidget.addPage(_("Diaries"), self.diaries)
+        self.tabwidget.addPage(_("Settings"), self.settings, True)
+        
+        self.tabwidget.tabbars[0].setCurrentIndex(1)        
+        
         self.setCentralWidget(self.tabwidget)
+        self.tabbar.setWidget(self.tabwidget.tabbars_widget)
+        self.dock.setWidget(self.sidebar)
+        
         self.setStatusBar(QStatusBar(self))
         self.setStatusTip(_("There may be important information and tips here. Don't forget to look here!"))
-        self.restoreGeometry(QByteArray(self.qsettings.value("mainwindow/geometry")))
-        self.restoreState(QByteArray(self.qsettings.value("mainwindow/state")))
-        self.setMinimumWidth(1000)
-        self.setMinimumHeight(700)
 
     @Slot(QCloseEvent)
     def closeEvent(self, a0: QCloseEvent):                
@@ -172,9 +186,9 @@ class MainWindow(QMainWindow):
         
         else:
             a0.ignore()
-            
-            
-class TabWidget(QWidget):
+        
+
+class TabWidget(QStackedWidget):
     def __init__(self, parent: MainWindow) -> None:
         super().__init__(parent)
         
@@ -182,58 +196,98 @@ class TabWidget(QWidget):
         
         self.current_index = 0
         
-        self.layout_ = QVBoxLayout(self)
+        self.last_caller = 0
         
-        self.tabbar = QTabBar(self)
-        self.tabbar.setUsesScrollButtons(True)
-        self.tabbar.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
-        self.tabbar.currentChanged.connect(self.tabChanged)
+        self.tabbars = []
         
-        self.container = QStackedWidget(self)
+        self.tabbars_indexes = {}
         
-    def load(self) -> None:
-        self.pages = [self.parent_.home, 
-                      self.parent_.notes, self.parent_.todos, self.parent_.diaries, 
-                      self.parent_.settings, self.parent_.about]
+        self.tabbars_number = 0
         
-        for page in self.pages:
-            self.container.addWidget(page)
+        self.tabbars_widget = QWidget(self.parent_)
+        
+        self.tabbars_layout = QHBoxLayout(self.tabbars_widget)
+        self.tabbars_layout.setContentsMargins(10, 10, 10, 10)
+        
+        self.tabbars_widget.setLayout(self.tabbars_layout)
+        
+    def addPage(self, text: str, page: QWidget, seperator: bool = False) -> None:
+        if seperator or self.tabbars == []:
+            if seperator:
+                self.tabbars_layout.addSpacerItem(QSpacerItem(self.parent_.width() / 10, self.tabbars_widget.height()))
             
-        self.tabbar.addTab(_("Home"))
-        self.tabbar.addTab(_("Notes"))
-        self.tabbar.addTab(_("To-dos"))
-        self.tabbar.addTab(_("Diaries"))
-        self.tabbar.addTab(_("Settings"))
-        self.tabbar.addTab(_("About"))
+            number = 0
         
-        self.setLayout(self.layout_)
-        self.layout_.addWidget(self.tabbar)
-        self.layout_.addWidget(self.container)
-        
-    @Slot(int)
-    def tabChanged(self, index: int) -> None:
-        self.container.setCurrentIndex(index)
-        
-        if index != self.current_index:
-            old_widget = self.container.widget(self.current_index)
-            
-            if old_widget == self.parent_.home:
-                self.parent_.home.diary.disconnectAutosaveConnections()
-
-            elif ((old_widget == self.parent_.diaries or old_widget == self.parent_.notes) and
-                old_widget.currentWidget() != old_widget.home and old_widget.currentWidget().mode == "normal"):
-                old_widget.currentWidget().disconnectAutosaveConnections()
+            for other_tabbar in self.tabbars:
+                number += other_tabbar.number
                 
-            new_widget = self.container.widget(index)
+            tabbar = TabBar(self)
+            tabbar.setShape(QTabBar.Shape.TriangularSouth)
+            tabbar.setUsesScrollButtons(True)
+            tabbar.currentChanged.connect(lambda index, caller = len(self.tabbars): self.pageChanged(index, number, caller))
             
-            if new_widget == self.parent_.home:
-                self.parent_.home.diary.changeAutosaveConnections()
+            self.tabbars.append(tabbar)
+            self.tabbars_layout.addWidget(tabbar)
 
-            elif ((new_widget == self.parent_.diaries or new_widget == self.parent_.notes) and
-                new_widget.currentWidget() != new_widget.home and new_widget.currentWidget().mode == "normal"):
-                new_widget.currentWidget().changeAutosaveConnections()
+        self.tabbars_indexes[self.count()] = (len(self.tabbars) - 1, self.tabbars[-1].addTab(text))
+        self.addWidget(page)
+        
+    def setCurrentPage(self, page: int | QWidget) -> None:
+        tabbar, index = self.tabbars_indexes[page if type(page) == int else self.indexOf(page)]
+        
+        number = 0
+        
+        for other_tabbar in self.tabbars[:tabbar]:
+            number += other_tabbar.number
+        
+        self.tabbars[tabbar].setCurrentIndex(index)
+        
+    @Slot(int, int, int)
+    def pageChanged(self, index: int, number: int, caller: int) -> None:
+        if index != 0:
+            if self.last_caller != caller:
+                tabbars = self.tabbars.copy()
+                tabbars.pop(caller)
+                
+                for tabbar in tabbars:
+                    tabbar.setCurrentIndex(0)
             
-            self.current_index = index
+            self.setCurrentIndex(number + index - 1)
             
-    def setCurrentWidget(self, widget: QWidget) -> None:
-        self.tabbar.setCurrentIndex(self.container.indexOf(widget))
+            self.last_caller = caller
+            
+            if number + index - 1 != self.current_index:
+                old_widget = self.widget(self.current_index)
+                
+                if old_widget == self.parent_.home:
+                    self.parent_.home.diary.disconnectAutosaveConnections()
+
+                elif ((old_widget == self.parent_.diaries or old_widget == self.parent_.notes) and
+                    old_widget.currentWidget() != old_widget.home and old_widget.currentWidget().mode == "normal"):
+                    old_widget.currentWidget().disconnectAutosaveConnections()
+                    
+                new_widget = self.widget(number + index - 1)
+                
+                if new_widget == self.parent_.home:
+                    self.parent_.home.diary.changeAutosaveConnections()
+
+                elif ((new_widget == self.parent_.diaries or new_widget == self.parent_.notes) and
+                    new_widget.currentWidget() != new_widget.home and new_widget.currentWidget().mode == "normal"):
+                    new_widget.currentWidget().changeAutosaveConnections()
+                
+                self.current_index = number + index - 1
+
+class TabBar(QTabBar):
+    def __init__(self, parent: TabWidget) -> None:
+        super().__init__(parent)
+        
+        self.number = 0
+        
+        self.addTab("")
+        self.setTabVisible(0, False)
+    
+    def addTab(self, text: str) -> int:
+        if text != "":
+            self.number += 1
+        
+        return super().addTab(text)

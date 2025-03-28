@@ -4,7 +4,7 @@
   
     <name>Nottodbox</name>
     <summary>Organize notes, to-dos and diaries</summary>
-    <icon type="stock">nottodbox</icon>
+    <icon type="stock">io.github.mukonqi.nottodbox</icon>
   
     <description>
         <p>Organize your notes, to-dos and diaries with highly customizable WYSIWYG-like editor.</p>
@@ -24,46 +24,73 @@
         <keyword>diary</keyword>
     </keywords>
 
-    <url>
-        <homepage>https://github.com/mukonqi/nottodbox</homepage>
-        <bugtracker>https://github.com/mukonqi/nottodbox/issues</bugtracker>
-    </url>
+    <url type="homepage">https://github.com/mukonqi/nottodbox</url>
+    <url type="bugtracker">https://github.com/mukonqi/nottodbox/issues</url>
   
     <launchable type="desktop-id">io.github.mukonqi.nottodbox.desktop</launchable>
+
+    <releases>
+        <release version="v0.0.9" date="2025-03-28">
+            <description>
+                <ul>Rework of main window's tab bar</ul>
+                <ul>Move about page to settings page</ul>
+                <ul>Add option for adding/deleting start menu shortcut in settings page</ul>
+                <ul>Add start menu shortcut at every startup and make it disablenable in setting page</ul>
+                <ul>Fix .desktop file for Meson installations</ul>
+                <ul>Other various improvements and fixes</ul>
+            </description>
+        </release>
+        <release version="v0.0.8-4" date="2025-03-25">
+            <description>
+                <ul>Some minor improvements in settings page</ul>
+                <ul>Remove unused libraries from README.md and meson.build</ul>
+            </description>
+        </release>
+        <release version="v0.0.8-3" date="2025-03-22">
+            <description>
+                <ul>Update icon</ul>
+                <ul>Fix icon in about page for AppImage package</ul>
+            </description>
+        </release>
+        <release version="v0.0.8-2" date="2025-03-22">
+            <description>
+                <ul>Fix AppImage package for Debian/Ubuntu based distributions</ul>
+                <ul>Some other improvements/fixes</ul>
+            </description>
+        </release>
+        <release version="v0.0.8" date="2025-03-15">
+        </release>
+    </releases>
 
     <metadata_license>FSFAP</metadata_license>
     <project_license>GPL-3.0-or-later</project_license>
 
-    <developer>io.github.mukonqi</developer>
+    <developer id="io.github.mukonqi"><name>Muhammed S.</name></developer>
 
     <screenshots>
-        <screenshot type="source">
+        <screenshot type="default">
             <caption>Home</caption>
-            <image>https://raw.githubusercontent.com/mukonqi/nottodbox/main/.github/screenshots/home.png</image>
+            <image type="source">https://raw.githubusercontent.com/mukonqi/nottodbox/main/.github/images/home.png</image>
         </screenshot>
-        <screenshot type="source">
+        <screenshot>
             <caption>Home (dark mode)</caption>
-            <image>https://raw.githubusercontent.com/mukonqi/nottodbox/main/.github/screenshots/home-dark.png</image>
+            <image type="source">https://raw.githubusercontent.com/mukonqi/nottodbox/main/.github/images/home-dark.png</image>
         </screenshot>
-        <screenshot type="source">
+        <screenshot>
             <caption>Notes</caption>
-            <image>https://raw.githubusercontent.com/mukonqi/nottodbox/main/.github/screenshots/notes.png</image>
+            <image type="source">https://raw.githubusercontent.com/mukonqi/nottodbox/main/.github/images/notes.png</image>
         </screenshot>
-        <screenshot type="source">
+        <screenshot>
             <caption>To-dos</caption>
-            <image>https://raw.githubusercontent.com/mukonqi/nottodbox/main/.github/screenshots/todos.png</image>
+            <image type="source">https://raw.githubusercontent.com/mukonqi/nottodbox/main/.github/images/todos.png</image>
         </screenshot>
-        <screenshot type="source">
+        <screenshot>
             <caption>Diaries</caption>
-            <image>https://raw.githubusercontent.com/mukonqi/nottodbox/main/.github/screenshots/diaries.png</image>
+            <image type="source">https://raw.githubusercontent.com/mukonqi/nottodbox/main/.github/images/diaries.png</image>
         </screenshot>
-        <screenshot type="source">
+        <screenshot>
             <caption>Settings</caption>
-            <image>https://raw.githubusercontent.com/mukonqi/nottodbox/main/.github/screenshots/settings.png</image>
-        </screenshot>
-        <screenshot type="source">
-            <caption>About</caption>
-            <image>https://raw.githubusercontent.com/mukonqi/nottodbox/main/.github/screenshots/about.png</image>
+            <image type="source">https://raw.githubusercontent.com/mukonqi/nottodbox/main/.github/images/settings.png</image>
         </screenshot>
     </screenshots>
 </component>

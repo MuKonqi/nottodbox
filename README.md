@@ -1,14 +1,12 @@
 # Nottodbox
 
-<p align="center"><img src="./share/icons/hicolor/96x96/apps/io.github.mukonqi.nottodbox.png" alt="Icon of Nottodbox"></img></a></p>
-<p align="center"><img src="https://img.shields.io/badge/Organize_notes,_to--dos_and_diaries-376296" alt="Organize notes, to-dos and diaries"></img></p>
-<p align="center"><img src="https://img.shields.io/github/downloads/mukonqi/nottodbox/total?label=Downloads" alt="Downloads"></img></p>
-<p align="center"><img src="https://img.shields.io/github/v/release/mukonqi/nottodbox?label=Release" alt="Release"></p>
-
-
-## Install
-[<img src="https://docs.appimage.org/_images/download-appimage-banner.svg" alt="Download as an AppImage" />](https://github.com/mukonqi/nottodbox/releases) 
-
+<p align="center">
+    <img src="./share/icons/hicolor/96x96/apps/io.github.mukonqi.nottodbox.png" alt="Icon of Nottodbox"></img><br>
+    <img src="https://img.shields.io/badge/Organize_notes,_to--dos_and_diaries-376296" alt="Organize notes, to-dos and diaries"></img><br>
+    <img src="https://img.shields.io/github/downloads/mukonqi/nottodbox/total?label=Downloads" alt="Downloads"></img>
+    <img src="https://img.shields.io/github/v/release/mukonqi/nottodbox?label=Release" alt="Release"><br>
+    <a href="https://github.com/mukonqi/nottodbox/releases/latest"><img src="https://docs.appimage.org/_images/download-appimage-banner.svg" alt="Download as an AppImage" /></a>
+</p>
 
 ## Images
 <details>
@@ -19,8 +17,7 @@
 ![Notes](/.github/images/notes.png)<br>
 ![Todos](/.github/images/todos.png)<br>
 ![Diaries](/.github/images/diaries.png)<br>
-![Settings](/.github/images/settings.png)<br>
-![About](/.github/images/about.png)<br>
+![Settings](/.github/images/settings.png)
 
 </details>
 
@@ -174,31 +171,30 @@
 </details>
 
 
-## Other Usage Methods
+## Install with Meson
 ### Dependencies
 - Python3
-- The following Python libraries: sys, argparse, gettext, getpass, os, sqlite3, datetime, configparser, json, PySide6 (they are generally built-in except PySide6)
-- Qt
+- PySide6
 - git
-- meson (only for "Building with Meson" option)
+- meson
 
-1. 
-```
-git clone https://github.com/mukonqi/nottodbox.git
-```
+### Clone, setup, install
+1. ```git clone https://github.com/mukonqi/nottodbox.git```
+2. ```meson setup nottodbox/builddir nottodbox```
+3. ```meson install -C nottodbox/builddir```
 
-### Building with Meson
-2. 
-```
-meson setup nottodbox/builddir nottodbox
-meson install -C nottodbox/builddir
-```
 
-## Running from Source Code
-2. 
-```
-python3 -m nottodbox
-```
+## Run from source
+### Dependencies:
+- Python3
+- PySide6
+- git
+- msgfmt (generally distributed with gettext or gettext-tools package)
+
+### Clone, OPTIONAL features (translations and shortcut support) set-up , run
+1. ```git clone https://github.com/mukonqi/nottodbox.git ; cd nottodbox```
+2. ```python3 .github/scripts/translations.py``` (OPTIONAL)
+3. ```python3 -m nottodbox```
 
 
 ## Disclaimer
@@ -212,4 +208,4 @@ python3 -m nottodbox
 ## Credit
 - While making [nottodbox/widgets/pages.py](./nottodbox/widgets/pages.py)'s TextFormatter class, [KDE - Marknote: master/src/documenthandler.cpp](https://invent.kde.org/office/marknote/-/blob/master/src/documenthandler.cpp) helped me as a referance.
 
-- While adding AppImage packaging, [DavidoTek - ProtonUp-Qt](https://github.com/DavidoTek/ProtonUp-Qt)'s [appimage-ci.yml](https://github.com/DavidoTek/ProtonUp-Qt/blob/main/.github/workflows/appimage-ci.yml) and [AppImageBuilder.yml](https://github.com/DavidoTek/ProtonUp-Qt/blob/main/AppImageBuilder.yml) helped me as a reference.
+- While making [.github/scripts/build-appimage.yml](.github/scripts/build-appimage.yml)'s script section, [DavidoTek - ProtonUp-Qt: AppImageBuilder.yml](https://github.com/DavidoTek/ProtonUp-Qt/blob/main/AppImageBuilder.yml) helped me as a reference.

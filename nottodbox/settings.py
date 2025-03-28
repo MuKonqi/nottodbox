@@ -16,19 +16,16 @@
 # along with Nottodbox.  If not, see <https://www.gnu.org/licenses/>.
 
 
-import getpass
 import os
 import configparser
 import json
 from gettext import gettext as _
 from PySide6.QtCore import Slot, Qt, QSettings, QStandardPaths
-from PySide6.QtGui import QColor, QPalette, QPixmap
+from PySide6.QtGui import QColor, QPalette, QPixmap, QFontDatabase
 from PySide6.QtWidgets import *
 from widgets.dialogs import ColorDialog
 from widgets.others import Combobox, HSeperator, Label, PushButton, VSeperator
-
-
-USER_NAME = getpass.getuser()
+from consts import APP_MODE, APP_VERSION, DESKTOP_FILE_FOUND, DESKTOP_FILE, ICON_FILE, USER_NAME, USER_DESKTOP_FILE, USER_DESKTOP_FILE_FOUND
 
 
 COLOR_SCHEMES_DIRS = []
@@ -149,41 +146,38 @@ class SettingsWidget(QWidget):
         
         self.menu = self.parent_.menuBar().addMenu(_("Settings"))
         
-        self.list = QListWidget(self)
-        self.list.setFixedWidth(100)
+        self.last_index = 0
         
-        self.list_appearance = QListWidgetItem(_("Appearance"), self.list)
-        self.list_appearance.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-        
-        self.list_sidebar = QListWidgetItem(_("Sidebar"), self.list)
-        self.list_sidebar.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-        
-        self.list_notes = QListWidgetItem(_("Notes"), self.list)
-        self.list_notes.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-        
-        self.list_todos = QListWidgetItem(_("To-dos"), self.list)
-        self.list_todos.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-        
-        self.list_diaries = QListWidgetItem(_("Diaries"), self.list)
-        self.list_diaries.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.selector = QListWidget(self)
+        self.selector.setFixedWidth(100)
         
         self.container = QStackedWidget(self)
         
         self.pages = [
-            self.makeScrollable(AppearanceSettings(self, 0)),
-            self.makeScrollable(ModuleSettings(self, 1, "sidebar", sidebar)),
-            self.makeScrollable(ModuleSettings(self, 2, "notes", notes)),
-            self.makeScrollable(ModuleSettings(self, 3, "todos",  todos)),
-            self.makeScrollable(ModuleSettings(self, 4, "diaries", diaries))
+            (QListWidgetItem(_("Appearance")), self.makeScrollable(AppearanceSettings(self, 0))),
+            (QListWidgetItem(_("Sidebar")), self.makeScrollable(ModuleSettings(self, 1, "sidebar", sidebar))),
+            (QListWidgetItem(_("Shortcuts")), self.makeScrollable(ShortcutsSettings(self, 2))),
+            (QListWidgetItem(_("Notes")), self.makeScrollable(ModuleSettings(self, 3, "notes", notes))),
+            (QListWidgetItem(_("To-dos")), self.makeScrollable(ModuleSettings(self, 4, "todos",  todos))),
+            (QListWidgetItem(_("Diaries")), self.makeScrollable(ModuleSettings(self, 5, "diaries", diaries)))
         ]
-        
-        for page in self.pages:
+            
+        for text, page in self.pages:
+            self.menu.addAction(text.text(), page.openPage)
+            
+            text.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            
+            self.selector.addItem(text)
             self.container.addWidget(page)
             
-        self.list.addItem(self.list_appearance)
-        self.list.addItem(self.list_notes)
-        self.list.addItem(self.list_todos)
-        self.list.addItem(self.list_diaries)
+        self.container.addWidget(self.makeScrollable(AboutWidget(self)))
+            
+        self.selector.setCurrentRow(0)
+        self.selector.currentRowChanged.connect(self.container.setCurrentIndex)
+        
+        self.about_button = PushButton(self, _("About"))
+        self.about_button.setCheckable(True)
+        self.about_button.toggled.connect(self.aboutPage)
         
         self.buttons = QDialogButtonBox(self)
         
@@ -201,23 +195,27 @@ class SettingsWidget(QWidget):
         self.buttons.addButton(self.cancel_button, QDialogButtonBox.ButtonRole.RejectRole)
         
         self.setLayout(self.layout_)
-        self.layout_.addWidget(self.list, 0, 0, 3, 1)
+        self.layout_.addWidget(self.selector, 0, 0, 1, 1)
+        self.layout_.addWidget(HSeperator(self), 1, 0, 1, 1)
+        self.layout_.addWidget(self.about_button, 2, 0, 1, 1)
         self.layout_.addWidget(VSeperator(self), 0, 1, 3, 1)
         self.layout_.addWidget(self.container, 0, 2, 1, 1)
         self.layout_.addWidget(HSeperator(self), 1, 2, 1, 1)
         self.layout_.addWidget(self.buttons, 2, 2, 1, 1)
         
-        self.list.setCurrentRow(0)
-        self.list.currentRowChanged.connect(lambda: self.container.setCurrentIndex(self.list.currentRow()))
+    @Slot(bool)
+    def aboutPage(self, check: bool) -> None:
+        self.container.setCurrentIndex(self.container.count() - 1 if check else self.last_index)
+        self.selector.setDisabled(check)
         
-        self.setWindowTitle(_("Settings") + " — Nottodbox")
-        self.setMinimumSize(750, 525)
+        if self.container.currentIndex() != self.container.count() -1:
+            self.last_index = self.container.currentIndex()
         
     @Slot()
     def apply(self) -> None:
         successful = True
                 
-        for page in self.pages:            
+        for text, page in self.pages:            
             if not page.apply():
                 successful = False
         
@@ -229,24 +227,28 @@ class SettingsWidget(QWidget):
     
     @Slot()
     def cancel(self) -> None:
-        for page in self.pages:
+        for text, page in self.pages:
             page.load()
             
     def makeScrollable(self, page: QWidget) -> QScrollArea:
-        appearance_scroll_area = QScrollArea(self)
-        appearance_scroll_area.setWidgetResizable(True)
-        appearance_scroll_area.setWidget(page)
-        appearance_scroll_area.apply = appearance_scroll_area.widget().apply
-        appearance_scroll_area.load = appearance_scroll_area.widget().load
-        appearance_scroll_area.reset = appearance_scroll_area.widget().reset
+        scroll_area = QScrollArea(self)
+        scroll_area.setWidgetResizable(True)
+        scroll_area.setWidget(page)
         
-        return appearance_scroll_area
+        scroll_area.openPage = scroll_area.widget().openPage
+        
+        if type(page).__name__ != "AboutWidget":
+            scroll_area.apply = scroll_area.widget().apply
+            scroll_area.load = scroll_area.widget().load
+            scroll_area.reset = scroll_area.widget().reset
+        
+        return scroll_area
     
     @Slot()
     def reset(self) -> None:
         successful = True
         
-        for page in self.pages:                
+        for text, page in self.pages:                
             if not page.reset():
                 successful = False
         
@@ -262,25 +264,24 @@ class BaseSettings(QWidget):
         super().__init__(parent)
         
         self.parent_ = parent
+        
+        self.form = QFormLayout(self)
+        
         self.index = index
         
-        self.parent_.menu.addAction(self.parent_.list.item(self.index).text(), self.openPage)
+        self.setLayout(self.form)
     
     @Slot()
     def openPage(self) -> None:
-        self.parent_.parent_.tabwidget.tabbar.setCurrentIndex(4)
-        self.parent_.list.setCurrentRow(self.index)
-            
+        self.parent_.parent_.tabwidget.setCurrentPage(self.parent_)
+        self.parent_.selector.setCurrentRow(self.index)
+        
 
 class AppearanceSettings(BaseSettings):
     def __init__(self, parent: SettingsWidget, index: int) -> None:
         super().__init__(parent, index)
         
-        self.parent_ = parent
-        
         self.default_style = QApplication.style().objectName().title()
-        
-        self.form = QFormLayout(self)
         
         self.styles_combobox = QComboBox(self)
         self.styles_combobox.setEditable(False)
@@ -375,7 +376,7 @@ class AppearanceSettings(BaseSettings):
     
     @Slot(str)
     def colorSchemeChanged(self, value: str) -> None:
-        if value == _("System default"):
+        if value == _("Style default"):
             self.current_color_scheme = ""
             self.use_default_color_scheme = True
             self.custom_color_schemes.setEnabled(False)
@@ -512,7 +513,7 @@ class AppearanceSettings(BaseSettings):
                     self.getColorSchemeName(entry.path)
         
         self.color_schemes_list = list(self.color_schemes.keys())
-        self.color_schemes_list.insert(0, _("System default"))
+        self.color_schemes_list.insert(0, _("Style default"))
         self.color_schemes_list.append(_("Custom"))
         
         self.color_schemes_combobox.addItems(self.color_schemes_list)
@@ -542,7 +543,7 @@ class AppearanceSettings(BaseSettings):
         self.loadPalette()
         
     def loadOnlySomeTexts(self) -> None:
-        self.color_schemes_list[0] = _("System default")
+        self.color_schemes_list[0] = _("Style default")
         self.color_schemes_combobox.setItemText(0, self.color_schemes_list[0])
         
     def loadPalette(self) -> None:
@@ -908,20 +909,160 @@ class ColorSelectionWidget(QWidget):
         
         self.viewer.fill(color if color != "" else Qt.GlobalColor.transparent)
         self.label.setPixmap(self.viewer)
+        
+        
+class ShortcutsSettings(BaseSettings):
+    def __init__(self, parent: SettingsWidget, index: int) -> None:
+        super().__init__(parent, index)
+        
+        self.start_menu_shortcut = QWidget(self)
+        
+        self.start_menu_shortcut_layout = QHBoxLayout(self.start_menu_shortcut)
+        self.start_menu_shortcut_layout.setContentsMargins(0, 0, 0, 0)
+
+        self.form.addRow(Label(self, _("Start Menu Shortcut")))
+            
+        self.auto_shortcut_checkbox = QCheckBox("", self.start_menu_shortcut)
+        self.auto_shortcut_checkbox.setEnabled(False)      
+        self.auto_shortcut_checkbox.setChecked(False)
+            
+        self.add_shortcut_button = PushButton(self.start_menu_shortcut, _("Add"))
+        self.add_shortcut_button.setEnabled(False)
+        self.add_shortcut_button.clicked.connect(lambda: self.addDesktopFile(True))
+            
+        self.delete_shortcut_button = PushButton(self.start_menu_shortcut, _("Delete"))
+        self.delete_shortcut_button.setEnabled(False)
+        self.delete_shortcut_button.clicked.connect(self.deleteDesktopFile)
+        
+        self.start_menu_shortcut.setLayout(self.start_menu_shortcut_layout)
+        self.start_menu_shortcut_layout.addWidget(self.auto_shortcut_checkbox)
+        self.start_menu_shortcut_layout.addWidget(VSeperator(self.start_menu_shortcut))
+        self.start_menu_shortcut_layout.addWidget(self.add_shortcut_button)
+        self.start_menu_shortcut_layout.addWidget(self.delete_shortcut_button)
+        
+        self.form.addRow("{}:".format(_("Auto add at every startup")), self.start_menu_shortcut)
+        
+        if DESKTOP_FILE_FOUND and APP_MODE != "meson":
+            if APP_MODE == "@MODE@":
+                self.auto_shortcut_checkbox.setEnabled(True)
+                
+            self.add_shortcut_button.setEnabled(True)
+        
+        if USER_DESKTOP_FILE_FOUND:
+            self.delete_shortcut_button.setEnabled(True)
+        
+        self.load()
+        
+    @Slot()
+    def addDesktopFile(self, manual: bool = False) -> None:
+        with open(DESKTOP_FILE) as f:
+            data = f.read()
+            
+        if APP_MODE == "@MODE@":
+            data = data.replace("Exec=@BINDIR@/nottodbox", f"Exec=python3 {os.path.dirname(__file__)}/__init__.py")
+            
+            data = data.replace("Icon=io.github.mukonqi.nottodbox", f"Icon={ICON_FILE}")
+        
+        elif APP_MODE == "appimage":
+            path = QFileDialog.getOpenFileName(self,
+                    _("Select Nottodbox's AppImage file").title(),
+                    "",
+                    "AppImage (*.appimage)")[0]
+            
+            if not os.path.isfile(path):
+                return
+            
+            data = data.replace("Exec=@BINDIR@/nottodbox", f"Exec={path}")
+        
+        os.makedirs(f"/home/{USER_NAME}/.local/share/applications", exist_ok=True)
+        
+        with open(USER_DESKTOP_FILE, "w") as f:
+            f.write(data)
+            
+        if manual:
+            with open(USER_DESKTOP_FILE) as f:
+                if data == f.read():
+                    QMessageBox.information(self, _("Successful"), _("Start menu shortcut was added to start menu."))
+            
+                else:
+                    QMessageBox.critical(self, _("Error"), _("Failed to add start menu shortcut to start menu."))
+        
+    def apply(self) -> bool:
+        successful = True
+        
+        if DESKTOP_FILE_FOUND and APP_MODE == "@MODE@":
+            if self.auto_shortcut_checkbox.checkState() == Qt.CheckState.Checked:
+                settings.setValue("shortcut/auto_shortcut", "enabled")
+                
+                self.value = "enabled"
+                
+                self.addDesktopFile()
+                
+            elif self.auto_shortcut_checkbox.checkState() == Qt.CheckState.Unchecked:
+                settings.setValue("shortcut/auto_shortcut", "disabled")
+                
+                self.value = "disabled"
+                
+            if self.value != settings.value("shortcut/auto_shortcut"):
+                successful = False
+                
+        return successful
+    
+    @Slot()
+    def deleteDesktopFile(self) -> None:
+        os.remove(USER_DESKTOP_FILE)
+        
+        if not os.path.isfile(USER_DESKTOP_FILE):
+            QMessageBox.information(self, _("Successful"), _("Start menu shortcut was deleted from start menu."))
+            
+            self.delete_shortcut_button.setEnabled(False)
+            
+            global USER_DESKTOP_FILE_FOUND
+            USER_DESKTOP_FILE_FOUND = False
+            
+        else:
+            QMessageBox.critical(self, _("Error"), _("Failed to delete start menu shortcut from start menu."))
+    
+    def load(self) -> None:
+        self.value = settings.value("shortcut/auto_shortcut")
+        
+        if self.value is None or self.value == "":
+            settings.setValue("shortcut/auto_shortcut", "disabled")
+            
+            self.value = "disabled"
+            
+        if self.value == "enabled":
+            self.auto_shortcut_checkbox.setChecked(True)
+            self.auto_shortcut_checkbox.setText(_("Enabled"))
+            
+            if DESKTOP_FILE_FOUND and APP_MODE == "@MODE@":
+                self.addDesktopFile()
+            
+        elif self.value == "disabled":
+            self.auto_shortcut_checkbox.setChecked(False)
+            self.auto_shortcut_checkbox.setText(_("Disabled"))
+                
+    def reset(self) -> bool:
+        settings.remove("shortcut/auto_shortcut")
+        
+        if settings.value("shortcut/auto_shortcut") is None:
+            self.load()
+            
+            return self.apply()
+        
+        else:
+            return False
 
         
 class ModuleSettings(BaseSettings):
     def __init__(self, parent: SettingsWidget, index: int, module: str, target) -> None:
         super().__init__(parent, index)
         
-        self.parent_ = parent
         self.module = module
         self.target = target
         
         self.format_changed = False
         self.do_not_check = True
-        
-        self.form = QFormLayout(self)
         
         if self.module == "sidebar" or self.module == "notes" or self.module == "todos":
             self.alternate_row_colors_checkbox = QCheckBox(self)
@@ -1129,3 +1270,73 @@ class ModuleSettings(BaseSettings):
                     
             self.highlight_button.setText(_("Select color (selected: {})")
                                            .format(_("default") if self.highlight == "default" else self.highlight))
+            
+
+class AboutWidget(QWidget):
+    def __init__(self, parent: SettingsWidget) -> None:
+        super().__init__(parent)
+        
+        self.parent_ = parent
+        self.layout_ = QVBoxLayout(self)
+        
+        self.parent_.menu.addAction(_("About"), self.openPage)
+        
+        self.icon_and_nottodbox = QWidget()
+        self.icon_and_nottodbox_layout = QHBoxLayout(self.icon_and_nottodbox)
+        
+        self.icon = Label(self.icon_and_nottodbox)
+        self.icon.setPixmap(self.windowIcon().pixmap(96, 96))
+        
+        self.nottodbox = Label(self.icon_and_nottodbox, _("Nottodbox"))
+        font = self.nottodbox.font()
+        font.setBold(True)
+        font.setPointSize(32)
+        self.nottodbox.setFont(font)
+        
+        self.version_label = Label(self, _("Version") + f': <a href="https://github.com/mukonqi/nottodbox/releases/tag/{APP_VERSION}">{APP_VERSION}</a>')
+        self.version_label.setOpenExternalLinks(True)
+        
+        self.source_label = Label(self, _("Source codes") + ': <a href="https://github.com/mukonqi/nottodbox">GitHub</a>')
+        self.source_label.setOpenExternalLinks(True)
+        
+        self.developer_label = Label(self, _("Developer") + ': <a href="https://mukonqi.github.io">MuKonqi (Muhammed S.)</a>')
+        self.developer_label.setOpenExternalLinks(True)
+        
+        self.copyright_label = Label(self, _("Copyright (C)") + f': 2024-2025 MuKonqi (Muhammed S.)')
+        
+        self.license_label = Label(self, _("License: GNU General Public License, Version 3 or later"))
+        
+        self.icon_and_nottodbox.setLayout(self.icon_and_nottodbox_layout)
+        self.icon_and_nottodbox_layout.setSpacing(6)
+        self.icon_and_nottodbox_layout.addStretch()
+        self.icon_and_nottodbox_layout.addWidget(self.icon)
+        self.icon_and_nottodbox_layout.addWidget(self.nottodbox)
+        self.icon_and_nottodbox_layout.addStretch()
+        
+        self.setLayout(self.layout_)
+        self.layout_.addWidget(self.icon_and_nottodbox)
+        self.layout_.addWidget(self.version_label)
+        self.layout_.addWidget(self.source_label)
+        self.layout_.addWidget(HSeperator(self))
+        self.layout_.addWidget(self.developer_label)
+        self.layout_.addWidget(HSeperator(self))
+        self.layout_.addWidget(self.copyright_label)
+        self.layout_.addWidget(self.license_label)
+        
+        with open("@APP_DIR@/LICENSE.txt" if os.path.isfile("@APP_DIR@/LICENSE.txt") else 
+                    f"{os.path.dirname(__file__)}/LICENSE.txt" if os.path.isfile(f"{os.path.dirname(__file__)}/LICENSE.txt") else
+                    f"{os.path.dirname(os.path.dirname(__file__))}/LICENSE.txt") as license_file:
+            license_text = license_file.read()
+            
+        self.license_textedit = QTextEdit(self)
+        self.license_textedit.setFixedWidth(79 * 8 * QFontDatabase.systemFont(QFontDatabase.SystemFont.FixedFont).pointSize() / 10 + 
+                                            QApplication.style().pixelMetric(QStyle.PixelMetric.PM_ScrollBarSliderMin) + 10)
+        self.license_textedit.setCurrentFont(QFontDatabase.systemFont(QFontDatabase.SystemFont.FixedFont))
+        self.license_textedit.setText(license_text)
+        self.license_textedit.setReadOnly(True)
+        self.layout_.addWidget(self.license_textedit, 0, Qt.AlignmentFlag.AlignCenter)
+        
+    @Slot()
+    def openPage(self) -> None:
+        self.parent_.parent_.tabwidget.setCurrentPage(self.parent_)
+        self.parent_.about_button.setChecked(True if not self.parent_.about_button.isChecked() else False)

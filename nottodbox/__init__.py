@@ -21,7 +21,6 @@
 
 
 import sys
-import getpass
 import argparse
 import os
 import gettext
@@ -29,7 +28,12 @@ from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QApplication
 
 
-gettext.bindtextdomain("nottodbox", "@LOCALE_DIR@" if os.path.isdir("@LOCALE_DIR@") else f"{os.path.dirname(__file__)}/locale")
+sys.path.insert(1, "@APP_DIR@" if os.path.isdir("@APP_DIR@") else os.path.dirname(__file__))
+
+from consts import APP_ID, APP_VERSION, DESKTOP_FILE, ICON_FILE, LOCALE_DIR, USER_DESKTOP_FILE, USER_DESKTOP_FILE_FOUND  # type: ignore
+
+
+gettext.bindtextdomain("nottodbox", LOCALE_DIR)
 gettext.textdomain("nottodbox")
 
 _ = gettext.gettext
@@ -45,74 +49,53 @@ class CustomFormatter(argparse.HelpFormatter):
         
         return super().add_usage(usage, actions, groups, prefix)
 
-
 parser = argparse.ArgumentParser(prog="nottodbox", add_help=False, formatter_class=CustomFormatter)
 parser._positionals.title = _("positional arguments")
 parser._optionals.title = _("optional arguments")
 group = parser.add_mutually_exclusive_group()
 
 parser.add_argument("-h", "--help", help=_("show this help message"), action="help", default=argparse.SUPPRESS)
-parser.add_argument("-v", "--version", help=_("show the version"), action="version", version="v0.0.8-4")
+parser.add_argument("-v", "--version", help=_("show the version"), action="version", version=APP_VERSION)
 group.add_argument("-i", "--index", help=_("set the page to be opened via number"), default=1,
-                   choices=[1, 2, 3, 4, 5, 6], type=int)
+                   choices=[1, 2, 3, 4, 5], type=int)
 group.add_argument("-p", "--page", help=_("set the page to be opened via name"), default=_("home"), 
-                   choices=[__("Home"), __("Notes"), __("To-Dos"), __("Diaries"), __("Settings"), __("About")], type=str)
+                   choices=[__("Home"), __("Notes"), __("To-Dos"), __("Diaries"), __("Settings")], type=str)
 
 args = parser.parse_args()
 
 
-APP_ID = "io.github.mukonqi.nottodbox"
-USER_DATA = f"/home/{getpass.getuser()}/.local/share/nottodbox"
-os.makedirs(USER_DATA, exist_ok=True)   
-
-
-sys.path.insert(1, "@APP_DIR@" if os.path.isdir("@APP_DIR@") else os.path.dirname(__file__))
-
-
 from mainwindow import MainWindow
-
 
 class Application(QApplication):
     def __init__(self, argv: list) -> None:
         super().__init__(argv)
 
-        self.setApplicationVersion("v0.0.8-4")
+        self.setApplicationVersion(APP_VERSION)
         self.setApplicationName("nottodbox")
         self.setApplicationDisplayName("Nottodbox")
-        self.setDesktopFileName(os.path.join(self.getBaseDir(), "applications", f"{APP_ID}.desktop"))
-        self.setWindowIcon(QIcon.fromTheme(APP_ID, 
-                                           QIcon(os.path.join(self.getBaseDir(), "icons", "hicolor", "96x96", "apps", f"{APP_ID}.png"))))
+        self.setDesktopFileName(USER_DESKTOP_FILE if USER_DESKTOP_FILE_FOUND else DESKTOP_FILE)
+        self.setWindowIcon(QIcon.fromTheme(APP_ID, QIcon(ICON_FILE)))
         
         window = MainWindow()
         
         if args.index:
-            window.tabwidget.tabbar.setCurrentIndex(args.index - 1)
+            window.tabwidget.setCurrentPage(args.index - 1)
         
         elif args.page:
             if args.page == _("Home"):
-                window.tabwidget.tabbar.setCurrentIndex(0)
+                window.tabwidget.setCurrentPage(0)
             
             elif args.page == __("Notes"):
-                window.tabwidget.tabbar.setCurrentIndex(1)
+                window.tabwidget.setCurrentPage(1)
                 
             elif args.page == __("To-Dos"):
-                window.tabwidget.tabbar.setCurrentIndex(2)
+                window.tabwidget.setCurrentPage(2)
                 
             elif args.page == __("Diaries"):
-                window.tabwidget.tabbar.setCurrentIndex(3)
+                window.tabwidget.setCurrentPage(3)
                 
             elif args.page == __("Settings"):
-                window.tabwidget.tabbar.setCurrentIndex(4)
-                
-            elif args.page == __("About"):
-                window.tabwidget.tabbar.setCurrentIndex(5)
-                
-    def getBaseDir(self) -> str:
-        if os.path.dirname(os.path.dirname(__file__)) == "site-packages":
-            return os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))), "share")
-        
-        else:
-            return os.path.join(os.path.dirname(os.path.dirname(__file__)), "share")
+                window.tabwidget.setCurrentPage(4)
                 
 
 application = Application(sys.argv)

@@ -1,5 +1,6 @@
 # AppImage
 AppDir/
+CHANGELOG.html
 
 # Editor
 .vscode/
@@ -13,3 +14,8 @@ builddir/
 
 # Python
 *__pycache__
+
+# Run from source
+nottodbox/locale/
+share/applications/*.desktop
+share/metainfo/*.appdata.xml
