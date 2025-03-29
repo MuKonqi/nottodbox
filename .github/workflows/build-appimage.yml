@@ -7,6 +7,15 @@ on:
   workflow_dispatch:
 
 jobs:
+  setup:
+    runs-on: ubuntu-24.04
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Delete old nightly release
+      run: gh release delete nightly --cleanup-tag --yes
+
   build:
     runs-on: ubuntu-24.04
     container: archlinux:latest
@@ -32,9 +41,6 @@ jobs:
       with:
         body_path: "CHANGELOG.html"
         files: ./nottodbox*.AppImage*
-
-    - name: Delete old nightly release
-      run: gh release delete nightly --cleanup-tag --yes
 
     - name: Upload to nightly release
       uses: softprops/action-gh-release@v2.2.1
