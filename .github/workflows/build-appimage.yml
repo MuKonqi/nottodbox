@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  setup:
+  delete-old-nightly-release:
     env:
       GH_TOKEN: ${{ github.token }}
     
@@ -17,9 +17,9 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Delete old nightly release
-      run: gh release delete nightly --cleanup-tag --yes
+      run: gh release delete nightly --cleanup-tag --yes | true
 
-  build:
+  build-appimage:
     runs-on: ubuntu-24.04
     container: archlinux:latest
 
