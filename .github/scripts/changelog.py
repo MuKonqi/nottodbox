@@ -19,7 +19,7 @@ for release in releases:
     number += 1
     
     if release.attrib["version"] == APP_VERSION:
-        for line in release.find("description").iter("ul"):
+        for line in release.find("description").find("ul").iter("li"):
             changelog += f'\n- {line.text}'
             
         break
