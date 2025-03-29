@@ -24,7 +24,7 @@ for release in releases:
             
         break
     
-changelog += f'\n\n**Full Changelog**: [{releases[number - 1].attrib["version"]}...{APP_VERSION}](https://github.com/MuKonqi/nottodbox/compare/{releases[number - 1].attrib["version"]}...{APP_VERSION})'
+changelog += f'\n\n**Full Changelog**: [{releases[number + 1].attrib["version"]}...{APP_VERSION}](https://github.com/MuKonqi/nottodbox/compare/{releases[number + 1].attrib["version"]}...{APP_VERSION})'
 
 with open("CHANGELOG.md", "w") as f:
     f.write(changelog)
