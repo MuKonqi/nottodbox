@@ -222,7 +222,7 @@ class DiariesOptions(OptionsForDocuments):
         if self.checkIfItExists(name, table, False):
             super().open(False, name, table)
         
-        else:
+        elif self.checkTheName(name, table):
             if diariesdb.createChild(name):
                 self.parent_.shortcuts[(name, table)] = Action(self, name)
                 self.parent_.shortcuts[(name, table)].triggered.connect(

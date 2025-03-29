@@ -360,11 +360,15 @@ class Options(QWidget):
             
             return False
         
-        elif "__main__" == name and "__main__" == table:
+        elif name == "__main__" and table == "__main__":
             if messages:
                 QMessageBox.critical(self, _("Error"), _("The name can not be to __main__."))
             
             return False
+        
+        elif name == "" or table == "":
+            if messages:
+                QMessageBox.critical(self, _("Error"), _("The name can not be empty."))
         
         else:
             return True
@@ -379,7 +383,8 @@ class Options(QWidget):
             
             if question == QMessageBox.StandardButton.Yes:
                 if self.db.delete(name, table):
-                    self.parent_.setSelectedItem("", table)
+                    if self.module != "diaries":
+                        self.parent_.setSelectedItem("", table)
                     
                     if table == "__main__" and self.module != "diaries":
                         for child, parent in self.parent_.shortcuts.copy().keys():
@@ -406,7 +411,8 @@ class Options(QWidget):
         
         if question == QMessageBox.StandardButton.Yes:
             if self.db.deleteAll():
-                self.parent_.setSelectedItem("", "")
+                if self.module != "diaries":
+                    self.parent_.setSelectedItem("", "")
                 
                 self.parent_.menu.clear()
                 self.parent_.shortcuts.clear()
@@ -572,7 +578,7 @@ class Options(QWidget):
                 
 
 class OptionsForDocuments(Options):
-    def __init__(self, parent: HomePage | HomePage, module: str, db):
+    def __init__(self, parent: HomePage, module: str, db):
         super().__init__(parent, module, db)
         
         self.open_button = PushButton(self, _("Open"))

@@ -175,14 +175,18 @@ class SidebarTreeView(QTreeView):
                                StandardItem(page, [module, page])])
     
     def deletePage(self, module: str, page: str) -> None:
-        self.model_.removeRow(self.counts[module, page])
-        
-        for parent_, child_ in self.counts.keys():
-            if self.counts[(parent_, child_)] > self.counts[(module, page)]:
-                self.counts[(parent_, child_)] -= 1
-                
-        del self.counts[(module, page)]
-        self.pages.remove((module, page))
+        if page != "":
+            self.model_.removeRow(self.counts[module, page])
+            
+            for parent_, child_ in self.counts.keys():
+                if self.counts[(parent_, child_)] > self.counts[(module, page)]:
+                    self.counts[(parent_, child_)] -= 1
+                    
+            del self.counts[(module, page)]
+            self.pages.remove((module, page))
+            
+        else:
+            QMessageBox.critical(self.parent_, _("Error"), _("The name can not be empty."))
         
     @Slot(str, str)
     def doubleClickEvent(self, module: str, page: str) -> None:
@@ -236,17 +240,19 @@ class SidebarHistory(SidebarTreeView):
             
     @Slot()
     def deleteAll(self) -> None:
-        self.counts = {}
+        if historydb.deleteAll():
+            self.counts = {}
         
-        self.model_.clear()
-        self.model_.setHorizontalHeaderLabels([_("Type"), _("Page")])
+            self.model_.clear()
+            self.model_.setHorizontalHeaderLabels([_("Type"), _("Page")])
             
-        if not historydb.deleteAll():
+        else:
             QMessageBox.critical(self, _("Error"), _("Failed to clear history."))
             
     @Slot(str, str)
     def deletePage(self, module: str, page: str):
-        super().deletePage(module, page)
-
-        if not historydb.deletePage(module, page):
+        if historydb.deletePage(module, page):
+            super().deletePage(module, page)
+            
+        else:
             QMessageBox.critical(self, _("Error"), _("Failed to delete {page} page from history.").format(page = page))

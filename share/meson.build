@@ -1,5 +1,5 @@
 desktop_config = configuration_data()
-desktop_config.set('BINDIR', join_paths(get_option('prefix'), get_option('bindir')))
+desktop_config.set('BIN_DIR', join_paths(get_option('prefix'), get_option('bindir')))
 
 i18n.merge_file(
   input: configure_file(

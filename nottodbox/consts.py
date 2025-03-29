@@ -26,7 +26,7 @@ APP_ID = "io.github.mukonqi.nottodbox"
 
 APP_MODE = "@MODE@"
 
-APP_VERSION = "v0.0.9"
+APP_VERSION = "v0.0.9-2"
 
 
 if APP_MODE == "meson":
@@ -44,11 +44,20 @@ else:
     
     
     LOCALE_DIR = os.path.join(os.path.dirname(__file__), "locale")
+
     
+if APP_MODE == "appimage":
+    DESKTOP_FILE = os.path.join(os.path.dirname(DATA_DIR), f"{APP_ID}.desktop")
     
-DESKTOP_FILE = os.path.join(DATA_DIR, "applications", "io.github.mukonqi.nottodbox.desktop")
+else:
+    DESKTOP_FILE = os.path.join(DATA_DIR, "applications", f"{APP_ID}.desktop")
     
 DESKTOP_FILE_FOUND = os.path.isfile(DESKTOP_FILE)
+
+if not DESKTOP_FILE_FOUND:
+    DESKTOP_FILE += ".in.in"
+    
+    DESKTOP_FILE_FOUND = os.path.isfile(DESKTOP_FILE)
 
 
 ICON_FILE = os.path.join(DATA_DIR, "icons", "hicolor", "scalable", "apps", f"{APP_ID}.svg")
@@ -74,3 +83,6 @@ with open("/etc/passwd") as f:
 
 USER_DATABASES_DIR = f"/home/{USER_NAME}/.local/share/nottodbox/databases"
 os.makedirs(USER_DATABASES_DIR, exist_ok=True)
+
+
+SYSTEM_DESKTOP_FILE_FOUND = os.path.isfile(f"/usr/share/applications/{APP_ID}.desktop") or os.path.isfile(f"/usr/local/share/applications/{APP_ID}.desktop")

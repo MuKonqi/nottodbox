@@ -191,7 +191,7 @@
 - git
 - msgfmt (generally distributed with gettext or gettext-tools package)
 
-### Clone, OPTIONAL features (translations and shortcut support) set-up , run
+### Clone, set-up translations (OPTIONAL), run
 1. ```git clone https://github.com/mukonqi/nottodbox.git ; cd nottodbox```
 2. ```python3 .github/scripts/translations.py``` (OPTIONAL)
 3. ```python3 -m nottodbox```

@@ -32,6 +32,7 @@ class BasePage(QWidget):
                  name: str, table: str = "__main__") -> None:
         super().__init__(parent)
         
+        self.parent_ = parent
         self.module = module
         self.name = name
         self.db = db
@@ -295,7 +296,7 @@ class NormalPage(BasePage):
         
         self.save = lambda: self.saver.started.emit(True)
         
-        self.changeAutosaveConnections()
+        self.connectAutosaveConnections()
             
     def checkIfTheDiaryExistsIfNotCreateTheDiary(self) -> bool:
         if self.module == "notes":
@@ -305,10 +306,8 @@ class NormalPage(BasePage):
             if self.db.checkIfTheChildExists(self.name):
                 return True
             
-            else:
-                create = self.db.createChild(self.name)
-                
-                if create:
+            else:                
+                if self.db.createChild(self.name):
                     return True
                 
                 else:
@@ -316,7 +315,7 @@ class NormalPage(BasePage):
                     
                     return False
                 
-    def changeAutosaveConnections(self) -> None:    
+    def changeAutosaveConnections(self) -> None:
         if self.autosave == "enabled":
             self.connectAutosaveConnections()
             
@@ -386,7 +385,9 @@ class Saver(QObject):
     
     @Slot(bool)
     def saveChild(self, autosave: bool = False) -> bool | None:
-        if self.parent_.outdated == "":
+        exists = self.parent_.db.checkIfTheChildExists(self.parent_.name, self.parent_.table)
+        
+        if not exists:
             if not self.parent_.db.createChild(self.parent_.name):
                 QMessageBox.critical(self.parent_, _("Error"), _("Failed to create {item}.")
                                     .format(item = _("{name} note") if self.parent_.module == "notes" else _("{name} dated diary")))
@@ -414,6 +415,14 @@ class Saver(QObject):
                     QMessageBox.information(self.parent_, _("Successful"), _("{item} saved.")
                                             .format(item = _("{name} note") if self.parent_.module == "notes" else _("{name} dated diary"))
                                             .format(name = self.parent_.name))
+                    
+                if not exists and type(self.parent_.parent_).__name__ == "HomeWidget":
+                    self.parent_.parent_.parent_.diaries.home.shortcuts[
+                        (self.parent_.name, "__main__")] = Action(self, self.parent_.name)
+                    self.parent_.parent_.parent_.diaries.home.shortcuts[(self.parent_.name, "__main__")].triggered.connect(
+                        lambda state: self.parent_.parent_.parent_.diaries.home.shortcutEvent(self.parent_.name, "__main__"))
+                    self.parent_.parent_.parent_.diaries.home.menu.addAction(
+                        self.parent_.parent_.parent_.diaries.home.shortcuts[(self.parent_.name, "__main__")])
                     
                 return True
                 

@@ -31,6 +31,8 @@ class HomeWidget(QWidget):
     def __init__(self, parent: QMainWindow, todos, notes, diaries):
         super().__init__(parent)
         
+        self.parent_ = parent
+        
         self.layout_ = QVBoxLayout(self)
         
         self.label_welcome = Label(self, _("Welcome {username}!").format(username = USER_NAME_PRETTY))

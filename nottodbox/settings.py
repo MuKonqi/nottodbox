@@ -25,7 +25,7 @@ from PySide6.QtGui import QColor, QPalette, QPixmap, QFontDatabase
 from PySide6.QtWidgets import *
 from widgets.dialogs import ColorDialog
 from widgets.others import Combobox, HSeperator, Label, PushButton, VSeperator
-from consts import APP_MODE, APP_VERSION, DESKTOP_FILE_FOUND, DESKTOP_FILE, ICON_FILE, USER_NAME, USER_DESKTOP_FILE, USER_DESKTOP_FILE_FOUND
+from consts import APP_MODE, APP_VERSION, DESKTOP_FILE_FOUND, DESKTOP_FILE, ICON_FILE, USER_NAME, USER_DESKTOP_FILE, USER_DESKTOP_FILE_FOUND, SYSTEM_DESKTOP_FILE_FOUND
 
 
 COLOR_SCHEMES_DIRS = []
@@ -942,9 +942,8 @@ class ShortcutsSettings(BaseSettings):
         
         self.form.addRow("{}:".format(_("Auto add at every startup")), self.start_menu_shortcut)
         
-        if DESKTOP_FILE_FOUND and APP_MODE != "meson":
-            if APP_MODE == "@MODE@":
-                self.auto_shortcut_checkbox.setEnabled(True)
+        if DESKTOP_FILE_FOUND and (APP_MODE != "meson" or not SYSTEM_DESKTOP_FILE_FOUND):
+            self.auto_shortcut_checkbox.setEnabled(True)
                 
             self.add_shortcut_button.setEnabled(True)
         
@@ -959,20 +958,12 @@ class ShortcutsSettings(BaseSettings):
             data = f.read()
             
         if APP_MODE == "@MODE@":
-            data = data.replace("Exec=@BINDIR@/nottodbox", f"Exec=python3 {os.path.dirname(__file__)}/__init__.py")
+            data = data.replace("Exec=@BIN_DIR@/nottodbox", f"Exec=python3 {os.path.dirname(__file__)}/__init__.py")
             
             data = data.replace("Icon=io.github.mukonqi.nottodbox", f"Icon={ICON_FILE}")
         
-        elif APP_MODE == "appimage":
-            path = QFileDialog.getOpenFileName(self,
-                    _("Select Nottodbox's AppImage file").title(),
-                    "",
-                    "AppImage (*.appimage)")[0]
-            
-            if not os.path.isfile(path):
-                return
-            
-            data = data.replace("Exec=@BINDIR@/nottodbox", f"Exec={path}")
+        elif APP_MODE == "appimage":           
+            data = data.replace("Exec=@BIN_DIR@/nottodbox", f"Exec={os.environ["APPIMAGE"]}")
         
         os.makedirs(f"/home/{USER_NAME}/.local/share/applications", exist_ok=True)
         
@@ -990,7 +981,7 @@ class ShortcutsSettings(BaseSettings):
     def apply(self) -> bool:
         successful = True
         
-        if DESKTOP_FILE_FOUND and APP_MODE == "@MODE@":
+        if DESKTOP_FILE_FOUND and (APP_MODE != "meson" or not SYSTEM_DESKTOP_FILE_FOUND):
             if self.auto_shortcut_checkbox.checkState() == Qt.CheckState.Checked:
                 settings.setValue("shortcut/auto_shortcut", "enabled")
                 
@@ -1035,7 +1026,7 @@ class ShortcutsSettings(BaseSettings):
             self.auto_shortcut_checkbox.setChecked(True)
             self.auto_shortcut_checkbox.setText(_("Enabled"))
             
-            if DESKTOP_FILE_FOUND and APP_MODE == "@MODE@":
+            if DESKTOP_FILE_FOUND and (APP_MODE != "meson" or not SYSTEM_DESKTOP_FILE_FOUND):
                 self.addDesktopFile()
             
         elif self.value == "disabled":
