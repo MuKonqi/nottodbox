@@ -925,6 +925,10 @@ class ShortcutsSettings(BaseSettings):
         self.auto_shortcut_checkbox = QCheckBox("", self.start_menu_shortcut)
         self.auto_shortcut_checkbox.setEnabled(False)      
         self.auto_shortcut_checkbox.setChecked(False)
+        try:
+            self.auto_shortcut_checkbox.checkStateChanged.connect(self.autoShortcutChanged)
+        except:
+            self.auto_shortcut_checkbox.stateChanged.connect(self.autoShortcutChanged)
             
         self.add_shortcut_button = PushButton(self.start_menu_shortcut, _("Add"))
         self.add_shortcut_button.setEnabled(False)
@@ -951,6 +955,16 @@ class ShortcutsSettings(BaseSettings):
             self.delete_shortcut_button.setEnabled(True)
         
         self.load()
+
+    @Slot(int or Qt.CheckState)
+    def autoShortcutChanged(self, signal: Qt.CheckState | int) -> None:
+        if signal == Qt.CheckState.Unchecked or signal == 0:
+            self.auto_shortcut = "disabled"
+            self.auto_shortcut_checkbox.setText(_("Disabled"))
+        
+        elif signal == Qt.CheckState.Checked or signal == 2:
+            self.auto_shortcut = "enabled"
+            self.auto_shortcut_checkbox.setText(_("Enabled"))
         
     @Slot()
     def addDesktopFile(self, manual: bool = False) -> None:
@@ -977,24 +991,21 @@ class ShortcutsSettings(BaseSettings):
             
                 else:
                     QMessageBox.critical(self, _("Error"), _("Failed to add start menu shortcut to start menu."))
+                    
+        global USER_DESKTOP_FILE_FOUND
+        USER_DESKTOP_FILE_FOUND = True
+        self.delete_shortcut_button.setEnabled(True)
         
     def apply(self) -> bool:
         successful = True
         
         if DESKTOP_FILE_FOUND and (APP_MODE != "meson" or not SYSTEM_DESKTOP_FILE_FOUND):
-            if self.auto_shortcut_checkbox.checkState() == Qt.CheckState.Checked:
-                settings.setValue("shortcut/auto_shortcut", "enabled")
+            settings.setValue("shortcut/auto_shortcut", self.auto_shortcut)
                 
-                self.value = "enabled"
-                
+            if self.auto_shortcut == "enabled":
                 self.addDesktopFile()
                 
-            elif self.auto_shortcut_checkbox.checkState() == Qt.CheckState.Unchecked:
-                settings.setValue("shortcut/auto_shortcut", "disabled")
-                
-                self.value = "disabled"
-                
-            if self.value != settings.value("shortcut/auto_shortcut"):
+            if self.auto_shortcut != settings.value("shortcut/auto_shortcut"):
                 successful = False
                 
         return successful
@@ -1006,30 +1017,29 @@ class ShortcutsSettings(BaseSettings):
         if not os.path.isfile(USER_DESKTOP_FILE):
             QMessageBox.information(self, _("Successful"), _("Start menu shortcut was deleted from start menu."))
             
-            self.delete_shortcut_button.setEnabled(False)
-            
             global USER_DESKTOP_FILE_FOUND
             USER_DESKTOP_FILE_FOUND = False
+            self.delete_shortcut_button.setEnabled(False)
             
         else:
             QMessageBox.critical(self, _("Error"), _("Failed to delete start menu shortcut from start menu."))
     
     def load(self) -> None:
-        self.value = settings.value("shortcut/auto_shortcut")
+        self.auto_shortcut = settings.value("shortcut/auto_shortcut")
         
-        if self.value is None or self.value == "":
+        if self.auto_shortcut is None or self.auto_shortcut == "":
             settings.setValue("shortcut/auto_shortcut", "disabled")
             
-            self.value = "disabled"
+            self.auto_shortcut = "disabled"
             
-        if self.value == "enabled":
+        if self.auto_shortcut == "enabled":
             self.auto_shortcut_checkbox.setChecked(True)
             self.auto_shortcut_checkbox.setText(_("Enabled"))
             
             if DESKTOP_FILE_FOUND and (APP_MODE != "meson" or not SYSTEM_DESKTOP_FILE_FOUND):
                 self.addDesktopFile()
             
-        elif self.value == "disabled":
+        elif self.auto_shortcut == "disabled":
             self.auto_shortcut_checkbox.setChecked(False)
             self.auto_shortcut_checkbox.setText(_("Disabled"))
                 
