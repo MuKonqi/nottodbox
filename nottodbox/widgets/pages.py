@@ -277,10 +277,14 @@ class BackupPage(BasePage):
 
 
 class NormalPage(BasePage):
+    successful = Signal(bool)
+    
     def __init__(self, parent: QWidget, module: str,
                  db, format: str, autosave: str,
                  name: str, table: str = "__main__") -> None:
         super().__init__(parent, module, db, "normal", format, autosave, name, table)
+        
+        self.successful.connect(self.showMessages)
             
         self.saver = Saver(self)
         self.saver.started.connect(self.saver.saveChild)
@@ -373,7 +377,18 @@ class NormalPage(BasePage):
     @Slot(int)
     def setFormat(self, index: int) -> bool:        
         return self.checkIfTheDiaryExistsIfNotCreateTheDiary() and super().setFormat(index)
+    
+    @Slot(bool)
+    def showMessages(self, successful: bool) -> None:
+        if successful:
+            QMessageBox.information(self, _("Successful"), _("{item} saved.")
+                                    .format(item = _("{name} note") if self.module == "notes" else _("{name} dated diary"))
+                                    .format(name = self.name))
         
+        else:
+            QMessageBox.critical(self, _("Error"), _("Failed to save {item}.")
+                                     .format(item = _("{name} note") if self.module == "notes" else _("{name} dated diary"))
+                                     .format(name = self.name))
         
 class Saver(QObject):
     started = Signal(bool)
@@ -385,17 +400,29 @@ class Saver(QObject):
     
     @Slot(bool)
     def saveChild(self, autosave: bool = False) -> bool | None:
-        exists = self.parent_.db.checkIfTheChildExists(self.parent_.name, self.parent_.table)
-        
-        if not exists:
-            if not self.parent_.db.createChild(self.parent_.name):
-                QMessageBox.critical(self.parent_, _("Error"), _("Failed to create {item}.")
+        if self.parent_.module == "diaries" and not self.parent_.db.checkIfTheChildExists(self.parent_.name, self.parent_.table):
+            if self.parent_.db.createChild(self.parent_.name):
+                if type(self.parent_.parent_).__name__ == "HomeWidget":
+                    self.parent_.parent_.parent_.diaries.home.shortcuts[
+                        (self.parent_.name, self.parent_.table)] = Action(self, self.parent_.name)
+                    self.parent_.parent_.parent_.diaries.home.shortcuts[(self.parent_.name, self.parent_.table)].triggered.connect(
+                        lambda state: self.parent_.parent_.parent_.diaries.home.shortcutEvent(self.parent_.name, self.parent_.table))
+                    self.parent_.parent_.parent_.diaries.home.menu.addAction(
+                        self.parent_.parent_.parent_.diaries.home.shortcuts[(self.parent_.name, self.parent_.table)])
+                
+            else:
+                QMessageBox.critical(self, _("Error"), _("Failed to create {item}.")
                                     .format(item = _("{name} note") if self.parent_.module == "notes" else _("{name} dated diary")))
                 
                 return False
         
         if not autosave or (autosave and self.parent_.autosave == "enabled"):
             if self.parent_.outdated == "yes":
+                if autosave:
+                    self.parent_.successful.emit(False)
+                    
+                    return False
+                
                 question = QMessageBox.question(
                     self.parent_, _("Question"), _("Diaries are unique to the day they are written.\nDo you really want to change the content?"))
                 
@@ -412,24 +439,12 @@ class Saver(QObject):
                 self.parent_.closable = True
                 
                 if not autosave:
-                    QMessageBox.information(self.parent_, _("Successful"), _("{item} saved.")
-                                            .format(item = _("{name} note") if self.parent_.module == "notes" else _("{name} dated diary"))
-                                            .format(name = self.parent_.name))
-                    
-                if not exists and type(self.parent_.parent_).__name__ == "HomeWidget":
-                    self.parent_.parent_.parent_.diaries.home.shortcuts[
-                        (self.parent_.name, "__main__")] = Action(self, self.parent_.name)
-                    self.parent_.parent_.parent_.diaries.home.shortcuts[(self.parent_.name, "__main__")].triggered.connect(
-                        lambda state: self.parent_.parent_.parent_.diaries.home.shortcutEvent(self.parent_.name, "__main__"))
-                    self.parent_.parent_.parent_.diaries.home.menu.addAction(
-                        self.parent_.parent_.parent_.diaries.home.shortcuts[(self.parent_.name, "__main__")])
+                    self.parent_.successful.emit(True)
                     
                 return True
                 
             else:
-                QMessageBox.critical(self.parent_, _("Error"), _("Failed to save {item}.")
-                                     .format(item = _("{name} note") if self.parent_.module == "notes" else _("{name} dated diary"))
-                                     .format(name = self.parent_.name))
+                self.parent_.successful.emit(False)
                 
                 return False
             
