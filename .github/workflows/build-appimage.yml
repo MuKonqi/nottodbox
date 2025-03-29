@@ -20,20 +20,23 @@ jobs:
     - name: Download appimage-builder
       run: pipx install appimage-builder
     
-    - name: Build package
+    - name: Build AppImage package
       run: /github/home/.local/bin/appimage-builder --recipe .github/scripts/build-appimage.yml
 
-    - name: Get changelog
+    - name: Create changelog file
       run: python3 .github/scripts/changelog.py
 
-    - name: Stable release
+    - name: Upload to stable release
       uses: softprops/action-gh-release@v2.2.1
       if: startsWith(github.ref, 'refs/tags/')
       with:
         body_path: "CHANGELOG.html"
         files: ./nottodbox*.AppImage*
 
-    - name: Nightly release
+    - name: Delete old nightly release
+      run: gh release delete nightly --cleanup-tag --yes
+
+    - name: Upload to nightly release
       uses: softprops/action-gh-release@v2.2.1
       with:
         body_path: "CHANGELOG.html"
