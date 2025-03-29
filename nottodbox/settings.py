@@ -205,11 +205,11 @@ class SettingsWidget(QWidget):
         
     @Slot(bool)
     def aboutPage(self, check: bool) -> None:
+        if self.container.currentIndex() != self.container.count() - 1:
+            self.last_index = self.container.currentIndex()
+        
         self.container.setCurrentIndex(self.container.count() - 1 if check else self.last_index)
         self.selector.setDisabled(check)
-        
-        if self.container.currentIndex() != self.container.count() -1:
-            self.last_index = self.container.currentIndex()
         
     @Slot()
     def apply(self) -> None:

@@ -11,16 +11,20 @@ with open("share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in") as f:
     
 releases = xml.find("releases").findall("release")
 
-changelog = ""
+changelog = "## What's Changed"
+
+number = -1
 
 for release in releases:
+    number += 1
+    
     if release.attrib["version"] == APP_VERSION:
         for line in release.find("description").iter("ul"):
-            changelog += f"<ul>{line.text}</ul>\n"
+            changelog += f'\n- {line.text}'
             
         break
     
-changelog = changelog.removesuffix("\n")
+changelog += f'\n\n**Full Changelog**: [{releases[number - 1].attrib["version"]}...{APP_VERSION}](https://github.com/MuKonqi/nottodbox/compare/{releases[number - 1].attrib["version"]}...{APP_VERSION})'
 
-with open("CHANGELOG.html", "w") as f:
+with open("CHANGELOG.md", "w") as f:
     f.write(changelog)

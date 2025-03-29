@@ -42,13 +42,13 @@ jobs:
       uses: softprops/action-gh-release@v2.2.1
       if: startsWith(github.ref, 'refs/tags/')
       with:
-        body_path: "CHANGELOG.html"
+        body_path: "CHANGELOG.md"
         files: ./nottodbox*.AppImage*
 
     - name: Upload to nightly release
       uses: softprops/action-gh-release@v2.2.1
       with:
-        body_path: "CHANGELOG.html"
+        body_path: "CHANGELOG.md"
         files: ./nottodbox*.AppImage*
         tag_name: nightly
         prerelease: true
