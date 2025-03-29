@@ -47,14 +47,14 @@ else:
 
     
 if APP_MODE == "appimage":
-    DESKTOP_FILE = os.path.join(os.path.dirname(DATA_DIR), f"{APP_ID}.desktop")
+    DESKTOP_FILE = os.path.join(os.path.dirname(os.path.dirname(DATA_DIR)), f"{APP_ID}.desktop")
     
 else:
     DESKTOP_FILE = os.path.join(DATA_DIR, "applications", f"{APP_ID}.desktop")
     
 DESKTOP_FILE_FOUND = os.path.isfile(DESKTOP_FILE)
 
-if not DESKTOP_FILE_FOUND:
+if not DESKTOP_FILE_FOUND and APP_MODE == "@MODE@":
     DESKTOP_FILE += ".in.in"
     
     DESKTOP_FILE_FOUND = os.path.isfile(DESKTOP_FILE)

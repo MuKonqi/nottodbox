@@ -8,7 +8,8 @@ script:
   - sed -i 's/APP_MODE = "@MODE@"/APP_MODE = "appimage"/' nottodbox/consts.py
   - cp -r nottodbox AppDir/usr/lib/python3.13/site-packages
   - cp -r share/icons AppDir/usr/share
-  - cp LICENSE.txt AppDir/usr/lib/python3.13/site-packages/nottodbox
+  - cp LICENSE.txt README.md AppDir/usr/lib/python3.13/site-packages/nottodbox
+  - rm AppDir/usr/lib/python3.13/site-packages/nottodbox/meson.build
   - python3 .github/scripts/translations.py --appimage
   - pip install --ignore-installed --prefix=/usr --no-cache-dir --root=AppDir PySide6-Essentials
   - rm -rf AppDir/usr/lib/python3.13/site-packages/PySide6/Qt/{qml,libexec,translations}
