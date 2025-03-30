@@ -143,6 +143,10 @@
     - Setting style
     - Setting color scheme
     - Creating custom color schemes
+- Shortcuts:
+    - Option for auto adding start menu shortcut at every startup
+    - Adding start menu shortcut
+    - Deleting start menu shortcut     
 - Sidebar:
     - Setting alternate row color for lists
 - Notes:
@@ -158,16 +162,14 @@
     - Setting default highlight color for items
     - Setting auto-save for documents
     - Setting format for documents
-
-### About
-> See some informations about Nottodbox.
-- The icon and application name
-- Version
-- Link source codes
-- Developer
-- Copyright notification
-- License
-- License text
+- About:
+    - The icon and application name
+    - Version
+    - Link source codes
+    - Developer
+    - Copyright notification
+    - License
+    - License text
 </details>
 
 
