@@ -39,6 +39,7 @@ class TabWidget(QTabWidget):
         
         self.current_index = 0
         self.last_closed = None
+        self.todays_diary_closed = False
         
         self.setTabsClosable(True)
         self.setMovable(True)
@@ -63,7 +64,7 @@ class TabWidget(QTabWidget):
                         name = page
                         table = "__main__"
                     
-                    if not self.pages[(name, table)].closable:
+                    if not self.pages[(name, table)].checkIfTheTextChanged:
                         self.question = QMessageBox.question(self, 
                                                             _("Question"),
                                                             _("{item} not saved.\nWhat would you like to do?")
@@ -78,7 +79,7 @@ class TabWidget(QTabWidget):
                         elif self.question != QMessageBox.StandardButton.Discard:
                             return
                         
-                    if self.module == "diaries" and QDate.fromString(name, "dd.MM.yyyy") != QDate.currentDate():
+                    if self.module == "diaries" and QDate.fromString(name, "dd/MM/yyyy") != QDate.currentDate():
                         if not self.pages[(name, table)].makeBackup():
                             return
                         
@@ -86,15 +87,14 @@ class TabWidget(QTabWidget):
                     
                     del self.pages[(name, table)]
                     
-                    if not hasattr(self, "closable"):
-                        self.closable = True
-                    
-                    if not str(page).endswith(_(" (Backup)")):
-                        if self.module == "notes":
-                            self.parent_.dock.widget().open_pages.deletePage(self.module, f"{name} @ {table}")
-                            
-                        elif self.module == "diaries":
-                            self.parent_.dock.widget().open_pages.deletePage(self.module, name)
+                    if self.module == "notes":
+                        self.parent_.sidebar.open_pages.deletePage(self.module, f"{name} @ {table}")
+                        
+                    elif self.module == "diaries":
+                        self.parent_.sidebar.open_pages.deletePage(self.module, name)
+                        
+                        if name == self.home.today.toString("dd/MM/yyyy") and table == "__main__":
+                            self.todays_diary_closed = True
                                             
                 self.removeTab(index)
                 
@@ -632,14 +632,31 @@ class OptionsForDocuments(Options):
             if (name, table) in self.parent_.parent_.pages.keys():
                 self.parent_.parent_.setCurrentWidget(self.parent_.parent_.pages[(name, table)])
                 
-            else:            
-                self.parent_.parent_.pages[(name, table)] = NormalPage(self, self.module, 
-                                                                       self.db, self.parent_.format, self.parent_.autosave, 
-                                                                       name, table)
+            else:
+                if self.module == "diaries" and table == "__main__" and name == self.parent_.today.toString("dd/MM/yyyy"):
+                    self.parent_.parent_.parent_.home.diary.layout_.setContentsMargins(self.parent_.parent_.parent_.home.diary.layout_.default_contents_margins)
+                    
+                    widget = QStackedWidget(self)
+                    widget.addWidget(self.parent_.parent_.parent_.home.diary)
+                    widget.checkIfTheTextChanged = self.parent_.parent_.parent_.home.diary.checkIfTheTextChanged
+                    widget.changeAutosaveConnections = self.parent_.parent_.parent_.home.diary.changeAutosaveConnections
+                    widget.disconnectAutosaveConnections = self.parent_.parent_.parent_.home.diary.disconnectAutosaveConnections
+                    widget.makeBackup = self.parent_.parent_.parent_.home.diary.makeBackup
+                    widget.mode =self.parent_.parent_.parent_.home.diary.mode
+                    widget.saver = self.parent_.parent_.parent_.home.diary.saver
+                    widget.saver_thread = self.parent_.parent_.parent_.home.diary.saver_thread
+                    
+                    self.parent_.parent_.parent_.home.diary_seperator.setVisible(False)
+                    self.parent_.parent_.parent_.home.diary_button.setVisible(False)
+                    self.parent_.parent_.pages[(name, table)] = widget
+                    
+                else:
+                    self.parent_.parent_.pages[(name, table)] = NormalPage(
+                        self, self.module, self.db, self.parent_.format, self.parent_.autosave, name, table)
                 self.parent_.parent_.addTab(self.parent_.parent_.pages[(name, table)], 
                                             self.parent_.returnPretty(name, table))
                 self.parent_.parent_.setCurrentWidget(self.parent_.parent_.pages[(name, table)])
-                self.parent_.parent_.parent_.dock.widget().open_pages.appendPage(self.module, self.parent_.returnPretty(name, table))
+                self.parent_.parent_.parent_.sidebar.open_pages.appendPage(self.module, self.parent_.returnPretty(name, table))
                 
             self.parent_.parent_.parent_.tabwidget.setCurrentPage(self.parent_.parent_)
             

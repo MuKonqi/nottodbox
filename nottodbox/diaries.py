@@ -92,7 +92,7 @@ class DiariesDB(DBForDocuments):
         
         outdated = self.getOutdated(name)
         
-        if QDate.fromString(name, "dd.MM.yyyy") != QDate.currentDate():
+        if QDate.fromString(name, "dd/MM/yyyy") != QDate.currentDate():
             if outdated == "no":
                 changed = True
                 
@@ -272,9 +272,9 @@ class DiariesCalendarWidget(QCalendarWidget):
         self.setMaximumDate(self.parent_.today)
         self.setStatusTip(_("Double-click on top to opening a diary."))
         self.selectionChanged.connect(
-            lambda: self.parent_.setSelectedItem(self.selectedDate().toString("dd.MM.yyyy")))
+            lambda: self.parent_.setSelectedItem(self.selectedDate().toString("dd/MM/yyyy")))
 
-        self.parent_.setSelectedItem(self.selectedDate().toString("dd.MM.yyyy"))
+        self.parent_.setSelectedItem(self.selectedDate().toString("dd/MM/yyyy"))
 
     def mouseDoubleClickEvent(self, a0: QMouseEvent | None) -> None:
         super().mouseDoubleClickEvent(a0)
@@ -287,8 +287,8 @@ class DiariesCalendarWidget(QCalendarWidget):
         highlights = {}
         
         for name, highlight in diariesdb.getAllWithHighlights():
-            dates.append(QDate.fromString(name, "dd.MM.yyyy"))
-            highlights[QDate.fromString(name, "dd.MM.yyyy")] = highlight
+            dates.append(QDate.fromString(name, "dd/MM/yyyy"))
+            highlights[QDate.fromString(name, "dd/MM/yyyy")] = highlight
 
         if date in dates:
             if highlights[date] == "global":

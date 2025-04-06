@@ -90,7 +90,7 @@ class GetDateDialog(GetDialogBase):
         
         self.calendar = QCalendarWidget(self.input)
         self.calendar.setMaximumDate(QDate.currentDate())
-        self.calendar.setSelectedDate(QDate.fromString(name, "dd.MM.yyyy"))
+        self.calendar.setSelectedDate(QDate.fromString(name, "dd/MM/yyyy"))
         
         self.layout_.addWidget(Label(self.input, label))
         self.layout_.addWidget(self.calendar)
@@ -99,7 +99,7 @@ class GetDateDialog(GetDialogBase):
 
     def getResult(self) -> tuple[str, bool]:
         if self.result() == 1:
-            return QDate.toString(self.calendar.selectedDate(), "dd.MM.yyyy"), True
+            return QDate.toString(self.calendar.selectedDate(), "dd/MM/yyyy"), True
         
         else:
             return "", False

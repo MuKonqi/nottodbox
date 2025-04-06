@@ -88,27 +88,25 @@ class MainWindow(QMainWindow):
 
     @Slot(QCloseEvent)
     def closeEvent(self, a0: QCloseEvent):                
-        pages = self.dock.widget().open_pages.pages
-        
         are_there_unsaved_notes = False
         are_there_unsaved_diaries = False
         is_main_diary_unsaved = False
         closing_confirmed = False
         
-        for module, page in pages:
+        for module, page in self.sidebar.open_pages.pages:
             if module == "notes" and not page.endswith(_(" (Backup)")):
                 name, table = str(page).split(" @ ")
                 
-                if not are_there_unsaved_notes and not self.notes.pages[(name, table)].closable:
+                if not are_there_unsaved_notes and not self.notes.pages[(name, table)].checkIfTheTextChanged:
                     are_there_unsaved_notes = True
                 
             elif module == "diaries" and not page.endswith(_(" (Backup)")):
                 name = page
                 
-                if not are_there_unsaved_diaries and not self.diaries.pages[(name, "__main__")].closable:
+                if not are_there_unsaved_diaries and not self.diaries.pages[(name, "__main__")].checkIfTheTextChanged:
                     are_there_unsaved_diaries = True
                         
-        if not self.home.diary.closable:
+        if not self.home.diary.checkIfTheTextChanged:
             is_main_diary_unsaved = True
 
         if not are_there_unsaved_notes and not are_there_unsaved_diaries and not is_main_diary_unsaved:  
@@ -169,7 +167,7 @@ class MainWindow(QMainWindow):
                 closing_confirmed = True
                 
         if closing_confirmed:
-            for module, page in pages:
+            for module, page in self.sidebar.open_pages.pages:
                 if module == "notes" and not page.endswith(_(" (Backup)")):
                     name, table = str(page).split(" @ ")
                     
@@ -268,12 +266,32 @@ class TabWidget(QStackedWidget):
                     
                 new_widget = self.widget(number + index - 1)
                 
+                today = (self.parent_.diaries.home.today.toString("dd/MM/yyyy"), "__main__")
+                
                 if new_widget == self.parent_.home:
                     self.parent_.home.diary.changeAutosaveConnections()
+                    
+                    if today in self.parent_.diaries.pages or self.parent_.diaries.todays_diary_closed:
+                        if today in self.parent_.diaries.pages:
+                            self.parent_.diaries.pages[today].removeWidget(self.parent_.diaries.pages[today].widget(0))
+                            
+                        self.parent_.home.diary_seperator.setVisible(True)
+                        self.parent_.home.diary_button.setVisible(True)
+                        self.parent_.home.diary.layout_.setContentsMargins(0, 0, 0, 0)
+                        self.parent_.home.layout_.addWidget(self.parent_.home.diary, 3, 0, 1, 1)
+                        self.parent_.home.diary.setVisible(True)
+                        
+                        self.parent_.diaries.todays_diary_closed = False
 
                 elif ((new_widget == self.parent_.diaries or new_widget == self.parent_.notes) and
                     new_widget.currentWidget() != new_widget.home and new_widget.currentWidget().mode == "normal"):
                     new_widget.currentWidget().changeAutosaveConnections()
+                    
+                    if today in self.parent_.diaries.pages:
+                        self.parent_.home.diary_seperator.setVisible(False)
+                        self.parent_.home.diary_button.setVisible(False)
+                        self.parent_.home.diary.layout_.setContentsMargins(self.parent_.home.diary.layout_.default_contents_margins)
+                        self.parent_.diaries.pages[(self.parent_.diaries.home.today.toString("dd/MM/yyyy"), "__main__")].addWidget(self.parent_.home.diary)
                 
                 self.current_index = number + index - 1
 

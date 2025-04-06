@@ -20,7 +20,6 @@ from gettext import gettext as _
 from PySide6.QtCore import Slot, Qt, QSortFilterProxyModel, QItemSelectionModel, QSettings
 from PySide6.QtGui import QStandardItemModel, QStandardItem, QMouseEvent, QColor
 from PySide6.QtWidgets import *
-from databases.lists import DBForLists
 
 
 class StandardItem(QStandardItem):
@@ -62,7 +61,7 @@ class StandardItem(QStandardItem):
 
 
 class TreeView(QTreeView):
-    def __init__(self, parent: QWidget, module: str, db: DBForLists, own: bool = True, model: QStandardItemModel = None) -> None:
+    def __init__(self, parent: QWidget, module: str, db, own: bool = True, model: QStandardItemModel = None) -> None:
         super().__init__(parent)
         
         self.parent_ = parent

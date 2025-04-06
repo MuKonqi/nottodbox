@@ -18,6 +18,7 @@
 # along with Nottodbox.  If not, see <https://www.gnu.org/licenses/>.
 
 
+import datetime
 from gettext import gettext as _
 from PySide6.QtCore import Signal, Slot, Qt, QDate, QObject, QThread
 from PySide6.QtGui import QTextCursor, QTextFormat, QTextBlockFormat, QTextCharFormat, QTextListFormat, QTextTableFormat, QTextLength, QTextTable, QDesktopServices, QPalette
@@ -39,8 +40,6 @@ class BasePage(QWidget):
         self.mode = mode
         self.format_ = format
         self.autosave_ = autosave
-        
-        self.closable = True
         
         self.layout_ = QGridLayout(self)
         
@@ -277,30 +276,32 @@ class BackupPage(BasePage):
 
 
 class NormalPage(BasePage):
-    successful = Signal(bool)
+    showMessages_ = Signal(bool)
     
     def __init__(self, parent: QWidget, module: str,
                  db, format: str, autosave: str,
                  name: str, table: str = "__main__") -> None:
         super().__init__(parent, module, db, "normal", format, autosave, name, table)
         
-        self.successful.connect(self.showMessages)
+        self.connected = False
+        
+        self.last_content = self.content
+        
+        self.showMessages_.connect(self.showMessages)
             
         self.saver = Saver(self)
-        self.saver.started.connect(self.saver.saveChild)
+        self.saver.saveChild_.connect(self.saver.saveChild)
         
         self.saver_thread = QThread()
         
         self.saver.moveToThread(self.saver_thread)
-
-        self.input.textChanged.connect(self.makeCanNotClosable)
         
         self.button.setText(_("Save"))
         self.button.clicked.connect(lambda: self.saver.saveChild())
         
-        self.save = lambda: self.saver.started.emit(True)
+        self.save = lambda: self.saver.saveChild_.emit(True)
         
-        self.connectAutosaveConnections()
+        self.changeAutosaveConnections()
             
     def checkIfTheDiaryExistsIfNotCreateTheDiary(self) -> bool:
         if self.module == "notes":
@@ -320,22 +321,25 @@ class NormalPage(BasePage):
                     return False
                 
     def changeAutosaveConnections(self) -> None:
-        if self.autosave == "enabled":
+        if self.autosave == "enabled" and not self.connected:
             self.connectAutosaveConnections()
             
         elif self.autosave == "disabled":
             self.disconnectAutosaveConnections()
                 
     def connectAutosaveConnections(self) -> None:
+        self.input.textChanged.connect(self.save)
         self.saver_thread.start()
         self.connected = True
-        self.input.textChanged.connect(self.save)
+    
+    def checkIfTheTextChanged(self) -> bool:
+        return self.getText() == self.last_content
             
     def disconnectAutosaveConnections(self) -> None:
-        self.saver_thread.quit()
-        self.connected = False
         if self.connected:
             self.input.textChanged.disconnect(self.save)
+        self.saver_thread.quit()
+        self.connected = False
                 
     def getText(self) -> str:
         if self.format == "plain-text":
@@ -356,10 +360,6 @@ class NormalPage(BasePage):
                                  .format(item = _("of {name} note") if self.module == "notes" else _("of {name} dated diary")))
                 
             return False
-        
-    @Slot()
-    def makeCanNotClosable(self) -> None:
-        self.closable = False
     
     @Slot(int)
     def setAutosave(self, index: int) -> bool:
@@ -391,7 +391,7 @@ class NormalPage(BasePage):
                                      .format(name = self.name))
         
 class Saver(QObject):
-    started = Signal(bool)
+    saveChild_ = Signal(bool)
     
     def __init__(self, parent: NormalPage) -> None:
         super().__init__()
@@ -399,7 +399,7 @@ class Saver(QObject):
         self.parent_ = parent
     
     @Slot(bool)
-    def saveChild(self, autosave: bool = False) -> bool | None:
+    def saveChild(self, autosave: bool = False) -> bool:
         if self.parent_.module == "diaries" and not self.parent_.db.checkIfTheChildExists(self.parent_.name, self.parent_.table):
             if self.parent_.db.createChild(self.parent_.name):
                 if type(self.parent_.parent_).__name__ == "HomeWidget":
@@ -419,7 +419,7 @@ class Saver(QObject):
         if not autosave or (autosave and self.parent_.autosave == "enabled"):
             if self.parent_.outdated == "yes":
                 if autosave:
-                    self.parent_.successful.emit(False)
+                    self.parent_.showMessages_.emit(False)
                     
                     return False
                 
@@ -428,23 +428,16 @@ class Saver(QObject):
                 
                 if question != QMessageBox.StandardButton.Yes:
                     return
-            
-            call = self.parent_.db.saveChild(self.parent_.getText(),
-                                             self.parent_.content,
-                                             autosave,
-                                             self.parent_.name,
-                                             self.parent_.table)
 
-            if call:
-                self.parent_.closable = True
-                
+            if self.parent_.db.saveChild(
+                self.parent_.getText(), self.parent_.content, autosave, self.parent_.name, self.parent_.table):
                 if not autosave:
-                    self.parent_.successful.emit(True)
+                    self.parent_.showMessages_.emit(True)
                     
                 return True
                 
             else:
-                self.parent_.successful.emit(False)
+                self.parent_.showMessages_.emit(False)
                 
                 return False
             

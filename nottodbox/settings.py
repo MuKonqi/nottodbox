@@ -235,12 +235,12 @@ class SettingsWidget(QWidget):
         scroll_area.setWidgetResizable(True)
         scroll_area.setWidget(page)
         
-        scroll_area.openPage = scroll_area.widget().openPage
+        scroll_area.openPage = page.openPage
         
         if type(page).__name__ != "AboutWidget":
-            scroll_area.apply = scroll_area.widget().apply
-            scroll_area.load = scroll_area.widget().load
-            scroll_area.reset = scroll_area.widget().reset
+            scroll_area.apply = page.apply
+            scroll_area.load = page.load
+            scroll_area.reset = page.reset
         
         return scroll_area
     

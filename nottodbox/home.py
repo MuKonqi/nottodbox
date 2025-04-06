@@ -33,7 +33,7 @@ class HomeWidget(QWidget):
         
         self.parent_ = parent
         
-        self.layout_ = QVBoxLayout(self)
+        self.layout_ = QGridLayout(self)
         
         self.label_welcome = Label(self, _("Welcome {username}!").format(username = USER_NAME_PRETTY))
         font = self.label_welcome.font()
@@ -41,10 +41,13 @@ class HomeWidget(QWidget):
         font.setPointSize(16)
         self.label_welcome.setFont(font)
         
+        self.diary_seperator = HSeperator(self)
+        
         self.diary_button = PushButton(self, _("Focus to Diary for Today"))
         self.diary_button.clicked.connect(self.focusToDiary)
         
-        self.diary = NormalPage(self, "diaries", diaries.db, diaries.format, diaries.autosave, today.toString("dd.MM.yyyy"))
+        self.diary = NormalPage(self, "diaries", diaries.db, diaries.format, diaries.autosave, today.toString("dd/MM/yyyy"))
+        self.diary.layout_.default_contents_margins = self.diary.layout_.contentsMargins()
         self.diary.layout_.setContentsMargins(0, 0, 0, 0)
         
         self.todos_seperator = HSeperator(self)
@@ -72,7 +75,7 @@ class HomeWidget(QWidget):
         
         self.setLayout(self.layout_)
         self.layout_.addWidget(self.label_welcome)
-        self.layout_.addWidget(HSeperator(self))
+        self.layout_.addWidget(self.diary_seperator)
         self.layout_.addWidget(self.diary_button)
         self.layout_.addWidget(self.diary)
         self.layout_.addWidget(self.todos_seperator)
