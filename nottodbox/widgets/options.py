@@ -638,11 +638,20 @@ class OptionsForDocuments(Options):
                     
                     widget = QStackedWidget(self)
                     widget.addWidget(self.parent_.parent_.parent_.home.diary)
+                    widget.autosave = self.parent_.parent_.parent_.home.diary.autosave
+                    widget.autosave_combobox = self.parent_.parent_.parent_.home.diary.autosave_combobox
+                    widget.call_autosave = self.parent_.parent_.parent_.home.diary.call_autosave
+                    widget.call_format = self.parent_.parent_.parent_.home.diary.call_format
                     widget.checkIfTheTextChanged = self.parent_.parent_.parent_.home.diary.checkIfTheTextChanged
                     widget.changeAutosaveConnections = self.parent_.parent_.parent_.home.diary.changeAutosaveConnections
                     widget.disconnectAutosaveConnections = self.parent_.parent_.parent_.home.diary.disconnectAutosaveConnections
+                    widget.format = self.parent_.parent_.parent_.home.diary.format
+                    widget.format_combobox = self.parent_.parent_.parent_.home.diary.format_combobox
+                    widget.formatter = self.parent_.parent_.parent_.home.diary.formatter
                     widget.makeBackup = self.parent_.parent_.parent_.home.diary.makeBackup
                     widget.mode =self.parent_.parent_.parent_.home.diary.mode
+                    widget.prettyAutosave = self.parent_.parent_.parent_.home.diary.prettyAutosave
+                    widget.prettyFormat = self.parent_.parent_.parent_.home.diary.prettyFormat
                     widget.saver = self.parent_.parent_.parent_.home.diary.saver
                     widget.saver_thread = self.parent_.parent_.parent_.home.diary.saver_thread
                     

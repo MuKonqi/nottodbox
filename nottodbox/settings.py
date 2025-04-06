@@ -247,8 +247,30 @@ class SettingsWidget(QWidget):
     @Slot()
     def reset(self) -> None:
         successful = True
+        do_not_asked_before = True
+        format_change_acceptted = True
         
-        for text, page in self.pages:                
+        for text, page in self.pages:
+            if (type(page.widget()).__name__ == "ModuleSettings" and 
+                (page.widget().module == "notes" or page.widget().module == "diaries") and
+                page.widget().format != "markdown"):
+                page.widget().do_not_check = True
+
+                if page.widget().format != "markdown" and do_not_asked_before:
+                    do_not_asked_before = False
+                    format_change_acceptted = True
+                    
+                    question = QMessageBox.question(
+                        self, _("Question"), _("If you have documents with the format setting set to global," +
+                                            " this change may corrupt them.\nDo you really want to apply the new format setting?"))
+                    
+                    if question != QMessageBox.StandardButton.Yes:
+                        format_change_acceptted = False
+            
+            if not format_change_acceptted:
+                successful = False
+                continue
+                          
             if not page.reset():
                 successful = False
         

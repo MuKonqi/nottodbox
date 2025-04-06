@@ -36,6 +36,7 @@
                     <li>Fix date format in diary entries</li>
                     <li>If opened, make today's diary tab in "Diaries" page common with diary in "Home" page</li>
                     <li>Fix autosave connection(s) for notes and diaries</li>
+                    <li>Do not ask the format change question twice when resetting all settings</li>
                 </ul>
             </description>
         </release>
