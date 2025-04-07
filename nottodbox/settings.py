@@ -93,31 +93,33 @@ class Settings(QSettings):
         
         return values
     
-    def reset(self, module_: str | None = None) -> bool:
+    def reset(self, module_: str | None = None, format_change_acceptted: bool = True) -> bool:
         if module_ is None:
             successful = True
             
             for module in ["sidebar", "notes", "todos", "diaries"]:
-                if not self.resetBase(module):
+                if not self.resetBase(module, format_change_acceptted):
                     successful = False
                 
             return successful
         
         else:
-            return self.resetBase(module_)
+            return self.resetBase(module_, format_change_acceptted)
         
-    def resetBase(self, module: str) -> bool:
+    def resetBase(self, module: str, format_change_acceptted: bool = True) -> bool:
         if module == "sidebar":
             return self.set(module, "disabled", "", "", "", "", "")
         
         elif module == "notes":
-            return self.set(module, "disabled", "enabled", "default", "default", "markdown", "")
+            return self.set(module, "disabled", "enabled", "default", "default", 
+                            "markdown" if format_change_acceptted else self.getBase(module)[4], "")
         
         elif module == "todos":
             return self.set(module, "disabled", "", "default", "default", "", "")
         
         elif module == "diaries":
-            return self.set(module, "", "enabled", "", "", "markdown", "#376296")
+            return self.set(module, "", "enabled", "", "", 
+                            "markdown" if format_change_acceptted else self.getBase(module)[4], "#376296")
     
     def set(self, module: str, alternate_row_colors: str, autosave: str, background: str, foreground: str, format: str, highlight: str) -> bool:
         values = locals()
@@ -214,16 +216,36 @@ class SettingsWidget(QWidget):
     @Slot()
     def apply(self) -> None:
         successful = True
+        do_not_asked_before = True
+        format_change_acceptted = True
+        
+        for text, page in self.pages:
+            if (type(page.widget()).__name__ == "ModuleSettings" and 
+                (page.widget().module == "notes" or page.widget().module == "diaries") and
+                page.widget().format != page.widget().format_ and
+                do_not_asked_before):
+                do_not_asked_before = False
+                format_change_acceptted = True
                 
-        for text, page in self.pages:            
-            if not page.apply():
+                question = QMessageBox.question(
+                    self, _("Question"), _("If you have documents with the format setting set to global," +
+                                        " this change may corrupt them.\nDo you really want to apply the new format settings?"))
+                
+                if question != QMessageBox.StandardButton.Yes:
+                    format_change_acceptted = False
+                          
+            if not page.apply(format_change_acceptted):
                 successful = False
         
         if successful:
-            QMessageBox.information(self, _("Successful"), _("All new settings applied."))
+            if format_change_acceptted:
+                QMessageBox.information(self, _("Successful"), _("All setting applied."))
+            
+            else:
+                QMessageBox.warning(self, _("Warning"), _("All settings applied EXCEPT format settings."))
             
         else:
-            QMessageBox.critical(self, _("Error"), _("Failed to apply all new settings."))
+            QMessageBox.critical(self, _("Error"), _("Failed to apply all settings."))
     
     @Slot()
     def cancel(self) -> None:
@@ -253,29 +275,27 @@ class SettingsWidget(QWidget):
         for text, page in self.pages:
             if (type(page.widget()).__name__ == "ModuleSettings" and 
                 (page.widget().module == "notes" or page.widget().module == "diaries") and
-                page.widget().format != "markdown"):
-                page.widget().do_not_check = True
-
-                if page.widget().format != "markdown" and do_not_asked_before:
-                    do_not_asked_before = False
-                    format_change_acceptted = True
-                    
-                    question = QMessageBox.question(
-                        self, _("Question"), _("If you have documents with the format setting set to global," +
-                                            " this change may corrupt them.\nDo you really want to apply the new format setting?"))
-                    
-                    if question != QMessageBox.StandardButton.Yes:
-                        format_change_acceptted = False
-            
-            if not format_change_acceptted:
-                successful = False
-                continue
+                settings.getBase(page.widget().module)[4] != "markdown" and
+                do_not_asked_before):
+                do_not_asked_before = False
+                format_change_acceptted = True
+                
+                question = QMessageBox.question(
+                    self, _("Question"), _("If you have documents with the format setting set to global," +
+                                        " this change may corrupt them.\nDo you really want to apply the new format settings?"))
+                
+                if question != QMessageBox.StandardButton.Yes:
+                    format_change_acceptted = False
                           
-            if not page.reset():
+            if not page.reset(format_change_acceptted):
                 successful = False
         
         if successful:
-            QMessageBox.information(self, _("Successful"), _("All setting reset."))
+            if format_change_acceptted:
+                QMessageBox.information(self, _("Successful"), _("All setting reset."))
+            
+            else:
+                QMessageBox.warning(self, _("Warning"), _("All settings reset EXCEPT format settings."))
             
         else:
             QMessageBox.critical(self, _("Error"), _("Failed to reset all settings."))
@@ -297,6 +317,76 @@ class BaseSettings(QWidget):
     def openPage(self) -> None:
         self.parent_.parent_.tabwidget.setCurrentPage(self.parent_)
         self.parent_.selector.setCurrentRow(self.index)
+        
+
+class AboutWidget(QWidget):
+    def __init__(self, parent: SettingsWidget) -> None:
+        super().__init__(parent)
+        
+        self.parent_ = parent
+        self.layout_ = QVBoxLayout(self)
+        
+        self.parent_.menu.addAction(_("About"), self.openPage)
+        
+        self.icon_and_nottodbox = QWidget()
+        self.icon_and_nottodbox_layout = QHBoxLayout(self.icon_and_nottodbox)
+        
+        self.icon = Label(self.icon_and_nottodbox)
+        self.icon.setPixmap(self.windowIcon().pixmap(96, 96))
+        
+        self.nottodbox = Label(self.icon_and_nottodbox, _("Nottodbox"))
+        font = self.nottodbox.font()
+        font.setBold(True)
+        font.setPointSize(32)
+        self.nottodbox.setFont(font)
+        
+        self.version_label = Label(self, _("Version") + f': <a href="https://github.com/mukonqi/nottodbox/releases/tag/{APP_VERSION}">{APP_VERSION}</a>')
+        self.version_label.setOpenExternalLinks(True)
+        
+        self.source_label = Label(self, _("Source codes") + ': <a href="https://github.com/mukonqi/nottodbox">GitHub</a>')
+        self.source_label.setOpenExternalLinks(True)
+        
+        self.developer_label = Label(self, _("Developer") + ': <a href="https://mukonqi.github.io">MuKonqi (Muhammed S.)</a>')
+        self.developer_label.setOpenExternalLinks(True)
+        
+        self.copyright_label = Label(self, _("Copyright (C)") + f': 2024-2025 MuKonqi (Muhammed S.)')
+        
+        self.license_label = Label(self, _("License: GNU General Public License, Version 3 or later"))
+        
+        self.icon_and_nottodbox.setLayout(self.icon_and_nottodbox_layout)
+        self.icon_and_nottodbox_layout.setSpacing(6)
+        self.icon_and_nottodbox_layout.addStretch()
+        self.icon_and_nottodbox_layout.addWidget(self.icon)
+        self.icon_and_nottodbox_layout.addWidget(self.nottodbox)
+        self.icon_and_nottodbox_layout.addStretch()
+        
+        self.setLayout(self.layout_)
+        self.layout_.addWidget(self.icon_and_nottodbox)
+        self.layout_.addWidget(self.version_label)
+        self.layout_.addWidget(self.source_label)
+        self.layout_.addWidget(HSeperator(self))
+        self.layout_.addWidget(self.developer_label)
+        self.layout_.addWidget(HSeperator(self))
+        self.layout_.addWidget(self.copyright_label)
+        self.layout_.addWidget(self.license_label)
+        
+        with open("@APP_DIR@/LICENSE.txt" if os.path.isfile("@APP_DIR@/LICENSE.txt") else 
+                    f"{os.path.dirname(__file__)}/LICENSE.txt" if os.path.isfile(f"{os.path.dirname(__file__)}/LICENSE.txt") else
+                    f"{os.path.dirname(os.path.dirname(__file__))}/LICENSE.txt") as license_file:
+            license_text = license_file.read()
+            
+        self.license_textedit = QTextEdit(self)
+        self.license_textedit.setFixedWidth(79 * 8 * QFontDatabase.systemFont(QFontDatabase.SystemFont.FixedFont).pointSize() / 10 + 
+                                            QApplication.style().pixelMetric(QStyle.PixelMetric.PM_ScrollBarSliderMin) + 10)
+        self.license_textedit.setCurrentFont(QFontDatabase.systemFont(QFontDatabase.SystemFont.FixedFont))
+        self.license_textedit.setText(license_text)
+        self.license_textedit.setReadOnly(True)
+        self.layout_.addWidget(self.license_textedit, 0, Qt.AlignmentFlag.AlignCenter)
+        
+    @Slot()
+    def openPage(self) -> None:
+        self.parent_.parent_.tabwidget.setCurrentPage(self.parent_)
+        self.parent_.about_button.setChecked(True if not self.parent_.about_button.isChecked() else False)
         
 
 class AppearanceSettings(BaseSettings):
@@ -360,7 +450,7 @@ class AppearanceSettings(BaseSettings):
         self.styles_combobox.currentTextChanged.connect(self.styleChanged)
         self.color_schemes_combobox.currentTextChanged.connect(self.colorSchemeChanged)
         
-    def apply(self) -> bool:
+    def apply(self, format_change_acceptted: bool = True) -> bool:
         successful = True
         
         if self.use_default_style:
@@ -624,9 +714,9 @@ class AppearanceSettings(BaseSettings):
                                                 _("Please enter a new name for {item}.").format(item = _("{name} color scheme").format(name = name)))
         
         if topwindow and newname != "":            
-            if (not os.path.exists(os.path.join(NOTTODBOX_COLOR_SCHEMES_DIRS[1], f"{newname}.json")) 
-                and os.path.dirname(path) == NOTTODBOX_COLOR_SCHEMES_DIRS[1] 
-                and os.path.isfile(path)):
+            if (not os.path.exists(os.path.join(NOTTODBOX_COLOR_SCHEMES_DIRS[1], f"{newname}.json")) and
+                os.path.dirname(path) == NOTTODBOX_COLOR_SCHEMES_DIRS[1] and
+                os.path.isfile(path)):
                 
                 with open(path) as f:
                     data = json.load(f)
@@ -657,7 +747,7 @@ class AppearanceSettings(BaseSettings):
                 QMessageBox.critical(self, _("Error"), _("{item} color scheme can not be renamed.")
                                      .format(item = _("{name} color scheme").format(name = name)))
         
-    def reset(self) -> bool:
+    def reset(self, format_change_acceptted: bool = True) -> bool:
         settings.remove("appearance/style")
         settings.remove("appearance/color_scheme")
         
@@ -803,7 +893,7 @@ class CustomColorSchemes(QWidget):
         self.setLayout(self.form)
         self.setEnabled(False)
         
-    def apply(self) -> bool:
+    def apply(self, format_change_acceptted: bool = True) -> bool:
         if self.parent_.color_schemes_combobox.currentText() == _("Custom"):
             overwrited = False
             
@@ -931,8 +1021,222 @@ class ColorSelectionWidget(QWidget):
         
         self.viewer.fill(color if color != "" else Qt.GlobalColor.transparent)
         self.label.setPixmap(self.viewer)
+
         
+class ModuleSettings(BaseSettings):
+    def __init__(self, parent: SettingsWidget, index: int, module: str, target) -> None:
+        super().__init__(parent, index)
         
+        self.module = module
+        self.target = target
+        
+        self.format_changed = False
+        self.do_not_check = True
+        
+        if self.module == "sidebar" or self.module == "notes" or self.module == "todos":
+            self.alternate_row_colors_checkbox = QCheckBox(self)
+            self.alternate_row_colors_checkbox.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
+            try:
+                self.alternate_row_colors_checkbox.checkStateChanged.connect(self.alternateRowColorsChanged)
+            except:
+                self.alternate_row_colors_checkbox.stateChanged.connect(self.alternateRowColorsChanged)
+            
+            self.form.addRow(Label(self, _("List")))
+            self.form.addRow("{}:".format(_("Alternate row colors")), self.alternate_row_colors_checkbox)
+            
+        if self.module == "notes" or self.module == "todos":
+            self.background_button = PushButton(self)
+            self.background_button.clicked.connect(self.setBackground)
+            
+            self.foreground_button = PushButton(self)
+            self.foreground_button.clicked.connect(self.setForeground)
+            
+            self.form.addRow("{}:".format(_("Default background color of items")), self.background_button)
+            self.form.addRow("{}:".format(_("Default text color of items")), self.foreground_button)
+            
+        if self.module == "diaries":
+            self.highlight_button = PushButton(self)
+            self.highlight_button.clicked.connect(self.setHighlight)
+            
+            self.form.addRow(Label(self, _("List")))
+            self.form.addRow("{}:".format(_("Default creation state color of items")), self.highlight_button)
+            
+        if self.module == "notes" or self.module == "diaries":    
+            self.autosave_checkbox = QCheckBox(self)
+            self.autosave_checkbox.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
+            try:
+                self.autosave_checkbox.checkStateChanged.connect(self.setAutosave)
+            except:
+                self.autosave_checkbox.stateChanged.connect(self.setAutosave)
+            
+            self.format_combobox = QComboBox(self)
+            self.format_combobox.addItems([_("Plain-text"), "Markdown", "HTML"])
+            self.format_combobox.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
+            self.format_combobox.setEditable(False)
+            self.format_combobox.currentIndexChanged.connect(self.setFormat)
+                
+            self.form.addRow(Label(self, _("Document")))
+            self.form.addRow(_("Auto-save:"), self.autosave_checkbox)
+            self.form.addRow(_("Format:"), self.format_combobox)
+            
+        self.setLayout(self.form)
+        
+        self.load()
+        
+    @Slot(int or Qt.CheckState)
+    def alternateRowColorsChanged(self, signal: Qt.CheckState | int) -> None:
+        if signal == Qt.CheckState.Unchecked or signal == 0:
+            self.alternate_row_colors = "disabled"
+            self.alternate_row_colors_checkbox.setText(_("Disabled"))
+        
+        elif signal == Qt.CheckState.Checked or signal == 2:
+            self.alternate_row_colors = "enabled"
+            self.alternate_row_colors_checkbox.setText(_("Enabled"))
+        
+    def apply(self, format_change_acceptted: bool) -> bool:
+        if (self.module == "notes" or self.module == "diaries") and not format_change_acceptted:
+            if self.format_ == "plain-text":
+                self.format_combobox.setCurrentIndex(0)
+                
+            elif self.format_ == "markdown":
+                self.format_combobox.setCurrentIndex(1)
+                
+            elif self.format_ == "html":
+                self.format_combobox.setCurrentIndex(2)
+        
+        if self.module == "sidebar":
+            call = settings.set(self.module, self.alternate_row_colors, "", "", "", "", "")
+        
+        if self.module == "notes":
+            call = settings.set(self.module, self.alternate_row_colors, self.autosave, self.background, self.foreground, self.format, "")
+        
+        elif self.module == "todos":
+            call = settings.set(self.module, self.alternate_row_colors, "", self.background, self.foreground, self.format, "")
+        
+        elif self.module == "diaries":
+            call = settings.set(self.module, "", self.autosave, "", "", self.format, self.highlight)
+        
+        if call:
+            self.format_ = self.format
+            
+            self.target.refreshSettings()
+                
+            return True
+        
+        else:
+            return False
+        
+    def load(self) -> None:
+        self.alternate_row_colors, self.autosave, self.background, self.foreground, self.format, self.highlight = settings.get(self.module)
+        
+        self.format_ = self.format
+           
+        if self.alternate_row_colors == "enabled": 
+            self.alternate_row_colors_checkbox.setChecked(True)
+            self.alternate_row_colors_checkbox.setText(_("Enabled"))
+            
+        elif self.alternate_row_colors == "disabled":
+            self.alternate_row_colors_checkbox.setChecked(False)
+            self.alternate_row_colors_checkbox.setText(_("Disabled"))
+        
+        if self.module == "notes" or self.module == "todos":
+            self.background_button.setText(_("Select color (selected: {})")
+                                           .format(_("default") if self.background == "default" else self.background))
+            
+            self.foreground_button.setText(_("Select color (selected: {})")
+                                           .format(_("default") if self.foreground == "default" else self.foreground))
+            
+        if self.module == "diaries":
+            self.highlight_button.setText(_("Select color (selected: {})")
+                                          .format(_("default") if self.highlight == "default" else self.highlight))
+
+        if self.module == "notes" or self.module == "diaries":    
+            if self.autosave == "enabled":
+                self.autosave_checkbox.setText(_("Enabled"))
+                self.autosave_checkbox.setChecked(True)
+            
+            elif self.autosave == "disabled":
+                self.autosave_checkbox.setText(_("Disabled"))
+                self.autosave_checkbox.setChecked(False)
+        
+            if self.format == "plain-text":
+                self.format_combobox.setCurrentIndex(0)
+                
+            elif self.format == "markdown":
+                self.format_combobox.setCurrentIndex(1)
+                
+            elif self.format == "html":
+                self.format_combobox.setCurrentIndex(2)
+        
+    def reset(self, format_change_acceptted: bool) -> bool:
+        if settings.reset(self.module, format_change_acceptted):
+            self.load()
+                
+            self.target.refreshSettings()
+                
+            return True
+        
+        else:
+            return False
+            
+    @Slot(int or Qt.CheckState)
+    def setAutosave(self, signal: Qt.CheckState | int) -> None:
+        if signal == Qt.CheckState.Unchecked or signal == 0:
+            self.autosave = "disabled"
+            self.autosave_checkbox.setText(_("Disabled"))
+        
+        elif signal == Qt.CheckState.Checked or signal == 2:
+            self.autosave = "enabled"
+            self.autosave_checkbox.setText(_("Enabled"))
+            
+    @Slot()
+    def setBackground(self) -> None:
+        ok, status, qcolor = ColorDialog(self, False, True,
+            QColor(self.background if self.background != "default" else "#FFFFFFF"), 
+            _("Select {} Color").format(_("Background"))).getColor()
+        
+        if ok:
+            self.background = qcolor.name() if status == "new" else "default"
+            
+            self.background_button.setText(_("Select color (selected: {})")
+                                           .format(_("default") if self.background == "default" else self.background))
+          
+    @Slot()  
+    def setForeground(self) -> None:
+        ok, status, qcolor = ColorDialog(self, False, True,
+            QColor(self.foreground if self.foreground != "default" else "#FFFFFF"), 
+            _("Select {} Color").format(_("Text"))).getColor()
+        
+        if ok:
+            self.foreground = qcolor.name() if status == "new" else "default"
+            
+            self.foreground_button.setText(_("Select color (selected: {})")
+                                           .format(_("default") if self.foreground == "default" else self.foreground))
+                
+    @Slot(int)
+    def setFormat(self, index: int) -> None:
+        if index == 0:
+            self.format = "plain-text"
+            
+        elif index == 1:
+            self.format = "markdown"
+            
+        elif index == 2:
+            self.format = "html"
+            
+    @Slot()
+    def setHighlight(self) -> None:
+        ok, status, qcolor = ColorDialog(self, False, True,
+            QColor(self.highlight if self.highlight != "default" else "#376296"), 
+            _("Select {} Color").format(_("Highlight"))).getColor()
+        
+        if ok:
+            self.highlight = qcolor.name() if status == "new" else "#376296"
+                    
+            self.highlight_button.setText(_("Select color (selected: {})")
+                                           .format(_("default") if self.highlight == "default" else self.highlight))
+            
+            
 class ShortcutsSettings(BaseSettings):
     def __init__(self, parent: SettingsWidget, index: int) -> None:
         super().__init__(parent, index)
@@ -1018,7 +1322,7 @@ class ShortcutsSettings(BaseSettings):
         USER_DESKTOP_FILE_FOUND = True
         self.delete_shortcut_button.setEnabled(True)
         
-    def apply(self) -> bool:
+    def apply(self, format_change_acceptted: bool = True) -> bool:
         successful = True
         
         if DESKTOP_FILE_FOUND and (APP_MODE != "meson" or not SYSTEM_DESKTOP_FILE_FOUND):
@@ -1065,7 +1369,7 @@ class ShortcutsSettings(BaseSettings):
             self.auto_shortcut_checkbox.setChecked(False)
             self.auto_shortcut_checkbox.setText(_("Disabled"))
                 
-    def reset(self) -> bool:
+    def reset(self, format_change_acceptted: bool = True) -> bool:
         settings.remove("shortcut/auto_shortcut")
         
         if settings.value("shortcut/auto_shortcut") is None:
@@ -1075,291 +1379,3 @@ class ShortcutsSettings(BaseSettings):
         
         else:
             return False
-
-        
-class ModuleSettings(BaseSettings):
-    def __init__(self, parent: SettingsWidget, index: int, module: str, target) -> None:
-        super().__init__(parent, index)
-        
-        self.module = module
-        self.target = target
-        
-        self.format_changed = False
-        self.do_not_check = True
-        
-        if self.module == "sidebar" or self.module == "notes" or self.module == "todos":
-            self.alternate_row_colors_checkbox = QCheckBox(self)
-            self.alternate_row_colors_checkbox.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
-            try:
-                self.alternate_row_colors_checkbox.checkStateChanged.connect(self.alternateRowColorsChanged)
-            except:
-                self.alternate_row_colors_checkbox.stateChanged.connect(self.alternateRowColorsChanged)
-            
-            self.form.addRow(Label(self, _("List")))
-            self.form.addRow("{}:".format(_("Alternate row colors")), self.alternate_row_colors_checkbox)
-            
-        if self.module == "notes" or self.module == "todos":
-            self.background_button = PushButton(self)
-            self.background_button.clicked.connect(self.setBackground)
-            
-            self.foreground_button = PushButton(self)
-            self.foreground_button.clicked.connect(self.setForeground)
-            
-            self.form.addRow("{}:".format(_("Default background color of items")), self.background_button)
-            self.form.addRow("{}:".format(_("Default text color of items")), self.foreground_button)
-            
-        if self.module == "diaries":
-            self.highlight_button = PushButton(self)
-            self.highlight_button.clicked.connect(self.setHighlight)
-            
-            self.form.addRow(Label(self, _("List")))
-            self.form.addRow("{}:".format(_("Default creation state color of items")), self.highlight_button)
-            
-        if self.module == "notes" or self.module == "diaries":    
-            self.autosave_checkbox = QCheckBox(self)
-            self.autosave_checkbox.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
-            try:
-                self.autosave_checkbox.checkStateChanged.connect(self.setAutosave)
-            except:
-                self.autosave_checkbox.stateChanged.connect(self.setAutosave)
-            
-            self.format_combobox = QComboBox(self)
-            self.format_combobox.addItems([_("Plain-text"), "Markdown", "HTML"])
-            self.format_combobox.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
-            self.format_combobox.setEditable(False)
-            self.format_combobox.currentIndexChanged.connect(self.setFormat)
-                
-            self.form.addRow(Label(self, _("Document")))
-            self.form.addRow(_("Auto-save:"), self.autosave_checkbox)
-            self.form.addRow(_("Format:"), self.format_combobox)
-            
-        self.setLayout(self.form)
-        
-        self.load()
-        
-    @Slot(int or Qt.CheckState)
-    def alternateRowColorsChanged(self, signal: Qt.CheckState | int) -> None:
-        if signal == Qt.CheckState.Unchecked or signal == 0:
-            self.alternate_row_colors = "disabled"
-            self.alternate_row_colors_checkbox.setText(_("Disabled"))
-        
-        elif signal == Qt.CheckState.Checked or signal == 2:
-            self.alternate_row_colors = "enabled"
-            self.alternate_row_colors_checkbox.setText(_("Enabled"))
-        
-    def apply(self) -> bool:
-        if self.module == "sidebar":
-            call = settings.set(self.module, self.alternate_row_colors, "", "", "", "", "")
-        
-        if self.module == "notes":
-            call = settings.set(self.module, self.alternate_row_colors, self.autosave, self.background, self.foreground, self.format, "")
-        
-        elif self.module == "todos":
-            call = settings.set(self.module, self.alternate_row_colors, "", self.background, self.foreground, self.format, "")
-        
-        elif self.module == "diaries":
-            call = settings.set(self.module, "", self.autosave, "", "", self.format, self.highlight)
-        
-        if call:
-            self.target.refreshSettings()
-                
-            return True
-        
-        else:
-            return False
-        
-    def load(self) -> None:
-        self.alternate_row_colors, self.autosave, self.background, self.foreground, self.format, self.highlight = settings.get(self.module)
-           
-        if self.alternate_row_colors == "enabled": 
-            self.alternate_row_colors_checkbox.setChecked(True)
-            self.alternate_row_colors_checkbox.setText(_("Enabled"))
-            
-        elif self.alternate_row_colors == "disabled":
-            self.alternate_row_colors_checkbox.setChecked(False)
-            self.alternate_row_colors_checkbox.setText(_("Disabled"))
-        
-        if self.module == "notes" or self.module == "todos":
-            self.background_button.setText(_("Select color (selected: {})")
-                                           .format(_("default") if self.background == "default" else self.background))
-            
-            self.foreground_button.setText(_("Select color (selected: {})")
-                                           .format(_("default") if self.foreground == "default" else self.foreground))
-            
-        if self.module == "diaries":
-            self.highlight_button.setText(_("Select color (selected: {})")
-                                          .format(_("default") if self.highlight == "default" else self.highlight))
-
-        if self.module == "notes" or self.module == "diaries":    
-            if self.autosave == "enabled":
-                self.autosave_checkbox.setText(_("Enabled"))
-                self.autosave_checkbox.setChecked(True)
-            elif self.autosave == "disabled":
-                self.autosave_checkbox.setText(_("Disabled"))
-                self.autosave_checkbox.setChecked(False)
-        
-            self.loadOnlyFormat()
-            
-    def loadOnlyFormat(self) -> None:
-        if self.module == "notes" or self.module == "diaries":  
-            if self.format == "plain-text":
-                self.format_combobox.setCurrentIndex(0)
-                
-            elif self.format == "markdown":
-                self.format_combobox.setCurrentIndex(1)
-                
-            elif self.format == "html":
-                self.format_combobox.setCurrentIndex(2)
-        
-    def reset(self) -> bool:
-        if settings.reset(self.module):
-            self.load()
-                
-            self.target.refreshSettings()
-                
-            return True
-        
-        else:
-            return False
-            
-    @Slot(int or Qt.CheckState)
-    def setAutosave(self, signal: Qt.CheckState | int) -> None:
-        if signal == Qt.CheckState.Unchecked or signal == 0:
-            self.autosave = "disabled"
-            self.autosave_checkbox.setText(_("Disabled"))
-        
-        elif signal == Qt.CheckState.Checked or signal == 2:
-            self.autosave = "enabled"
-            self.autosave_checkbox.setText(_("Enabled"))
-            
-    @Slot()
-    def setBackground(self) -> None:
-        ok, status, qcolor = ColorDialog(self, False, True,
-            QColor(self.background if self.background != "default" else "#FFFFFFF"), 
-            _("Select {} Color").format(_("Background"))).getColor()
-        
-        if ok:
-            self.background = qcolor.name() if status == "new" else "default"
-            
-            self.background_button.setText(_("Select color (selected: {})")
-                                           .format(_("default") if self.background == "default" else self.background))
-          
-    @Slot()  
-    def setForeground(self) -> None:
-        ok, status, qcolor = ColorDialog(self, False, True,
-            QColor(self.foreground if self.foreground != "default" else "#FFFFFF"), 
-            _("Select {} Color").format(_("Text"))).getColor()
-        
-        if ok:
-            self.foreground = qcolor.name() if status == "new" else "default"
-            
-            self.foreground_button.setText(_("Select color (selected: {})")
-                                           .format(_("default") if self.foreground == "default" else self.foreground))
-                
-    @Slot(int)
-    def setFormat(self, index: int) -> None:
-        if self.do_not_check:
-            self.do_not_check = False
-        
-        else:
-            question = QMessageBox.question(
-                self, _("Question"), _("If you have documents with the format setting set to global," +
-                                       " this change may corrupt them.\nDo you really want to apply the new format setting?"))
-            
-            if question != QMessageBox.StandardButton.Yes:
-                self.do_not_check = True
-                
-                self.loadOnlyFormat()
-                
-                self.do_not_check = False
-                
-                return
-        
-        if index == 0:
-            self.format = "plain-text"
-        elif index == 1:
-            self.format = "markdown"
-        elif index == 2:
-            self.format = "html"
-            
-    @Slot()
-    def setHighlight(self) -> None:
-        ok, status, qcolor = ColorDialog(self, False, True,
-            QColor(self.highlight if self.highlight != "default" else "#376296"), 
-            _("Select {} Color").format(_("Highlight"))).getColor()
-        
-        if ok:
-            self.highlight = qcolor.name() if status == "new" else "#376296"
-                    
-            self.highlight_button.setText(_("Select color (selected: {})")
-                                           .format(_("default") if self.highlight == "default" else self.highlight))
-            
-
-class AboutWidget(QWidget):
-    def __init__(self, parent: SettingsWidget) -> None:
-        super().__init__(parent)
-        
-        self.parent_ = parent
-        self.layout_ = QVBoxLayout(self)
-        
-        self.parent_.menu.addAction(_("About"), self.openPage)
-        
-        self.icon_and_nottodbox = QWidget()
-        self.icon_and_nottodbox_layout = QHBoxLayout(self.icon_and_nottodbox)
-        
-        self.icon = Label(self.icon_and_nottodbox)
-        self.icon.setPixmap(self.windowIcon().pixmap(96, 96))
-        
-        self.nottodbox = Label(self.icon_and_nottodbox, _("Nottodbox"))
-        font = self.nottodbox.font()
-        font.setBold(True)
-        font.setPointSize(32)
-        self.nottodbox.setFont(font)
-        
-        self.version_label = Label(self, _("Version") + f': <a href="https://github.com/mukonqi/nottodbox/releases/tag/{APP_VERSION}">{APP_VERSION}</a>')
-        self.version_label.setOpenExternalLinks(True)
-        
-        self.source_label = Label(self, _("Source codes") + ': <a href="https://github.com/mukonqi/nottodbox">GitHub</a>')
-        self.source_label.setOpenExternalLinks(True)
-        
-        self.developer_label = Label(self, _("Developer") + ': <a href="https://mukonqi.github.io">MuKonqi (Muhammed S.)</a>')
-        self.developer_label.setOpenExternalLinks(True)
-        
-        self.copyright_label = Label(self, _("Copyright (C)") + f': 2024-2025 MuKonqi (Muhammed S.)')
-        
-        self.license_label = Label(self, _("License: GNU General Public License, Version 3 or later"))
-        
-        self.icon_and_nottodbox.setLayout(self.icon_and_nottodbox_layout)
-        self.icon_and_nottodbox_layout.setSpacing(6)
-        self.icon_and_nottodbox_layout.addStretch()
-        self.icon_and_nottodbox_layout.addWidget(self.icon)
-        self.icon_and_nottodbox_layout.addWidget(self.nottodbox)
-        self.icon_and_nottodbox_layout.addStretch()
-        
-        self.setLayout(self.layout_)
-        self.layout_.addWidget(self.icon_and_nottodbox)
-        self.layout_.addWidget(self.version_label)
-        self.layout_.addWidget(self.source_label)
-        self.layout_.addWidget(HSeperator(self))
-        self.layout_.addWidget(self.developer_label)
-        self.layout_.addWidget(HSeperator(self))
-        self.layout_.addWidget(self.copyright_label)
-        self.layout_.addWidget(self.license_label)
-        
-        with open("@APP_DIR@/LICENSE.txt" if os.path.isfile("@APP_DIR@/LICENSE.txt") else 
-                    f"{os.path.dirname(__file__)}/LICENSE.txt" if os.path.isfile(f"{os.path.dirname(__file__)}/LICENSE.txt") else
-                    f"{os.path.dirname(os.path.dirname(__file__))}/LICENSE.txt") as license_file:
-            license_text = license_file.read()
-            
-        self.license_textedit = QTextEdit(self)
-        self.license_textedit.setFixedWidth(79 * 8 * QFontDatabase.systemFont(QFontDatabase.SystemFont.FixedFont).pointSize() / 10 + 
-                                            QApplication.style().pixelMetric(QStyle.PixelMetric.PM_ScrollBarSliderMin) + 10)
-        self.license_textedit.setCurrentFont(QFontDatabase.systemFont(QFontDatabase.SystemFont.FixedFont))
-        self.license_textedit.setText(license_text)
-        self.license_textedit.setReadOnly(True)
-        self.layout_.addWidget(self.license_textedit, 0, Qt.AlignmentFlag.AlignCenter)
-        
-    @Slot()
-    def openPage(self) -> None:
-        self.parent_.parent_.tabwidget.setCurrentPage(self.parent_)
-        self.parent_.about_button.setChecked(True if not self.parent_.about_button.isChecked() else False)

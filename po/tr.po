@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: v0.0.9-3\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-06 21:31+0300\n"
-"PO-Revision-Date: 2025-04-06 21:31+0300\n"
+"POT-Creation-Date: 2025-04-07 19:29+0300\n"
+"PO-Revision-Date: 2025-04-07 19:29+0300\n"
 "Last-Translator: Muhammed S. <mukonqi@gmail.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: tr\n"
@@ -19,7 +19,7 @@ msgstr ""
 
 #: share/applications/io.github.mukonqi.nottodbox.desktop.in.in:3
 #: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:5
-#: nottodbox/settings.py:1313
+#: nottodbox/settings.py:337
 msgid "Nottodbox"
 msgstr "Nottodbox"
 
@@ -38,7 +38,7 @@ msgstr "Ev"
 #: share/applications/io.github.mukonqi.nottodbox.desktop.in.in:21
 #: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:107
 #: nottodbox/widgets/options.py:132 nottodbox/widgets/options.py:470
-#: nottodbox/mainwindow.py:75 nottodbox/settings.py:160
+#: nottodbox/mainwindow.py:75 nottodbox/settings.py:162
 msgid "Notes"
 msgstr "Notlar"
 
@@ -50,13 +50,13 @@ msgstr "Yapılacaklar"
 #: share/applications/io.github.mukonqi.nottodbox.desktop.in.in:29
 #: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:115
 #: nottodbox/widgets/options.py:138 nottodbox/widgets/options.py:473
-#: nottodbox/mainwindow.py:77 nottodbox/settings.py:162
+#: nottodbox/mainwindow.py:77 nottodbox/settings.py:164
 msgid "Diaries"
 msgstr "Günlükler"
 
 #: share/applications/io.github.mukonqi.nottodbox.desktop.in.in:32
 #: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:119
-#: nottodbox/mainwindow.py:78 nottodbox/settings.py:147
+#: nottodbox/mainwindow.py:78 nottodbox/settings.py:149
 msgid "Settings"
 msgstr "Ayarlar"
 
@@ -73,7 +73,7 @@ msgid "Home (dark mode)"
 msgstr "Ev (koyu mod)"
 
 #: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:111
-#: nottodbox/mainwindow.py:76 nottodbox/settings.py:161
+#: nottodbox/mainwindow.py:76 nottodbox/settings.py:163
 msgid "To-dos"
 msgstr "Yapılacaklar"
 
@@ -125,8 +125,8 @@ msgstr " (Yedek)"
 #: nottodbox/widgets/options.py:611 nottodbox/widgets/options.py:912
 #: nottodbox/widgets/pages.py:219 nottodbox/widgets/pages.py:258
 #: nottodbox/widgets/pages.py:427 nottodbox/mainwindow.py:120
-#: nottodbox/settings.py:264 nottodbox/settings.py:480
-#: nottodbox/settings.py:819 nottodbox/settings.py:1266
+#: nottodbox/settings.py:231 nottodbox/settings.py:284
+#: nottodbox/settings.py:570 nottodbox/settings.py:909
 msgid "Question"
 msgstr "Soru"
 
@@ -149,7 +149,7 @@ msgstr "{name} notu"
 #: nottodbox/widgets/options.py:188 nottodbox/widgets/pages.py:94
 #: nottodbox/widgets/pages.py:95 nottodbox/widgets/pages.py:96
 #: nottodbox/widgets/pages.py:97 nottodbox/diaries.py:167
-#: nottodbox/settings.py:1134
+#: nottodbox/settings.py:1080
 msgid "Format:"
 msgstr "Biçim:"
 
@@ -162,7 +162,7 @@ msgstr "Küreseli takip et ({setting})"
 
 #: nottodbox/widgets/options.py:196 nottodbox/widgets/pages.py:114
 #: nottodbox/widgets/pages.py:115 nottodbox/widgets/pages.py:116
-#: nottodbox/diaries.py:175 nottodbox/settings.py:1133
+#: nottodbox/diaries.py:175 nottodbox/settings.py:1079
 msgid "Auto-save:"
 msgstr "Oto. kayıt:"
 
@@ -188,12 +188,12 @@ msgstr "not defteri"
 msgid "to-do list"
 msgstr "yapılacaklar listesi"
 
-#: nottodbox/widgets/options.py:330 nottodbox/settings.py:320
+#: nottodbox/widgets/options.py:330 nottodbox/settings.py:410
 msgid "Rename"
 msgstr "Yeniden Adlandır"
 
-#: nottodbox/widgets/options.py:333 nottodbox/settings.py:323
-#: nottodbox/settings.py:959 nottodbox/sidebar.py:104
+#: nottodbox/widgets/options.py:333 nottodbox/settings.py:413
+#: nottodbox/settings.py:1263 nottodbox/sidebar.py:104
 msgid "Delete"
 msgstr "Sil"
 
@@ -216,9 +216,9 @@ msgstr "Her Şeyi Sil"
 #: nottodbox/widgets/pages.py:414 nottodbox/widgets/pages.py:703
 #: nottodbox/widgets/pages.py:731 nottodbox/diaries.py:235
 #: nottodbox/diaries.py:262 nottodbox/mainwindow.py:157 nottodbox/notes.py:207
-#: nottodbox/notes.py:214 nottodbox/settings.py:226 nottodbox/settings.py:281
-#: nottodbox/settings.py:657 nottodbox/settings.py:1015
-#: nottodbox/settings.py:1047 nottodbox/sidebar.py:189 nottodbox/sidebar.py:227
+#: nottodbox/notes.py:214 nottodbox/settings.py:248 nottodbox/settings.py:301
+#: nottodbox/settings.py:747 nottodbox/settings.py:1319
+#: nottodbox/settings.py:1351 nottodbox/sidebar.py:189 nottodbox/sidebar.py:227
 #: nottodbox/sidebar.py:250 nottodbox/sidebar.py:258 nottodbox/todos.py:184
 msgid "Error"
 msgstr "Hata"
@@ -351,7 +351,7 @@ msgstr ""
 "Gerçekten yeniden adlandırmak istiyor musunuz?"
 
 #: nottodbox/widgets/options.py:536 nottodbox/widgets/options.py:542
-#: nottodbox/settings.py:623
+#: nottodbox/settings.py:713
 #, python-brace-format
 msgid "Rename {the_item}"
 msgstr "{the_item} Yeniden Adlandır"
@@ -404,9 +404,9 @@ msgstr "Gerçekten {of_item} içeriğini silmek istiyor musunuz?"
 
 #: nottodbox/widgets/options.py:616 nottodbox/widgets/options.py:679
 #: nottodbox/widgets/pages.py:264 nottodbox/widgets/pages.py:384
-#: nottodbox/mainwindow.py:153 nottodbox/settings.py:223
-#: nottodbox/settings.py:278 nottodbox/settings.py:1012
-#: nottodbox/settings.py:1040
+#: nottodbox/mainwindow.py:153 nottodbox/settings.py:242
+#: nottodbox/settings.py:295 nottodbox/settings.py:1316
+#: nottodbox/settings.py:1344
 msgid "Successful"
 msgstr "Başarılı"
 
@@ -441,12 +441,12 @@ msgid "Set {} Color"
 msgstr "{} Rengini Ayarla"
 
 #: nottodbox/widgets/options.py:714 nottodbox/widgets/pages.py:608
-#: nottodbox/settings.py:1239
+#: nottodbox/settings.py:1196
 msgid "Background"
 msgstr "Arka Plan"
 
 #: nottodbox/widgets/options.py:717 nottodbox/widgets/pages.py:734
-#: nottodbox/settings.py:761 nottodbox/settings.py:1251
+#: nottodbox/settings.py:851 nottodbox/settings.py:1208
 msgid "Text"
 msgstr "Metin"
 
@@ -498,7 +498,7 @@ msgstr ""
 "veya bir {}\n"
 "seçebilirsiniz."
 
-#: nottodbox/widgets/options.py:891 nottodbox/settings.py:184
+#: nottodbox/widgets/options.py:891 nottodbox/settings.py:186
 msgid "Reset"
 msgstr "Sıfırla"
 
@@ -513,7 +513,7 @@ msgid "Failed to reset {item}."
 msgstr "{item} sıfırlanamadı."
 
 #: nottodbox/widgets/pages.py:95 nottodbox/widgets/pages.py:168
-#: nottodbox/settings.py:1127
+#: nottodbox/settings.py:1073
 msgid "Plain-text"
 msgstr "Düz metin"
 
@@ -522,16 +522,16 @@ msgid "Format changes may corrupt the content."
 msgstr "Biçim değişiklikleri içeriği bozalabilir."
 
 #: nottodbox/widgets/pages.py:115 nottodbox/widgets/pages.py:155
-#: nottodbox/settings.py:989 nottodbox/settings.py:1059
-#: nottodbox/settings.py:1148 nottodbox/settings.py:1176
-#: nottodbox/settings.py:1195 nottodbox/settings.py:1233
+#: nottodbox/settings.py:1094 nottodbox/settings.py:1136
+#: nottodbox/settings.py:1155 nottodbox/settings.py:1190
+#: nottodbox/settings.py:1293 nottodbox/settings.py:1363
 msgid "Enabled"
 msgstr "Aktif"
 
 #: nottodbox/widgets/pages.py:116 nottodbox/widgets/pages.py:158
-#: nottodbox/settings.py:985 nottodbox/settings.py:1066
-#: nottodbox/settings.py:1144 nottodbox/settings.py:1180
-#: nottodbox/settings.py:1198 nottodbox/settings.py:1229
+#: nottodbox/settings.py:1090 nottodbox/settings.py:1140
+#: nottodbox/settings.py:1159 nottodbox/settings.py:1186
+#: nottodbox/settings.py:1289 nottodbox/settings.py:1370
 msgid "Disabled"
 msgstr "Devre dışı"
 
@@ -650,8 +650,8 @@ msgstr "Küçük harflerle sıralanmış"
 msgid "Ordered with uppercase letters"
 msgstr "Büyük harflerle sıralanmış"
 
-#: nottodbox/widgets/pages.py:519 nottodbox/settings.py:1098
-#: nottodbox/settings.py:1115
+#: nottodbox/widgets/pages.py:519 nottodbox/settings.py:1044
+#: nottodbox/settings.py:1061
 msgid "List"
 msgstr "Liste"
 
@@ -679,7 +679,7 @@ msgstr "Yön"
 msgid "Table"
 msgstr "Tablo"
 
-#: nottodbox/widgets/pages.py:550 nottodbox/settings.py:773
+#: nottodbox/widgets/pages.py:550 nottodbox/settings.py:863
 msgid "Link"
 msgstr "Bağlantı"
 
@@ -700,8 +700,8 @@ msgid "Setting background color is only available in HTML format."
 msgstr "Arka plan rengi ayarlama sadece HTML biçiminde mevcuttur."
 
 #: nottodbox/widgets/pages.py:608 nottodbox/widgets/pages.py:734
-#: nottodbox/settings.py:917 nottodbox/settings.py:1239
-#: nottodbox/settings.py:1251 nottodbox/settings.py:1289
+#: nottodbox/settings.py:1007 nottodbox/settings.py:1196
+#: nottodbox/settings.py:1208 nottodbox/settings.py:1231
 msgid "Select {} Color"
 msgstr "{} Rengi Seçin"
 
@@ -764,8 +764,8 @@ msgstr "Metin biçimlendiricisi yedekler için mevcut değildir."
 msgid "Come Back To Today"
 msgstr "Günümüze Geri Dön"
 
-#: nottodbox/diaries.py:199 nottodbox/settings.py:770
-#: nottodbox/settings.py:1289
+#: nottodbox/diaries.py:199 nottodbox/settings.py:860
+#: nottodbox/settings.py:1231
 msgid "Highlight"
 msgstr "Vurgu"
 
@@ -836,7 +836,7 @@ msgstr "açılacak sayfayı isim ile ayarlayın"
 msgid "home"
 msgstr "ev"
 
-#: nottodbox/mainwindow.py:64 nottodbox/settings.py:158
+#: nottodbox/mainwindow.py:64 nottodbox/settings.py:160
 msgid "Sidebar"
 msgstr "Kenar Çubuğu"
 
@@ -873,104 +873,141 @@ msgstr "Adsız"
 msgid "Please select a {} or a {}."
 msgstr "Lütfen bir {} veya {} seçin."
 
-#: nottodbox/settings.py:157
+#: nottodbox/settings.py:159
 msgid "Appearance"
 msgstr "Görünüm"
 
-#: nottodbox/settings.py:159
+#: nottodbox/settings.py:161
 msgid "Shortcuts"
 msgstr "Kısayollar"
 
-#: nottodbox/settings.py:178 nottodbox/settings.py:1305
+#: nottodbox/settings.py:180 nottodbox/settings.py:329
 msgid "About"
 msgstr "Hakkında"
 
-#: nottodbox/settings.py:187
+#: nottodbox/settings.py:189
 msgid "Apply"
 msgstr "Uygula"
 
-#: nottodbox/settings.py:190
+#: nottodbox/settings.py:192
 msgid "Cancel"
 msgstr "İptal et"
 
-#: nottodbox/settings.py:223
-msgid "All new settings applied."
-msgstr "Tüm yeni ayarlar uygulandı."
-
-#: nottodbox/settings.py:226
-msgid "Failed to apply all new settings."
-msgstr "Tüm yeni ayarlar uygulanamadı."
-
-#: nottodbox/settings.py:264 nottodbox/settings.py:1266
+#: nottodbox/settings.py:231 nottodbox/settings.py:284
+#, fuzzy
 msgid ""
 "If you have documents with the format setting set to global, this change may "
 "corrupt them.\n"
-"Do you really want to apply the new format setting?"
+"Do you really want to apply the new format settings?"
 msgstr ""
 "Eğer biçim ayarı küresele ayarlanmış belgeleriniz varsa bu değişiklik, "
 "onları bozabilir.\n"
 "Gerçekten ayarları uygulamak istiyor musunuz?"
 
-#: nottodbox/settings.py:278
+#: nottodbox/settings.py:242
+#, fuzzy
+msgid "All setting applied."
+msgstr "Tüm yeni ayarlar uygulandı."
+
+#: nottodbox/settings.py:245 nottodbox/settings.py:298
+msgid "Warning"
+msgstr ""
+
+#: nottodbox/settings.py:245
+#, fuzzy
+msgid "All settings applied EXCEPT format settings."
+msgstr "Tüm yeni ayarlar uygulandı."
+
+#: nottodbox/settings.py:248
+#, fuzzy
+msgid "Failed to apply all settings."
+msgstr "Tüm yeni ayarlar uygulanamadı."
+
+#: nottodbox/settings.py:295
 msgid "All setting reset."
 msgstr "Tüm ayarlar sıfırlandı."
 
-#: nottodbox/settings.py:281
+#: nottodbox/settings.py:298
+#, fuzzy
+msgid "All settings reset EXCEPT format settings."
+msgstr "Tüm ayarlar sıfırlandı."
+
+#: nottodbox/settings.py:301
 msgid "Failed to reset all settings."
 msgstr "Tüm ayarlar sıfırlanamadı."
 
-#: nottodbox/settings.py:326
+#: nottodbox/settings.py:343
+msgid "Version"
+msgstr "Sürüm"
+
+#: nottodbox/settings.py:346
+msgid "Source codes"
+msgstr "Kaynak kodları"
+
+#: nottodbox/settings.py:349
+msgid "Developer"
+msgstr "Geliştirici"
+
+#: nottodbox/settings.py:352
+msgid "Copyright (C)"
+msgstr "Telif Hakkı (C)"
+
+#: nottodbox/settings.py:354
+msgid "License: GNU General Public License, Version 3 or later"
+msgstr "Lisans: GNU Genel Kamu Lisansı, Sürüm 3 veya sonrası"
+
+#: nottodbox/settings.py:416
 msgid "Import"
 msgstr "İçe Aktar"
 
-#: nottodbox/settings.py:341 nottodbox/settings.py:342
+#: nottodbox/settings.py:431 nottodbox/settings.py:432
 msgid "Style"
 msgstr "Stil"
 
-#: nottodbox/settings.py:343 nottodbox/settings.py:344
-#: nottodbox/settings.py:345 nottodbox/settings.py:592
+#: nottodbox/settings.py:433 nottodbox/settings.py:434
+#: nottodbox/settings.py:435 nottodbox/settings.py:682
 msgid "Color scheme"
 msgstr "Renk şeması"
 
-#: nottodbox/settings.py:345 nottodbox/settings.py:406
-#: nottodbox/settings.py:539 nottodbox/settings.py:807
+#: nottodbox/settings.py:435 nottodbox/settings.py:496
+#: nottodbox/settings.py:629 nottodbox/settings.py:897
 msgid "Custom"
 msgstr "Özel"
 
-#: nottodbox/settings.py:348
+#: nottodbox/settings.py:438
 msgid "Some styles may not be detected in two cases:"
 msgstr "Bazı stiller iki durumda algılanmayabilir:"
 
-#: nottodbox/settings.py:349
+#: nottodbox/settings.py:439
 msgid "If PySide6 is installed with Pip"
 msgstr "PySide6 Pip ile kurulduysa"
 
-#: nottodbox/settings.py:350
+#: nottodbox/settings.py:440
 msgid "If you are using the AppImage version of Nottodbox"
 msgstr "Nottodbox'un AppImage sürümünü kullanıyorsanız"
 
-#: nottodbox/settings.py:352
+#: nottodbox/settings.py:442
 msgid "From the system directory for KDE-format color schemes"
 msgstr "KDE-biçimi renk şemaları için olan sistem klasöründen"
 
-#: nottodbox/settings.py:354
+#: nottodbox/settings.py:444
 msgid "From the user directory for KDE-format color schemes"
 msgstr "KDE-biçimi renk şemaları için olan kullanıcı klasöründen"
 
-#: nottodbox/settings.py:356
+#: nottodbox/settings.py:446
 msgid "From the system directory for Nottodbox-format color schemes"
 msgstr "Nottodbox-biçimi renk şemaları için olan sistem klasöründen"
 
-#: nottodbox/settings.py:358
+#: nottodbox/settings.py:448
 msgid "From the user directory for Nottodbox-format color schemes"
 msgstr "Notodbox-biçimi renk şemaları için olan kullanıcı klasöründen"
 
-#: nottodbox/settings.py:401 nottodbox/settings.py:538
-#: nottodbox/settings.py:568
+#: nottodbox/settings.py:491 nottodbox/settings.py:628
+#: nottodbox/settings.py:658
 msgid "Style default"
 msgstr "Stil varsayılanı"
 
-#: nottodbox/settings.py:481 nottodbox/settings.py:820
+#: nottodbox/settings.py:571 nottodbox/settings.py:910
 #, python-brace-format
 msgid ""
 "A color scheme with the name '{name}' already exists.\n"
@@ -979,216 +1016,196 @@ msgstr ""
 "'{name}' adlı bir renk şeması zaten mevcuttur.\n"
 "Üstüne yazmak istiyor musunuz?"
 
-#: nottodbox/settings.py:508 nottodbox/settings.py:683
+#: nottodbox/settings.py:598 nottodbox/settings.py:773
 msgid "System default"
 msgstr "Sistem varsayılanı"
 
-#: nottodbox/settings.py:592
+#: nottodbox/settings.py:682
 #, python-brace-format
 msgid "Import a {the_item}"
 msgstr "{the_item} içeri aktar"
 
-#: nottodbox/settings.py:594
+#: nottodbox/settings.py:684
 msgid "Color schemes (*.colors *.json)"
 msgstr "Renk şemaları (*colors *.json)"
 
-#: nottodbox/settings.py:623
+#: nottodbox/settings.py:713
 #, python-brace-format
 msgid "the {name} color scheme"
 msgstr "{name} renk şemasını"
 
-#: nottodbox/settings.py:624
+#: nottodbox/settings.py:714
 #, python-brace-format
 msgid "Please enter a new name for {item}."
 msgstr "Lütfen {item} için yeni bir ad girin."
 
-#: nottodbox/settings.py:624 nottodbox/settings.py:658
+#: nottodbox/settings.py:714 nottodbox/settings.py:748
 #, python-brace-format
 msgid "{name} color scheme"
 msgstr "{name} renk şeması"
 
-#: nottodbox/settings.py:657
+#: nottodbox/settings.py:747
 #, python-brace-format
 msgid "{item} color scheme can not be renamed."
 msgstr "{item} yeniden adlandırılamaz."
 
-#: nottodbox/settings.py:752
+#: nottodbox/settings.py:842
 msgid "Color scheme to be edited"
 msgstr "Düzenlenecek renk şeması"
 
-#: nottodbox/settings.py:754
+#: nottodbox/settings.py:844
 msgid "Window"
 msgstr "Pencere"
 
-#: nottodbox/settings.py:755
+#: nottodbox/settings.py:845
 msgid "Window text"
 msgstr "Pencere metni"
 
-#: nottodbox/settings.py:756
+#: nottodbox/settings.py:846
 msgid "Base"
 msgstr "Taban"
 
-#: nottodbox/settings.py:757
+#: nottodbox/settings.py:847
 msgid "Alternate base"
 msgstr "Alternatif taban"
 
-#: nottodbox/settings.py:758
+#: nottodbox/settings.py:848
 msgid "Tooltip base"
 msgstr "Araç ipucusu tabanı"
 
-#: nottodbox/settings.py:759
+#: nottodbox/settings.py:849
 msgid "Tooltip text"
 msgstr "Araç ipucusu metni"
 
-#: nottodbox/settings.py:760
+#: nottodbox/settings.py:850
 msgid "Placeholder text"
 msgstr "Yer tutucu metni"
 
-#: nottodbox/settings.py:762
+#: nottodbox/settings.py:852
 msgid "Button"
 msgstr "Renk"
 
-#: nottodbox/settings.py:763
+#: nottodbox/settings.py:853
 msgid "Button text"
 msgstr "Buton metni"
 
-#: nottodbox/settings.py:764
+#: nottodbox/settings.py:854
 msgid "Bright text"
 msgstr "Parlak metin"
 
-#: nottodbox/settings.py:765
+#: nottodbox/settings.py:855
 msgid "Light"
 msgstr "Açık"
 
-#: nottodbox/settings.py:766
+#: nottodbox/settings.py:856
 msgid "Mid light"
 msgstr "Orta açık"
 
-#: nottodbox/settings.py:767
+#: nottodbox/settings.py:857
 msgid "Dark"
 msgstr "Koyu"
 
-#: nottodbox/settings.py:768
+#: nottodbox/settings.py:858
 msgid "Mid"
 msgstr "Orta"
 
-#: nottodbox/settings.py:769
+#: nottodbox/settings.py:859
 msgid "Shadow"
 msgstr "Gölge"
 
-#: nottodbox/settings.py:771
+#: nottodbox/settings.py:861
 msgid "Accent"
 msgstr "Aksan"
 
-#: nottodbox/settings.py:772
+#: nottodbox/settings.py:862
 msgid "Highlighted text"
 msgstr "Vurgulanmış metin"
 
-#: nottodbox/settings.py:774
+#: nottodbox/settings.py:864
 msgid "Visited link"
 msgstr "Ziyaret edilmiş link"
 
-#: nottodbox/settings.py:790
+#: nottodbox/settings.py:880
 msgid "General"
 msgstr "Genel"
 
-#: nottodbox/settings.py:793
+#: nottodbox/settings.py:883
 msgid "3D Bevel and Shadow Effects"
 msgstr "3D Eğim ve Gölge Efektleri"
 
-#: nottodbox/settings.py:796
+#: nottodbox/settings.py:886
 msgid "Selected (Marked) Items"
 msgstr "Seçilmiş (İşaretlenmiş) Ögeler"
 
-#: nottodbox/settings.py:799
+#: nottodbox/settings.py:889
 msgid "Links"
 msgstr "Bağlantılar"
 
-#: nottodbox/settings.py:866 nottodbox/settings.py:878
-#: nottodbox/settings.py:901 nottodbox/settings.py:930
+#: nottodbox/settings.py:956 nottodbox/settings.py:968
+#: nottodbox/settings.py:991 nottodbox/settings.py:1020
 msgid "none"
 msgstr "yok"
 
-#: nottodbox/settings.py:901 nottodbox/settings.py:929
-#: nottodbox/settings.py:1183 nottodbox/settings.py:1186
-#: nottodbox/settings.py:1190 nottodbox/settings.py:1244
-#: nottodbox/settings.py:1256 nottodbox/settings.py:1294
+#: nottodbox/settings.py:991 nottodbox/settings.py:1019
+#: nottodbox/settings.py:1143 nottodbox/settings.py:1146
+#: nottodbox/settings.py:1150 nottodbox/settings.py:1201
+#: nottodbox/settings.py:1213 nottodbox/settings.py:1236
 msgid "Select color (selected: {})"
 msgstr "Renk seçin (seçilen: {})"
 
-#: nottodbox/settings.py:945
-msgid "Start Menu Shortcut"
-msgstr "Başlat Menüsü Kısayolu"
-
-#: nottodbox/settings.py:955
-msgid "Add"
-msgstr "Ekle"
-
-#: nottodbox/settings.py:969
-msgid "Auto add at every startup"
-msgstr "Her başlangıçta otomatik ekle"
-
-#: nottodbox/settings.py:1012
-msgid "Start menu shortcut was added to start menu."
-msgstr "Başlat menüsü kısayolu başlat menüsüne eklendi."
-
-#: nottodbox/settings.py:1015
-msgid "Failed to add start menu shortcut to start menu."
-msgstr "Başlat menüsü kısayolu başlat menüsüne eklenemedi."
-
-#: nottodbox/settings.py:1040
-msgid "Start menu shortcut was deleted from start menu."
-msgstr "Başlat menüsü kısayolu başlat menüsünden silindi."
-
-#: nottodbox/settings.py:1047
-msgid "Failed to delete start menu shortcut from start menu."
-msgstr "Başlat menüsü kısayolu başlat menüsünden silinemedi."
-
-#: nottodbox/settings.py:1099
+#: nottodbox/settings.py:1045
 msgid "Alternate row colors"
 msgstr "Alternatif satır renkleri"
 
-#: nottodbox/settings.py:1108
+#: nottodbox/settings.py:1054
 msgid "Default background color of items"
 msgstr "Ögelerin varsayılan arka plan rengi"
 
-#: nottodbox/settings.py:1109
+#: nottodbox/settings.py:1055
 msgid "Default text color of items"
 msgstr "Ögelerin varsayılan metin rengi"
 
-#: nottodbox/settings.py:1116
+#: nottodbox/settings.py:1062
 msgid "Default creation state color of items"
 msgstr "Ögelerin varsayılan oluşturulma durumu rengi"
 
-#: nottodbox/settings.py:1132
+#: nottodbox/settings.py:1078
 msgid "Document"
 msgstr "Belge"
 
-#: nottodbox/settings.py:1184 nottodbox/settings.py:1187
-#: nottodbox/settings.py:1191 nottodbox/settings.py:1245
-#: nottodbox/settings.py:1257 nottodbox/settings.py:1295
+#: nottodbox/settings.py:1144 nottodbox/settings.py:1147
+#: nottodbox/settings.py:1151 nottodbox/settings.py:1202
+#: nottodbox/settings.py:1214 nottodbox/settings.py:1237
 msgid "default"
 msgstr "varsayılan"
 
+#: nottodbox/settings.py:1249
+msgid "Start Menu Shortcut"
+msgstr "Başlat Menüsü Kısayolu"
+
+#: nottodbox/settings.py:1259
+msgid "Add"
+msgstr "Ekle"
+
+#: nottodbox/settings.py:1273
+msgid "Auto add at every startup"
+msgstr "Her başlangıçta otomatik ekle"
+
+#: nottodbox/settings.py:1316
+msgid "Start menu shortcut was added to start menu."
+msgstr "Başlat menüsü kısayolu başlat menüsüne eklendi."
+
 #: nottodbox/settings.py:1319
-msgid "Version"
-msgstr "Sürüm"
+msgid "Failed to add start menu shortcut to start menu."
+msgstr "Başlat menüsü kısayolu başlat menüsüne eklenemedi."
 
-#: nottodbox/settings.py:1322
-msgid "Source codes"
-msgstr "Kaynak kodları"
+#: nottodbox/settings.py:1344
+msgid "Start menu shortcut was deleted from start menu."
+msgstr "Başlat menüsü kısayolu başlat menüsünden silindi."
 
-#: nottodbox/settings.py:1325
-msgid "Developer"
-msgstr "Geliştirici"
-
-#: nottodbox/settings.py:1328
-msgid "Copyright (C)"
-msgstr "Telif Hakkı (C)"
-
-#: nottodbox/settings.py:1330
-msgid "License: GNU General Public License, Version 3 or later"
-msgstr "Lisans: GNU Genel Kamu Lisansı, Sürüm 3 veya sonrası"
+#: nottodbox/settings.py:1351
+msgid "Failed to delete start menu shortcut from start menu."
+msgstr "Başlat menüsü kısayolu başlat menüsünden silinemedi."
 
 #: nottodbox/sidebar.py:98
 msgid "Open Pages"

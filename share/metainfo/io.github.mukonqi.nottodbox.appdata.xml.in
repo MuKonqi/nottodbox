@@ -30,13 +30,13 @@
     <launchable type="desktop-id">io.github.mukonqi.nottodbox.desktop</launchable>
 
     <releases>
-        <release version="v0.0.9-3" date="2025-04-06">
+        <release version="v0.0.9-3" date="2025-04-07">
             <description>
                 <ul>
                     <li>Fix date format in diary entries</li>
                     <li>If opened, make today's diary tab in "Diaries" page common with diary in "Home" page</li>
                     <li>Fix autosave connection(s) for notes and diaries</li>
-                    <li>Do not ask the format change question twice when resetting all settings</li>
+                    <li>Ask the format change question only when applying or resetting settings</li>
                 </ul>
             </description>
         </release>
