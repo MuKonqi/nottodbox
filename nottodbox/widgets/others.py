@@ -17,30 +17,33 @@
 
 
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QAction
+from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import *
 
 
 class Action(QAction):
-    def __init__(self, parent: QWidget, text: str = ""):
+    def __init__(self, parent: QWidget, text: str = "", icon: QIcon | None = None) -> None:
         super().__init__(text, parent)
+        
+        if icon is not None:
+            self.setIcon(icon)
         
         
 class Combobox(QComboBox):
-    def addItems(self, texts: list[str] | tuple[str]):
+    def addItems(self, texts: list[str] | tuple[str]) -> None:
         self.clear()
         return super().addItems(texts)
 
 
 class HSeperator(QFrame):
-    def __init__(self, parent: QWidget):
+    def __init__(self, parent: QWidget) -> None:
         super().__init__(parent)
         
         self.setFrameShape(QFrame.Shape.HLine)
         
         
 class Label(QLabel):
-    def __init__(self, parent: QWidget, text: str = "", alignment: Qt.AlignmentFlag | int = Qt.AlignmentFlag.AlignCenter):
+    def __init__(self, parent: QWidget, text: str = "", alignment: Qt.AlignmentFlag | int = Qt.AlignmentFlag.AlignCenter) -> None:
         super().__init__(text, parent)
         
         if type(alignment) == int:
@@ -50,14 +53,17 @@ class Label(QLabel):
         
 
 class VSeperator(QFrame):
-    def __init__(self, parent: QWidget):
+    def __init__(self, parent: QWidget) -> None:
         super().__init__(parent)
         
         self.setFrameShape(QFrame.Shape.VLine)
   
 
 class PushButton(QPushButton):
-    def __init__(self, parent: QWidget, text: str = ""):
+    def __init__(self, parent: QWidget, text: str = "", icon: QIcon | None = None) -> None:
         super().__init__(text, parent)
         
         self.setFixedHeight(30)
+        
+        if icon is not None:
+            self.setIcon(icon)

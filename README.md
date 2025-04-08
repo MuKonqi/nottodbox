@@ -176,7 +176,7 @@
 ## Install with Meson
 ### Dependencies
 - Python3
-- PySide6
+- PySide6 (minumum 6.7.0)
 - git
 - meson
 
@@ -189,7 +189,7 @@
 ## Run from source
 ### Dependencies:
 - Python3
-- PySide6
+- PySide6 (minumum 6.7.0)
 - git
 - msgfmt (generally distributed with gettext or gettext-tools package)
 

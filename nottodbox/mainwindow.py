@@ -18,7 +18,7 @@
 
 from gettext import gettext as _
 from PySide6.QtCore import Slot, Qt, QSettings, QByteArray
-from PySide6.QtGui import QCloseEvent, QPalette
+from PySide6.QtGui import QCloseEvent, QIcon
 from PySide6.QtWidgets import *
 from widgets.others import HSeperator, VSeperator, PushButton
 from sidebar import SidebarWidget
@@ -72,11 +72,12 @@ class MainWindow(QMainWindow):
         self.sidebar = SidebarWidget(self, self.notes, self.diaries)
         self.settings = SettingsWidget(self, self.sidebar, self.notes.home, self.todos, self.diaries.home)
         
-        self.tabwidget.addPage(_("Home"), self.home)
+        self.tabwidget.addPage(_("Home"), self.home, False, QIcon.fromTheme(QIcon.ThemeIcon.GoHome))
         self.tabwidget.addPage(_("Notes"), self.notes, True)
         self.tabwidget.addPage(_("To-dos"), self.todos)
         self.tabwidget.addPage(_("Diaries"), self.diaries)
-        self.tabwidget.addPage(_("Settings"), self.settings, True, True)
+        self.tabwidget.addPage(_("Settings"), self.settings, True)
+        self.tabwidget.finished()
         
         self.setCentralWidget(self.tabwidget)
         self.tabbar.setWidget(self.tabwidget.tabbars_widget)
@@ -197,7 +198,7 @@ class TabWidget(QStackedWidget):
         
         self.pages = {}
         
-        self.buttons = []
+        self.tabs = []
         
         self.tabbars_widget = QWidget(self.parent_)
         
@@ -206,7 +207,7 @@ class TabWidget(QStackedWidget):
         
         self.currentChanged.connect(self.pageChanged)
         
-    def addPage(self, text: str, page: QWidget, seperator: bool = False, *last: bool) -> None:
+    def addPage(self, text: str, page: QWidget, seperator: bool = False, icon: QIcon | None = None) -> None:
         if seperator or self.tabbars == []:
             if seperator:
                 self.tabbars[-1].addingFinished()
@@ -218,12 +219,12 @@ class TabWidget(QStackedWidget):
 
         self.pages[page] = self.tabbars[-1]
         
-        self.buttons.append(self.tabbars[-1].addButton(text))
+        self.tabs.append(self.tabbars[-1].addButton(text))
+        
+        if icon is not None:
+            self.tabs[-1].button.setIcon(icon)
         
         self.addWidget(page)
-        
-        if last:
-            self.finished()
         
     def finished(self) -> None:
         self.tabbars[-1].addingFinished()
@@ -235,34 +236,34 @@ class TabWidget(QStackedWidget):
         
         last_tabbar = self.tabbars[0]
         
-        for button in self.buttons:
-            if last_tabbar == button.parent_:
+        for tab in self.tabs:
+            if last_tabbar == tab.parent_:
                 stretch_counter += 1
                 stretchs[last_tabbar] = stretch_counter
             
             else:
                 stretch_counter = 1
-                stretchs[button.parent_] = 1
+                stretchs[tab.parent_] = 1
                 
                 number += 2
                 
-                self.tabbars_layout.insertSpacerItem(number - 1, QSpacerItem(self.parent_.width() / (len(self.buttons) + len(self.tabbars) - 1), 30))
+                self.tabbars_layout.insertSpacerItem(number - 1, QSpacerItem(self.parent_.width() / (len(self.tabs) + len(self.tabbars) - 1), 30))
                 self.tabbars_layout.setStretch(number - 1, 1)
                 
-            last_tabbar = button.parent()
+            last_tabbar = tab.parent()
         
         for tabbar, stretch in stretchs.items():
             self.tabbars_layout.setStretch(self.tabbars_layout.indexOf(tabbar), stretch)
         
     def setCurrentPage(self, page: int | QWidget) -> None:        
-        buttons = self.buttons.copy()
+        tabs = self.tabs.copy()
 
-        buttons[page if type(page) == int else self.indexOf(page)].setSelected()
+        tabs[page if type(page) == int else self.indexOf(page)].setSelected()
             
-        buttons.pop(page if type(page) == int else self.indexOf(page))
+        tabs.pop(page if type(page) == int else self.indexOf(page))
         
-        for button in buttons:
-            button.setUnselected()
+        for tab in tabs:
+            tab.setUnselected()
             
         self.setCurrentIndex(page if type(page) == int else self.indexOf(page))
         
@@ -319,7 +320,7 @@ class TabButton(QWidget):
         self.button = PushButton(self, text)
         self.button.setCheckable(True)
         self.button.clicked.connect(self.setSelected)
-        self.button.clicked.connect(lambda state: self.parent_.parent_.setCurrentPage(self.parent_.parent_.buttons.index(self)))
+        self.button.clicked.connect(lambda state: self.parent_.parent_.setCurrentPage(self.parent_.parent_.tabs.index(self)))
 
         self.seperators = [VSeperator(self), VSeperator(self), HSeperator(self)]
         
@@ -327,9 +328,9 @@ class TabButton(QWidget):
         self.seperators[1].setFixedHeight(30)
         
         self.layout_ = QGridLayout(self)
+        self.layout_.setSpacing(4)
         margins = self.layout_.contentsMargins()
-        margins.setTop(self.layout_.spacing() if not self.layout_.spacing() != -1 else 5)
-        margins.setBottom(self.layout_.spacing() if not self.layout_.spacing() != -1 else 5)
+        margins.setBottom(4)
         self.layout_.setContentsMargins(margins)
         self.layout_.addWidget(self.seperators[0], 0, 0, 1, 1)
         self.layout_.addWidget(self.button, 0, 1, 1, 1)
@@ -356,17 +357,17 @@ class TabButtons(QWidget):
 
         self.parent_ = parent
         
-        self.buttons = []
+        self.tabs = []
         
         self.layout_ = QGridLayout(self)
         self.layout_.setContentsMargins(0, 0, 0, 0)
         self.layout_.setSpacing(0)
         
     def addButton(self, text: str) -> TabButton:
-        self.buttons.append(TabButton(self, text))
-        self.layout_.addWidget(self.buttons[-1], 1, len(self.buttons), 1, 1)
+        self.tabs.append(TabButton(self, text))
+        self.layout_.addWidget(self.tabs[-1], 1, len(self.tabs), 1, 1)
         
-        return self.buttons[-1]
+        return self.tabs[-1]
             
     def addingFinished(self) -> None:
-        self.layout_.addWidget(HSeperator(self), 0, 1, 1, len(self.buttons))
+        self.layout_.addWidget(HSeperator(self), 0, 1, 1, len(self.tabs))

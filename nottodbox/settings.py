@@ -21,7 +21,7 @@ import configparser
 import json
 from gettext import gettext as _
 from PySide6.QtCore import Slot, Qt, QSettings, QStandardPaths
-from PySide6.QtGui import QColor, QPalette, QPixmap, QFontDatabase
+from PySide6.QtGui import QColor, QPalette, QPixmap, QFontDatabase, QIcon
 from PySide6.QtWidgets import *
 from widgets.dialogs import ColorDialog
 from widgets.others import Combobox, HSeperator, Label, PushButton, VSeperator
@@ -176,7 +176,7 @@ class SettingsWidget(QWidget):
         self.selector.setCurrentRow(0)
         self.selector.currentRowChanged.connect(self.setCurrentPage)
         
-        self.about_button = PushButton(self, _("About"))
+        self.about_button = PushButton(self, _("About"), QIcon.fromTheme(QIcon.ThemeIcon.HelpAbout))
         self.about_button.setFlat(True)
         self.about_button.setCheckable(True)
         self.about_button.clicked.connect(self.aboutPage)
@@ -327,7 +327,7 @@ class AboutWidget(QWidget):
         
         self.parent_ = parent
         
-        self.parent_.menu.addAction(_("About"), self.openPage)
+        self.parent_.menu.addAction(QIcon.fromTheme(QIcon.ThemeIcon.HelpAbout), _("About"), self.openPage)
         
         self.icon_and_nottodbox = QWidget()
         

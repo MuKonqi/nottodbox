@@ -18,10 +18,9 @@
 # along with Nottodbox.  If not, see <https://www.gnu.org/licenses/>.
 
 
-import datetime
 from gettext import gettext as _
 from PySide6.QtCore import Signal, Slot, Qt, QDate, QObject, QThread
-from PySide6.QtGui import QTextCursor, QTextFormat, QTextBlockFormat, QTextCharFormat, QTextListFormat, QTextTableFormat, QTextLength, QTextTable, QDesktopServices, QPalette
+from PySide6.QtGui import QTextCursor, QTextFormat, QTextBlockFormat, QTextCharFormat, QTextListFormat, QTextTableFormat, QTextLength, QTextTable, QDesktopServices, QPalette, QIcon
 from PySide6.QtWidgets import *
 from .dialogs import ColorDialog, GetTwoDialog
 from .others import PushButton, Action
@@ -247,6 +246,7 @@ class BackupPage(BasePage):
         self.input.setReadOnly(True)
         
         self.button.setText(_("Restore Content"))
+        self.button.setIcon(QIcon.fromTheme(QIcon.ThemeIcon.DocumentRevert))
         self.button.clicked.connect(self.restoreContent)
             
     @Slot()
@@ -295,6 +295,7 @@ class NormalPage(BasePage):
         self.saver.moveToThread(self.saver_thread)
         
         self.button.setText(_("Save"))
+        self.button.setIcon(QIcon.fromTheme(QIcon.ThemeIcon.DocumentSave))
         self.button.clicked.connect(lambda: self.saver.saveChild())
         
         self.save = lambda: self.saver.saveChild_.emit(True)
@@ -466,19 +467,19 @@ class TextFormatter(QToolBar):
         self.input = self.parent_.input
         self.page = self.parent_.parent()
         
-        self.bold_button = Action(self, _("Bold"))
+        self.bold_button = Action(self, _("Bold"), QIcon.fromTheme(QIcon.ThemeIcon.FormatTextBold))
         self.bold_button.triggered.connect(self.setBold)
         self.bold_button.setCheckable(True)
         
-        self.italic_button = Action(self, _("Italic"))
+        self.italic_button = Action(self, _("Italic"), QIcon.fromTheme(QIcon.ThemeIcon.FormatTextItalic))
         self.italic_button.triggered.connect(self.setItalic)
         self.italic_button.setCheckable(True)
         
-        self.underline_button = Action(self, _("Underline"))
+        self.underline_button = Action(self, _("Underline"), QIcon.fromTheme(QIcon.ThemeIcon.FormatTextUnderline))
         self.underline_button.triggered.connect(self.setUnderline)
         self.underline_button.setCheckable(True)
         
-        self.strikethrough_button = Action(self, _("Strike through"))
+        self.strikethrough_button = Action(self, _("Strike through"), QIcon.fromTheme(QIcon.ThemeIcon.FormatTextStrikethrough))
         self.strikethrough_button.triggered.connect(self.setStrikeThrough)
         self.strikethrough_button.setCheckable(True)
         
@@ -519,11 +520,11 @@ class TextFormatter(QToolBar):
         self.list_button.setMenu(self.list_menu)
         
         self.alignment_menu = QMenu(self)
-        self.alignment_menu.addAction(
+        self.alignment_menu.addAction(QIcon.fromTheme(QIcon.ThemeIcon.FormatJustifyLeft),
             _("Left"), lambda: self.setAlignment(Qt.AlignmentFlag.AlignLeft))
-        self.alignment_menu.addAction(
+        self.alignment_menu.addAction(QIcon.fromTheme(QIcon.ThemeIcon.FormatJustifyCenter),
             _("Center"), lambda: self.setAlignment(Qt.AlignmentFlag.AlignCenter))
-        self.alignment_menu.addAction(
+        self.alignment_menu.addAction(QIcon.fromTheme(QIcon.ThemeIcon.FormatJustifyRight),
             _("Right"), lambda: self.setAlignment(Qt.AlignmentFlag.AlignRight))
         self.alignment_menu.setStatusTip(_("Setting alignment is only available in HTML format."))
         

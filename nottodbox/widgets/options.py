@@ -18,7 +18,7 @@
 
 from gettext import gettext as _
 from PySide6.QtCore import Slot, QDate
-from PySide6.QtGui import QColor
+from PySide6.QtGui import QColor, QIcon
 from PySide6.QtWidgets import *
 from settings import settings
 from .dialogs import ColorDialog, GetDateDialog
@@ -580,10 +580,10 @@ class OptionsForDocuments(Options):
     def __init__(self, parent: HomePage, module: str, db):
         super().__init__(parent, module, db)
         
-        self.open_button = PushButton(self, _("Open"))
+        self.open_button = PushButton(self, _("Open"), QIcon.fromTheme(QIcon.ThemeIcon.DocumentOpen))
         self.open_button.clicked.connect(self.open)
         
-        self.show_backup_button = PushButton(self, _("Show Backup"))
+        self.show_backup_button = PushButton(self, _("Show Backup"), QIcon.fromTheme(QIcon.ThemeIcon.DocumentRevert))
         self.show_backup_button.clicked.connect(self.showBackup)
 
         self.restore_content_button = PushButton(self, _("Restore Content"))
@@ -703,11 +703,11 @@ class OptionsForLists(Options):
         super().__init__(parent, module, db)
         
         self.create_child_button = PushButton(self, _("Create {}")
-                                             .format(self.localizedChild().title()))
+                                             .format(self.localizedChild().title()), QIcon.fromTheme(QIcon.ThemeIcon.DocumentNew))
         self.create_child_button.clicked.connect(self.createChild)
         
         self.create_parent_button = PushButton(self, _("Create {}")
-                                                 .format(self.localizedParent().title()))
+                                                 .format(self.localizedParent().title()), QIcon.fromTheme(QIcon.ThemeIcon.FolderNew))
         self.create_parent_button.clicked.connect(self.createParent)
         
         self.set_background_button = PushButton(self, _("Set {} Color").format(_("Background")))
