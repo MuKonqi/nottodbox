@@ -96,7 +96,7 @@ class TreeView(QTreeView):
 
         if self.own:
             self.selectionModel().currentRowChanged.connect(
-                lambda: self.parent_.setOptionWidget(self.getChildText(), self.getParentText()))
+                lambda: self.parent_.setSelectedItems(self.getChildText(), self.getParentText()))
 
         self.proxy.setSourceModel(self.model_)
         
@@ -324,7 +324,7 @@ class TreeView(QTreeView):
                     self.parent_.child_items[(newname, key[1])] = self.parent_.child_items.pop((name, key[1]))
                 
             if self.own:
-                self.parent_.setOptionWidget("", newname)
+                self.parent_.setSelectedItems("", newname)
                 
         else:
             self.parent_.child_counts[(newname, table)] = self.parent_.child_counts.pop((name, table))
@@ -345,4 +345,4 @@ class TreeView(QTreeView):
                 item.setData(newname, Qt.ItemDataRole.UserRole)
                 
             if self.own:
-                self.parent_.setOptionWidget(newname, table)
+                self.parent_.setSelectedItems(newname, table)

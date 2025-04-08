@@ -168,7 +168,7 @@ class HomePage(QWidget):
             return name
     
     @Slot(str, str)
-    def setSelectedItem(self, name: str, table: str = "__main__") -> None:
+    def setSelectedItems(self, name: str, table: str = "__main__") -> None:
         self.table = table
         self.name = name
         
@@ -282,8 +282,8 @@ class HomePageForLists(HomePage):
             self.treeview.setAlternatingRowColors(False)
         
     @Slot(str, str)
-    def setOptionWidget(self, name: str = "", table: str = "") -> None:
-        super().setSelectedItem(name, table)
+    def setSelectedItems(self, name: str = "", table: str = "") -> None:
+        super().setSelectedItems(name, table)
         
         if table == "__main__":
             table = name
@@ -323,13 +323,13 @@ class Options(QWidget):
         self.module = module
         self.db = db
         
-        self.rename_button = PushButton(self, _("Rename"))
+        self.rename_button = PushButton(self, _("Rename"), QIcon.fromTheme(QIcon.ThemeIcon.InsertText))
         self.rename_button.clicked.connect(self.rename)
         
-        self.delete_button = PushButton(self, _("Delete"))
+        self.delete_button = PushButton(self, _("Delete"), QIcon.fromTheme(QIcon.ThemeIcon.EditDelete))
         self.delete_button.clicked.connect(self.delete)
         
-        self.delete_all_button = PushButton(self, _("Delete All"))
+        self.delete_all_button = PushButton(self, _("Delete All"), QIcon.fromTheme(QIcon.ThemeIcon.EditDelete))
         self.delete_all_button.clicked.connect(self.deleteAll)
         
         self.layout_ = QVBoxLayout(self)
@@ -383,7 +383,7 @@ class Options(QWidget):
             if question == QMessageBox.StandardButton.Yes:
                 if self.db.delete(name, table):
                     if self.module != "diaries":
-                        self.parent_.setSelectedItem("", table)
+                        self.parent_.setSelectedItems("", table)
                     
                     if table == "__main__" and self.module != "diaries":
                         for child, parent in self.parent_.shortcuts.copy().keys():
@@ -411,7 +411,7 @@ class Options(QWidget):
         if question == QMessageBox.StandardButton.Yes:
             if self.db.deleteAll():
                 if self.module != "diaries":
-                    self.parent_.setSelectedItem("", "")
+                    self.parent_.setSelectedItems("", "")
                 
                 self.parent_.menu.clear()
                 self.parent_.shortcuts.clear()
@@ -544,7 +544,7 @@ class Options(QWidget):
             if topwindow and newname != "":
                 if self.checkTheName(newname) and not self.checkIfItExists(newname, table, False):
                     if self.db.rename(newname, name, table):
-                        self.parent_.setSelectedItem(newname, table)
+                        self.parent_.setSelectedItems(newname, table)
                         
                         if table == "__main__" and self.module != "diaries":
                             for child, parent in self.parent_.shortcuts.copy().keys():
@@ -583,13 +583,13 @@ class OptionsForDocuments(Options):
         self.open_button = PushButton(self, _("Open"), QIcon.fromTheme(QIcon.ThemeIcon.DocumentOpen))
         self.open_button.clicked.connect(self.open)
         
-        self.show_backup_button = PushButton(self, _("Show Backup"), QIcon.fromTheme(QIcon.ThemeIcon.DocumentRevert))
+        self.show_backup_button = PushButton(self, _("Show Backup"), QIcon.fromTheme(QIcon.ThemeIcon.DocumentOpen))
         self.show_backup_button.clicked.connect(self.showBackup)
 
-        self.restore_content_button = PushButton(self, _("Restore Content"))
+        self.restore_content_button = PushButton(self, _("Restore Content"), QIcon.fromTheme(QIcon.ThemeIcon.DocumentRevert))
         self.restore_content_button.clicked.connect(self.restoreContent)
         
-        self.clear_content_button = PushButton(self, _("Clear Content"))
+        self.clear_content_button = PushButton(self, _("Clear Content"), QIcon.fromTheme(QIcon.ThemeIcon.EditClear))
         self.clear_content_button.clicked.connect(self.clearContent)
     
     def checkIfBackupExists(self, name: str, table: str) -> bool:  
@@ -887,16 +887,16 @@ class ParentOptions(OptionsForLists):
     def __init__(self, parent: HomePageForLists, module: str, db) -> None:
         super().__init__(parent, module, db)
         
-        self.reset_button = PushButton(self, _("Reset"))
+        self.reset_button = PushButton(self, _("Reset"), QIcon.fromTheme(QIcon.ThemeIcon.EditClear))
         self.reset_button.clicked.connect(self.reset)
         
         self.layout_.addWidget(self.create_child_button)
         self.layout_.addWidget(self.create_parent_button)
-        self.layout_.addWidget(HSeperator(self))
-        self.layout_.addWidget(self.reset_button)
+        
         self.layout_.addWidget(HSeperator(self))
         self.layout_.addWidget(self.rename_button)
         self.layout_.addWidget(self.delete_button)
+        self.layout_.addWidget(self.reset_button)
         self.layout_.addWidget(HSeperator(self))
         self.layout_.addWidget(self.delete_all_button)
         self.layout_.addWidget(HSeperator(self))
@@ -914,7 +914,7 @@ class ParentOptions(OptionsForLists):
             if question == QMessageBox.StandardButton.Yes:
                 if self.checkIfItExists(name):
                     if self.db.resetParent(name):
-                        self.parent_.setSelectedItem("", name)
+                        self.parent_.setSelectedItems("", name)
                         
                         for child, parent in self.parent_.shortcuts.copy().keys():
                             if parent == name:

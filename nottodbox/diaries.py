@@ -176,8 +176,8 @@ class DiariesHomePage(HomePageForDocuments):
                                                                                         .format(setting = self.parent_.parent_.home.diary.prettyAutosave(self.autosave))))
         
     @Slot(str)
-    def setSelectedItem(self, name: str, table: str = "__main__") -> None:
-        super().setSelectedItem(name, table)
+    def setSelectedItems(self, name: str, table: str = "__main__") -> None:
+        super().setSelectedItems(name, table)
         
         if name != "":
             call = diariesdb.getData("modification", name, table)
@@ -272,9 +272,9 @@ class DiariesCalendarWidget(QCalendarWidget):
         self.setMaximumDate(self.parent_.today)
         self.setStatusTip(_("Double-click on top to opening a diary."))
         self.selectionChanged.connect(
-            lambda: self.parent_.setSelectedItem(self.selectedDate().toString("dd/MM/yyyy")))
+            lambda: self.parent_.setSelectedItems(self.selectedDate().toString("dd/MM/yyyy")))
 
-        self.parent_.setSelectedItem(self.selectedDate().toString("dd/MM/yyyy"))
+        self.parent_.setSelectedItems(self.selectedDate().toString("dd/MM/yyyy"))
 
     def mouseDoubleClickEvent(self, a0: QMouseEvent | None) -> None:
         super().mouseDoubleClickEvent(a0)

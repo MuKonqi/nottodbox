@@ -19,6 +19,7 @@
 import datetime
 from gettext import gettext as _
 from PySide6.QtCore import Slot
+from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import *
 from databases.lists import DBForLists
 from widgets.others import HSeperator, PushButton
@@ -145,12 +146,27 @@ class TodosHomePage(HomePageForLists):
     def shortcutEvent(self, name: str, table: str = "__main__") -> None:
         self.child_options.changeStatus(False, name, table)
         
+    @Slot(str, str)
+    def setSelectedItems(self, name: str = "", table: str = "") -> None:
+        super().setSelectedItems(name, table)
+        
+        if self.table != "" and self.name != "":
+            status = self.db.getStatus(self.name, self.table)
+            
+            if status == "completed":
+                self.child_options.change_status_button.setIcon(QIcon.fromTheme(QIcon.ThemeIcon.ListRemove))
+                self.child_options.change_status_button.setText(_("Mark Uncompleted"))
+                
+            elif status == "uncompleted":
+                self.child_options.change_status_button.setIcon(QIcon.fromTheme(QIcon.ThemeIcon.ListAdd))
+                self.child_options.change_status_button.setText(_("Mark Completed"))
+        
         
 class TodosChildOptions(OptionsForLists):
     def __init__(self, parent):
         super().__init__(parent, "todos", todosdb)
         
-        self.change_status_button = PushButton(self, _("Change Status"))
+        self.change_status_button = PushButton(self, "")
         self.change_status_button.clicked.connect(self.changeStatus)
         
         self.layout_.addWidget(self.create_child_button)
