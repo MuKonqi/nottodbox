@@ -41,8 +41,6 @@ class BasePage(QWidget):
         self.format_ = format
         self.autosave_ = autosave
         
-        self.layout_ = QGridLayout(self)
-        
         self.today = QDate.currentDate()
         
         if self.module == "notes":
@@ -137,7 +135,7 @@ class BasePage(QWidget):
         
         self.input.cursorPositionChanged.connect(self.formatter.updateButtons)
         
-        self.setLayout(self.layout_)
+        self.layout_ = QGridLayout(self)
         self.layout_.addWidget(self.formatter, 0, 0, 1, 2)
         self.layout_.addWidget(self.input, 1, 0, 1, 2)
         self.layout_.addWidget(self.button, 2, 0, 1, 2)

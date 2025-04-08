@@ -122,6 +122,7 @@ class HomePage(QWidget):
         super().__init__(parent)
         
         self.parent_ = parent
+        
         self.module = module
         self.db = db
         
@@ -140,7 +141,7 @@ class HomePage(QWidget):
         self.shortcuts = {}
         
         self.layout_ = QGridLayout(self)
-        self.setLayout(self.layout_)
+        
         self.appendAll()
         
         self.refreshSettingsBase()
@@ -209,7 +210,6 @@ class HomePageForLists(HomePage):
         self.table_items = {}
         
         self.selecteds = QWidget(self)
-        self.selecteds_layout = QHBoxLayout(self.selecteds)
         
         self.parent_selected = Label(self.selecteds, "{}: ".format(self.localizedParent().title()))
         self.child_selected = Label(self.selecteds, "{}: ".format(self.localizedChild().title()))
@@ -230,7 +230,7 @@ class HomePageForLists(HomePage):
         
         self.current_widget = self.none_options
         
-        self.selecteds.setLayout(self.selecteds_layout)
+        self.selecteds_layout = QHBoxLayout(self.selecteds)
         self.selecteds_layout.addWidget(self.parent_selected)
         self.selecteds_layout.addWidget(self.child_selected)
         
@@ -323,10 +323,6 @@ class Options(QWidget):
         self.module = module
         self.db = db
         
-        self.layout_ = QVBoxLayout(self)
-        self.setLayout(self.layout_)
-        self.setFixedWidth(200)
-        
         self.rename_button = PushButton(self, _("Rename"))
         self.rename_button.clicked.connect(self.rename)
         
@@ -335,6 +331,9 @@ class Options(QWidget):
         
         self.delete_all_button = PushButton(self, _("Delete All"))
         self.delete_all_button.clicked.connect(self.deleteAll)
+        
+        self.layout_ = QVBoxLayout(self)
+        self.setFixedWidth(200)
         
     def autoGet(self) -> tuple[str, str]:
         if self.parent_.name == "":

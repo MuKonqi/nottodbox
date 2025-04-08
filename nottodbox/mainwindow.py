@@ -18,8 +18,9 @@
 
 from gettext import gettext as _
 from PySide6.QtCore import Slot, Qt, QSettings, QByteArray
-from PySide6.QtGui import QCloseEvent
+from PySide6.QtGui import QCloseEvent, QPalette
 from PySide6.QtWidgets import *
+from widgets.others import HSeperator, VSeperator, PushButton
 from sidebar import SidebarWidget
 from home import HomeWidget
 from notes import NotesTabWidget, notesdb
@@ -47,7 +48,7 @@ class MainWindow(QMainWindow):
         
         self.tabbar = QDockWidget(self)
         self.tabbar.setObjectName("TabBar")
-        self.tabbar.setFixedHeight(self.tabbar.height() + 20)
+        self.tabbar.setFixedHeight(self.tabbar.height() * 2.5)
         self.tabbar.setFeatures(QDockWidget.DockWidgetFeature.NoDockWidgetFeatures)
         self.tabbar.setAllowedAreas(Qt.DockWidgetArea.TopDockWidgetArea)
         self.tabbar.setTitleBarWidget(QWidget(self.tabbar))
@@ -75,9 +76,7 @@ class MainWindow(QMainWindow):
         self.tabwidget.addPage(_("Notes"), self.notes, True)
         self.tabwidget.addPage(_("To-dos"), self.todos)
         self.tabwidget.addPage(_("Diaries"), self.diaries)
-        self.tabwidget.addPage(_("Settings"), self.settings, True)
-        
-        self.tabwidget.tabbars[0].setCurrentIndex(1)        
+        self.tabwidget.addPage(_("Settings"), self.settings, True, True)
         
         self.setCentralWidget(self.tabwidget)
         self.tabbar.setWidget(self.tabwidget.tabbars_widget)
@@ -194,118 +193,180 @@ class TabWidget(QStackedWidget):
         
         self.current_index = 0
         
-        self.last_caller = 0
-        
         self.tabbars = []
         
-        self.tabbars_indexes = {}
+        self.pages = {}
         
-        self.tabbars_number = 0
+        self.buttons = []
         
         self.tabbars_widget = QWidget(self.parent_)
         
         self.tabbars_layout = QHBoxLayout(self.tabbars_widget)
         self.tabbars_layout.setContentsMargins(10, 10, 10, 10)
         
-        self.tabbars_widget.setLayout(self.tabbars_layout)
+        self.currentChanged.connect(self.pageChanged)
         
-    def addPage(self, text: str, page: QWidget, seperator: bool = False) -> None:
+    def addPage(self, text: str, page: QWidget, seperator: bool = False, *last: bool) -> None:
         if seperator or self.tabbars == []:
             if seperator:
-                self.tabbars_layout.addSpacerItem(QSpacerItem(self.parent_.width() / 10, self.tabbars_widget.height()))
+                self.tabbars[-1].addingFinished()
             
-            number = 0
-        
-            for other_tabbar in self.tabbars:
-                number += other_tabbar.number
-                
-            tabbar = TabBar(self)
-            tabbar.setShape(QTabBar.Shape.TriangularSouth)
-            tabbar.setUsesScrollButtons(True)
-            tabbar.currentChanged.connect(lambda index, caller = len(self.tabbars): self.pageChanged(index, number, caller))
+            tabbar = TabButtons(self)
             
             self.tabbars.append(tabbar)
             self.tabbars_layout.addWidget(tabbar)
 
-        self.tabbars_indexes[self.count()] = (len(self.tabbars) - 1, self.tabbars[-1].addTab(text))
+        self.pages[page] = self.tabbars[-1]
+        
+        self.buttons.append(self.tabbars[-1].addButton(text))
+        
         self.addWidget(page)
         
-    def setCurrentPage(self, page: int | QWidget) -> None:
-        tabbar, index = self.tabbars_indexes[page if type(page) == int else self.indexOf(page)]
+        if last:
+            self.finished()
+        
+    def finished(self) -> None:
+        self.tabbars[-1].addingFinished()
         
         number = 0
         
-        for other_tabbar in self.tabbars[:tabbar]:
-            number += other_tabbar.number
+        stretchs = {}
+        stretch_counter = 0
         
-        self.tabbars[tabbar].setCurrentIndex(index)
+        last_tabbar = self.tabbars[0]
         
-    @Slot(int, int, int)
-    def pageChanged(self, index: int, number: int, caller: int) -> None:
-        if index != 0:
-            if self.last_caller != caller:
-                tabbars = self.tabbars.copy()
-                tabbars.pop(caller)
+        for button in self.buttons:
+            if last_tabbar == button.parent_:
+                stretch_counter += 1
+                stretchs[last_tabbar] = stretch_counter
+            
+            else:
+                stretch_counter = 1
+                stretchs[button.parent_] = 1
                 
-                for tabbar in tabbars:
-                    tabbar.setCurrentIndex(0)
-            
-            self.setCurrentIndex(number + index - 1)
-            
-            self.last_caller = caller
-            
-            if number + index - 1 != self.current_index:
-                old_widget = self.widget(self.current_index)
+                number += 2
                 
-                if old_widget == self.parent_.home:
-                    self.parent_.home.diary.disconnectAutosaveConnections()
+                self.tabbars_layout.insertSpacerItem(number - 1, QSpacerItem(self.parent_.width() / (len(self.buttons) + len(self.tabbars) - 1), 30))
+                self.tabbars_layout.setStretch(number - 1, 1)
+                
+            last_tabbar = button.parent()
+        
+        for tabbar, stretch in stretchs.items():
+            self.tabbars_layout.setStretch(self.tabbars_layout.indexOf(tabbar), stretch)
+        
+    def setCurrentPage(self, page: int | QWidget) -> None:        
+        buttons = self.buttons.copy()
 
-                elif ((old_widget == self.parent_.diaries or old_widget == self.parent_.notes) and
-                    old_widget.currentWidget() != old_widget.home and old_widget.currentWidget().mode == "normal"):
-                    old_widget.currentWidget().disconnectAutosaveConnections()
-                    
-                new_widget = self.widget(number + index - 1)
-                
-                today = (self.parent_.diaries.home.today.toString("dd/MM/yyyy"), "__main__")
-                
-                if new_widget == self.parent_.home:
-                    self.parent_.home.diary.changeAutosaveConnections()
-                    
-                    if today in self.parent_.diaries.pages or self.parent_.diaries.todays_diary_closed:
-                        if today in self.parent_.diaries.pages:
-                            self.parent_.diaries.pages[today].removeWidget(self.parent_.diaries.pages[today].widget(0))
-                            
-                        self.parent_.home.diary_seperator.setVisible(True)
-                        self.parent_.home.diary_button.setVisible(True)
-                        self.parent_.home.diary.layout_.setContentsMargins(0, 0, 0, 0)
-                        self.parent_.home.layout_.addWidget(self.parent_.home.diary, 3, 0, 1, 1)
-                        self.parent_.home.diary.setVisible(True)
-                        
-                        self.parent_.diaries.todays_diary_closed = False
+        buttons[page if type(page) == int else self.indexOf(page)].setSelected()
+            
+        buttons.pop(page if type(page) == int else self.indexOf(page))
+        
+        for button in buttons:
+            button.setUnselected()
+            
+        self.setCurrentIndex(page if type(page) == int else self.indexOf(page))
+        
+    @Slot(int)
+    def pageChanged(self, index: int) -> None:
+        if index != self.current_index:
+            old_widget = self.widget(self.current_index)
+            
+            if old_widget == self.parent_.home:
+                self.parent_.home.diary.disconnectAutosaveConnections()
 
-                elif ((new_widget == self.parent_.diaries or new_widget == self.parent_.notes) and
-                    new_widget.currentWidget() != new_widget.home and new_widget.currentWidget().mode == "normal"):
-                    new_widget.currentWidget().changeAutosaveConnections()
-                    
+            elif ((old_widget == self.parent_.diaries or old_widget == self.parent_.notes) and
+                old_widget.currentWidget() != old_widget.home and old_widget.currentWidget().mode == "normal"):
+                old_widget.currentWidget().disconnectAutosaveConnections()
+                
+            new_widget = self.widget(index)
+            
+            today = (self.parent_.diaries.home.today.toString("dd/MM/yyyy"), "__main__")
+            
+            if new_widget == self.parent_.home:
+                self.parent_.home.diary.changeAutosaveConnections()
+                
+                if today in self.parent_.diaries.pages or self.parent_.diaries.todays_diary_closed:
                     if today in self.parent_.diaries.pages:
-                        self.parent_.home.diary_seperator.setVisible(False)
-                        self.parent_.home.diary_button.setVisible(False)
-                        self.parent_.home.diary.layout_.setContentsMargins(self.parent_.home.diary.layout_.default_contents_margins)
-                        self.parent_.diaries.pages[(self.parent_.diaries.home.today.toString("dd/MM/yyyy"), "__main__")].addWidget(self.parent_.home.diary)
-                
-                self.current_index = number + index - 1
+                        self.parent_.diaries.pages[today].removeWidget(self.parent_.diaries.pages[today].widget(0))
+                        
+                    self.parent_.home.diary_seperator.setVisible(True)
+                    self.parent_.home.diary_button.setVisible(True)
+                    self.parent_.home.diary.layout_.setContentsMargins(0, 0, 0, 0)
+                    self.parent_.home.layout_.addWidget(self.parent_.home.diary, 3, 0, 1, 1)
+                    self.parent_.home.diary.setVisible(True)
+                    
+                    self.parent_.diaries.todays_diary_closed = False
 
-class TabBar(QTabBar):
-    def __init__(self, parent: TabWidget) -> None:
+            elif ((new_widget == self.parent_.diaries or new_widget == self.parent_.notes) and
+                new_widget.currentWidget() != new_widget.home and new_widget.currentWidget().mode == "normal"):
+                new_widget.currentWidget().changeAutosaveConnections()
+                
+                if today in self.parent_.diaries.pages:
+                    self.parent_.home.diary_seperator.setVisible(False)
+                    self.parent_.home.diary_button.setVisible(False)
+                    self.parent_.home.diary.layout_.setContentsMargins(self.parent_.home.diary.layout_.default_contents_margins)
+                    self.parent_.diaries.pages[(self.parent_.diaries.home.today.toString("dd/MM/yyyy"), "__main__")].addWidget(self.parent_.home.diary)
+            
+            self.current_index = index
+
+
+class TabButton(QWidget):
+    def __init__(self, parent: QWidget, text: str) -> None:
         super().__init__(parent)
         
-        self.number = 0
+        self.parent_ = parent
         
-        self.addTab("")
-        self.setTabVisible(0, False)
-    
-    def addTab(self, text: str) -> int:
-        if text != "":
-            self.number += 1
+        self.button = PushButton(self, text)
+        self.button.setCheckable(True)
+        self.button.clicked.connect(self.setSelected)
+        self.button.clicked.connect(lambda state: self.parent_.parent_.setCurrentPage(self.parent_.parent_.buttons.index(self)))
+
+        self.seperators = [VSeperator(self), VSeperator(self), HSeperator(self)]
         
-        return super().addTab(text)
+        self.seperators[0].setFixedHeight(30)
+        self.seperators[1].setFixedHeight(30)
+        
+        self.layout_ = QGridLayout(self)
+        margins = self.layout_.contentsMargins()
+        margins.setTop(self.layout_.spacing() if not self.layout_.spacing() != -1 else 5)
+        margins.setBottom(self.layout_.spacing() if not self.layout_.spacing() != -1 else 5)
+        self.layout_.setContentsMargins(margins)
+        self.layout_.addWidget(self.seperators[0], 0, 0, 1, 1)
+        self.layout_.addWidget(self.button, 0, 1, 1, 1)
+        self.layout_.addWidget(self.seperators[1], 0, 2, 1, 1)
+        self.layout_.addWidget(self.seperators[2], 1, 1, 1, 1)
+        
+    @Slot()
+    def setSelected(self) -> None:
+        self.button.setChecked(True)
+        
+        for seperator in self.seperators:
+            seperator.setVisible(True)
+            
+    def setUnselected(self) -> None:
+        self.button.setChecked(False)
+        
+        for seperator in self.seperators:
+            seperator.setVisible(False)
+        
+        
+class TabButtons(QWidget):
+    def __init__(self, parent: TabWidget) -> None:
+        super().__init__(parent)
+
+        self.parent_ = parent
+        
+        self.buttons = []
+        
+        self.layout_ = QGridLayout(self)
+        self.layout_.setContentsMargins(0, 0, 0, 0)
+        self.layout_.setSpacing(0)
+        
+    def addButton(self, text: str) -> TabButton:
+        self.buttons.append(TabButton(self, text))
+        self.layout_.addWidget(self.buttons[-1], 1, len(self.buttons), 1, 1)
+        
+        return self.buttons[-1]
+            
+    def addingFinished(self) -> None:
+        self.layout_.addWidget(HSeperator(self), 0, 1, 1, len(self.buttons))

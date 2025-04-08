@@ -88,8 +88,6 @@ class SidebarWidget(QWidget):
         self.notes = notes
         self.diaries = diaries
         
-        self.layout_ = QGridLayout(self)
-        
         self.entry = QLineEdit(self)
         self.entry.setClearButtonEnabled(True)
         self.entry.setPlaceholderText(_("Search..."))
@@ -109,7 +107,7 @@ class SidebarWidget(QWidget):
         self.clear_button.clicked.connect(
             self.history.deleteAll)
         
-        self.setLayout(self.layout_)
+        self.layout_ = QVBoxLayout(self)
         self.layout_.addWidget(self.entry)
         self.layout_.addWidget(HSeperator(self))
         self.layout_.addWidget(self.open_pages_label)

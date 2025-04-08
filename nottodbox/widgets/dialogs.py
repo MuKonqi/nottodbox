@@ -64,8 +64,6 @@ class GetDialogBase(QDialog):
     def __init__(self, parent: QWidget, window_title: str) -> None:
         super().__init__(parent)
         
-        self.layout_base = QVBoxLayout(self)
-        
         self.input = QWidget(self)
         
         self.buttons = QDialogButtonBox(self)
@@ -74,9 +72,9 @@ class GetDialogBase(QDialog):
         self.buttons.rejected.connect(lambda: self.done(0))
         self.buttons.accepted.connect(lambda: self.done(1))
         
-        self.setLayout(self.layout_base)
-        self.layout_base.addWidget(self.input)
-        self.layout_base.addWidget(self.buttons)
+        self.base_layout = QVBoxLayout(self)
+        self.base_layout.addWidget(self.input)
+        self.base_layout.addWidget(self.buttons)
         
         self.setWindowTitle(window_title)     
 
@@ -85,13 +83,11 @@ class GetDateDialog(GetDialogBase):
     def __init__(self, parent: QWidget, title: str, label: str, name: str) -> None:
         super().__init__(parent, title)
         
-        self.layout_ = QVBoxLayout(self.input)
-        self.input.setLayout(self.layout_)
-        
         self.calendar = QCalendarWidget(self.input)
         self.calendar.setMaximumDate(QDate.currentDate())
         self.calendar.setSelectedDate(QDate.fromString(name, "dd/MM/yyyy"))
         
+        self.layout_ = QVBoxLayout(self.input)
         self.layout_.addWidget(Label(self.input, label))
         self.layout_.addWidget(self.calendar)
         
@@ -111,9 +107,6 @@ class GetTwoDialog(GetDialogBase):
         super().__init__(parent, window_title)
         
         self.mode = mode
-        
-        self.layout_ = QFormLayout(self.input)
-        self.input.setLayout(self.layout_)
         
         if self.mode == "text":
             self.top_widget = QLineEdit(self.input)
@@ -135,6 +128,7 @@ class GetTwoDialog(GetDialogBase):
             self.bottom_widget.setValue(bottom_extra)
             self.bottom_widget.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
             
+        self.layout_ = QFormLayout(self.input)
         self.layout_.addRow(top_text, self.top_widget)
         self.layout_.addRow(bottom_text, self.bottom_widget)
         

@@ -144,7 +144,6 @@ class SettingsWidget(QWidget):
         super().__init__(parent)
         
         self.parent_ = parent
-        self.layout_ = QGridLayout(self)
         
         self.menu = self.parent_.menuBar().addMenu(_("Settings"))
         
@@ -175,11 +174,12 @@ class SettingsWidget(QWidget):
         self.container.addWidget(self.makeScrollable(AboutWidget(self)))
             
         self.selector.setCurrentRow(0)
-        self.selector.currentRowChanged.connect(self.container.setCurrentIndex)
+        self.selector.currentRowChanged.connect(self.setCurrentPage)
         
         self.about_button = PushButton(self, _("About"))
+        self.about_button.setFlat(True)
         self.about_button.setCheckable(True)
-        self.about_button.toggled.connect(self.aboutPage)
+        self.about_button.clicked.connect(self.aboutPage)
         
         self.buttons = QDialogButtonBox(self)
         
@@ -196,7 +196,7 @@ class SettingsWidget(QWidget):
         self.buttons.addButton(self.apply_button, QDialogButtonBox.ButtonRole.ApplyRole)
         self.buttons.addButton(self.cancel_button, QDialogButtonBox.ButtonRole.RejectRole)
         
-        self.setLayout(self.layout_)
+        self.layout_ = QGridLayout(self)
         self.layout_.addWidget(self.selector, 0, 0, 1, 1)
         self.layout_.addWidget(HSeperator(self), 1, 0, 1, 1)
         self.layout_.addWidget(self.about_button, 2, 0, 1, 1)
@@ -211,7 +211,6 @@ class SettingsWidget(QWidget):
             self.last_index = self.container.currentIndex()
         
         self.container.setCurrentIndex(self.container.count() - 1 if check else self.last_index)
-        self.selector.setDisabled(check)
         
     @Slot()
     def apply(self) -> None:
@@ -229,7 +228,7 @@ class SettingsWidget(QWidget):
                 
                 question = QMessageBox.question(
                     self, _("Question"), _("If you have documents with the format setting set to global," +
-                                        " this change may corrupt them.\nDo you really want to apply the new format settings?"))
+                                        " this change may corrupt them.\nDo you really want to apply the format setting(s)?"))
                 
                 if question != QMessageBox.StandardButton.Yes:
                     format_change_acceptted = False
@@ -239,10 +238,10 @@ class SettingsWidget(QWidget):
         
         if successful:
             if format_change_acceptted:
-                QMessageBox.information(self, _("Successful"), _("All setting applied."))
+                QMessageBox.information(self, _("Successful"), _("All settings applied."))
             
             else:
-                QMessageBox.warning(self, _("Warning"), _("All settings applied EXCEPT format settings."))
+                QMessageBox.information(self, _("Successful"), _("All settings applied EXCEPT format settings."))
             
         else:
             QMessageBox.critical(self, _("Error"), _("Failed to apply all settings."))
@@ -282,7 +281,7 @@ class SettingsWidget(QWidget):
                 
                 question = QMessageBox.question(
                     self, _("Question"), _("If you have documents with the format setting set to global," +
-                                        " this change may corrupt them.\nDo you really want to apply the new format settings?"))
+                                        " this change may corrupt them.\nDo you really want to apply the format setting(s)?"))
                 
                 if question != QMessageBox.StandardButton.Yes:
                     format_change_acceptted = False
@@ -295,10 +294,15 @@ class SettingsWidget(QWidget):
                 QMessageBox.information(self, _("Successful"), _("All setting reset."))
             
             else:
-                QMessageBox.warning(self, _("Warning"), _("All settings reset EXCEPT format settings."))
+                QMessageBox.information(self, _("Successful"), _("All settings reset EXCEPT format settings."))
             
         else:
             QMessageBox.critical(self, _("Error"), _("Failed to reset all settings."))
+            
+    @Slot(int)
+    def setCurrentPage(self, index: int) -> None:
+        self.container.setCurrentIndex(index)
+        self.about_button.setChecked(False)
             
             
 class BaseSettings(QWidget):
@@ -307,11 +311,9 @@ class BaseSettings(QWidget):
         
         self.parent_ = parent
         
-        self.form = QFormLayout(self)
-        
         self.index = index
         
-        self.setLayout(self.form)
+        self.form = QFormLayout(self)
     
     @Slot()
     def openPage(self) -> None:
@@ -324,12 +326,10 @@ class AboutWidget(QWidget):
         super().__init__(parent)
         
         self.parent_ = parent
-        self.layout_ = QVBoxLayout(self)
         
         self.parent_.menu.addAction(_("About"), self.openPage)
         
         self.icon_and_nottodbox = QWidget()
-        self.icon_and_nottodbox_layout = QHBoxLayout(self.icon_and_nottodbox)
         
         self.icon = Label(self.icon_and_nottodbox)
         self.icon.setPixmap(self.windowIcon().pixmap(96, 96))
@@ -353,23 +353,6 @@ class AboutWidget(QWidget):
         
         self.license_label = Label(self, _("License: GNU General Public License, Version 3 or later"))
         
-        self.icon_and_nottodbox.setLayout(self.icon_and_nottodbox_layout)
-        self.icon_and_nottodbox_layout.setSpacing(6)
-        self.icon_and_nottodbox_layout.addStretch()
-        self.icon_and_nottodbox_layout.addWidget(self.icon)
-        self.icon_and_nottodbox_layout.addWidget(self.nottodbox)
-        self.icon_and_nottodbox_layout.addStretch()
-        
-        self.setLayout(self.layout_)
-        self.layout_.addWidget(self.icon_and_nottodbox)
-        self.layout_.addWidget(self.version_label)
-        self.layout_.addWidget(self.source_label)
-        self.layout_.addWidget(HSeperator(self))
-        self.layout_.addWidget(self.developer_label)
-        self.layout_.addWidget(HSeperator(self))
-        self.layout_.addWidget(self.copyright_label)
-        self.layout_.addWidget(self.license_label)
-        
         with open("@APP_DIR@/LICENSE.txt" if os.path.isfile("@APP_DIR@/LICENSE.txt") else 
                     f"{os.path.dirname(__file__)}/LICENSE.txt" if os.path.isfile(f"{os.path.dirname(__file__)}/LICENSE.txt") else
                     f"{os.path.dirname(os.path.dirname(__file__))}/LICENSE.txt") as license_file:
@@ -381,12 +364,30 @@ class AboutWidget(QWidget):
         self.license_textedit.setCurrentFont(QFontDatabase.systemFont(QFontDatabase.SystemFont.FixedFont))
         self.license_textedit.setText(license_text)
         self.license_textedit.setReadOnly(True)
+        
+        self.icon_and_nottodbox_layout = QHBoxLayout(self.icon_and_nottodbox)
+        self.icon_and_nottodbox_layout.setSpacing(6)
+        self.icon_and_nottodbox_layout.addStretch()
+        self.icon_and_nottodbox_layout.addWidget(self.icon)
+        self.icon_and_nottodbox_layout.addWidget(self.nottodbox)
+        self.icon_and_nottodbox_layout.addStretch()
+        
+        self.layout_ = QVBoxLayout(self)
+        self.layout_.addWidget(self.icon_and_nottodbox)
+        self.layout_.addWidget(self.version_label)
+        self.layout_.addWidget(self.source_label)
+        self.layout_.addWidget(HSeperator(self))
+        self.layout_.addWidget(self.developer_label)
+        self.layout_.addWidget(HSeperator(self))
+        self.layout_.addWidget(self.copyright_label)
+        self.layout_.addWidget(self.license_label)
         self.layout_.addWidget(self.license_textedit, 0, Qt.AlignmentFlag.AlignCenter)
         
     @Slot()
     def openPage(self) -> None:
         self.parent_.parent_.tabwidget.setCurrentPage(self.parent_)
         self.parent_.about_button.setChecked(True if not self.parent_.about_button.isChecked() else False)
+        self.parent_.aboutPage(self.parent_.about_button.isChecked())
         
 
 class AppearanceSettings(BaseSettings):
@@ -399,8 +400,6 @@ class AppearanceSettings(BaseSettings):
         self.styles_combobox.setEditable(False)
         
         self.color_schemes_widget = QWidget(self)
-        self.color_schemes_widget_layout = QHBoxLayout(self.color_schemes_widget)
-        self.color_schemes_widget_layout.setContentsMargins(0, 0, 0, 0)
         
         self.color_schemes_buttons = QWidget(self.color_schemes_widget)
         
@@ -420,14 +419,14 @@ class AppearanceSettings(BaseSettings):
         
         self.custom_color_schemes = CustomColorSchemes(self)
         
-        self.color_schemes_widget.setLayout(self.color_schemes_widget_layout)
+        self.color_schemes_widget_layout = QHBoxLayout(self.color_schemes_widget)
+        self.color_schemes_widget_layout.setContentsMargins(0, 0, 0, 0)
         self.color_schemes_widget_layout.addWidget(self.color_schemes_combobox)
         self.color_schemes_widget_layout.addWidget(self.color_schemes_rename)
         self.color_schemes_widget_layout.addWidget(self.color_schemes_delete)
         self.color_schemes_widget_layout.addWidget(VSeperator(self.color_schemes_widget))
         self.color_schemes_widget_layout.addWidget(self.color_schemes_import)
         
-        self.setLayout(self.form)
         self.form.addRow(Label(self, _("Style")))
         self.form.addRow("{}*:".format(_("Style")), self.styles_combobox)
         self.form.addRow(Label(self, _("Color scheme").title()))
@@ -831,15 +830,11 @@ class CustomColorSchemes(QWidget):
         self.name.setClearButtonEnabled(True)
         self.name.setPlaceholderText(f"Color scheme by {USER_NAME}")
         
-        self.form = QFormLayout(self)
-        
         self.combobox = Combobox(self)
         
         self.createList()
         
         self.combobox.currentTextChanged.connect(self.baseColorSchemeChanged)
-        
-        self.form.addRow("{}:".format(_("Color scheme to be edited")), self.combobox)
                
         self.labels = {"Window": _("Window"),
                        "WindowText": _("Window text"),
@@ -864,10 +859,12 @@ class CustomColorSchemes(QWidget):
                        "LinkVisited": _("Visited link")}
         
         self.buttons = {}
-        
         self.values = {}
         
         number = 0
+        
+        self.form = QFormLayout(self)
+        self.form.addRow("{}:".format(_("Color scheme to be edited")), self.combobox)
         
         for color_role in self.labels.keys():
             number += 1
@@ -890,7 +887,6 @@ class CustomColorSchemes(QWidget):
                 
             self.form.addRow(f"{self.labels[color_role]}:", self.buttons[color_role])
         
-        self.setLayout(self.form)
         self.setEnabled(False)
         
     def apply(self, format_change_acceptted: bool = True) -> bool:
@@ -985,9 +981,6 @@ class ColorSelectionWidget(QWidget):
         self.labels = labels
         self.values = values
         
-        self.layout_ = QHBoxLayout(self)
-        self.layout_.setContentsMargins(0, 0, 0, 0)
-        
         self.selector = PushButton(self, _("Select color (selected: {})").format(_("none")))
         self.selector.clicked.connect(self.chooseColor)
         
@@ -995,10 +988,10 @@ class ColorSelectionWidget(QWidget):
         
         self.viewer = QPixmap(self.selector.height(), self.selector.height())
 
+        self.layout_ = QHBoxLayout(self)
+        self.layout_.setContentsMargins(0, 0, 0, 0)
         self.layout_.addWidget(self.selector)
         self.layout_.addWidget(self.label)
-        
-        self.setLayout(self.layout_)
         
     @Slot()
     def chooseColor(self) -> None:
@@ -1078,8 +1071,6 @@ class ModuleSettings(BaseSettings):
             self.form.addRow(Label(self, _("Document")))
             self.form.addRow(_("Auto-save:"), self.autosave_checkbox)
             self.form.addRow(_("Format:"), self.format_combobox)
-            
-        self.setLayout(self.form)
         
         self.load()
         
@@ -1242,9 +1233,6 @@ class ShortcutsSettings(BaseSettings):
         super().__init__(parent, index)
         
         self.start_menu_shortcut = QWidget(self)
-        
-        self.start_menu_shortcut_layout = QHBoxLayout(self.start_menu_shortcut)
-        self.start_menu_shortcut_layout.setContentsMargins(0, 0, 0, 0)
 
         self.form.addRow(Label(self, _("Start Menu Shortcut")))
             
@@ -1264,7 +1252,8 @@ class ShortcutsSettings(BaseSettings):
         self.delete_shortcut_button.setEnabled(False)
         self.delete_shortcut_button.clicked.connect(self.deleteDesktopFile)
         
-        self.start_menu_shortcut.setLayout(self.start_menu_shortcut_layout)
+        self.start_menu_shortcut_layout = QHBoxLayout(self.start_menu_shortcut)
+        self.start_menu_shortcut_layout.setContentsMargins(0, 0, 0, 0)
         self.start_menu_shortcut_layout.addWidget(self.auto_shortcut_checkbox)
         self.start_menu_shortcut_layout.addWidget(VSeperator(self.start_menu_shortcut))
         self.start_menu_shortcut_layout.addWidget(self.add_shortcut_button)

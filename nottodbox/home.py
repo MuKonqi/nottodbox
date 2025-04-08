@@ -33,8 +33,6 @@ class HomeWidget(QWidget):
         
         self.parent_ = parent
         
-        self.layout_ = QGridLayout(self)
-        
         self.label_welcome = Label(self, _("Welcome {username}!").format(username = USER_NAME_PRETTY))
         font = self.label_welcome.font()
         font.setBold(True)
@@ -73,7 +71,7 @@ class HomeWidget(QWidget):
             
         self.focusToDiary(True)
         
-        self.setLayout(self.layout_)
+        self.layout_ = QGridLayout(self)
         self.layout_.addWidget(self.label_welcome)
         self.layout_.addWidget(self.diary_seperator)
         self.layout_.addWidget(self.diary_button)
