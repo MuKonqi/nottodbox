@@ -95,6 +95,20 @@ class TabWidget(QTabWidget):
                         
                         if name == self.home.today.toString("dd/MM/yyyy") and table == "__main__":
                             self.todays_diary_closed = True
+                            
+                else:
+                    page = page.removesuffix(_(" (Backup)"))
+                    
+                    if self.module == "notes":
+                        name, table = str(page).split(" @ ")
+                    
+                    elif self.module == "diaries":
+                        name = page
+                        table = "__main__"
+                    
+                    self.last_closed = self.backups[(name, table)]
+                    
+                    del self.backups[(name, table)]
                                             
                 self.removeTab(index)
                 
@@ -184,7 +198,7 @@ class HomePageForDocuments(HomePage):
         for page in list(self.parent_.pages.values()):
             if page.call_format == "global":
                 page.format = self.format
-                page.formatter.updateStatus(self.format)
+                page.helper.updateStatus(self.format)
                 
             page.format_combobox.setItemText(0, "{} {}".format(_("Format:"), _("Follow global ({setting})")
                                                                .format(setting = page.prettyFormat(self.format))))
@@ -646,7 +660,7 @@ class OptionsForDocuments(Options):
                     widget.disconnectAutosaveConnections = self.parent_.parent_.parent_.home.diary.disconnectAutosaveConnections
                     widget.format = self.parent_.parent_.parent_.home.diary.format
                     widget.format_combobox = self.parent_.parent_.parent_.home.diary.format_combobox
-                    widget.formatter = self.parent_.parent_.parent_.home.diary.formatter
+                    widget.helper = self.parent_.parent_.parent_.home.diary.helper
                     widget.makeBackup = self.parent_.parent_.parent_.home.diary.makeBackup
                     widget.mode =self.parent_.parent_.parent_.home.diary.mode
                     widget.prettyAutosave = self.parent_.parent_.parent_.home.diary.prettyAutosave
@@ -665,7 +679,6 @@ class OptionsForDocuments(Options):
                                             self.parent_.returnPretty(name, table))
                 self.parent_.parent_.setCurrentWidget(self.parent_.parent_.pages[(name, table)])
                 self.parent_.parent_.parent_.sidebar.open_pages.appendPage(self.module, self.parent_.returnPretty(name, table))
-                
             self.parent_.parent_.parent_.tabwidget.setCurrentPage(self.parent_.parent_)
             
     @Slot()
@@ -693,8 +706,7 @@ class OptionsForDocuments(Options):
                                                                      name, table)
             self.parent_.parent_.addTab(self.parent_.parent_.backups[(name, table)], 
                                         self.parent_.returnPretty(name, table) + _(" (Backup)"))
-            self.parent_.parent_.setCurrentPage(self.parent_.parent_.backups[(name, table)])
-            
+            self.parent_.parent_.setCurrentWidget(self.parent_.parent_.backups[(name, table)])
             self.parent_.parent_.parent_.tabwidget.setCurrentPage(self.parent_.parent_)
                     
     

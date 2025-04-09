@@ -113,9 +113,13 @@
 
 ### Documents
 > Easily edit documents in a style.
-- Text formatter (plain-text format does not supported):
+- Saving:
+    - Auto-saving support (threaded)
+    - For triggering, click the "Save" button or accept the warning question when closing a document.
+    - This can change backups except outdated diaries.
+- Formatting:
     - Formatting selected section via cursor or word uncer cursor
-    - Format options:
+    - Options:
         - Bold
         - Italic
         - Underline
@@ -127,15 +131,16 @@
         - Link
         - Text color (only for HTML format)
         - Background color (only for HTML format)
+- Settings:
+    - Auto-save:
+        - This triggered when the document content's changes.
+        - This is disabled and can't be enabled for old diaries.
+        - This can't change backups.
+    - Format:
+        - Plain-text
+        - Markdown
+        - HTML
 - Standart Qt's text edit box with opening links support
-- Manuel saving
-    - For triggering, click the "Save" button or accept the warning question when closing a document.
-    - This can change backups except outdated diaries.
-- Auto-saving
-    - This triggered when the document content's changes.
-    - This is disabled and can't be enabled for old diaries.
-    - This can't change backups.
-- Format options (plain-text, Markdown and HTML)
 
 ### Settings
 > Customize Nottodbox.
@@ -208,6 +213,6 @@
 
 
 ## Credit
-- While making [nottodbox/widgets/pages.py](./nottodbox/widgets/pages.py)'s TextFormatter class, [KDE - Marknote: master/src/documenthandler.cpp](https://invent.kde.org/office/marknote/-/blob/master/src/documenthandler.cpp) helped me as a referance.
+- While making [nottodbox/widgets/pages.py](./nottodbox/widgets/pages.py)'s PageHelper class, [KDE - Marknote: master/src/documenthandler.cpp](https://invent.kde.org/office/marknote/-/blob/master/src/documenthandler.cpp) helped me as a referance.
 
 - While making [.github/scripts/build-appimage.yml](.github/scripts/build-appimage.yml)'s script section, [DavidoTek - ProtonUp-Qt: AppImageBuilder.yml](https://github.com/DavidoTek/ProtonUp-Qt/blob/main/AppImageBuilder.yml) helped me as a reference.

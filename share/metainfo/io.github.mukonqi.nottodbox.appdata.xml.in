@@ -30,17 +30,21 @@
     <launchable type="desktop-id">io.github.mukonqi.nottodbox.desktop</launchable>
 
     <releases>
-        <release version="v0.0.9-3" date="2025-04-08">
+        <release version="v0.0.9-3" date="2025-04-09">
             <description>
                 <ul>
                     <li>Rework of main window's tab bar</li>
                     <li>Add icons to some of actions/buttons from theme using QIcon.fromTheme() function with QIcon.ThemeIcon enum</li>
+                    <li>Move save button to tool bar for documents</li>
                     <li>If opened, make today's diary tab in "Diaries" page common with diary in "Home" page</li>
                     <li>Fix date format in diaries</li>
                     <li>Improve currentRowChanged signal's slot in the lists</li>
                     <li>Fix autosave connection(s) for notes and diaries</li>
+                    <li>Fix some bugs of TabWidget where used in "Notes" and "Diaries" pages</li>
                     <li>Ask the format change question only when applying or resetting settings</li>
-                    <li>Do not disable the selector in "Settings" page when about page is shown</li>
+                    <li>Do not disable the selector in "Settings" page when "About" page is shown</li>
+                    <li>Add style's default scheme to color scheme to be edited section's list in custom color scheme section in "Settings" page</li>
+                    <li>Fix tool bar colors of Nottodbox Dark and Nottodbox Light schemes</li>
                 </ul>
             </description>
         </release>

@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-# Credit: While making TextFormatter class, <https://invent.kde.org/office/marknote/-/blob/master/src/documenthandler.cpp> helped me as a referance.
+# Credit: While making PageHelper class, <https://invent.kde.org/office/marknote/-/blob/master/src/documenthandler.cpp> helped me as a referance.
 
 # Copyright (C) 2024-2025 MuKonqi (Muhammed S.)
 
@@ -26,7 +26,7 @@ from .dialogs import ColorDialog, GetTwoDialog
 from .others import PushButton, Action
             
             
-class BasePage(QWidget):
+class Page(QWidget):
     def __init__(self, parent: QWidget, module: str,
                  db, mode: str, format: str, autosave: str,
                  name: str, table: str = "__main__") -> None:
@@ -74,7 +74,7 @@ class BasePage(QWidget):
         else:
             self.autosave = self.call_autosave
         
-        self.input = TextEdit(self)
+        self.input = PageTextEdit(self)
         self.input.setAcceptRichText(True)
         
         if self.format == "plain-text":
@@ -128,18 +128,15 @@ class BasePage(QWidget):
             self.autosave_combobox.setStatusTip(_("Auto-save feature disabled for old diaries."))
             self.autosave = "disabled"
             
-        self.button = PushButton(self)
-            
-        self.formatter = TextFormatter(self, self.format)
+        self.helper = PageHelper(self, self.format)
         
-        self.input.cursorPositionChanged.connect(self.formatter.updateButtons)
+        self.input.cursorPositionChanged.connect(self.helper.updateButtons)
         
         self.layout_ = QGridLayout(self)
-        self.layout_.addWidget(self.formatter, 0, 0, 1, 2)
+        self.layout_.addWidget(self.helper, 0, 0, 1, 2)
         self.layout_.addWidget(self.input, 1, 0, 1, 2)
-        self.layout_.addWidget(self.button, 2, 0, 1, 2)
-        self.layout_.addWidget(self.format_combobox, 3, 0, 1, 1)
-        self.layout_.addWidget(self.autosave_combobox, 3, 1, 1, 1)
+        self.layout_.addWidget(self.format_combobox, 2, 0, 1, 1)
+        self.layout_.addWidget(self.autosave_combobox, 2, 1, 1, 1)
         
     def prettyAutosave(self, global_autosave_: str | None = None) -> str:
         if global_autosave_ is None:
@@ -225,7 +222,7 @@ class BasePage(QWidget):
             else:
                 self.format = value
                 
-            self.formatter.updateStatus(self.format)
+            self.helper.updateStatus(self.format)
                 
             return True
         
@@ -237,7 +234,7 @@ class BasePage(QWidget):
             return False
             
 
-class BackupPage(BasePage):
+class BackupPage(Page):
     def __init__(self, parent: QWidget, module: str,
                  db, format: str, autosave: str,
                  name: str, table: str = "__main__") -> None:
@@ -245,9 +242,9 @@ class BackupPage(BasePage):
         
         self.input.setReadOnly(True)
         
-        self.button.setText(_("Restore Content"))
-        self.button.setIcon(QIcon.fromTheme(QIcon.ThemeIcon.DocumentRevert))
-        self.button.clicked.connect(self.restoreContent)
+        self.helper.button.setText(_("Restore Content"))
+        self.helper.button.setIcon(QIcon.fromTheme(QIcon.ThemeIcon.DocumentRevert))
+        self.helper.button.triggered.connect(self.restoreContent)
             
     @Slot()
     def restoreContent(self) -> None:
@@ -273,7 +270,7 @@ class BackupPage(BasePage):
         return super().setAutosave(index)[0]
 
 
-class NormalPage(BasePage):
+class NormalPage(Page):
     showMessages_ = Signal(bool)
     
     def __init__(self, parent: QWidget, module: str,
@@ -287,16 +284,16 @@ class NormalPage(BasePage):
         
         self.showMessages_.connect(self.showMessages)
             
-        self.saver = Saver(self)
+        self.saver = PageSaver(self)
         self.saver.saveChild_.connect(self.saver.saveChild)
         
         self.saver_thread = QThread()
         
         self.saver.moveToThread(self.saver_thread)
         
-        self.button.setText(_("Save"))
-        self.button.setIcon(QIcon.fromTheme(QIcon.ThemeIcon.DocumentSave))
-        self.button.clicked.connect(lambda: self.saver.saveChild())
+        self.helper.button.setText(_("Save"))
+        self.helper.button.setIcon(QIcon.fromTheme(QIcon.ThemeIcon.DocumentSave))
+        self.helper.button.triggered.connect(lambda: self.saver.saveChild())
         
         self.save = lambda: self.saver.saveChild_.emit(True)
         
@@ -388,84 +385,17 @@ class NormalPage(BasePage):
             QMessageBox.critical(self, _("Error"), _("Failed to save {item}.")
                                      .format(item = _("{name} note") if self.module == "notes" else _("{name} dated diary"))
                                      .format(name = self.name))
-        
-class Saver(QObject):
-    saveChild_ = Signal(bool)
-    
-    def __init__(self, parent: NormalPage) -> None:
-        super().__init__()
-        
-        self.parent_ = parent
-    
-    @Slot(bool)
-    def saveChild(self, autosave: bool = False) -> bool:
-        if self.parent_.module == "diaries" and not self.parent_.db.checkIfTheChildExists(self.parent_.name, self.parent_.table):
-            if self.parent_.db.createChild(self.parent_.name):
-                if type(self.parent_.parent_).__name__ == "HomeWidget":
-                    self.parent_.parent_.parent_.diaries.home.shortcuts[
-                        (self.parent_.name, self.parent_.table)] = Action(self, self.parent_.name)
-                    self.parent_.parent_.parent_.diaries.home.shortcuts[(self.parent_.name, self.parent_.table)].triggered.connect(
-                        lambda state: self.parent_.parent_.parent_.diaries.home.shortcutEvent(self.parent_.name, self.parent_.table))
-                    self.parent_.parent_.parent_.diaries.home.menu.addAction(
-                        self.parent_.parent_.parent_.diaries.home.shortcuts[(self.parent_.name, self.parent_.table)])
-                
-            else:
-                QMessageBox.critical(self, _("Error"), _("Failed to create {item}.")
-                                    .format(item = _("{name} note") if self.parent_.module == "notes" else _("{name} dated diary")))
-                
-                return False
-        
-        if not autosave or (autosave and self.parent_.autosave == "enabled"):
-            if self.parent_.outdated == "yes":
-                if autosave:
-                    self.parent_.showMessages_.emit(False)
-                    
-                    return False
-                
-                question = QMessageBox.question(
-                    self.parent_, _("Question"), _("Diaries are unique to the day they are written.\nDo you really want to change the content?"))
-                
-                if question != QMessageBox.StandardButton.Yes:
-                    return
-
-            if self.parent_.db.saveChild(
-                self.parent_.getText(), self.parent_.content, autosave, self.parent_.name, self.parent_.table):
-                if not autosave:
-                    self.parent_.showMessages_.emit(True)
-                    
-                return True
-                
-            else:
-                self.parent_.showMessages_.emit(False)
-                
-                return False
             
-
-class TextEdit(QTextEdit):
-    def mousePressEvent(self, e):
-        self.anchor = self.anchorAt(e.pos())
-        
-        if self.anchor:
-            QApplication.setOverrideCursor(Qt.CursorShape.PointingHandCursor)
             
-        super().mousePressEvent(e)
-            
-    def mouseReleaseEvent(self, e):
-        if self.anchor:
-            QDesktopServices.openUrl(self.anchor)
-            QApplication.setOverrideCursor(Qt.CursorShape.ArrowCursor)
-            self.anchor = None
-            
-        super().mouseReleaseEvent(e)
-
-
-class TextFormatter(QToolBar):
-    def __init__(self, parent: BasePage, format: str) -> None:
+class PageHelper(QToolBar):
+    def __init__(self, parent: Page, format: str) -> None:
         super().__init__(parent)
         
         self.parent_ = parent
         self.input = self.parent_.input
         self.page = self.parent_.parent()
+        
+        self.button = Action(self)
         
         self.bold_button = Action(self, _("Bold"), QIcon.fromTheme(QIcon.ThemeIcon.FormatTextBold))
         self.bold_button.triggered.connect(self.setBold)
@@ -534,6 +464,8 @@ class TextFormatter(QToolBar):
         self.alignment_button.setMenu(self.alignment_menu)
         self.alignment_button.setStatusTip(_("Setting alignment is only available in HTML format."))
         
+        self.addAction(self.button)
+        self.addSeparator()
         self.addAction(self.bold_button)
         self.addAction(self.italic_button)
         self.addAction(self.underline_button)
@@ -807,5 +739,80 @@ class TextFormatter(QToolBar):
                 self.setStatusTip(_("To close an open formatting, type a word and then click on it."))
                 
         elif self.parent_.mode == "backup":
-            self.setEnabled(False)
+            actions = self.actions()
+            actions.pop(actions.index(self.button))
+            
+            for action in actions:
+                action.setEnabled(False)
+            
             self.setStatusTip(_("Text formatter is not available for backups."))
+
+        
+class PageSaver(QObject):
+    saveChild_ = Signal(bool)
+    
+    def __init__(self, parent: NormalPage) -> None:
+        super().__init__()
+        
+        self.parent_ = parent
+    
+    @Slot(bool)
+    def saveChild(self, autosave: bool = False) -> bool:
+        if self.parent_.module == "diaries" and not self.parent_.db.checkIfTheChildExists(self.parent_.name, self.parent_.table):
+            if self.parent_.db.createChild(self.parent_.name):
+                if type(self.parent_.parent_).__name__ == "HomeWidget":
+                    self.parent_.parent_.parent_.diaries.home.shortcuts[
+                        (self.parent_.name, self.parent_.table)] = Action(self, self.parent_.name)
+                    self.parent_.parent_.parent_.diaries.home.shortcuts[(self.parent_.name, self.parent_.table)].triggered.connect(
+                        lambda state: self.parent_.parent_.parent_.diaries.home.shortcutEvent(self.parent_.name, self.parent_.table))
+                    self.parent_.parent_.parent_.diaries.home.menu.addAction(
+                        self.parent_.parent_.parent_.diaries.home.shortcuts[(self.parent_.name, self.parent_.table)])
+                
+            else:
+                QMessageBox.critical(self, _("Error"), _("Failed to create {item}.")
+                                    .format(item = _("{name} note") if self.parent_.module == "notes" else _("{name} dated diary")))
+                
+                return False
+        
+        if not autosave or (autosave and self.parent_.autosave == "enabled"):
+            if self.parent_.outdated == "yes":
+                if autosave:
+                    self.parent_.showMessages_.emit(False)
+                    
+                    return False
+                
+                question = QMessageBox.question(
+                    self.parent_, _("Question"), _("Diaries are unique to the day they are written.\nDo you really want to change the content?"))
+                
+                if question != QMessageBox.StandardButton.Yes:
+                    return
+
+            if self.parent_.db.saveChild(
+                self.parent_.getText(), self.parent_.content, autosave, self.parent_.name, self.parent_.table):
+                if not autosave:
+                    self.parent_.showMessages_.emit(True)
+                    
+                return True
+                
+            else:
+                self.parent_.showMessages_.emit(False)
+                
+                return False
+            
+
+class PageTextEdit(QTextEdit):
+    def mousePressEvent(self, e):
+        self.anchor = self.anchorAt(e.pos())
+        
+        if self.anchor:
+            QApplication.setOverrideCursor(Qt.CursorShape.PointingHandCursor)
+            
+        super().mousePressEvent(e)
+            
+    def mouseReleaseEvent(self, e):
+        if self.anchor:
+            QDesktopServices.openUrl(self.anchor)
+            QApplication.setOverrideCursor(Qt.CursorShape.ArrowCursor)
+            self.anchor = None
+            
+        super().mouseReleaseEvent(e)

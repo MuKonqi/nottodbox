@@ -15,9 +15,6 @@
 # You should have received a copy of the GNU General Public License
 # along with Nottodbox.  If not, see <https://www.gnu.org/licenses/>.
 
-# Credit for TextFormatter class: 
-# <https://invent.kde.org/office/marknote/-/blob/master/src/documenthandler.cpp>
-
 
 import datetime
 from gettext import gettext as _
@@ -162,7 +159,7 @@ class DiariesHomePage(HomePageForDocuments):
         
         if self.parent_.parent_.home.diary.call_format == "global":
             self.parent_.parent_.home.diary.format = self.format
-            self.parent_.parent_.home.diary.formatter.updateStatus(self.format)
+            self.parent_.parent_.home.diary.helper.updateStatus(self.format)
             
         self.parent_.parent_.home.diary.format_combobox.setItemText(0, "{} {}".format(_("Format:"), _("Follow global ({setting})")
                                                                                         .format(setting = self.parent_.parent_.home.diary.prettyFormat(self.format))))

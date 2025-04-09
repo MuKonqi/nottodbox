@@ -396,7 +396,7 @@ class AppearanceSettings(BaseSettings):
         
         self.default_style = QApplication.style().objectName().title()
         
-        self.styles_combobox = QComboBox(self)
+        self.styles_combobox = Combobox(self)
         self.styles_combobox.setEditable(False)
         
         self.color_schemes_widget = QWidget(self)
@@ -952,7 +952,13 @@ class CustomColorSchemes(QWidget):
         
     @Slot(str)
     def baseColorSchemeChanged(self, name: str) -> None:
-        if name == _("none").title():
+        if name == _("Style default"):
+            palette = QApplication.style().standardPalette()
+            
+            for color_role in self.labels.keys():
+                self.buttons[color_role].setColor(palette.color(QPalette.ColorRole[color_role]).name())
+        
+        elif name == _("none").title():
             for color_role in self.labels.keys():
                 self.buttons[color_role].setColor("")
         
@@ -964,7 +970,7 @@ class CustomColorSchemes(QWidget):
                 
     def createList(self) -> None:
         self.color_schemes_list = self.parent_.color_schemes_list.copy()
-        self.color_schemes_list[0] = _("none").title()
+        self.color_schemes_list.insert(0, _("none").title())
         self.color_schemes_list.pop(-1)
         
         self.combobox.addItems(self.color_schemes_list)

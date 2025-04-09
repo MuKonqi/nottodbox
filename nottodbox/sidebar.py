@@ -19,7 +19,7 @@
 import getpass
 import sqlite3
 from gettext import gettext as _
-from PySide6.QtGui import QStandardItemModel
+from PySide6.QtGui import QStandardItemModel, QIcon
 from PySide6.QtCore import Slot, Qt, QSortFilterProxyModel, QSettings
 from PySide6.QtWidgets import *
 from databases.base import DBBase
@@ -99,11 +99,11 @@ class SidebarWidget(QWidget):
         self.history_label = Label(self, _("History"))
         self.history = SidebarHistory(self)
         
-        self.delete_button = PushButton(self, _("Delete"))
+        self.delete_button = PushButton(self, _("Delete"), QIcon.fromTheme(QIcon.ThemeIcon.EditDelete))
         self.delete_button.clicked.connect(
             lambda: self.history.deletePage(self.history.getModule(), self.history.getPage()))
         
-        self.clear_button = PushButton(self, _("Clear"))
+        self.clear_button = PushButton(self, _("Clear"), QIcon.fromTheme(QIcon.ThemeIcon.EditClear))
         self.clear_button.clicked.connect(
             self.history.deleteAll)
         
