@@ -20,7 +20,7 @@ from gettext import gettext as _
 from PySide6.QtCore import Slot, Qt, QSettings, QByteArray
 from PySide6.QtGui import QCloseEvent, QIcon
 from PySide6.QtWidgets import *
-from widgets.others import HSeperator, VSeperator, PushButton
+from widgets.tabwidget import TabWidget
 from sidebar import SidebarWidget
 from home import HomeWidget
 from notes import NotesTabWidget, notesdb
@@ -35,17 +35,6 @@ class MainWindow(QMainWindow):
         
         self.qsettings = QSettings("io.github.mukonqi", "nottodbox")
         
-        self.dock = QDockWidget(self)
-        self.dock.setObjectName("Dock")
-        self.dock.setFixedWidth(150)
-        self.dock.setFeatures(QDockWidget.DockWidgetFeature.DockWidgetClosable |
-                              QDockWidget.DockWidgetFeature.DockWidgetFloatable |
-                              QDockWidget.DockWidgetFeature.DockWidgetMovable)
-        self.dock.setAllowedAreas(Qt.DockWidgetArea.LeftDockWidgetArea |
-                                  Qt.DockWidgetArea.RightDockWidgetArea)
-        
-        self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.dock)
-        
         self.tabbar = QDockWidget(self)
         self.tabbar.setObjectName("TabBar")
         self.tabbar.setFixedHeight(self.tabbar.height() * 2.5)
@@ -53,6 +42,16 @@ class MainWindow(QMainWindow):
         self.tabbar.setAllowedAreas(Qt.DockWidgetArea.TopDockWidgetArea)
         self.tabbar.setTitleBarWidget(QWidget(self.tabbar))
         self.addDockWidget(Qt.DockWidgetArea.TopDockWidgetArea, self.tabbar)
+        
+        self.dock = QDockWidget(self)
+        self.dock.setObjectName("Dock")
+        self.dock.setFeatures(QDockWidget.DockWidgetFeature.DockWidgetClosable |
+                              QDockWidget.DockWidgetFeature.DockWidgetFloatable |
+                              QDockWidget.DockWidgetFeature.DockWidgetMovable)
+        self.dock.setAllowedAreas(Qt.DockWidgetArea.LeftDockWidgetArea |
+                                  Qt.DockWidgetArea.RightDockWidgetArea)
+        
+        self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.dock)
         
         self.show()
         self.restoreGeometry(QByteArray(self.qsettings.value("mainwindow/geometry")))
@@ -79,12 +78,15 @@ class MainWindow(QMainWindow):
         self.tabwidget.addPage(_("Settings"), self.settings, True)
         self.tabwidget.finished()
         
-        self.setCentralWidget(self.tabwidget)
-        self.tabbar.setWidget(self.tabwidget.tabbars_widget)
-        self.dock.setWidget(self.sidebar)
-        
         self.setStatusBar(QStatusBar(self))
         self.setStatusTip(_("There may be important information and tips here. Don't forget to look here!"))
+        
+        self.dock.setWidget(self.sidebar)
+        self.tabbar.setWidget(self.tabwidget.tabbars_widget)
+        self.setCentralWidget(self.tabwidget)
+        
+        self.sidebar.setFixedWidth(self.width() / (len(self.tabwidget.tabs) + len(self.tabwidget.tabbars) - 1) + 10)
+        self.settings.tabwidget.tabbars_widget.setFixedWidth(self.width() / (len(self.tabwidget.tabs) + len(self.tabwidget.tabbars) - 1) + 3)
 
     @Slot(QCloseEvent)
     def closeEvent(self, a0: QCloseEvent):                
@@ -184,88 +186,15 @@ class MainWindow(QMainWindow):
         
         else:
             a0.ignore()
-        
-
-class TabWidget(QStackedWidget):
+            
+            
+class TabWidget(TabWidget):
     def __init__(self, parent: MainWindow) -> None:
-        super().__init__(parent)
-        
-        self.parent_ = parent
-        
-        self.current_index = 0
-        
-        self.tabbars = []
-        
-        self.pages = {}
-        
-        self.tabs = []
-        
-        self.tabbars_widget = QWidget(self.parent_)
-        
-        self.tabbars_layout = QHBoxLayout(self.tabbars_widget)
-        self.tabbars_layout.setContentsMargins(10, 10, 10, 10)
+        super().__init__(parent, Qt.AlignmentFlag.AlignTop)
         
         self.currentChanged.connect(self.pageChanged)
         
-    def addPage(self, text: str, page: QWidget, seperator: bool = False, icon: QIcon | None = None) -> None:
-        if seperator or self.tabbars == []:
-            if seperator:
-                self.tabbars[-1].addingFinished()
-            
-            tabbar = TabButtons(self)
-            
-            self.tabbars.append(tabbar)
-            self.tabbars_layout.addWidget(tabbar)
-
-        self.pages[page] = self.tabbars[-1]
-        
-        self.tabs.append(self.tabbars[-1].addButton(text))
-        
-        if icon is not None:
-            self.tabs[-1].button.setIcon(icon)
-        
-        self.addWidget(page)
-        
-    def finished(self) -> None:
-        self.tabbars[-1].addingFinished()
-        
-        number = 0
-        
-        stretchs = {}
-        stretch_counter = 0
-        
-        last_tabbar = self.tabbars[0]
-        
-        for tab in self.tabs:
-            if last_tabbar == tab.parent_:
-                stretch_counter += 1
-                stretchs[last_tabbar] = stretch_counter
-            
-            else:
-                stretch_counter = 1
-                stretchs[tab.parent_] = 1
-                
-                number += 2
-                
-                self.tabbars_layout.insertSpacerItem(number - 1, QSpacerItem(self.parent_.width() / (len(self.tabs) + len(self.tabbars) - 1), 30))
-                self.tabbars_layout.setStretch(number - 1, 1)
-                
-            last_tabbar = tab.parent()
-        
-        for tabbar, stretch in stretchs.items():
-            self.tabbars_layout.setStretch(self.tabbars_layout.indexOf(tabbar), stretch)
-        
-    def setCurrentPage(self, page: int | QWidget) -> None:        
-        tabs = self.tabs.copy()
-
-        tabs[page if type(page) == int else self.indexOf(page)].setSelected()
-            
-        tabs.pop(page if type(page) == int else self.indexOf(page))
-        
-        for tab in tabs:
-            tab.setUnselected()
-            
-        self.setCurrentIndex(page if type(page) == int else self.indexOf(page))
+        self.tabbars_layout.setContentsMargins(10, 10, 10, 10)
         
     @Slot(int)
     def pageChanged(self, index: int) -> None:
@@ -309,65 +238,3 @@ class TabWidget(QStackedWidget):
                     self.parent_.diaries.pages[(self.parent_.diaries.home.today.toString("dd/MM/yyyy"), "__main__")].addWidget(self.parent_.home.diary)
             
             self.current_index = index
-
-
-class TabButton(QWidget):
-    def __init__(self, parent: QWidget, text: str) -> None:
-        super().__init__(parent)
-        
-        self.parent_ = parent
-        
-        self.button = PushButton(self, text)
-        self.button.setCheckable(True)
-        self.button.clicked.connect(self.setSelected)
-        self.button.clicked.connect(lambda state: self.parent_.parent_.setCurrentPage(self.parent_.parent_.tabs.index(self)))
-
-        self.seperators = [VSeperator(self), VSeperator(self), HSeperator(self)]
-        
-        self.seperators[0].setFixedHeight(30)
-        self.seperators[1].setFixedHeight(30)
-        
-        self.layout_ = QGridLayout(self)
-        self.layout_.setSpacing(4)
-        margins = self.layout_.contentsMargins()
-        margins.setBottom(4)
-        self.layout_.setContentsMargins(margins)
-        self.layout_.addWidget(self.seperators[0], 0, 0, 1, 1)
-        self.layout_.addWidget(self.button, 0, 1, 1, 1)
-        self.layout_.addWidget(self.seperators[1], 0, 2, 1, 1)
-        self.layout_.addWidget(self.seperators[2], 1, 1, 1, 1)
-        
-    @Slot()
-    def setSelected(self) -> None:
-        self.button.setChecked(True)
-        
-        for seperator in self.seperators:
-            seperator.setVisible(True)
-            
-    def setUnselected(self) -> None:
-        self.button.setChecked(False)
-        
-        for seperator in self.seperators:
-            seperator.setVisible(False)
-        
-        
-class TabButtons(QWidget):
-    def __init__(self, parent: TabWidget) -> None:
-        super().__init__(parent)
-
-        self.parent_ = parent
-        
-        self.tabs = []
-        
-        self.layout_ = QGridLayout(self)
-        self.layout_.setContentsMargins(0, 0, 0, 0)
-        self.layout_.setSpacing(0)
-        
-    def addButton(self, text: str) -> TabButton:
-        self.tabs.append(TabButton(self, text))
-        self.layout_.addWidget(self.tabs[-1], 1, len(self.tabs), 1, 1)
-        
-        return self.tabs[-1]
-            
-    def addingFinished(self) -> None:
-        self.layout_.addWidget(HSeperator(self), 0, 1, 1, len(self.tabs))

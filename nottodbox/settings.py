@@ -25,6 +25,7 @@ from PySide6.QtGui import QColor, QPalette, QPixmap, QFontDatabase, QIcon
 from PySide6.QtWidgets import *
 from widgets.dialogs import ColorDialog
 from widgets.others import Combobox, HSeperator, Label, PushButton, VSeperator
+from widgets.tabwidget import TabWidget
 from consts import APP_MODE, APP_VERSION, DESKTOP_FILE_FOUND, DESKTOP_FILE, ICON_FILE, USER_NAME, USER_DESKTOP_FILE, USER_DESKTOP_FILE_FOUND, SYSTEM_DESKTOP_FILE_FOUND
 
 
@@ -147,39 +148,19 @@ class SettingsWidget(QWidget):
         
         self.menu = self.parent_.menuBar().addMenu(_("Settings"))
         
-        self.last_index = 0
+        self.tabwidget = TabWidget(self, Qt.AlignmentFlag.AlignLeft)
+        self.tabwidget.tabbars_layout.setContentsMargins(0, 0, 0, 0)
         
-        self.selector = QListWidget(self)
-        self.selector.setFixedWidth(100)
+        self.addPage(_("Appearance"), self.makeScrollable(AppearanceSettings(self, 0)))
+        self.addPage(_("Sidebar"), self.makeScrollable(ModuleSettings(self, 1, "sidebar", sidebar)))
+        self.addPage(_("Shortcuts"), self.makeScrollable(ShortcutsSettings(self, 2)))
+        self.addPage(_("Notes"), self.makeScrollable(ModuleSettings(self, 3, "notes", notes)))
+        self.addPage(_("To-dos"), self.makeScrollable(ModuleSettings(self, 4, "todos",  todos)))
+        self.addPage(_("Diaries"), self.makeScrollable(ModuleSettings(self, 5, "diaries", diaries)))
+        self.addPage(_("About"), self.makeScrollable(AboutWidget(self, 6)), True, QIcon.fromTheme(QIcon.ThemeIcon.HelpAbout))
         
-        self.container = QStackedWidget(self)
-        
-        self.pages = [
-            (QListWidgetItem(_("Appearance")), self.makeScrollable(AppearanceSettings(self, 0))),
-            (QListWidgetItem(_("Sidebar")), self.makeScrollable(ModuleSettings(self, 1, "sidebar", sidebar))),
-            (QListWidgetItem(_("Shortcuts")), self.makeScrollable(ShortcutsSettings(self, 2))),
-            (QListWidgetItem(_("Notes")), self.makeScrollable(ModuleSettings(self, 3, "notes", notes))),
-            (QListWidgetItem(_("To-dos")), self.makeScrollable(ModuleSettings(self, 4, "todos",  todos))),
-            (QListWidgetItem(_("Diaries")), self.makeScrollable(ModuleSettings(self, 5, "diaries", diaries)))
-        ]
-            
-        for text, page in self.pages:
-            self.menu.addAction(text.text(), page.openPage)
-            
-            text.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            
-            self.selector.addItem(text)
-            self.container.addWidget(page)
-            
-        self.container.addWidget(self.makeScrollable(AboutWidget(self)))
-            
-        self.selector.setCurrentRow(0)
-        self.selector.currentRowChanged.connect(self.setCurrentPage)
-        
-        self.about_button = PushButton(self, _("About"), QIcon.fromTheme(QIcon.ThemeIcon.HelpAbout))
-        self.about_button.setFlat(True)
-        self.about_button.setCheckable(True)
-        self.about_button.clicked.connect(self.aboutPage)
+        self.tabwidget.finished()
+        self.tabwidget.setCurrentPage(0)
         
         self.buttons = QDialogButtonBox(self)
         
@@ -197,34 +178,27 @@ class SettingsWidget(QWidget):
         self.buttons.addButton(self.cancel_button, QDialogButtonBox.ButtonRole.RejectRole)
         
         self.layout_ = QGridLayout(self)
-        self.layout_.addWidget(self.selector, 0, 0, 1, 1)
-        self.layout_.addWidget(HSeperator(self), 1, 0, 1, 1)
-        self.layout_.addWidget(self.about_button, 2, 0, 1, 1)
+        self.layout_.addWidget(self.tabwidget.tabbars_widget, 0, 0, 3, 1)
         self.layout_.addWidget(VSeperator(self), 0, 1, 3, 1)
-        self.layout_.addWidget(self.container, 0, 2, 1, 1)
+        self.layout_.addWidget(self.tabwidget, 0, 2, 1, 1)
         self.layout_.addWidget(HSeperator(self), 1, 2, 1, 1)
         self.layout_.addWidget(self.buttons, 2, 2, 1, 1)
+    
+    def addPage(self, text: str, page: QWidget, seperator: bool = False, icon: QIcon | None = None) -> None:
+        self.tabwidget.addPage(text, page, seperator, icon)
         
-    @Slot(bool)
-    def aboutPage(self, check: bool) -> None:
-        if self.container.currentIndex() != self.container.count() - 1:
-            self.last_index = self.container.currentIndex()
+        if icon is None:
+            self.menu.addAction(text, page.openPage)
         
-        self.container.setCurrentIndex(self.container.count() - 1 if check else self.last_index)
-        
-    @Slot()
-    def apply(self) -> None:
-        successful = True
-        do_not_asked_before = True
-        format_change_acceptted = True
-        
-        for text, page in self.pages:
-            if (type(page.widget()).__name__ == "ModuleSettings" and 
+        else:
+            self.menu.addAction(icon, text, page.openPage)
+    
+    def askFormat(self, page: QWidget, do_not_asked_before: bool, format_change_acceptted: bool) -> tuple[bool, bool]:
+        if (type(page.widget()).__name__ == "ModuleSettings" and 
                 (page.widget().module == "notes" or page.widget().module == "diaries") and
-                page.widget().format != page.widget().format_ and
+                settings.getBase(page.widget().module)[4] != "markdown" and
                 do_not_asked_before):
                 do_not_asked_before = False
-                format_change_acceptted = True
                 
                 question = QMessageBox.question(
                     self, _("Question"), _("If you have documents with the format setting set to global," +
@@ -232,7 +206,21 @@ class SettingsWidget(QWidget):
                 
                 if question != QMessageBox.StandardButton.Yes:
                     format_change_acceptted = False
-                          
+                    
+        return do_not_asked_before, format_change_acceptted
+        
+    @Slot()
+    def apply(self) -> None:
+        successful = True
+        do_not_asked_before = True
+        format_change_acceptted = True
+        
+        pages = list(self.tabwidget.pages.keys())
+        del pages[-1]
+        
+        for page in pages:
+            do_not_asked_before, format_change_acceptted = self.askFormat(page, do_not_asked_before, format_change_acceptted)
+            
             if not page.apply(format_change_acceptted):
                 successful = False
         
@@ -248,7 +236,10 @@ class SettingsWidget(QWidget):
     
     @Slot()
     def cancel(self) -> None:
-        for text, page in self.pages:
+        pages = self.tabwidget.pages.keys()
+        del pages[-1]
+        
+        for page in pages:
             page.load()
             
     def makeScrollable(self, page: QWidget) -> QScrollArea:
@@ -271,20 +262,11 @@ class SettingsWidget(QWidget):
         do_not_asked_before = True
         format_change_acceptted = True
         
-        for text, page in self.pages:
-            if (type(page.widget()).__name__ == "ModuleSettings" and 
-                (page.widget().module == "notes" or page.widget().module == "diaries") and
-                settings.getBase(page.widget().module)[4] != "markdown" and
-                do_not_asked_before):
-                do_not_asked_before = False
-                format_change_acceptted = True
-                
-                question = QMessageBox.question(
-                    self, _("Question"), _("If you have documents with the format setting set to global," +
-                                        " this change may corrupt them.\nDo you really want to apply the format setting(s)?"))
-                
-                if question != QMessageBox.StandardButton.Yes:
-                    format_change_acceptted = False
+        pages = list(self.tabwidget.pages.keys())
+        del pages[-1]
+        
+        for page in pages:
+            do_not_asked_before, format_change_acceptted = self.askFormat(page, do_not_asked_before, format_change_acceptted)
                           
             if not page.reset(format_change_acceptted):
                 successful = False
@@ -299,11 +281,6 @@ class SettingsWidget(QWidget):
         else:
             QMessageBox.critical(self, _("Error"), _("Failed to reset all settings."))
             
-    @Slot(int)
-    def setCurrentPage(self, index: int) -> None:
-        self.container.setCurrentIndex(index)
-        self.about_button.setChecked(False)
-            
             
 class BaseSettings(QWidget):
     def __init__(self, parent: SettingsWidget, index: int) -> None:
@@ -312,24 +289,18 @@ class BaseSettings(QWidget):
         self.parent_ = parent
         
         self.index = index
-        
-        self.form = QFormLayout(self)
     
     @Slot()
     def openPage(self) -> None:
         self.parent_.parent_.tabwidget.setCurrentPage(self.parent_)
-        self.parent_.selector.setCurrentRow(self.index)
+        self.parent_.tabwidget.setCurrentPage(self.index)
         
 
-class AboutWidget(QWidget):
-    def __init__(self, parent: SettingsWidget) -> None:
-        super().__init__(parent)
+class AboutWidget(BaseSettings):
+    def __init__(self, parent: SettingsWidget, index: int) -> None:
+        super().__init__(parent, index)
         
-        self.parent_ = parent
-        
-        self.parent_.menu.addAction(QIcon.fromTheme(QIcon.ThemeIcon.HelpAbout), _("About"), self.openPage)
-        
-        self.icon_and_nottodbox = QWidget()
+        self.icon_and_nottodbox = QWidget(self)
         
         self.icon = Label(self.icon_and_nottodbox)
         self.icon.setPixmap(self.windowIcon().pixmap(96, 96))
@@ -383,12 +354,6 @@ class AboutWidget(QWidget):
         self.layout_.addWidget(self.license_label)
         self.layout_.addWidget(self.license_textedit, 0, Qt.AlignmentFlag.AlignCenter)
         
-    @Slot()
-    def openPage(self) -> None:
-        self.parent_.parent_.tabwidget.setCurrentPage(self.parent_)
-        self.parent_.about_button.setChecked(True if not self.parent_.about_button.isChecked() else False)
-        self.parent_.aboutPage(self.parent_.about_button.isChecked())
-        
 
 class AppearanceSettings(BaseSettings):
     def __init__(self, parent: SettingsWidget, index: int) -> None:
@@ -430,23 +395,24 @@ class AppearanceSettings(BaseSettings):
         self.color_schemes_widget_layout.addWidget(VSeperator(self.color_schemes_widget))
         self.color_schemes_widget_layout.addWidget(self.color_schemes_import)
         
-        self.form.addRow(Label(self, _("Style")))
-        self.form.addRow("{}*:".format(_("Style")), self.styles_combobox)
-        self.form.addRow(Label(self, _("Color scheme").title()))
-        self.form.addRow("{}:".format(_("Color scheme")), self.color_schemes_widget)
-        self.form.addRow("{} {}:".format(_("Custom"), _("Color scheme").lower()), self.custom_color_schemes.name)
-        self.form.addWidget(self.custom_color_schemes)
-        self.form.addRow(HSeperator(self))
-        self.form.addRow(Label(self, "*{}<ul>- {}<br>- {}</ul>".format(_("Some styles may not be detected in two cases:"),
+        self.layout_ = QFormLayout(self)
+        self.layout_.addRow(Label(self, _("Style")))
+        self.layout_.addRow("{}*:".format(_("Style")), self.styles_combobox)
+        self.layout_.addRow(Label(self, _("Color scheme").title()))
+        self.layout_.addRow("{}:".format(_("Color scheme")), self.color_schemes_widget)
+        self.layout_.addRow("{} {}:".format(_("Custom"), _("Color scheme").lower()), self.custom_color_schemes.name)
+        self.layout_.addWidget(self.custom_color_schemes)
+        self.layout_.addRow(HSeperator(self))
+        self.layout_.addRow(Label(self, "*{}<ul>- {}<br>- {}</ul>".format(_("Some styles may not be detected in two cases:"),
                                                                  _("If PySide6 is installed with Pip"), 
                                                                  _("If you are using the AppImage version of Nottodbox")), 0x0001))
-        self.form.addRow(Label(self, 
+        self.layout_.addRow(Label(self, 
                                "<br>{}{}".format(self.superscriptDirNumber(1), _('From the system directory for KDE-format color schemes')), 0x0001))
-        self.form.addRow(Label(self, 
+        self.layout_.addRow(Label(self, 
                                "<br>{}{}".format(self.superscriptDirNumber(2), _('From the user directory for KDE-format color schemes')), 0x0001))
-        self.form.addRow(Label(self, 
+        self.layout_.addRow(Label(self, 
                                "<br>{}{}".format(self.superscriptDirNumber(3), _('From the system directory for Nottodbox-format color schemes')), 0x0001))
-        self.form.addRow(Label(self, 
+        self.layout_.addRow(Label(self, 
                                "<br>{}{}".format(self.superscriptDirNumber(4), _('From the user directory for Nottodbox-format color schemes')), 0x0001))
         
         self.styles_combobox.currentTextChanged.connect(self.styleChanged)
@@ -1035,6 +1001,8 @@ class ModuleSettings(BaseSettings):
         self.format_changed = False
         self.do_not_check = True
         
+        self.layout_ = QFormLayout(self)
+        
         if self.module == "sidebar" or self.module == "notes" or self.module == "todos":
             self.alternate_row_colors_checkbox = QCheckBox(self)
             self.alternate_row_colors_checkbox.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
@@ -1043,8 +1011,8 @@ class ModuleSettings(BaseSettings):
             except:
                 self.alternate_row_colors_checkbox.stateChanged.connect(self.alternateRowColorsChanged)
             
-            self.form.addRow(Label(self, _("List")))
-            self.form.addRow("{}:".format(_("Alternate row colors")), self.alternate_row_colors_checkbox)
+            self.layout_.addRow(Label(self, _("List")))
+            self.layout_.addRow("{}:".format(_("Alternate row colors")), self.alternate_row_colors_checkbox)
             
         if self.module == "notes" or self.module == "todos":
             self.background_button = PushButton(self)
@@ -1053,15 +1021,15 @@ class ModuleSettings(BaseSettings):
             self.foreground_button = PushButton(self)
             self.foreground_button.clicked.connect(self.setForeground)
             
-            self.form.addRow("{}:".format(_("Default background color of items")), self.background_button)
-            self.form.addRow("{}:".format(_("Default text color of items")), self.foreground_button)
+            self.layout_.addRow("{}:".format(_("Default background color of items")), self.background_button)
+            self.layout_.addRow("{}:".format(_("Default text color of items")), self.foreground_button)
             
         if self.module == "diaries":
             self.highlight_button = PushButton(self)
             self.highlight_button.clicked.connect(self.setHighlight)
             
-            self.form.addRow(Label(self, _("List")))
-            self.form.addRow("{}:".format(_("Default creation state color of items")), self.highlight_button)
+            self.layout_.addRow(Label(self, _("List")))
+            self.layout_.addRow("{}:".format(_("Default creation state color of items")), self.highlight_button)
             
         if self.module == "notes" or self.module == "diaries":    
             self.autosave_checkbox = QCheckBox(self)
@@ -1077,9 +1045,9 @@ class ModuleSettings(BaseSettings):
             self.format_combobox.setEditable(False)
             self.format_combobox.currentIndexChanged.connect(self.setFormat)
                 
-            self.form.addRow(Label(self, _("Document")))
-            self.form.addRow(_("Auto-save:"), self.autosave_checkbox)
-            self.form.addRow(_("Format:"), self.format_combobox)
+            self.layout_.addRow(Label(self, _("Document")))
+            self.layout_.addRow(_("Auto-save:"), self.autosave_checkbox)
+            self.layout_.addRow(_("Format:"), self.format_combobox)
         
         self.load()
         
@@ -1243,8 +1211,6 @@ class ShortcutsSettings(BaseSettings):
         
         self.start_menu_shortcut = QWidget(self)
 
-        self.form.addRow(Label(self, _("Start Menu Shortcut")))
-            
         self.auto_shortcut_checkbox = QCheckBox("", self.start_menu_shortcut)
         self.auto_shortcut_checkbox.setEnabled(False)      
         self.auto_shortcut_checkbox.setChecked(False)
@@ -1270,8 +1236,6 @@ class ShortcutsSettings(BaseSettings):
         self.start_menu_shortcut_layout.addWidget(self.add_shortcut_button)
         self.start_menu_shortcut_layout.addWidget(self.delete_shortcut_button)
         
-        self.form.addRow("{}:".format(_("Auto add at every startup")), self.start_menu_shortcut)
-        
         if DESKTOP_FILE_FOUND and (APP_MODE != "meson" or not SYSTEM_DESKTOP_FILE_FOUND):
             self.auto_shortcut_checkbox.setEnabled(True)
                 
@@ -1281,6 +1245,10 @@ class ShortcutsSettings(BaseSettings):
             self.delete_shortcut_button.setEnabled(True)
         
         self.load()
+        
+        self.layout_ = QFormLayout(self)
+        self.layout_.addRow(Label(self, _("Start Menu Shortcut")))
+        self.layout_.addRow("{}:".format(_("Auto add at every startup")), self.start_menu_shortcut)
 
     @Slot(int or Qt.CheckState)
     def autoShortcutChanged(self, signal: Qt.CheckState | int) -> None:
