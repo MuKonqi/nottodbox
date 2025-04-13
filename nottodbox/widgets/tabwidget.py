@@ -127,16 +127,16 @@ class TabButton(QWidget):
         self.button.clicked.connect(lambda state: self.parent_.parent_.setCurrentPage(self.parent_.parent_.tabs.index(self)))
         
         self.layout_ = QGridLayout(self)
-        self.layout_.setSpacing(4)
-        margins = self.layout_.contentsMargins()
-        margins.setBottom(4)
-        self.layout_.setContentsMargins(margins)
         
         if alignment == Qt.AlignmentFlag.AlignTop:
+            margins = self.layout_.contentsMargins()
+            margins.setBottom(0)
+            
             self.seperators = [VSeperator(self), VSeperator(self), HSeperator(self)]
             self.seperators[0].setFixedHeight(30)
             self.seperators[1].setFixedHeight(30)
             
+            self.layout_.setContentsMargins(margins)
             self.layout_.addWidget(self.seperators[0], 0, 0, 1, 1)
             self.layout_.addWidget(self.button, 0, 1, 1, 1)
             self.layout_.addWidget(self.seperators[1], 0, 2, 1, 1)
