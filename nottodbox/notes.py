@@ -16,6 +16,7 @@
 # along with Nottodbox.  If not, see <https://www.gnu.org/licenses/>.
 
 
+import types
 import datetime
 from gettext import gettext as _
 from PySide6.QtCore import Slot
@@ -111,11 +112,12 @@ class NotesDB(DBForDocuments, DBForLists):
         if super().updateModification(name, table, date):
             date = self.getModification(name, table)
             
-            if table == "__main__":
-                self.widget.table_items[name][2].setText(date, name)
-                
-            elif table != "__main__":
-                self.widget.child_items[(name, table)][2].setText(date, name)
+            if self.widget == types.UnionType:
+                if table == "__main__":
+                    self.widget.table_items[name][2].setText(date, name)
+                    
+                elif table != "__main__":
+                    self.widget.child_items[(name, table)][2].setText(date, name)
                 
             return True
         

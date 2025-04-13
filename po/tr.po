@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: v0.0.9-3\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-10 20:24+0300\n"
-"PO-Revision-Date: 2025-04-10 20:24+0300\n"
+"POT-Creation-Date: 2025-04-13 22:05+0300\n"
+"PO-Revision-Date: 2025-04-13 22:05+0300\n"
 "Last-Translator: Muhammed S. <mukonqi@gmail.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: tr\n"
@@ -31,12 +31,12 @@ msgstr "Notları, yapılacakları ve günlükleri düzenleyin"
 #: share/applications/io.github.mukonqi.nottodbox.desktop.in.in:17
 #: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:107
 #: nottodbox/diaries.py:124 nottodbox/__init__.py:85 nottodbox/mainwindow.py:74
-#: nottodbox/notes.py:135
+#: nottodbox/notes.py:137
 msgid "Home"
 msgstr "Ev"
 
 #: share/applications/io.github.mukonqi.nottodbox.desktop.in.in:21
-#: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:115
+#: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:111
 #: nottodbox/widgets/options.py:147 nottodbox/widgets/options.py:483
 #: nottodbox/mainwindow.py:75 nottodbox/settings.py:157
 msgid "Notes"
@@ -48,14 +48,14 @@ msgid "To-Dos"
 msgstr "Yapılacaklar"
 
 #: share/applications/io.github.mukonqi.nottodbox.desktop.in.in:29
-#: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:123
+#: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:119
 #: nottodbox/widgets/options.py:153 nottodbox/widgets/options.py:486
 #: nottodbox/mainwindow.py:77 nottodbox/settings.py:159
 msgid "Diaries"
 msgstr "Günlükler"
 
 #: share/applications/io.github.mukonqi.nottodbox.desktop.in.in:32
-#: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:127
+#: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:123
 #: nottodbox/mainwindow.py:78 nottodbox/settings.py:149
 msgid "Settings"
 msgstr "Ayarlar"
@@ -68,11 +68,7 @@ msgstr ""
 "Notlarınızı, yapılacaklarınızı ve günlüklerinizi yüksek derecede "
 "özelleştirilebilir WYSIWYG benzeri bir düzenleyiciyle organize edin."
 
-#: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:111
-msgid "Home (dark mode)"
-msgstr "Ev (koyu mod)"
-
-#: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:119
+#: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:115
 #: nottodbox/mainwindow.py:76 nottodbox/settings.py:158
 msgid "To-dos"
 msgstr "Yapılacaklar"
@@ -93,7 +89,7 @@ msgstr "Bir not açmak için çift tıklayın."
 msgid "Double-click to changing status of a to-do."
 msgstr "Bir yapılacağın durumunu değiştirmek için çift tıklayın."
 
-#: nottodbox/widgets/lists.py:137 nottodbox/todos.py:41
+#: nottodbox/widgets/lists.py:137 nottodbox/todos.py:43
 msgid "Not completed yet"
 msgstr "Henüz tamamlanmamış"
 
@@ -142,7 +138,7 @@ msgstr ""
 
 #: nottodbox/widgets/options.py:71 nottodbox/widgets/options.py:453
 #: nottodbox/widgets/pages.py:381 nottodbox/widgets/pages.py:386
-#: nottodbox/widgets/pages.py:773 nottodbox/notes.py:208
+#: nottodbox/widgets/pages.py:773 nottodbox/notes.py:210
 #, python-brace-format
 msgid "{name} note"
 msgstr "{name} notu"
@@ -172,7 +168,7 @@ msgid "Search..."
 msgstr "Ara..."
 
 #: nottodbox/widgets/options.py:273 nottodbox/widgets/options.py:443
-#: nottodbox/notes.py:215 nottodbox/sidebar.py:172
+#: nottodbox/notes.py:217 nottodbox/sidebar.py:172
 msgid "note"
 msgstr "not"
 
@@ -181,7 +177,7 @@ msgid "to-do"
 msgstr "yapılacak"
 
 #: nottodbox/widgets/options.py:280 nottodbox/widgets/options.py:517
-#: nottodbox/notes.py:215
+#: nottodbox/notes.py:217
 msgid "notebook"
 msgstr "not defteri"
 
@@ -216,11 +212,11 @@ msgstr "Her Şeyi Sil"
 #: nottodbox/widgets/pages.py:355 nottodbox/widgets/pages.py:385
 #: nottodbox/widgets/pages.py:634 nottodbox/widgets/pages.py:662
 #: nottodbox/widgets/pages.py:772 nottodbox/diaries.py:232
-#: nottodbox/diaries.py:259 nottodbox/mainwindow.py:159 nottodbox/notes.py:207
-#: nottodbox/notes.py:214 nottodbox/settings.py:235 nottodbox/settings.py:282
+#: nottodbox/diaries.py:259 nottodbox/mainwindow.py:159 nottodbox/notes.py:209
+#: nottodbox/notes.py:216 nottodbox/settings.py:235 nottodbox/settings.py:282
 #: nottodbox/settings.py:715 nottodbox/settings.py:1287
 #: nottodbox/settings.py:1319 nottodbox/sidebar.py:187 nottodbox/sidebar.py:225
-#: nottodbox/sidebar.py:248 nottodbox/sidebar.py:256 nottodbox/todos.py:200
+#: nottodbox/sidebar.py:248 nottodbox/sidebar.py:256 nottodbox/todos.py:204
 msgid "Error"
 msgstr "Hata"
 
@@ -291,7 +287,7 @@ msgstr "{name} notunun"
 msgid "of {name} dated diary"
 msgstr "{name} tarihli günlüğün"
 
-#: nottodbox/widgets/options.py:469 nottodbox/todos.py:201
+#: nottodbox/widgets/options.py:469 nottodbox/todos.py:205
 #, python-brace-format
 msgid "of {name} to-do"
 msgstr "{name} yapılacağının"
@@ -463,7 +459,7 @@ msgstr "{item} zaten oluşturulmuş."
 
 #: nottodbox/widgets/options.py:759 nottodbox/widgets/options.py:782
 #: nottodbox/widgets/pages.py:772 nottodbox/diaries.py:232
-#: nottodbox/notes.py:207
+#: nottodbox/notes.py:209
 #, python-brace-format
 msgid "Failed to create {item}."
 msgstr "{item} oluşturulamadı."
@@ -867,11 +863,11 @@ msgstr "Tüm sayfalar kaydedildi."
 msgid "Failed to save some pages."
 msgstr "Bazı sayfalar kaydedilemedi."
 
-#: nottodbox/notes.py:195 nottodbox/notes.py:196 nottodbox/notes.py:208
+#: nottodbox/notes.py:197 nottodbox/notes.py:198 nottodbox/notes.py:210
 msgid "Unnamed"
 msgstr "Adsız"
 
-#: nottodbox/notes.py:214
+#: nottodbox/notes.py:216
 msgid "Please select a {} or a {}."
 msgstr "Lütfen bir {} veya {} seçin."
 
@@ -1238,15 +1234,18 @@ msgstr "Geçmiş temizlenemedi."
 msgid "Failed to delete {page} page from history."
 msgstr "{page} sayfası geçmişten silinemedi."
 
-#: nottodbox/todos.py:158
+#: nottodbox/todos.py:162
 msgid "Mark Uncompleted"
 msgstr "Tamamlanmamış İşaretle"
 
-#: nottodbox/todos.py:162
+#: nottodbox/todos.py:166
 msgid "Mark Completed"
 msgstr "Tamamlanmış İşaretle"
 
-#: nottodbox/todos.py:200
+#: nottodbox/todos.py:204
 #, python-brace-format
 msgid "Failed to change status {of_item}."
 msgstr "{of_item} durumu değiştirilemedi."
+
+#~ msgid "Home (dark mode)"
+#~ msgstr "Ev (koyu mod)"

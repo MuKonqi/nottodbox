@@ -76,28 +76,29 @@ class Application(QApplication):
         self.setDesktopFileName(USER_DESKTOP_FILE if USER_DESKTOP_FILE_FOUND else DESKTOP_FILE)
         self.setWindowIcon(QIcon.fromTheme(APP_ID, QIcon(ICON_FILE)))
         
-        window = MainWindow()
+        self.mainwindow = MainWindow()
         
         if args.index:
-            window.tabwidget.setCurrentPage(args.index - 1)
+            self.mainwindow.tabwidget.setCurrentPage(args.index - 1)
         
         elif args.page:
             if args.page == _("Home"):
-                window.tabwidget.setCurrentPage(0)
+                self.mainwindow.tabwidget.setCurrentPage(0)
             
             elif args.page == __("Notes"):
-                window.tabwidget.setCurrentPage(1)
+                self.mainwindow.tabwidget.setCurrentPage(1)
                 
             elif args.page == __("To-Dos"):
-                window.tabwidget.setCurrentPage(2)
+                self.mainwindow.tabwidget.setCurrentPage(2)
                 
             elif args.page == __("Diaries"):
-                window.tabwidget.setCurrentPage(3)
+                self.mainwindow.tabwidget.setCurrentPage(3)
                 
             elif args.page == __("Settings"):
-                window.tabwidget.setCurrentPage(4)
+                self.mainwindow.tabwidget.setCurrentPage(4)
                 
 
-application = Application(sys.argv)
+if __name__ == "__main__":
+    application = Application(sys.argv)
 
-sys.exit(application.exec())
+    sys.exit(application.exec())

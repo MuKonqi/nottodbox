@@ -13,7 +13,6 @@
 <summary>Show / Hide</summary>
 
 ![Home](/.github/images/home.png)<br>
-![Home (Dark)](/.github/images/home-dark.png)<br>
 ![Notes](/.github/images/notes.png)<br>
 ![Todos](/.github/images/todos.png)<br>
 ![Diaries](/.github/images/diaries.png)<br>

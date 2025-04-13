@@ -16,6 +16,7 @@
 # along with Nottodbox.  If not, see <https://www.gnu.org/licenses/>.
 
 
+import types
 import datetime
 from gettext import gettext as _
 from PySide6.QtCore import Slot
@@ -38,12 +39,14 @@ class TodosDB(DBForLists):
         if status == "completed":
             newstatus = "uncompleted"
             
-            self.widget.child_items[(name, table)][2].setText(_("Not completed yet"), name) 
+            if self.widget == types.UnionType:
+                self.widget.child_items[(name, table)][2].setText(_("Not completed yet"), name) 
         
         elif status == "uncompleted": 
             newstatus = "completed"
             
-            self.widget.child_items[(name, table)][2].setText(date, name) 
+            if self.widget == types.UnionType:
+                self.widget.child_items[(name, table)][2].setText(date, name) 
             
         self.cur.execute(
             f"update '{table}' set status = ?, completion = ? where name = ?", (newstatus, date, name))
@@ -115,7 +118,8 @@ class TodosDB(DBForLists):
             if table == "__main__":
                 date = self.getModification(name, table)
                 
-                self.widget.table_items[name][2].setText(date, name)
+                if self.widget == types.UnionType:
+                    self.widget.table_items[name][2].setText(date, name)
                 
             return True
         

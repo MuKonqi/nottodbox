@@ -27,7 +27,7 @@ AppDir:
     icon: io.github.mukonqi.nottodbox
     version: v0.0.9-3
     exec: usr/bin/python3
-    exec_args: "-m nottodbox $@"
+    exec_args: "AppDir/usr/lib/python3.13/site-packages/nottodbox/__init__.py $@"
 
   pacman:
     Architecture: x86_64
