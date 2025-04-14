@@ -2,7 +2,8 @@ import os
 import sys
 import shutil
 import datetime
-from PySide6.QtCore import QSettings, QProcess
+from PySide6.QtCore import QSettings
+from PySide6.QtWidgets import QApplication
 
 sys.path.insert(1, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "nottodbox"))
 
@@ -60,35 +61,36 @@ settings.setValue("mainwindow/geometry", "")
 settings.setValue("mainwindow/state", "")
 
 
-from __init__ import Application
+from mainwindow import MainWindow # type: ignore
 
 
-application = Application(sys.argv)
-list(application.mainwindow.settings.tabwidget.pages.keys())[0].widget().styles_combobox.setCurrentIndex(list(application.mainwindow.settings.tabwidget.pages.keys())[0].widget().styles_combobox.findText("Fusion"))
-application.setStyle("Fusion")
-list(application.mainwindow.settings.tabwidget.pages.keys())[0].widget().color_schemes_combobox.setCurrentIndex(list(application.mainwindow.settings.tabwidget.pages.keys())[0].widget().color_schemes_combobox.findText("Nottodbox Light³"))
-list(application.mainwindow.settings.tabwidget.pages.keys())[0].widget().loadPalette()
+application = QApplication(sys.argv)
+mainwindow = MainWindow()
+list(mainwindow.settings.tabwidget.pages.keys())[0].widget().styles_combobox.setCurrentIndex(list(mainwindow.settings.tabwidget.pages.keys())[0].widget().styles_combobox.findText("Fusion"))
+QApplication.setStyle("Fusion")
+list(mainwindow.settings.tabwidget.pages.keys())[0].widget().color_schemes_combobox.setCurrentIndex(list(mainwindow.settings.tabwidget.pages.keys())[0].widget().color_schemes_combobox.findText("Nottodbox Light³"))
+list(mainwindow.settings.tabwidget.pages.keys())[0].widget().loadPalette()
 application.exec()
 
-application.mainwindow.home.todos.expandAll()
-application.mainwindow.home.notes.expandAll()
-application.mainwindow.grab().save(os.path.join(os.path.dirname(os.path.dirname(__file__)), "images", "home.png"))
+mainwindow.home.todos.expandAll()
+mainwindow.home.notes.expandAll()
+mainwindow.grab().save(os.path.join(os.path.dirname(os.path.dirname(__file__)), "images", "home.png"))
 
-application.mainwindow.notes.home.treeview.expandAll()
+mainwindow.notes.home.treeview.expandAll()
 for name, table in notes:
-    application.mainwindow.notes.home.child_options.open(False, name, table)
-application.mainwindow.notes.setCurrentIndex(0)
-application.mainwindow.grab().save(os.path.join(os.path.dirname(os.path.dirname(__file__)), "images", "notes.png"))
+    mainwindow.notes.home.child_options.open(False, name, table)
+mainwindow.notes.setCurrentIndex(0)
+mainwindow.grab().save(os.path.join(os.path.dirname(os.path.dirname(__file__)), "images", "notes.png"))
 
-application.mainwindow.tabwidget.setCurrentPage(2)
-application.mainwindow.todos.treeview.expandAll()
-application.mainwindow.grab().save(os.path.join(os.path.dirname(os.path.dirname(__file__)), "images", "todos.png"))
+mainwindow.tabwidget.setCurrentPage(2)
+mainwindow.todos.treeview.expandAll()
+mainwindow.grab().save(os.path.join(os.path.dirname(os.path.dirname(__file__)), "images", "todos.png"))
 
-application.mainwindow.tabwidget.setCurrentPage(3)
-application.mainwindow.grab().save(os.path.join(os.path.dirname(os.path.dirname(__file__)), "images", "diaries.png"))
+mainwindow.tabwidget.setCurrentPage(3)
+mainwindow.grab().save(os.path.join(os.path.dirname(os.path.dirname(__file__)), "images", "diaries.png"))
 
-application.mainwindow.tabwidget.setCurrentPage(4)
-application.mainwindow.grab().save(os.path.join(os.path.dirname(os.path.dirname(__file__)), "images", "settings.png"))
+mainwindow.tabwidget.setCurrentPage(4)
+mainwindow.grab().save(os.path.join(os.path.dirname(os.path.dirname(__file__)), "images", "settings.png"))
 
 
 settings.setValue("mainwindow/geometry", geometry)

@@ -98,7 +98,6 @@ class Application(QApplication):
                 self.mainwindow.tabwidget.setCurrentPage(4)
                 
 
-if __name__ == "__main__":
-    application = Application(sys.argv)
+application = Application(sys.argv)
 
-    sys.exit(application.exec())
+sys.exit(application.exec())
