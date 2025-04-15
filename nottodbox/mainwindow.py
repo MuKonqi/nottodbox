@@ -37,7 +37,7 @@ class MainWindow(QMainWindow):
         
         self.tabbar = QDockWidget(self)
         self.tabbar.setObjectName("TabBar")
-        self.tabbar.setFixedHeight(self.tabbar.height() * 2.25)
+        self.tabbar.setFixedHeight(self.tabbar.height() * 2.50)
         self.tabbar.setFeatures(QDockWidget.DockWidgetFeature.NoDockWidgetFeatures)
         self.tabbar.setAllowedAreas(Qt.DockWidgetArea.TopDockWidgetArea)
         self.tabbar.setTitleBarWidget(QWidget(self.tabbar))

@@ -72,6 +72,7 @@ list(mainwindow.settings.tabwidget.pages.keys())[0].widget().color_schemes_combo
 list(mainwindow.settings.tabwidget.pages.keys())[0].widget().loadPalette()
 application.exec()
 
+mainwindow.tabwidget.setCurrentPage(0)
 mainwindow.home.todos.expandAll()
 mainwindow.home.notes.expandAll()
 mainwindow.grab().save(os.path.join(os.path.dirname(os.path.dirname(__file__)), "images", "home.png"))
