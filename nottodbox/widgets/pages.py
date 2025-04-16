@@ -20,10 +20,10 @@
 
 from gettext import gettext as _
 from PySide6.QtCore import Signal, Slot, Qt, QDate, QObject, QThread
-from PySide6.QtGui import QTextCursor, QTextFormat, QTextBlockFormat, QTextCharFormat, QTextListFormat, QTextTableFormat, QTextLength, QTextTable, QDesktopServices, QPalette, QIcon
+from PySide6.QtGui import QTextCursor, QTextFormat, QTextBlockFormat, QTextCharFormat, QTextListFormat, QTextTableFormat, QTextLength, QTextTable, QDesktopServices, QPalette
 from PySide6.QtWidgets import *
 from .dialogs import ColorDialog, GetTwoDialog
-from .others import PushButton, Action
+from .others import Action
             
             
 class Page(QWidget):
@@ -57,6 +57,17 @@ class Page(QWidget):
         
         elif self.mode == "backup":
             self.content = self.db.getBackup(self.name, self.table)
+        
+        self.call_autosave = self.db.getAutosave(self.name, self.table)
+
+        if self.call_autosave == "global":
+            self.autosave = self.autosave_
+            
+        else:
+            self.autosave = self.call_autosave
+            
+        if self.outdated == "yes":
+            self.autosave = "disabled"
             
         self.call_format = self.db.getFormat(self.name, self.table)
         
@@ -66,109 +77,54 @@ class Page(QWidget):
         else:
             self.format = self.call_format
             
-        self.call_autosave = self.db.getAutosave(self.name, self.table)
-
-        if self.call_autosave == "global":
-            self.autosave = self.autosave_
-            
-        else:
-            self.autosave = self.call_autosave
-        
         self.input = PageTextEdit(self)
         self.input.setAcceptRichText(True)
         
-        if self.format == "plain-text":
-            self.input.setPlainText(self.content)
-            
-        elif self.format == "markdown":
-            self.input.setMarkdown(self.content)
-            
-        elif self.format == "html":
-            self.input.setHtml(self.content)
-        
-        self.format_combobox = QComboBox(self)
-        self.format_combobox.addItems([
-            "{} {}".format(_("Format:"), _("Follow global ({setting})").format(setting = self.prettyFormat())),
-            "{} {}".format(_("Format:"), _("Plain-text")),
-            "{} {}".format(_("Format:"), "Markdown"),
-            "{} {}".format(_("Format:"), "HTML")])
-        
-        if self.call_format == "global":
-            self.format_combobox.setCurrentIndex(0)
-        elif self.call_format == "plain-text":
-            self.format_combobox.setCurrentIndex(1)
-        elif self.call_format == "markdown":
-            self.format_combobox.setCurrentIndex(2)
-        elif self.call_format == "html":
-            self.format_combobox.setCurrentIndex(3)
-        
-        self.format_combobox.setEditable(False)
-        self.format_combobox.setStatusTip(_("Format changes may corrupt the content."))
-        self.format_combobox.currentIndexChanged.connect(self.setFormat)
-        
-        self.autosave_combobox = QComboBox(self)
-        self.autosave_combobox.addItems([
-            "{} {}".format(_("Auto-save:"), _("Follow global ({setting})").format(setting = self.prettyAutosave())),
-            "{} {}".format(_("Auto-save:"), _("Enabled")),
-            "{} {}".format(_("Auto-save:"), _("Disabled"))])
-        
-        if self.call_autosave == "global":
-            self.autosave_combobox.setCurrentIndex(0)
-        elif self.call_autosave == "enabled":
-            self.autosave_combobox.setCurrentIndex(1)
-        elif self.call_autosave == "disabled":
-            self.autosave_combobox.setCurrentIndex(2)
-        
-        self.autosave_combobox.setEditable(False)
-        self.autosave_combobox.setStatusTip(_("Auto-saves do not change backups."))
-        self.autosave_combobox.currentIndexChanged.connect(self.setAutosave)
-        
-        if self.outdated == "yes":
-            self.autosave_combobox.setEnabled(False)
-            self.autosave_combobox.setStatusTip(_("Auto-save feature disabled for old diaries."))
-            self.autosave = "disabled"
-            
         self.helper = PageHelper(self, self.format)
-        
         self.input.cursorPositionChanged.connect(self.helper.updateButtons)
         
-        self.layout_ = QGridLayout(self)
-        self.layout_.addWidget(self.helper, 0, 0, 1, 2)
-        self.layout_.addWidget(self.input, 1, 0, 1, 2)
-        self.layout_.addWidget(self.format_combobox, 2, 0, 1, 1)
-        self.layout_.addWidget(self.autosave_combobox, 2, 1, 1, 1)
-        
-    def prettyAutosave(self, global_autosave_: str | None = None) -> str:
-        if global_autosave_ is None:
-            global_autosave = self.autosave_
-            
-        else:
-            global_autosave = global_autosave_
-            
-        if global_autosave == "enabled":
-            return _("Enabled").lower()
-            
-        elif global_autosave == "disabled":
-            return _("Disabled").lower()
+        self.layout_ = QVBoxLayout(self)
+        self.layout_.addWidget(self.helper)
+        self.layout_.addWidget(self.input)
 
-    def prettyFormat(self, global_format_: str | None = None) -> str:
-        if global_format_ is None:
-            global_format = self.format_
+    def prettyAutosave(self, autosave: str | None = None) -> str:
+        if autosave is not None:
+            self.autosave_ = autosave
             
-        else:
-            global_format = global_format_
+        if self.autosave_ == "enabled":
+            self.pretty_autosave = _("Enabled").lower()
+            
+        elif self.autosave_ == "disabled":
+            self.pretty_autosave = _("Disabled").lower()
         
-        if global_format == "plain-text":
-            return _("Plain-text").lower()
+        return self.pretty_autosave
+
+    def prettyFormat(self, format: str | None = None) -> str:
+        if format is not None:
+            self.format_ = format
+        
+        if self.format_ == "plain-text":
+            self.pretty_format = _("Plain-text").lower()
             
-        elif global_format == "markdown":
-            return "Markdown"
+        elif self.format_ == "markdown":
+            self.pretty_format = "Markdown"
             
-        elif global_format == "html":
-            return "HTML"
+        elif self.format_ == "html":
+            self.pretty_format = "HTML"
+        
+        return self.pretty_format
+    
+    def setAlignment(self, alignment: Qt.AlignmentFlag) -> None:
+        blkfmt = QTextBlockFormat()
+        blkfmt.setAlignment(alignment)
+        
+        cur = self.parent_.input.textCursor()
+        cur.mergeBlockFormat(blkfmt)
         
     @Slot(int)
     def setAutosave(self, index: int) -> bool:
+        self.helper.setAutosave(index)
+        
         if index == 0:
             value = "global"
         
@@ -196,17 +152,19 @@ class Page(QWidget):
             
     @Slot(int)
     def setFormat(self, index: int) -> bool:
+        self.helper.setFormat(index)
+        
         if index == 0:
             value = "global"
         
         elif index == 1:
-            value = "plain-text"
+            value = "html"
         
         elif index == 2:
             value = "markdown"
         
         elif index == 3:
-            value = "html"
+            value = "plain-text"
             
         if self.outdated == "yes":
             question = QMessageBox.question(
@@ -243,7 +201,6 @@ class BackupPage(Page):
         self.input.setReadOnly(True)
         
         self.helper.button.setText(_("Restore Content"))
-        self.helper.button.setIcon(QIcon.fromTheme(QIcon.ThemeIcon.DocumentRevert))
         self.helper.button.triggered.connect(self.restoreContent)
             
     @Slot()
@@ -292,7 +249,6 @@ class NormalPage(Page):
         self.saver.moveToThread(self.saver_thread)
         
         self.helper.button.setText(_("Save"))
-        self.helper.button.setIcon(QIcon.fromTheme(QIcon.ThemeIcon.DocumentSave))
         self.helper.button.triggered.connect(lambda: self.saver.saveChild())
         
         self.save = lambda: self.saver.saveChild_.emit(True)
@@ -386,34 +342,92 @@ class NormalPage(Page):
                                      .format(item = _("{name} note") if self.module == "notes" else _("{name} dated diary"))
                                      .format(name = self.name))
             
+    def refresh(self, autosave: str, format: str) -> None:
+        if self.call_format == "global":
+            self.format_ = format
+            
+        if self.format == "global":
+            self.helper.updateStatus(format)
+            
+        self.helper.format_buttons[0].setText(self.helper.format_buttons[0].text().replace(self.pretty_format, self.prettyFormat(format)))
+        
+        if self.call_autosave == "global":
+            self.autosave_ = autosave
+            
+        if self.autosave == "global":
+            self.changeAutosaveConnections()
+            
+        self.helper.autosave_buttons[0].setText(self.helper.autosave_buttons[0].text().replace(self.pretty_autosave, self.prettyAutosave(autosave)))
+            
             
 class PageHelper(QToolBar):
     def __init__(self, parent: Page, format: str) -> None:
         super().__init__(parent)
         
         self.parent_ = parent
-        self.input = self.parent_.input
-        self.page = self.parent_.parent()
         
         self.button = Action(self)
         
-        self.bold_button = Action(self, _("Bold"), QIcon.fromTheme(QIcon.ThemeIcon.FormatTextBold))
+        self.addAction(self.button)
+        self.addSeparator()
+        
+        self.settings_menu = QMenu(self)
+        self.settings_button = QToolButton(self)
+        self.settings_button.setText(_("Settings"))
+        self.settings_button.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
+        self.settings_button.setMenu(self.settings_menu)
+
+        autosaves = ["global", "enabled", "disabled"]
+        self.autosave_menu = self.settings_menu.addMenu(_("Auto-save"))
+        self.autosave_buttons = [self.autosave_menu.addAction(_("Follow global: {}, (default)").format(self.parent_.prettyAutosave()), lambda: self.parent_.setAutosave(0)),
+                                 self.autosave_menu.addAction(_("Enabled"), lambda: self.parent_.setAutosave(1)),
+                                 self.autosave_menu.addAction(_("Disabled"), lambda: self.parent_.setAutosave(2))]
+        font = self.autosave_buttons[0].font()
+        font.setUnderline(True)
+        self.autosave_buttons[0].setFont(font)
+        self.setAutosave(autosaves.index(self.parent_.call_autosave))
+        
+        formats = ["global", "html", "markdown", "plain-text"]
+        self.format_menu = self.settings_menu.addMenu(_("Format"))
+        self.format_buttons = [self.format_menu.addAction(_("Follow global: {}, (default)").format(self.parent_.prettyFormat()), lambda: self.parent_.setFormat(0)),
+                               self.format_menu.addAction("HTML", lambda: self.parent_.setFormat(1)),
+                               self.format_menu.addAction("Markdown", lambda: self.parent_.setFormat(2)),
+                               self.format_menu.addAction(_("Plain-text"), lambda: self.parent_.setFormat(3))]
+        font = self.format_buttons[0].font()
+        font.setUnderline(True)
+        self.format_buttons[0].setFont(font)
+        self.setFormat(formats.index(self.parent_.call_format))
+        
+        self.settings_button_ = self.addWidget(self.settings_button)
+        self.addSeparator()
+        
+        self.bold_button = Action(self, _("Bold"))
         self.bold_button.triggered.connect(self.setBold)
         self.bold_button.setCheckable(True)
         
-        self.italic_button = Action(self, _("Italic"), QIcon.fromTheme(QIcon.ThemeIcon.FormatTextItalic))
+        self.italic_button = Action(self, _("Italic"))
         self.italic_button.triggered.connect(self.setItalic)
         self.italic_button.setCheckable(True)
         
-        self.underline_button = Action(self, _("Underline"), QIcon.fromTheme(QIcon.ThemeIcon.FormatTextUnderline))
+        self.underline_button = Action(self, _("Underline"))
         self.underline_button.triggered.connect(self.setUnderline)
         self.underline_button.setCheckable(True)
         
-        self.strikethrough_button = Action(self, _("Strike through"), QIcon.fromTheme(QIcon.ThemeIcon.FormatTextStrikethrough))
+        self.strikethrough_button = Action(self, _("Strike through"))
         self.strikethrough_button.triggered.connect(self.setStrikeThrough)
         self.strikethrough_button.setCheckable(True)
         
+        self.addAction(self.bold_button)
+        self.addAction(self.italic_button)
+        self.addAction(self.underline_button)
+        self.addAction(self.strikethrough_button)
+        self.addSeparator()
+        
         self.header_menu = QMenu(self)
+        self.header_button = QToolButton(self)
+        self.header_button.setText(_("Heading"))
+        self.header_button.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
+        self.header_button.setMenu(self.header_menu)
         self.header_menu.addAction(
             _("Paragraph text"), lambda: self.setHeadingLevel(0))
         self.header_menu.addAction(
@@ -429,12 +443,12 @@ class PageHelper(QToolBar):
         self.header_menu.addAction(
             _("Smallest header"), lambda: self.setHeadingLevel(6))
         
-        self.header_button = QToolButton(self)
-        self.header_button.setText(_("Heading"))
-        self.header_button.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
-        self.header_button.setMenu(self.header_menu)
-        
         self.list_menu = QMenu(self)
+        self.list_button = QToolButton(self)
+        self.list_button.setText(_("List"))
+        self.list_button.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
+        self.list_button.setMenu(self.list_menu)
+        
         self.list_menu.addAction(
             _("Unordered"), lambda: self.setList(QTextListFormat.Style.ListDisc))
         self.list_menu.addAction(
@@ -444,33 +458,17 @@ class PageHelper(QToolBar):
         self.list_menu.addAction(
             _("Ordered with uppercase letters"), lambda: self.setList(QTextListFormat.Style.ListUpperAlpha))
         
-        self.list_button = QToolButton(self)
-        self.list_button.setText(_("List"))
-        self.list_button.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
-        self.list_button.setMenu(self.list_menu)
-        
         self.alignment_menu = QMenu(self)
-        self.alignment_menu.addAction(QIcon.fromTheme(QIcon.ThemeIcon.FormatJustifyLeft),
-            _("Left"), lambda: self.setAlignment(Qt.AlignmentFlag.AlignLeft))
-        self.alignment_menu.addAction(QIcon.fromTheme(QIcon.ThemeIcon.FormatJustifyCenter),
-            _("Center"), lambda: self.setAlignment(Qt.AlignmentFlag.AlignCenter))
-        self.alignment_menu.addAction(QIcon.fromTheme(QIcon.ThemeIcon.FormatJustifyRight),
-            _("Right"), lambda: self.setAlignment(Qt.AlignmentFlag.AlignRight))
-        self.alignment_menu.setStatusTip(_("Setting alignment is only available in HTML format."))
-        
         self.alignment_button = QToolButton(self)
         self.alignment_button.setText(_("Alignment"))
         self.alignment_button.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
         self.alignment_button.setMenu(self.alignment_menu)
         self.alignment_button.setStatusTip(_("Setting alignment is only available in HTML format."))
         
-        self.addAction(self.button)
-        self.addSeparator()
-        self.addAction(self.bold_button)
-        self.addAction(self.italic_button)
-        self.addAction(self.underline_button)
-        self.addAction(self.strikethrough_button)
-        self.addSeparator()
+        self.alignment_menu.addAction(_("Left"), lambda: self.setAlignment(Qt.AlignmentFlag.AlignLeft))
+        self.alignment_menu.addAction(_("Center"), lambda: self.setAlignment(Qt.AlignmentFlag.AlignCenter))
+        self.alignment_menu.addAction(_("Right"), lambda: self.setAlignment(Qt.AlignmentFlag.AlignRight))
+        self.alignment_menu.setStatusTip(_("Setting alignment is only available in HTML format."))
         
         self.addWidget(self.header_button)
         self.addWidget(self.list_button)
@@ -482,7 +480,6 @@ class PageHelper(QToolBar):
         
         self.text_color = self.addAction(_("Text color"), self.setTextColor)
         self.text_color.setStatusTip(_("Setting text color is only available in HTML format."))
-        
         self.background_color = self.addAction(_("Background color"), self.setBackgroundColor)
         self.background_color.setStatusTip(_("Setting background color is only available in HTML format."))
         
@@ -495,7 +492,7 @@ class PageHelper(QToolBar):
             self.fixTableBase(element)
         
         else:
-            for frame in self.input.document().rootFrame().childFrames():
+            for frame in self.parent_.input.document().rootFrame().childFrames():
                 if type(frame) == QTextTable:
                     self.fixTableBase(frame)
         
@@ -527,13 +524,18 @@ class PageHelper(QToolBar):
             cur.select(QTextCursor.SelectionType.WordUnderCursor)
             
         cur.mergeCharFormat(format)
-    
-    def setAlignment(self, alignment: Qt.AlignmentFlag) -> None:
-        blkfmt = QTextBlockFormat()
-        blkfmt.setAlignment(alignment)
         
-        cur = self.input.textCursor()
-        cur.mergeBlockFormat(blkfmt)
+    def setAutosave(self, index: int) -> None:
+        for button in self.autosave_buttons:
+            button.setText(button.text().removesuffix(", ({})".format(_("selected"))))
+            font = button.font()
+            font.setBold(False)
+            button.setFont(font)
+
+        self.autosave_buttons[index].setText("{}, ({})".format(self.autosave_buttons[index].text(), _("selected")))
+        font = self.autosave_buttons[index].font()
+        font.setBold(True)
+        self.autosave_buttons[index].setFont(font)
         
     def setBackgroundColor(self) -> None:
         ok, status, qcolor = ColorDialog(self, False, True, Qt.GlobalColor.white, _("Select {} Color").format(_("Background"))).getColor()
@@ -545,7 +547,7 @@ class PageHelper(QToolBar):
             elif status == "default":
                 color = QTextCharFormat().background()
             
-            cur = self.input.textCursor()
+            cur = self.parent_.input.textCursor()
 
             chrfmt = cur.charFormat()
             
@@ -555,7 +557,7 @@ class PageHelper(QToolBar):
         
     @Slot()
     def setBold(self) -> None:
-        cur = self.input.textCursor()
+        cur = self.parent_.input.textCursor()
         chrfmt = cur.charFormat()
         
         if chrfmt.fontWeight() == 700:
@@ -565,8 +567,20 @@ class PageHelper(QToolBar):
         
         self.mergeFormat(cur, chrfmt)
         
+    def setFormat(self, index: int) -> None:
+        for button in self.format_buttons:
+            button.setText(button.text().removesuffix(", ({})".format(_("selected"))))
+            font = button.font()
+            font.setBold(False)
+            button.setFont(font)
+
+        self.format_buttons[index].setText("{}, ({})".format(self.format_buttons[index].text(), _("selected")))
+        font = self.format_buttons[index].font()
+        font.setBold(True)
+        self.format_buttons[index].setFont(font)
+        
     def setHeadingLevel(self, level: int) -> None:
-        cur = self.input.textCursor()
+        cur = self.parent_.input.textCursor()
         cur.beginEditBlock()
         
         blkfmt = QTextBlockFormat()
@@ -601,7 +615,7 @@ class PageHelper(QToolBar):
         
     @Slot()
     def setItalic(self) -> None:
-        cur = self.input.textCursor()
+        cur = self.parent_.input.textCursor()
         chrfmt = cur.charFormat()
         
         if chrfmt.fontItalic():
@@ -616,7 +630,7 @@ class PageHelper(QToolBar):
         
         if status == "ok":
             if url != "" and url != None:
-                cur = self.input.textCursor()
+                cur = self.parent_.input.textCursor()
                 cur.beginEditBlock()
                 
                 chrfmt = cur.charFormat()
@@ -634,12 +648,12 @@ class PageHelper(QToolBar):
                 QMessageBox.critical(self, _("Error"), _("The URL is required, it can not be blank."))
         
     def setList(self, style: QTextListFormat.Style) -> None:
-        cur = self.input.textCursor()
+        cur = self.parent_.input.textCursor()
         cur.insertList(style)
     
     @Slot()
     def setStrikeThrough(self) -> None:
-        cur = self.input.textCursor()
+        cur = self.parent_.input.textCursor()
         chrfmt = cur.charFormat()
         
         if chrfmt.fontStrikeOut():
@@ -654,7 +668,7 @@ class PageHelper(QToolBar):
         
         if status == "ok":
             if rows != None and columns != None:
-                cur = self.input.textCursor()
+                cur = self.parent_.input.textCursor()
                 
                 self.fixTable(cur.insertTable(rows, columns))
                 
@@ -671,7 +685,7 @@ class PageHelper(QToolBar):
             elif status == "default":
                 color = QTextCharFormat().foreground()
             
-            cur = self.input.textCursor()
+            cur = self.parent_.input.textCursor()
 
             chrfmt = cur.charFormat()
             
@@ -681,7 +695,7 @@ class PageHelper(QToolBar):
     
     @Slot()
     def setUnderline(self) -> None:
-        cur = self.input.textCursor()
+        cur = self.parent_.input.textCursor()
         chrfmt = cur.charFormat()
         
         if chrfmt.fontUnderline():
@@ -693,7 +707,7 @@ class PageHelper(QToolBar):
     
     @Slot()
     def updateButtons(self) -> None:
-        cur = self.input.textCursor()
+        cur = self.parent_.input.textCursor()
         chrfmt = cur.charFormat()
         
         if chrfmt.fontWeight() == 700:
@@ -719,28 +733,41 @@ class PageHelper(QToolBar):
     def updateStatus(self, format: str) -> None:
         if self.parent_.mode == "normal":
             if format == "plain-text":
-                self.setEnabled(False)
+                actions = self.actions()
+                actions.pop(actions.index(self.button))
+                actions.pop(actions.index(self.settings_button_))
+                
+                for action in actions:
+                    action.setEnabled(False)
+                
                 self.setStatusTip(_("Text formatter is only available in Markdown and HTML formats.")),
                 
             elif format == "markdown":
-                self.setEnabled(True)
+                for action in self.actions():
+                    action.setEnabled(True)
+                
                 self.alignment_menu.setEnabled(False)
                 self.alignment_button.setEnabled(False)
                 self.text_color.setEnabled(False)
                 self.background_color.setEnabled(False)
+                
                 self.setStatusTip(_("To close an open formatting, type a word and then click on it."))
                 
             elif format == "html":
-                self.setEnabled(True)
+                for action in self.actions():
+                    action.setEnabled(True)
+                
                 self.alignment_menu.setEnabled(True)
                 self.alignment_button.setEnabled(True)
                 self.text_color.setEnabled(True)
                 self.background_color.setEnabled(True)
+                
                 self.setStatusTip(_("To close an open formatting, type a word and then click on it."))
                 
         elif self.parent_.mode == "backup":
             actions = self.actions()
             actions.pop(actions.index(self.button))
+            actions.pop(actions.index(self.settings_button_))
             
             for action in actions:
                 action.setEnabled(False)
@@ -801,6 +828,20 @@ class PageSaver(QObject):
             
 
 class PageTextEdit(QTextEdit):
+    def __init__(self, parent: Page) -> None:
+        super().__init__(parent)
+        
+        self.parent_ = parent
+        
+        if self.parent_.format == "plain-text":
+            self.setPlainText(self.parent_.content)
+            
+        elif self.parent_.format == "markdown":
+            self.setMarkdown(self.parent_.content)
+            
+        elif self.parent_.format == "html":
+            self.setHtml(self.parent_.content)
+    
     def mousePressEvent(self, e):
         self.anchor = self.anchorAt(e.pos())
         

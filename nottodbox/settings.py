@@ -157,7 +157,7 @@ class SettingsWidget(QWidget):
         self.addPage(_("Notes"), self.makeScrollable(ModuleSettings(self, 3, "notes", notes)))
         self.addPage(_("To-dos"), self.makeScrollable(ModuleSettings(self, 4, "todos",  todos)))
         self.addPage(_("Diaries"), self.makeScrollable(ModuleSettings(self, 5, "diaries", diaries)))
-        self.addPage(_("About"), self.makeScrollable(AboutWidget(self, 6)), True, QIcon.fromTheme(QIcon.ThemeIcon.HelpAbout))
+        self.addPage(_("About"), self.makeScrollable(AboutWidget(self, 6)), True)
         
         self.tabwidget.finished()
         self.tabwidget.setCurrentPage(0)
@@ -371,16 +371,13 @@ class AppearanceSettings(BaseSettings):
         self.color_schemes_combobox = Combobox(self.color_schemes_widget)
         self.color_schemes_combobox.setEditable(False)
         
-        self.color_schemes_rename = PushButton(self.color_schemes_widget, _("Rename"),
-                                               QIcon.fromTheme(QIcon.ThemeIcon.InsertText))
+        self.color_schemes_rename = PushButton(self.color_schemes_widget, _("Rename"))
         self.color_schemes_rename.clicked.connect(self.renameColorScheme)
 
-        self.color_schemes_delete = PushButton(self.color_schemes_widget, _("Delete"),
-                                               QIcon.fromTheme(QIcon.ThemeIcon.EditDelete))
-        self.color_schemes_delete.clicked.connect(self.deleteColorScheme,)
+        self.color_schemes_delete = PushButton(self.color_schemes_widget, _("Delete"))
+        self.color_schemes_delete.clicked.connect(self.deleteColorScheme)
         
-        self.color_schemes_import = PushButton(self.color_schemes_widget, _("Import"),
-                                               QIcon.fromTheme(QIcon.ThemeIcon.ListAdd))
+        self.color_schemes_import = PushButton(self.color_schemes_widget, _("Import"))
         self.color_schemes_import.clicked.connect(self.importColorScheme)
         
         self.load()
@@ -1219,13 +1216,11 @@ class ShortcutsSettings(BaseSettings):
         except:
             self.auto_shortcut_checkbox.stateChanged.connect(self.autoShortcutChanged)
             
-        self.add_shortcut_button = PushButton(self.start_menu_shortcut, _("Add"),
-                                              QIcon.fromTheme(QIcon.ThemeIcon.ListAdd))
+        self.add_shortcut_button = PushButton(self.start_menu_shortcut, _("Add"))
         self.add_shortcut_button.setEnabled(False)
         self.add_shortcut_button.clicked.connect(lambda: self.addDesktopFile(True))
             
-        self.delete_shortcut_button = PushButton(self.start_menu_shortcut, _("Delete"),
-                                                 QIcon.fromTheme(QIcon.ThemeIcon.EditDelete))
+        self.delete_shortcut_button = PushButton(self.start_menu_shortcut, _("Delete"))
         self.delete_shortcut_button.setEnabled(False)
         self.delete_shortcut_button.clicked.connect(self.deleteDesktopFile)
         

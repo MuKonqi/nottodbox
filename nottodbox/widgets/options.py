@@ -18,7 +18,7 @@
 
 from gettext import gettext as _
 from PySide6.QtCore import Slot, QDate
-from PySide6.QtGui import QColor, QIcon
+from PySide6.QtGui import QColor
 from PySide6.QtWidgets import *
 from settings import settings
 from .dialogs import ColorDialog, GetDateDialog
@@ -196,20 +196,7 @@ class HomePageForDocuments(HomePage):
         self.refreshSettingsBase()
         
         for page in list(self.parent_.pages.values()):
-            if page.call_format == "global":
-                page.format = self.format
-                page.helper.updateStatus(self.format)
-                
-            page.format_combobox.setItemText(0, "{} {}".format(_("Format:"), _("Follow global ({setting})")
-                                                               .format(setting = page.prettyFormat(self.format))))
-            
-            if page.call_autosave == "global":
-                page.autosave = self.autosave
-                
-                page.changeAutosaveConnections()
-                
-            page.autosave_combobox.setItemText(0, "{} {}".format(_("Auto-save:"), _("Follow global ({setting})")
-                                                                 .format(setting = page.prettyAutosave(self.autosave))))
+            page.refresh(self.autosave, self.format)
         
         
 class HomePageForLists(HomePage):
@@ -337,13 +324,13 @@ class Options(QWidget):
         self.module = module
         self.db = db
         
-        self.rename_button = PushButton(self, _("Rename"), QIcon.fromTheme(QIcon.ThemeIcon.InsertText))
+        self.rename_button = PushButton(self, _("Rename"))
         self.rename_button.clicked.connect(self.rename)
         
-        self.delete_button = PushButton(self, _("Delete"), QIcon.fromTheme(QIcon.ThemeIcon.EditDelete))
+        self.delete_button = PushButton(self, _("Delete"))
         self.delete_button.clicked.connect(self.delete)
         
-        self.delete_all_button = PushButton(self, _("Delete All"), QIcon.fromTheme(QIcon.ThemeIcon.EditDelete))
+        self.delete_all_button = PushButton(self, _("Delete All"))
         self.delete_all_button.clicked.connect(self.deleteAll)
         
         self.layout_ = QVBoxLayout(self)
@@ -594,16 +581,16 @@ class OptionsForDocuments(Options):
     def __init__(self, parent: HomePage, module: str, db):
         super().__init__(parent, module, db)
         
-        self.open_button = PushButton(self, _("Open"), QIcon.fromTheme(QIcon.ThemeIcon.DocumentOpen))
+        self.open_button = PushButton(self, _("Open"))
         self.open_button.clicked.connect(self.open)
         
-        self.show_backup_button = PushButton(self, _("Show Backup"), QIcon.fromTheme(QIcon.ThemeIcon.DocumentOpen))
+        self.show_backup_button = PushButton(self, _("Show Backup"))
         self.show_backup_button.clicked.connect(self.showBackup)
 
-        self.restore_content_button = PushButton(self, _("Restore Content"), QIcon.fromTheme(QIcon.ThemeIcon.DocumentRevert))
+        self.restore_content_button = PushButton(self, _("Restore Content"))
         self.restore_content_button.clicked.connect(self.restoreContent)
         
-        self.clear_content_button = PushButton(self, _("Clear Content"), QIcon.fromTheme(QIcon.ThemeIcon.EditClear))
+        self.clear_content_button = PushButton(self, _("Clear Content"))
         self.clear_content_button.clicked.connect(self.clearContent)
     
     def checkIfBackupExists(self, name: str, table: str) -> bool:  
@@ -651,20 +638,11 @@ class OptionsForDocuments(Options):
                     
                     widget = QStackedWidget(self)
                     widget.addWidget(self.parent_.parent_.parent_.home.diary)
-                    widget.autosave = self.parent_.parent_.parent_.home.diary.autosave
-                    widget.autosave_combobox = self.parent_.parent_.parent_.home.diary.autosave_combobox
-                    widget.call_autosave = self.parent_.parent_.parent_.home.diary.call_autosave
-                    widget.call_format = self.parent_.parent_.parent_.home.diary.call_format
                     widget.checkIfTheTextChanged = self.parent_.parent_.parent_.home.diary.checkIfTheTextChanged
                     widget.changeAutosaveConnections = self.parent_.parent_.parent_.home.diary.changeAutosaveConnections
                     widget.disconnectAutosaveConnections = self.parent_.parent_.parent_.home.diary.disconnectAutosaveConnections
-                    widget.format = self.parent_.parent_.parent_.home.diary.format
-                    widget.format_combobox = self.parent_.parent_.parent_.home.diary.format_combobox
-                    widget.helper = self.parent_.parent_.parent_.home.diary.helper
                     widget.makeBackup = self.parent_.parent_.parent_.home.diary.makeBackup
                     widget.mode =self.parent_.parent_.parent_.home.diary.mode
-                    widget.prettyAutosave = self.parent_.parent_.parent_.home.diary.prettyAutosave
-                    widget.prettyFormat = self.parent_.parent_.parent_.home.diary.prettyFormat
                     widget.saver = self.parent_.parent_.parent_.home.diary.saver
                     widget.saver_thread = self.parent_.parent_.parent_.home.diary.saver_thread
                     
@@ -715,11 +693,11 @@ class OptionsForLists(Options):
         super().__init__(parent, module, db)
         
         self.create_child_button = PushButton(self, _("Create {}")
-                                             .format(self.localizedChild().title()), QIcon.fromTheme(QIcon.ThemeIcon.DocumentNew))
+                                             .format(self.localizedChild().title()))
         self.create_child_button.clicked.connect(self.createChild)
         
         self.create_parent_button = PushButton(self, _("Create {}")
-                                                 .format(self.localizedParent().title()), QIcon.fromTheme(QIcon.ThemeIcon.FolderNew))
+                                                 .format(self.localizedParent().title()))
         self.create_parent_button.clicked.connect(self.createParent)
         
         self.set_background_button = PushButton(self, _("Set {} Color").format(_("Background")))
@@ -899,7 +877,7 @@ class ParentOptions(OptionsForLists):
     def __init__(self, parent: HomePageForLists, module: str, db) -> None:
         super().__init__(parent, module, db)
         
-        self.reset_button = PushButton(self, _("Reset"), QIcon.fromTheme(QIcon.ThemeIcon.EditClear))
+        self.reset_button = PushButton(self, _("Reset"))
         self.reset_button.clicked.connect(self.reset)
         
         self.layout_.addWidget(self.create_child_button)

@@ -116,6 +116,15 @@
     - Auto-saving support (threaded)
     - For triggering, click the "Save" button or accept the warning question when closing a document.
     - This can change backups except outdated diaries.
+- Settings:
+    - Auto-save:
+        - This triggered when the document content's changes.
+        - This is disabled and can't be enabled for old diaries.
+        - This can't change backups.
+    - Format:
+        - Plain-text
+        - Markdown
+        - HTML
 - Formatting:
     - Formatting selected section via cursor or word uncer cursor
     - Options:
@@ -130,15 +139,6 @@
         - Link
         - Text color (only for HTML format)
         - Background color (only for HTML format)
-- Settings:
-    - Auto-save:
-        - This triggered when the document content's changes.
-        - This is disabled and can't be enabled for old diaries.
-        - This can't change backups.
-    - Format:
-        - Plain-text
-        - Markdown
-        - HTML
 - Standart Qt's text edit box with opening links support
 
 ### Settings
@@ -193,7 +193,7 @@
 ## Run from source
 ### Dependencies:
 - Python3
-- PySide6 (minimum 6.7.0)
+- PySide6
 - git
 - msgfmt (generally distributed with gettext or gettext-tools package)
 

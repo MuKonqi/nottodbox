@@ -158,11 +158,9 @@ class TodosHomePage(HomePageForLists):
             status = self.db.getStatus(self.name, self.table)
             
             if status == "completed":
-                self.child_options.change_status_button.setIcon(QIcon.fromTheme(QIcon.ThemeIcon.ListRemove))
                 self.child_options.change_status_button.setText(_("Mark Uncompleted"))
                 
             elif status == "uncompleted":
-                self.child_options.change_status_button.setIcon(QIcon.fromTheme(QIcon.ThemeIcon.ListAdd))
                 self.child_options.change_status_button.setText(_("Mark Completed"))
         
         

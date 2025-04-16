@@ -30,12 +30,11 @@
     <launchable type="desktop-id">io.github.mukonqi.nottodbox.desktop</launchable>
 
     <releases>
-        <release version="v0.0.9-3" date="2025-04-13">
+        <release version="v0.0.9-3" date="2025-04-16">
             <description>
                 <ul>
                     <li>Change main window's tab bar and "Settings" page's selector/container to new QStackedWidget subclass</li>
-                    <li>Add icons to some of actions/buttons from theme using QIcon.fromTheme() function with QIcon.ThemeIcon enum</li>
-                    <li>Move save button to tool bar for documents</li>
+                    <li>Move save button and settings to tool bar for documents</li>
                     <li>If opened, make today's diary tab in "Diaries" page common with diary in "Home" page</li>
                     <li>Fix date format in diaries</li>
                     <li>Improve currentRowChanged signal's slot in the lists</li>

@@ -18,7 +18,7 @@
 
 from gettext import gettext as _
 from PySide6.QtCore import Slot, Qt, QSettings, QByteArray
-from PySide6.QtGui import QCloseEvent, QIcon
+from PySide6.QtGui import QCloseEvent
 from PySide6.QtWidgets import *
 from widgets.tabwidget import TabWidget
 from sidebar import SidebarWidget
@@ -71,7 +71,7 @@ class MainWindow(QMainWindow):
         self.sidebar = SidebarWidget(self, self.notes, self.diaries)
         self.settings = SettingsWidget(self, self.sidebar, self.notes.home, self.todos, self.diaries.home)
         
-        self.tabwidget.addPage(_("Home"), self.home, False, QIcon.fromTheme(QIcon.ThemeIcon.GoHome))
+        self.tabwidget.addPage(_("Home"), self.home, False)
         self.tabwidget.addPage(_("Notes"), self.notes, True)
         self.tabwidget.addPage(_("To-dos"), self.todos)
         self.tabwidget.addPage(_("Diaries"), self.diaries)

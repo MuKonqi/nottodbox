@@ -157,20 +157,7 @@ class DiariesHomePage(HomePageForDocuments):
     def refreshSettings(self) -> None:
         self.refreshSettingsForDocuments()
         
-        if self.parent_.parent_.home.diary.call_format == "global":
-            self.parent_.parent_.home.diary.format = self.format
-            self.parent_.parent_.home.diary.helper.updateStatus(self.format)
-            
-        self.parent_.parent_.home.diary.format_combobox.setItemText(0, "{} {}".format(_("Format:"), _("Follow global ({setting})")
-                                                                                        .format(setting = self.parent_.parent_.home.diary.prettyFormat(self.format))))
-        
-        if self.parent_.parent_.home.diary.call_autosave == "global":
-            self.parent_.parent_.home.diary.autosave = self.autosave
-            
-            self.parent_.parent_.home.diary.changeAutosaveConnections()
-            
-        self.parent_.parent_.home.diary.autosave_combobox.setItemText(0, "{} {}".format(_("Auto-save:"), _("Follow global ({setting})")
-                                                                                        .format(setting = self.parent_.parent_.home.diary.prettyAutosave(self.autosave))))
+        self.parent_.parent_.home.diary.refresh(self.autosave, self.format)
         
     @Slot(str)
     def setSelectedItems(self, name: str, table: str = "__main__") -> None:
