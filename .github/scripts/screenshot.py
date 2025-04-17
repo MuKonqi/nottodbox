@@ -9,8 +9,7 @@ sys.path.insert(1, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
 
 from consts import USER_DATABASES_DIR # type: ignore
 
-
-os.makedirs(USER_DATABASES_DIR, exist_ok=True)
+empty = os.listdir(USER_DATABASES_DIR) == []
 
 for file in os.listdir(USER_DATABASES_DIR):
     file = os.path.join(USER_DATABASES_DIR, file)
@@ -65,7 +64,7 @@ from mainwindow import MainWindow # type: ignore
 
 
 application = QApplication(sys.argv)
-mainwindow = MainWindow()
+mainwindow = MainWindow(True)
 list(mainwindow.settings.tabwidget.pages.keys())[0].widget().styles_combobox.setCurrentIndex(list(mainwindow.settings.tabwidget.pages.keys())[0].widget().styles_combobox.findText("Fusion"))
 QApplication.setStyle("Fusion")
 list(mainwindow.settings.tabwidget.pages.keys())[0].widget().color_schemes_combobox.setCurrentIndex(list(mainwindow.settings.tabwidget.pages.keys())[0].widget().color_schemes_combobox.findText("Nottodbox Light³"))
@@ -97,11 +96,17 @@ mainwindow.grab().save(os.path.join(os.path.dirname(os.path.dirname(__file__)), 
 settings.setValue("mainwindow/geometry", geometry)
 settings.setValue("mainwindow/state", state)
 
-for file in os.listdir(USER_DATABASES_DIR):
-    if file.endswith(".bak"):
-        file = os.path.join(USER_DATABASES_DIR, file)
+if empty:
+    shutil.rmtree(USER_DATABASES_DIR)
     
-        shutil.move(file, file.removesuffix(".bak"))
+else:
+    for file in os.listdir(USER_DATABASES_DIR):
+        if file.endswith(".bak"):
+            file = os.path.join(USER_DATABASES_DIR, file)
+            
+            os.remove(file.removesuffix(".bak"))
+        
+            shutil.move(file, file.removesuffix(".bak"))
         
 
 sys.exit(0)

@@ -28,7 +28,7 @@ from .others import Action
             
 class Page(QWidget):
     def __init__(self, parent: QWidget, module: str,
-                 db, mode: str, format: str, autosave: str,
+                 db, mode: str, autosave: str, format: str,
                  name: str, table: str = "__main__") -> None:
         super().__init__(parent)
         
@@ -37,8 +37,8 @@ class Page(QWidget):
         self.name = name
         self.db = db
         self.mode = mode
-        self.format_ = format
         self.autosave_ = autosave
+        self.format_ = format
         
         self.today = QDate.currentDate()
         
@@ -113,13 +113,6 @@ class Page(QWidget):
             self.pretty_format = "HTML"
         
         return self.pretty_format
-    
-    def setAlignment(self, alignment: Qt.AlignmentFlag) -> None:
-        blkfmt = QTextBlockFormat()
-        blkfmt.setAlignment(alignment)
-        
-        cur = self.parent_.input.textCursor()
-        cur.mergeBlockFormat(blkfmt)
         
     @Slot(int)
     def setAutosave(self, index: int) -> bool:
@@ -152,6 +145,11 @@ class Page(QWidget):
             
     @Slot(int)
     def setFormat(self, index: int) -> bool:
+        question = QMessageBox.question(self, _("Question"), _("Format changes may corrupt your documents.\nDo you really want to change the format?"))
+        
+        if question != QMessageBox.StandardButton.Yes:
+            return False
+        
         self.helper.setFormat(index)
         
         if index == 0:
@@ -194,13 +192,12 @@ class Page(QWidget):
 
 class BackupPage(Page):
     def __init__(self, parent: QWidget, module: str,
-                 db, format: str, autosave: str,
+                 db, autosave: str, format: str,
                  name: str, table: str = "__main__") -> None:
-        super().__init__(parent, module, db, "backup", format, autosave, name, table)
+        super().__init__(parent, module, db, "backup", autosave, format, name, table)
         
         self.input.setReadOnly(True)
         
-        self.helper.button.setText(_("Restore Content"))
         self.helper.button.triggered.connect(self.restoreContent)
             
     @Slot()
@@ -231,9 +228,9 @@ class NormalPage(Page):
     showMessages_ = Signal(bool)
     
     def __init__(self, parent: QWidget, module: str,
-                 db, format: str, autosave: str,
+                 db, autosave: str, format: str,
                  name: str, table: str = "__main__") -> None:
-        super().__init__(parent, module, db, "normal", format, autosave, name, table)
+        super().__init__(parent, module, db, "normal", autosave, format, name, table)
         
         self.connected = False
         
@@ -248,7 +245,6 @@ class NormalPage(Page):
         
         self.saver.moveToThread(self.saver_thread)
         
-        self.helper.button.setText(_("Save"))
         self.helper.button.triggered.connect(lambda: self.saver.saveChild())
         
         self.save = lambda: self.saver.saveChild_.emit(True)
@@ -343,21 +339,21 @@ class NormalPage(Page):
                                      .format(name = self.name))
             
     def refresh(self, autosave: str, format: str) -> None:
-        if self.call_format == "global":
-            self.format_ = format
+        self.format_ = format
             
-        if self.format == "global":
+        if self.call_format == "global":
+            self.format = format
             self.helper.updateStatus(format)
             
-        self.helper.format_buttons[0].setText(self.helper.format_buttons[0].text().replace(self.pretty_format, self.prettyFormat(format)))
+        self.helper.format_actions[0].setText(self.helper.format_actions[0].text().replace(self.pretty_format, self.prettyFormat(format)))
         
-        if self.call_autosave == "global":
-            self.autosave_ = autosave
+        self.autosave_ = autosave
             
-        if self.autosave == "global":
+        if self.call_autosave == "global":
+            self.autosave = autosave
             self.changeAutosaveConnections()
             
-        self.helper.autosave_buttons[0].setText(self.helper.autosave_buttons[0].text().replace(self.pretty_autosave, self.prettyAutosave(autosave)))
+        self.helper.autosave_actions[0].setText(self.helper.autosave_actions[0].text().replace(self.pretty_autosave, self.prettyAutosave(autosave)))
             
             
 class PageHelper(QToolBar):
@@ -366,10 +362,8 @@ class PageHelper(QToolBar):
         
         self.parent_ = parent
         
-        self.button = Action(self)
-        
-        self.addAction(self.button)
-        self.addSeparator()
+        self.button = self.addAction(_("Save"))
+        self.button.setStatusTip(_("Auto-saves do not change backups and disabled for old diaries."))
         
         self.settings_menu = QMenu(self)
         self.settings_button = QToolButton(self)
@@ -379,48 +373,49 @@ class PageHelper(QToolBar):
 
         autosaves = ["global", "enabled", "disabled"]
         self.autosave_menu = self.settings_menu.addMenu(_("Auto-save"))
-        self.autosave_buttons = [self.autosave_menu.addAction(_("Follow global: {}, (default)").format(self.parent_.prettyAutosave()), lambda: self.parent_.setAutosave(0)),
+        self.autosave_actions = [self.autosave_menu.addAction(_("Follow global: {}, (default)").format(self.parent_.prettyAutosave()), lambda: self.parent_.setAutosave(0)),
                                  self.autosave_menu.addAction(_("Enabled"), lambda: self.parent_.setAutosave(1)),
                                  self.autosave_menu.addAction(_("Disabled"), lambda: self.parent_.setAutosave(2))]
-        font = self.autosave_buttons[0].font()
+        font = self.autosave_actions[0].font()
         font.setUnderline(True)
-        self.autosave_buttons[0].setFont(font)
+        self.autosave_actions[0].setFont(font)
         self.setAutosave(autosaves.index(self.parent_.call_autosave))
         
         formats = ["global", "html", "markdown", "plain-text"]
         self.format_menu = self.settings_menu.addMenu(_("Format"))
-        self.format_buttons = [self.format_menu.addAction(_("Follow global: {}, (default)").format(self.parent_.prettyFormat()), lambda: self.parent_.setFormat(0)),
+        self.format_actions = [self.format_menu.addAction(_("Follow global: {}, (default)").format(self.parent_.prettyFormat()), lambda: self.parent_.setFormat(0)),
                                self.format_menu.addAction("HTML", lambda: self.parent_.setFormat(1)),
                                self.format_menu.addAction("Markdown", lambda: self.parent_.setFormat(2)),
                                self.format_menu.addAction(_("Plain-text"), lambda: self.parent_.setFormat(3))]
-        font = self.format_buttons[0].font()
+        font = self.format_actions[0].font()
         font.setUnderline(True)
-        self.format_buttons[0].setFont(font)
+        self.format_actions[0].setFont(font)
         self.setFormat(formats.index(self.parent_.call_format))
         
-        self.settings_button_ = self.addWidget(self.settings_button)
+        self.settings_action = self.addWidget(self.settings_button)
+        
         self.addSeparator()
         
-        self.bold_button = Action(self, _("Bold"))
-        self.bold_button.triggered.connect(self.setBold)
-        self.bold_button.setCheckable(True)
+        self.bold_action = Action(self, _("Bold"))
+        self.bold_action.triggered.connect(self.setBold)
+        self.bold_action.setCheckable(True)
+        self.addAction(self.bold_action)
         
-        self.italic_button = Action(self, _("Italic"))
-        self.italic_button.triggered.connect(self.setItalic)
-        self.italic_button.setCheckable(True)
+        self.italic_action = Action(self, _("Italic"))
+        self.italic_action.triggered.connect(self.setItalic)
+        self.italic_action.setCheckable(True)
+        self.addAction(self.italic_action)
         
-        self.underline_button = Action(self, _("Underline"))
-        self.underline_button.triggered.connect(self.setUnderline)
-        self.underline_button.setCheckable(True)
+        self.underline_action = Action(self, _("Underline"))
+        self.underline_action.triggered.connect(self.setUnderline)
+        self.underline_action.setCheckable(True)
+        self.addAction(self.underline_action)
         
-        self.strikethrough_button = Action(self, _("Strike through"))
-        self.strikethrough_button.triggered.connect(self.setStrikeThrough)
-        self.strikethrough_button.setCheckable(True)
-        
-        self.addAction(self.bold_button)
-        self.addAction(self.italic_button)
-        self.addAction(self.underline_button)
-        self.addAction(self.strikethrough_button)
+        self.strikethrough_action = Action(self, _("Strike through"))
+        self.strikethrough_action.triggered.connect(self.setStrikeThrough)
+        self.strikethrough_action.setCheckable(True)
+        self.addAction(self.strikethrough_action)
+
         self.addSeparator()
         
         self.header_menu = QMenu(self)
@@ -442,6 +437,7 @@ class PageHelper(QToolBar):
             _("Smaller header"), lambda: self.setHeadingLevel(5))
         self.header_menu.addAction(
             _("Smallest header"), lambda: self.setHeadingLevel(6))
+        self.addWidget(self.header_button)
         
         self.list_menu = QMenu(self)
         self.list_button = QToolButton(self)
@@ -464,22 +460,23 @@ class PageHelper(QToolBar):
         self.alignment_button.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
         self.alignment_button.setMenu(self.alignment_menu)
         self.alignment_button.setStatusTip(_("Setting alignment is only available in HTML format."))
+        self.addWidget(self.list_button)
         
         self.alignment_menu.addAction(_("Left"), lambda: self.setAlignment(Qt.AlignmentFlag.AlignLeft))
         self.alignment_menu.addAction(_("Center"), lambda: self.setAlignment(Qt.AlignmentFlag.AlignCenter))
         self.alignment_menu.addAction(_("Right"), lambda: self.setAlignment(Qt.AlignmentFlag.AlignRight))
         self.alignment_menu.setStatusTip(_("Setting alignment is only available in HTML format."))
-        
-        self.addWidget(self.header_button)
-        self.addWidget(self.list_button)
         self.addWidget(self.alignment_button)
+        
         self.addSeparator()
         
         self.addAction(_("Table"), self.setTable)
+        
         self.addAction(_("Link"), self.setLink)
         
         self.text_color = self.addAction(_("Text color"), self.setTextColor)
         self.text_color.setStatusTip(_("Setting text color is only available in HTML format."))
+        
         self.background_color = self.addAction(_("Background color"), self.setBackgroundColor)
         self.background_color.setStatusTip(_("Setting background color is only available in HTML format."))
         
@@ -526,16 +523,16 @@ class PageHelper(QToolBar):
         cur.mergeCharFormat(format)
         
     def setAutosave(self, index: int) -> None:
-        for button in self.autosave_buttons:
+        for button in self.autosave_actions:
             button.setText(button.text().removesuffix(", ({})".format(_("selected"))))
             font = button.font()
             font.setBold(False)
             button.setFont(font)
 
-        self.autosave_buttons[index].setText("{}, ({})".format(self.autosave_buttons[index].text(), _("selected")))
-        font = self.autosave_buttons[index].font()
+        self.autosave_actions[index].setText("{}, ({})".format(self.autosave_actions[index].text(), _("selected")))
+        font = self.autosave_actions[index].font()
         font.setBold(True)
-        self.autosave_buttons[index].setFont(font)
+        self.autosave_actions[index].setFont(font)
         
     def setBackgroundColor(self) -> None:
         ok, status, qcolor = ColorDialog(self, False, True, Qt.GlobalColor.white, _("Select {} Color").format(_("Background"))).getColor()
@@ -568,16 +565,16 @@ class PageHelper(QToolBar):
         self.mergeFormat(cur, chrfmt)
         
     def setFormat(self, index: int) -> None:
-        for button in self.format_buttons:
+        for button in self.format_actions:
             button.setText(button.text().removesuffix(", ({})".format(_("selected"))))
             font = button.font()
             font.setBold(False)
             button.setFont(font)
 
-        self.format_buttons[index].setText("{}, ({})".format(self.format_buttons[index].text(), _("selected")))
-        font = self.format_buttons[index].font()
+        self.format_actions[index].setText("{}, ({})".format(self.format_actions[index].text(), _("selected")))
+        font = self.format_actions[index].font()
         font.setBold(True)
-        self.format_buttons[index].setFont(font)
+        self.format_actions[index].setFont(font)
         
     def setHeadingLevel(self, level: int) -> None:
         cur = self.parent_.input.textCursor()
@@ -711,31 +708,31 @@ class PageHelper(QToolBar):
         chrfmt = cur.charFormat()
         
         if chrfmt.fontWeight() == 700:
-            self.bold_button.setChecked(True)
+            self.bold_action.setChecked(True)
         elif chrfmt.fontWeight() == 400: 
-            self.bold_button.setChecked(False)
+            self.bold_action.setChecked(False)
             
         if chrfmt.fontItalic():
-            self.italic_button.setChecked(True)  
+            self.italic_action.setChecked(True)  
         else:
-            self.italic_button.setChecked(False)
+            self.italic_action.setChecked(False)
             
         if chrfmt.fontUnderline():
-            self.underline_button.setChecked(True)
+            self.underline_action.setChecked(True)
         else:
-            self.underline_button.setChecked(False)
+            self.underline_action.setChecked(False)
             
         if chrfmt.fontStrikeOut():
-            self.strikethrough_button.setChecked(True)
+            self.strikethrough_action.setChecked(True)
         else:
-            self.strikethrough_button.setChecked(False)
+            self.strikethrough_action.setChecked(False)
                 
     def updateStatus(self, format: str) -> None:
         if self.parent_.mode == "normal":
             if format == "plain-text":
                 actions = self.actions()
                 actions.pop(actions.index(self.button))
-                actions.pop(actions.index(self.settings_button_))
+                actions.pop(actions.index(self.settings_action))
                 
                 for action in actions:
                     action.setEnabled(False)
@@ -767,7 +764,7 @@ class PageHelper(QToolBar):
         elif self.parent_.mode == "backup":
             actions = self.actions()
             actions.pop(actions.index(self.button))
-            actions.pop(actions.index(self.settings_button_))
+            actions.pop(actions.index(self.settings_action))
             
             for action in actions:
                 action.setEnabled(False)
@@ -818,6 +815,8 @@ class PageSaver(QObject):
                 self.parent_.getText(), self.parent_.content, autosave, self.parent_.name, self.parent_.table):
                 if not autosave:
                     self.parent_.showMessages_.emit(True)
+                    
+                self.parent_.last_content = self.parent_.getText()
                     
                 return True
                 

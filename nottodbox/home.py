@@ -44,7 +44,7 @@ class HomeWidget(QWidget):
         self.diary_button = PushButton(self, _("Focus to Diary for Today"))
         self.diary_button.clicked.connect(self.focusToDiary)
         
-        self.diary = NormalPage(self, "diaries", diaries.db, diaries.format, diaries.autosave, today.toString("dd/MM/yyyy"))
+        self.diary = NormalPage(self, "diaries", diaries.db, diaries.autosave, diaries.format, today.toString("dd/MM/yyyy"))
         self.diary.layout_.default_contents_margins = self.diary.layout_.contentsMargins()
         self.diary.layout_.setContentsMargins(0, 0, 0, 0)
         

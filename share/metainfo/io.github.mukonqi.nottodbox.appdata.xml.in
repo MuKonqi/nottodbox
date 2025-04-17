@@ -30,7 +30,7 @@
     <launchable type="desktop-id">io.github.mukonqi.nottodbox.desktop</launchable>
 
     <releases>
-        <release version="v0.0.9-3" date="2025-04-16">
+        <release version="v0.0.9-3" date="2025-04-17">
             <description>
                 <ul>
                     <li>Change main window's tab bar and "Settings" page's selector/container to new QStackedWidget subclass</li>

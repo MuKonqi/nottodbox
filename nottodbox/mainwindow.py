@@ -30,14 +30,16 @@ from settings import SettingsWidget
 
 
 class MainWindow(QMainWindow):
-    def __init__(self):
+    def __init__(self, screenshot_mode: bool = False):
         super().__init__()
+        
+        self.screenshot_mode = screenshot_mode
         
         self.qsettings = QSettings("io.github.mukonqi", "nottodbox")
         
         self.tabbar = QDockWidget(self)
         self.tabbar.setObjectName("TabBar")
-        self.tabbar.setFixedHeight(self.tabbar.height() * 2.50)
+        self.tabbar.setFixedHeight(self.tabbar.height() * 2.3)
         self.tabbar.setFeatures(QDockWidget.DockWidgetFeature.NoDockWidgetFeatures)
         self.tabbar.setAllowedAreas(Qt.DockWidgetArea.TopDockWidgetArea)
         self.tabbar.setTitleBarWidget(QWidget(self.tabbar))
@@ -89,7 +91,10 @@ class MainWindow(QMainWindow):
         self.settings.tabwidget.tabbars_widget.setFixedWidth(self.width() / (len(self.tabwidget.tabs) + len(self.tabwidget.tabbars) - 1) + 3)
 
     @Slot(QCloseEvent)
-    def closeEvent(self, a0: QCloseEvent):                
+    def closeEvent(self, a0: QCloseEvent):
+        if self.screenshot_mode:
+            return super().closeEvent(a0)
+        
         are_there_unsaved_notes = False
         are_there_unsaved_diaries = False
         is_main_diary_unsaved = False
@@ -99,16 +104,16 @@ class MainWindow(QMainWindow):
             if module == "notes" and not page.endswith(_(" (Backup)")):
                 name, table = str(page).split(" @ ")
                 
-                if not are_there_unsaved_notes and not self.notes.pages[(name, table)].checkIfTheTextChanged:
+                if not are_there_unsaved_notes and not self.notes.pages[(name, table)].checkIfTheTextChanged():
                     are_there_unsaved_notes = True
                 
             elif module == "diaries" and not page.endswith(_(" (Backup)")):
                 name = page
                 
-                if not are_there_unsaved_diaries and not self.diaries.pages[(name, "__main__")].checkIfTheTextChanged:
+                if not are_there_unsaved_diaries and not self.diaries.pages[(name, "__main__")].checkIfTheTextChanged():
                     are_there_unsaved_diaries = True
                         
-        if not self.home.diary.checkIfTheTextChanged:
+        if not self.home.diary.checkIfTheTextChanged():
             is_main_diary_unsaved = True
 
         if not are_there_unsaved_notes and not are_there_unsaved_diaries and not is_main_diary_unsaved:  

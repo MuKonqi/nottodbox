@@ -64,7 +64,7 @@ class TabWidget(QTabWidget):
                         name = page
                         table = "__main__"
                     
-                    if not self.pages[(name, table)].checkIfTheTextChanged:
+                    if not self.pages[(name, table)].checkIfTheTextChanged():
                         self.question = QMessageBox.question(self, 
                                                             _("Question"),
                                                             _("{item} not saved.\nWhat would you like to do?")
@@ -652,7 +652,7 @@ class OptionsForDocuments(Options):
                     
                 else:
                     self.parent_.parent_.pages[(name, table)] = NormalPage(
-                        self, self.module, self.db, self.parent_.format, self.parent_.autosave, name, table)
+                        self, self.module, self.db, self.parent_.autosave, self.parent_.format, name, table)
                 self.parent_.parent_.addTab(self.parent_.parent_.pages[(name, table)], 
                                             self.parent_.returnPretty(name, table))
                 self.parent_.parent_.setCurrentWidget(self.parent_.parent_.pages[(name, table)])
@@ -680,7 +680,7 @@ class OptionsForDocuments(Options):
         
         if self.checkIfBackupExists(name, table):
             self.parent_.parent_.backups[(name, table)] = BackupPage(self, self.module, 
-                                                                     self.db, self.parent_.format, self.parent_.autosave,
+                                                                     self.db, self.parent_.autosave, self.parent_.format,
                                                                      name, table)
             self.parent_.parent_.addTab(self.parent_.parent_.backups[(name, table)], 
                                         self.parent_.returnPretty(name, table) + _(" (Backup)"))
