@@ -33,7 +33,6 @@ AppDir:
       - xcb-util-cursor
     exclude:
       - gcc-libs
-      - glibc
     options:
       SigLevel: "Optional TrustAll"
 
