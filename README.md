@@ -180,7 +180,7 @@
 ## Install with Meson
 ### Dependencies
 - Python3
-- PySide6 (minumum 6.7.0)
+- PySide6
 - git
 - meson
 
