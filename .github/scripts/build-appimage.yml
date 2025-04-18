@@ -12,11 +12,6 @@ script:
   - rm AppDir/usr/lib/python3.13/site-packages/nottodbox/meson.build
   - python3 .github/scripts/translations.py --appimage
   - pip install --ignore-installed --prefix=/usr --no-cache-dir --root=AppDir PySide6-Essentials
-  - rm -rf AppDir/usr/lib/python3.13/site-packages/PySide6/Qt/{qml,libexec,translations}
-  - rm -f AppDir/usr/lib/python3.13/site-packages/PySide6/{assistant,designer,linguist,lrelease,lupdate}
-  - rm -f AppDir/usr/lib/python3.13/site-packages/PySide6/{qml*,svgtoqml*,Qt3D*,QtBluetooth*,QtCharts*,QtConcurrent*,QtDataVisualization*,QtDBus*,QtDesigner*,QtGraphs*,QtHelp*,QtHttpServer*,QtLocation*,QtMultimedia*,QtNetwork*,QtNfc*,QtOpenGL*,QtPdf*,QtPositioning*,QtPrintSupport*,QtQml*,QtQuick*,QtRemoteObjects*,QtScxml*,QtSensors*,QtSerialBus*,QtSerialPort*,QtSpatialAudio*,QtSql*,QtStateMachine*,QtSvg*,QtTest*,QtTextToSpeech*,QtUiTools*,QtWeb*,QtXml*}
-  - shopt -s extglob
-  - rm -rf AppDir/usr/lib/python3.13/site-packages/PySide6/Qt/lib/!(libicudata*|libicuuc*|libicui18n*|libQt6DBus*|libQt6OpenGL*|libQt6XcbQpa*|libQt6Wayland*|libQt6Egl*|libQt6Core*|libQt6Gui*|libQt6Widgets*)
 
 AppDir:
   path: ./AppDir
@@ -35,7 +30,6 @@ AppDir:
       - glib2
       - python
       - xcb-util-cursor
-      - libxkbcommon
     options:
       SigLevel: "Optional TrustAll"
 
