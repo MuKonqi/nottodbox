@@ -1,4 +1,5 @@
 # Nottodbox
+## Warning! This branch is not recommended for daily use.
 
 <p align="center">
     <img src="./share/icons/hicolor/96x96/apps/io.github.mukonqi.nottodbox.png" alt="Icon of Nottodbox"></img><br>
@@ -12,12 +13,6 @@
 <details>
 <summary>Show / Hide</summary>
 
-![Home](/.github/images/home.png)<br>
-![Notes](/.github/images/notes.png)<br>
-![Todos](/.github/images/todos.png)<br>
-![Diaries](/.github/images/diaries.png)<br>
-![Settings](/.github/images/settings.png)
-
 </details>
 
 
@@ -25,169 +20,7 @@
 <details>
 <summary>Show / Hide</summary>
 
-### Sidebar
-> Quickly navigate document pages.
-- A entry for searching in lists
-- A list for open pages (when double-clicked it opens or focuses selected)
-- A list for history (when double-clicked it opens or focuses selected)
-- Deleting a item from history
-- Clearing history
-- Remember's it's status (visible / invisible), area in window (left / right), mode (fixed / floating)
-
-### Home
-> See some important things in startup.
-- A welcome text
-- A shortcut for keeping today's diary and focusing to it (optional)
-- Listing to-dos
-- Listing notes
-
-### Notes
-> Take notes.
-- Two labels for showing selected notebook and note
-- A entry for searching in list
-- Listing notes
-- When a notebook selected:
-    - Creating note
-    - Creating notebook
-    - Resetting
-    - Renaming
-    - Resetting 
-    - Deleting
-    - Deleting all
-    - Setting background color
-    - Setting text color
-- When a note selected:
-    - Creating note
-    - Creating notebook
-    - Opening
-    - Showing backup (manuel saves updates backups but auto-saves not)
-    - Restoring content via backup (old content will be new backup)
-    - Clearing content (old content will be new backup)
-    - Renaming
-    - Deleting
-    - Deleting all
-    - Setting background color
-    - Setting text color
-
-### To-dos
-> Make to-do lists.
-- A entry for searcing in list
-- Two labels for showing selected notebook and note
-- Listing to-dos
-- When a to-do list selected:
-    - Creating to-do
-    - Creating to-do list
-    - Resetting
-    - Renaming
-    - Resetting 
-    - Deleting
-    - Deleting all
-    - Setting background color
-    - Setting text color
-- When a to-do selected:
-    - Creating to-do
-    - Creating to-do list
-    - Changing status
-    - Renaming
-    - Resetting 
-    - Deleting
-    - Deleting all
-    - Setting background color
-    - Setting text color
-
-### Diaries
-> Keep diaries.
-- A label for showing modification information
-- A calendar for selecting a diary and highlighting it
-- A shortcut for coming back to today
-- When a diary selected:
-    - Opening, if does not created yet create it
-    - Showing backup (manuel saves updates backups but auto-saves not)
-    - Restoring content via backup (old content will be new backup)
-    - Clearing content (old content will be new backup)
-    - Renaming
-    - Deleting
-    - Deleting all
-    - Setting highlight color
-
-### Documents
-> Easily edit documents in a style.
-- Saving:
-    - Auto-saving support (threaded)
-    - For triggering, click the "Save" button or accept the warning question when closing a document.
-    - This can change backups except outdated diaries.
-- Settings:
-    - Auto-save:
-        - This triggered when the document content's changes.
-        - This is disabled and can't be enabled for old diaries.
-        - This can't change backups.
-    - Format:
-        - Plain-text
-        - Markdown
-        - HTML
-- Formatting:
-    - Formatting selected section via cursor or word uncer cursor
-    - Options:
-        - Bold
-        - Italic
-        - Underline
-        - Strike through
-        - Heading (6 levels)
-        - List (4 options)
-        - Alignment (3 options) (only for HTML format)
-        - Table
-        - Link
-        - Text color (only for HTML format)
-        - Background color (only for HTML format)
-- Standart Qt's text edit box with opening links support
-
-### Settings
-> Customize Nottodbox.
-- Appearance:
-    - Setting style
-    - Setting color scheme
-    - Creating custom color schemes
-- Shortcuts:
-    - Option for auto adding start menu shortcut at every startup
-    - Adding start menu shortcut
-    - Deleting start menu shortcut     
-- Sidebar:
-    - Setting alternate row color for lists
-- Notes:
-    - Setting alternate row color for lists
-    - Setting default background color for items
-    - Setting default foreground color for item
-    - Setting auto-save for documents
-    - Setting format for documents
-- To-dos:
-    - Setting default background color for items
-    - Setting default foreground color for items
-- Diaries:
-    - Setting default highlight color for items
-    - Setting auto-save for documents
-    - Setting format for documents
-- About:
-    - The icon and application name
-    - Version
-    - Link source codes
-    - Developer
-    - Copyright notification
-    - License
-    - License text
 </details>
-
-
-## Install with Meson
-### Dependencies
-- Python3
-- PySide6
-- git
-- meson
-
-### Clone, setup, install
-1. ```git clone https://github.com/mukonqi/nottodbox.git```
-2. ```meson setup nottodbox/builddir nottodbox```
-3. ```meson install -C nottodbox/builddir```
 
 
 ## Run from source
@@ -195,12 +28,10 @@
 - Python3
 - PySide6
 - git
-- msgfmt (generally distributed with gettext or gettext-tools package)
 
-### Clone, set-up translations (OPTIONAL), run
+### Clone and run
 1. ```git clone https://github.com/mukonqi/nottodbox.git ; cd nottodbox```
-2. ```python3 .github/scripts/translations.py``` (OPTIONAL)
-3. ```python3 -m nottodbox```
+2. ```python3 -m nottodbox```
 
 
 ## Disclaimer
@@ -213,5 +44,3 @@
 
 ## Credit
 - While making [nottodbox/widgets/pages.py](./nottodbox/widgets/pages.py)'s PageHelper class, [KDE - Marknote: master/src/documenthandler.cpp](https://invent.kde.org/office/marknote/-/blob/master/src/documenthandler.cpp) helped me as a referance.
-
-- While making [.github/scripts/build-appimage.yml](.github/scripts/build-appimage.yml)'s script section, [DavidoTek - ProtonUp-Qt: AppImageBuilder.yml](https://github.com/DavidoTek/ProtonUp-Qt/blob/main/AppImageBuilder.yml) helped me as a reference.

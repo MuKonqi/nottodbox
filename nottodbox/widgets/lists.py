@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-# Copyright (C) 2024-2025 MuKonqi (Muhammed S.)
+# Copyright (C) 2025 MuKonqi (Muhammed S.)
 
 # Nottodbox is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,333 +16,177 @@
 # along with Nottodbox.  If not, see <https://www.gnu.org/licenses/>.
 
 
-from gettext import gettext as _
-from PySide6.QtCore import Slot, Qt, QSortFilterProxyModel, QItemSelectionModel, QSettings
-from PySide6.QtGui import QStandardItemModel, QStandardItem, QMouseEvent, QColor
+from PySide6.QtCore import QEvent, QMargins, QModelIndex, QRect, QSize, QPoint, Qt, Signal, Slot
+from PySide6.QtGui import QFont, QFontMetrics, QPainter, QPainterPath, QPen, QStandardItemModel
 from PySide6.QtWidgets import *
+from .controls import Action
 
 
-class StandardItem(QStandardItem):
-    def __init__(self, text: str, datas: str | list) -> None:
-        super().__init__(text)
+class ButtonDelegate(QStyledItemDelegate):
+    menu_requested = Signal(QModelIndex)
+    
+    width = 332
+    height = 100
+
+    button_size = 24
+
+    def paint(self, painter: QPainter, option: QStyleOptionViewItem, index: QModelIndex):
+        painter.save()
         
-        if type(datas) == str:
-            self.setData(datas, Qt.ItemDataRole.UserRole)
+        name = index.data(Qt.ItemDataRole.UserRole)
         
-        elif type(datas) == list:
-            count = -1
-            
-            for data in datas:
-                count += 1
+        name_font = QFont(option.font)
+        name_font.setWeight(QFont.Weight.Bold)
+        name_fontmetrics = QFontMetrics(name_font)
+        name_padding = name_fontmetrics.lineSpacing()
+
+        name_rect = QRect(option.rect)
+        name_rect.setLeft(name_rect.left() + name_padding)
+        name_rect.setTop(name_rect.top() + name_padding)
+        name_rect.setRight(name_rect.right() - name_padding)
+        name_rect.setHeight(name_fontmetrics.lineSpacing())
+        
+        content = index.data(Qt.ItemDataRole.UserRole + 1)
+        
+        content_rect = QRect(option.rect)
+        content_rect.setLeft(content_rect.left() + name_padding)
+        content_rect.setTop(name_rect.bottom() + name_padding / 2)
+        content_rect.setRight(self.width - name_padding - self.button_size - 4)
+        content_rect.setHeight(name_fontmetrics.lineSpacing())
+        
+        creation_date = index.data(Qt.ItemDataRole.UserRole + 2)
+        
+        creation_rect = QRect(option.rect)
+        creation_rect.setLeft(creation_rect.left() + name_padding)
+        creation_rect.setTop(content_rect.bottom() + name_padding / 2)
+        creation_rect.setRight(QFontMetrics(QFont(option.font)).horizontalAdvance(creation_date) + creation_rect.left() + name_padding)
+        creation_rect.setHeight(name_fontmetrics.lineSpacing())
+        
+        modification_date = index.data(Qt.ItemDataRole.UserRole + 3)
+        
+        modification_rect = QRect(option.rect)
+        modification_rect.setLeft(self.width - QFontMetrics(QFont(option.font)).horizontalAdvance(modification_date) - name_padding - self.button_size)
+        modification_rect.setTop(content_rect.bottom() + name_padding / 2)
+        modification_rect.setRight(self.width - name_padding - self.button_size)
+        modification_rect.setHeight(name_fontmetrics.lineSpacing())
+
+        painter.save()
+        
+        border_rect = QRect(option.rect.marginsRemoved(QMargins(4, 4, 4, 4)))
+
+        border_path = QPainterPath()
+        border_path.addRoundedRect(border_rect, 10, 10)
+        
+        border_pen = QPen(option.palette.highlight().color() if option.state & QStyle.StateFlag.State_MouseOver else option.palette.windowText().color(), 2)
+        painter.setPen(border_pen)
+
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+        painter.drawPath(border_path)
+        painter.fillPath(border_path, option.palette.button().color() if option.state & QStyle.StateFlag.State_MouseOver else option.palette.base().color())
+        
+        painter.restore()
+
+        painter.setFont(name_font)
+        painter.drawText(name_rect, Qt.AlignmentFlag.AlignLeading, name_fontmetrics.elidedText(name, Qt.TextElideMode.ElideRight, name_rect.width()))
+        
+        painter.setFont(option.font)
+
+        painter.drawText(content_rect, Qt.AlignmentFlag.AlignLeading, QFontMetrics(QFont(option.font)).elidedText(content, Qt.TextElideMode.ElideRight, content_rect.width()))
+        
+        painter.drawText(creation_rect, Qt.AlignmentFlag.AlignLeading, creation_date)
+        painter.drawText(modification_rect, Qt.AlignmentFlag.AlignLeading, modification_date)
+
+        painter.restore()
+
+        button_rect = self.getButtonRect(option)
+        
+        painter.save()
+        painter.setPen(Qt.GlobalColor.white)
+        painter.setBrush(Qt.GlobalColor.white)
+        
+        dot_size = 4
+        dot_padding = 8
+        center_y = button_rect.center().y()
+        center_x = button_rect.center().x()
+
+        painter.drawEllipse(center_x - dot_size / 2, center_y - dot_padding - dot_size / 2, dot_size, dot_size)
+        painter.drawEllipse(center_x - dot_size / 2, center_y - dot_size / 2, dot_size, dot_size)
+        painter.drawEllipse(center_x - dot_size / 2, center_y + dot_padding - dot_size / 2, dot_size, dot_size)
+
+        painter.restore()
+
+    def editorEvent(self, event: QEvent, model: QStandardItemModel, option: QStyleOptionViewItem, index: QModelIndex) -> bool:
+        if event.type() == QEvent.Type.MouseButtonPress and event.button() == Qt.MouseButton.LeftButton:
+                button_rect = self.getButtonRect(option)
                 
-                self.setData(data, Qt.ItemDataRole.UserRole + count)
-        
-    def setText(self, text: str, datas: str | list | None = None):
-        super().setText(text)
-        
-        if type(datas) == str:
-            self.setData(datas, Qt.ItemDataRole.UserRole)
-            
-        elif type(datas) == list:
-            count = -1
-            
-            for data in datas:
-                count += 1
+                if button_rect.contains(event.position().toPoint()):
+                    self.menu_requested.emit(index)
+                    return True
                 
-                self.setData(data, Qt.ItemDataRole.UserRole + count)
-        
-        elif datas == None:
-            if text.startswith("[+] "):
-                self.setData(text.removeprefix("[+] "), Qt.ItemDataRole.UserRole)
-            elif text.startswith("[-] "):
-                self.setData(text.removeprefix("[-] "), Qt.ItemDataRole.UserRole)
-            else:
-                self.setData(text, Qt.ItemDataRole.UserRole)
+                else:
+                    return True
 
+        return super().editorEvent(event, model, option, index)
 
-class TreeView(QTreeView):
-    def __init__(self, parent: QWidget, module: str, db, own: bool = True, model: QStandardItemModel = None) -> None:
+    def getButtonRect(self, option: QStyleOptionViewItem) -> QRect:
+        return QRect(option.rect.topRight().x() - self.button_size, option.rect.topRight().y(), self.button_size, option.rect.height())
+
+    def sizeHint(self, option: QStyleOptionViewItem, index: QModelIndex) -> QRect:
+        return QSize(self.width, self.height)
+    
+
+class TreeViewBase(QTreeView):
+    def __init__(self, parent: QWidget) -> None:
         super().__init__(parent)
         
-        self.parent_ = parent
-        self.module = module
-        self.db = db
-        self.own = own
+        self.delegate = ButtonDelegate()
+        self.delegate.menu_requested.connect(self.openMenu)
         
-        if model is None:
-            self.model_ = QStandardItemModel(self)
-            self.setHorizontalLabels()
-            
-        else:
-            self.model_ = model
-
-        self.proxy = QSortFilterProxyModel(self)
-        self.proxy.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
-        self.proxy.setRecursiveFilteringEnabled(True)
-        
-        if self.module == "notes":
-            self.setStatusTip(_("Double-click to opening a note."))
-            
-        elif self.module == "todos":
-            self.setStatusTip(_("Double-click to changing status of a to-do."))
-        
-        self.setModel(self.proxy)
+        self.setItemDelegate(self.delegate)
+        self.setMouseTracking(True)
         self.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
-        self.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
-        self.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
-        self.setAlternatingRowColors(True if QSettings("io.github.mukonqi", "nottodbox").
-                                     value("appearance/alternate-row-colors") == "enabled" else False)
-        self.header().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
+        self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.customContextMenuRequested.connect(self.openMenu)
+        
+    @Slot(QPoint or QModelIndex)
+    def openMenu(self, context_data: QPoint | QModelIndex):
+        index = None
+        position = None
+        
+        if isinstance(context_data, QModelIndex):
+            index = context_data
 
-        if self.own:
-            self.selectionModel().currentRowChanged.connect(
-                lambda: self.parent_.setSelectedItems(self.getChildText(), self.getParentText()))
+            visual_rect = self.visualRect(index)
+            global_pos = self.viewport().mapToGlobal(visual_rect.bottomRight())
+            
+            global_pos.setX(global_pos.x() - 16)
+            global_pos.setY(global_pos.y() - 36)
 
-        self.proxy.setSourceModel(self.model_)
+        elif isinstance(context_data, QPoint):
+            position = context_data
+            index = self.indexAt(position)
+            global_pos = self.viewport().mapToGlobal(position)
         
-        self.doubleClicked.connect(lambda: self.parent_.shortcutEvent(self.getChildText(), self.getParentText()))
-        
-        self.appendAll()
-
-    def appendAll(self) -> None:
-        all = self.db.getAll()
-        
-        if self.own:
-            model_count = -1
+        if not index or not index.isValid():
+            return
             
-            for parent in all.keys():
-                model_count += 1
+        menu = QMenu()
+        menu.addAction(Action(self, lambda: self.createDocument(index), self.tr("Create Document")))
+        menu.addAction(Action(self, lambda: self.createNotebook(index), self.tr("Create Notebook")))
+        
+        if index.data(Qt.ItemDataRole.UserRole - 1) == "document":
+            menu.addSeparator()
+            menu.addAction(Action(self, lambda: self.open(index), self.tr("Open")))
+            menu.addAction(Action(self, lambda: self.showBackup(index), self.tr("Show Backup")))
+            menu.addAction(Action(self, lambda: self.restoreContent(index), self.tr("Restore Content")))
+            menu.addAction(Action(self, lambda: self.clearContent(index), self.tr("Clear Content")))
+        
+        menu.addSeparator()
+        menu.addAction(Action(self, lambda: self.rename(index), self.tr("Rename")))
+        menu.addAction(Action(self, lambda: self.delete(index), self.tr("Delete")))
+        
+        if index.data(Qt.ItemDataRole.UserRole - 1) == "notebook":
+            menu.addSeparator()
+            menu.addAction(Action(self, lambda: self.deleteAllDocuments(index), self.tr("Delete All Documents")))
                 
-                self.appendParent(parent)
-            
-    def appendChild(self, name: str, table: str) -> None:        
-        self.parent_.child_counts[(name, table)] = self.parent_.table_items[table][0].rowCount()
-        
-        if self.module == "notes":
-            creation, modification, background, foreground = self.db.getChild(name, table)
-            
-            self.parent_.child_items[(name, table)] = [StandardItem(name, name), 
-                                               StandardItem(creation, name), 
-                                               StandardItem(modification, name)]
-            
-        elif self.module == "todos":
-            status, creation, completion, background, foreground = self.db.getChild(name, table)
-            
-            if status == "completed":
-                name_column = StandardItem(f"[+] {name}", name)
-            elif status == "uncompleted":
-                name_column = StandardItem(f"[-] {name}", name)
-            
-            if completion == "" or completion == None:
-                completion_column = StandardItem(_("Not completed yet"), name)
-            else:
-                completion_column = StandardItem(completion, name)
-                
-            self.parent_.child_items[(name, table)] = [name_column, 
-                                                StandardItem(creation, name), 
-                                                completion_column]
-        
-        for item in self.parent_.child_items[(name, table)]:
-            if background == "global" and self.parent_.background != "default":
-                item.setBackground(QColor(self.parent_.background))
-            elif background != "global" and background != "default":
-                item.setBackground(QColor(background))
-            
-            if foreground == "global" and self.parent_.foreground != "default":
-                item.setForeground(QColor(self.parent_.foreground))
-            elif foreground != "global" and foreground != "default":
-                item.setForeground(QColor(foreground))
-    
-        self.parent_.table_items[table][0].appendRow(self.parent_.child_items[(name, table)])
-            
-    def appendParent(self, name: str) -> None:
-        creation, modification, background, foreground, documents = self.db.getParent(name) if self.module == "notes" else self.db.getParent(name)
-        
-        model_count = self.model_.rowCount()
-        
-        self.parent_.table_counts[name] = model_count
-        self.parent_.table_items[name] = [StandardItem(name, name),
-                                   StandardItem(creation, name),
-                                   StandardItem(modification, name)]
-        
-        for item in self.parent_.table_items[name]:
-            if background == "global" and self.parent_.background != "default":
-                item.setBackground(QColor(self.parent_.background))
-            elif background != "global" and background != "default":
-                item.setBackground(QColor(background))
-            
-            if foreground == "global" and self.parent_.foreground != "default":
-                item.setForeground(QColor(self.parent_.foreground))
-            elif foreground != "global" and foreground != "default":
-                item.setForeground(QColor(foreground))
-        
-        for child in documents:
-            self.appendChild(child[0], name)
-            
-        self.model_.appendRow(self.parent_.table_items[name])
-            
-    def deleteAll(self) -> None:
-        self.parent_.table_counts.clear()
-        self.parent_.table_counts.clear()
-        self.parent_.child_counts.clear()
-        self.model_.clear()
-        self.setHorizontalLabels()
-        
-    def deleteChild(self, name: str, table: str) -> None:
-        self.parent_.table_items[table][0].removeRow(self.parent_.child_counts[(name, table)])
-        
-        for key in self.parent_.child_counts.keys():
-            if self.parent_.child_counts[key] > self.parent_.child_counts[(name, table)]:
-                self.parent_.child_counts[key] -= 1
-        
-        del self.parent_.child_items[(name, table)]
-        del self.parent_.child_counts[(name, table)]
-        
-    def deleteParent(self, name: str) -> None:       
-        self.model_.removeRow(self.parent_.table_counts[name])
-         
-        for key in self.parent_.child_items.copy().keys():
-            if key[0] == name:
-                del self.parent_.child_items[key]
-                
-        for key in self.parent_.child_counts.copy().keys():
-            if key[0] == name:
-                del self.parent_.child_counts[key]
-                
-        for key in self.parent_.table_counts.keys():
-            if self.parent_.table_counts[key] > self.parent_.table_counts[name]:
-                self.parent_.table_counts[key] -= 1
-                
-        del self.parent_.table_counts[name]
-        del self.parent_.table_items[name]
-    
-    def getChildText(self) -> str:
-        if self.currentIndex().isValid() and self.currentIndex().parent().isValid():
-            return self.currentIndex().data(Qt.ItemDataRole.UserRole)
-        
-        else:
-            return ""
-                    
-    def getParentText(self) -> str:
-        if self.currentIndex().parent().isValid():
-            return self.currentIndex().parent().data(Qt.ItemDataRole.UserRole)
-        
-        elif self.currentIndex().isValid():
-            return self.currentIndex().data(Qt.ItemDataRole.UserRole)
-        
-        else:
-            return ""
-                
-    def mousePressEvent(self, e: QMouseEvent | None) -> None:
-        index = self.indexAt(e.pos())
-        
-        if index.isValid():
-            super().mousePressEvent(e)
-            
-    @Slot(str)
-    def setFilter(self, text: str) -> None:
-        self.proxy.beginResetModel()
-        self.proxy.setFilterFixedString(text)
-        self.proxy.endResetModel()
-        
-    def setHorizontalLabels(self) -> None:
-        if self.module == "notes":
-            self.model_.setHorizontalHeaderLabels(
-                [_("Name"), _("Creation"), _("Modification")])
-            
-        elif self.module == "todos":
-            self.model_.setHorizontalHeaderLabels(
-                [_("Name"), _("Creation"), "{} / {}".format(_("Modification"), _("Completion"))])
-        
-    def setIndex(self, child: str, table: str) -> None:        
-        if table == "":
-            self.selectionModel().clear()
-            
-        else:
-            if table != "" and child == "":
-                item = self.parent_.table_items[table][0]
-                
-            elif table != "" and child != "":
-                item = self.parent_.child_items[(child, table)][0]
-            
-            self.selectionModel().setCurrentIndex(
-                self.model().mapFromSource(item.index()),
-                QItemSelectionModel.SelectionFlag.ClearAndSelect | QItemSelectionModel.SelectionFlag.Rows)
-        
-    def updateBackground(self, value: str, name: str, table: str = "__main__") -> None:
-        def startUpgrading(item: StandardItem):
-            if value == "global" and self.parent_.background != "default":
-                item.setBackground(QColor(self.parent_.background))   
-                 
-            elif value != "global" and value != "default":
-                item.setBackground(QColor(value))
-                
-            else:
-                item.setData(None, Qt.ItemDataRole.BackgroundRole)
-        
-        if table == "__main__":
-            for item in self.parent_.table_items[name]:
-                startUpgrading(item)
-            
-        else:    
-            for item in self.parent_.child_items[(name, table)]:
-                startUpgrading(item)
-                
-    def updateForeground(self, value: str, name: str, table: str = "__main__") -> None:
-        def startUpgrading(item: StandardItem):
-            if value == "global" and self.parent_.foreground != "default":
-                item.setForeground(QColor(self.parent_.foreground))
-            elif value != "global" and value != "default":
-                item.setForeground(QColor(value))
-            else:
-                item.setData(None, Qt.ItemDataRole.ForegroundRole)
-                
-        if table == "__main__":
-            for item in self.parent_.table_items[name]:
-                startUpgrading(item)
-            
-        else:    
-            for item in self.parent_.child_items[(name, table)]:
-                startUpgrading(item)
-                
-    def updateItem(self, newname: str, name: str, table: str = "__main__"):
-        if table == "__main__":
-            self.parent_.table_counts[newname] = self.parent_.table_counts.pop(name)
-            self.parent_.table_items[newname] = self.parent_.table_items.pop(name)
-            
-            self.parent_.table_items[newname][0].setText(newname)
-            
-            for item in self.parent_.table_items[newname]:
-                item.setData(newname, Qt.ItemDataRole.UserRole)
-                
-            for key in self.parent_.child_counts.copy().keys():
-                if key[0] == name:
-                    self.parent_.child_counts[(newname, key[1])] = self.parent_.child_counts.pop((name, key[1]))
-                    
-            for key in self.parent_.child_items.copy().keys():
-                if key[0] == name:
-                    self.parent_.child_items[(newname, key[1])] = self.parent_.child_items.pop((name, key[1]))
-                
-            if self.own:
-                self.parent_.setSelectedItems("", newname)
-                
-        else:
-            self.parent_.child_counts[(newname, table)] = self.parent_.child_counts.pop((name, table))
-            self.parent_.child_items[(newname, table)] = self.parent_.child_items.pop((name, table))
-            
-            if self.module == "notes":
-                self.parent_.child_items[(newname, table)][0].setText(newname)
-                
-            elif self.module == "todos":
-                status = self.db.getStatus(newname, table)
-                
-                if status == "completed":
-                    self.parent_.child_items[(newname, table)][0].setText(f"[+] {newname}")
-                elif status == "uncompleted":
-                    self.parent_.child_items[(newname, table)][0].setText(f"[-] {newname}")
-            
-            for item in self.parent_.child_items[(newname, table)]:
-                item.setData(newname, Qt.ItemDataRole.UserRole)
-                
-            if self.own:
-                self.parent_.setSelectedItems(newname, table)
+        menu.exec(global_pos)

@@ -22,8 +22,10 @@ from PySide6.QtWidgets import *
 
 
 class Action(QAction):
-    def __init__(self, parent: QWidget, text: str = "", icon: QIcon | None = None) -> None:
+    def __init__(self, parent: QWidget, clicked: object, text: str = "", icon: QIcon | None = None) -> None:
         super().__init__(text, parent)
+        
+        self.triggered.connect(clicked)
         
         if icon is not None:
             self.setIcon(icon)
@@ -60,10 +62,16 @@ class VSeperator(QFrame):
   
 
 class PushButton(QPushButton):
-    def __init__(self, parent: QWidget, text: str = "", icon: QIcon | None = None) -> None:
+    def __init__(self, parent: QWidget, clicked: object, text: str = "", checkable: bool = False, flat: bool = False, icon: QIcon | None = None, size: int | None = None) -> None:
         super().__init__(text, parent)
         
-        self.setFixedHeight(30)
+        self.setCheckable(checkable)
+        self.setFlat(flat)
+        self.setFixedHeight(size if size is not None else 30)
+        self.clicked.connect(clicked)
         
         if icon is not None:
             self.setIcon(icon)
+            
+        if size is not None:
+            self.setFixedWidth(size)

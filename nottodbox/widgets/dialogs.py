@@ -20,7 +20,7 @@ from gettext import gettext as _
 from PySide6.QtCore import Qt, QDate
 from PySide6.QtGui import QColor
 from PySide6.QtWidgets import *
-from .others import Label, PushButton
+from .controls import Label, PushButton
 
 
 class ColorDialog(QColorDialog):

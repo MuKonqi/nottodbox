@@ -21,47 +21,15 @@
 
 
 import sys
-import argparse
 import os
-import gettext
 from PySide6.QtGui import QIcon
+from PySide6.QtCore import QLibraryInfo, QLocale, QTranslator
 from PySide6.QtWidgets import QApplication
 
 
 sys.path.insert(1, "@APP_DIR@" if os.path.isdir("@APP_DIR@") else os.path.dirname(__file__))
 
-from consts import APP_ID, APP_VERSION, DESKTOP_FILE, ICON_FILE, LOCALE_DIR, USER_DESKTOP_FILE, USER_DESKTOP_FILE_FOUND  # type: ignore
-
-
-gettext.bindtextdomain("nottodbox", LOCALE_DIR)
-gettext.textdomain("nottodbox")
-
-_ = gettext.gettext
-
-def __(message: str) -> str:
-    return _(message).lower()
-
-
-class CustomFormatter(argparse.HelpFormatter):
-    def add_usage(self, usage, actions, groups, prefix = None):
-        if prefix is None:
-            prefix = _("usage: ")
-        
-        return super().add_usage(usage, actions, groups, prefix)
-
-parser = argparse.ArgumentParser(prog="nottodbox", add_help=False, formatter_class=CustomFormatter)
-parser._positionals.title = _("positional arguments")
-parser._optionals.title = _("optional arguments")
-group = parser.add_mutually_exclusive_group()
-
-parser.add_argument("-h", "--help", help=_("show this help message"), action="help", default=argparse.SUPPRESS)
-parser.add_argument("-v", "--version", help=_("show the version"), action="version", version=APP_VERSION)
-group.add_argument("-i", "--index", help=_("set the page to be opened via number"), default=1,
-                   choices=[1, 2, 3, 4, 5], type=int)
-group.add_argument("-p", "--page", help=_("set the page to be opened via name"), default=_("home"), 
-                   choices=[__("Home"), __("Notes"), __("To-Dos"), __("Diaries"), __("Settings")], type=str)
-
-args = parser.parse_args()
+from consts import APP_ID, APP_VERSION, DESKTOP_FILE, ICON_FILE, USER_DESKTOP_FILE, USER_DESKTOP_FILE_FOUND  # type: ignore
 
 
 from mainwindow import MainWindow
@@ -77,27 +45,7 @@ class Application(QApplication):
         self.setWindowIcon(QIcon.fromTheme(APP_ID, QIcon(ICON_FILE)))
         
         self.mainwindow = MainWindow()
-        
-        if args.index:
-            self.mainwindow.tabwidget.setCurrentPage(args.index - 1)
-        
-        elif args.page:
-            if args.page == _("Home"):
-                self.mainwindow.tabwidget.setCurrentPage(0)
-            
-            elif args.page == __("Notes"):
-                self.mainwindow.tabwidget.setCurrentPage(1)
-                
-            elif args.page == __("To-Dos"):
-                self.mainwindow.tabwidget.setCurrentPage(2)
-                
-            elif args.page == __("Diaries"):
-                self.mainwindow.tabwidget.setCurrentPage(3)
-                
-            elif args.page == __("Settings"):
-                self.mainwindow.tabwidget.setCurrentPage(4)
-                
-
+               
 application = Application(sys.argv)
 
 sys.exit(application.exec())

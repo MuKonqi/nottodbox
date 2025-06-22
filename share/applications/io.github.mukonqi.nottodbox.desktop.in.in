@@ -10,23 +10,3 @@ StartupWMClass=nottodbox
 
 Categories=Utility;TextEditor;Qt;
 Actions=Home;Notes;Todos;Diaries;Settings;
-
-[Desktop Action Home]
-Exec=@BIN_DIR@/nottodbox -i 1
-Name=Home
-
-[Desktop Action Notes]
-Exec=@BIN_DIR@/nottodbox -i 2
-Name=Notes
-
-[Desktop Action Todos]
-Exec=@BIN_DIR@/nottodbox -i 3
-Name=To-Dos
-
-[Desktop Action Diaries]
-Exec=@BIN_DIR@/nottodbox -i 4
-Name=Diaries
-
-[Desktop Action Settings]
-Exec=@BIN_DIR@/nottodbox -i 5
-Name=Settings
