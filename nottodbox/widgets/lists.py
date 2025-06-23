@@ -48,7 +48,7 @@ class ButtonDelegate(QStyledItemDelegate):
         content_rect = QRect(option.rect)
         content_rect.setLeft(content_rect.left() + name_padding)
         content_rect.setTop(name_rect.bottom() + name_padding / 2)
-        content_rect.setRight(option.rect.width() + (name_padding if option.rect.width() == 268 else 0) - 10)
+        content_rect.setRight(option.rect.width() + (name_padding if index.data(Qt.ItemDataRole.UserRole + 2) == "document" else 0) - 10)
         content_rect.setHeight(name_fontmetrics.lineSpacing())
         
         creation_date = index.data(Qt.ItemDataRole.UserRole + 12)
@@ -62,9 +62,9 @@ class ButtonDelegate(QStyledItemDelegate):
         modification_date = index.data(Qt.ItemDataRole.UserRole + 13)
 
         modification_rect = QRect(option.rect)
-        modification_rect.setLeft(option.rect.width() - QFontMetrics(QFont(option.font)).horizontalAdvance(modification_date) + (name_padding if option.rect.width() == 268 else 0))
+        modification_rect.setLeft(option.rect.width() - QFontMetrics(QFont(option.font)).horizontalAdvance(modification_date) + (name_padding if index.data(Qt.ItemDataRole.UserRole + 2) == "document" else 0))
         modification_rect.setTop(content_rect.bottom() + name_padding / 2)
-        modification_rect.setRight(option.rect.width() + (name_padding if option.rect.width() == 268 else 0))
+        modification_rect.setRight(option.rect.width() + (name_padding if index.data(Qt.ItemDataRole.UserRole + 2) == "document" else 0))
         modification_rect.setHeight(name_fontmetrics.lineSpacing())
                 
         painter.save()
@@ -113,12 +113,12 @@ class ButtonDelegate(QStyledItemDelegate):
               
     def editorEvent(self, event: QEvent, model: QStandardItemModel, option: QStyleOptionViewItem, index: QModelIndex) -> bool:
         if event.type() == QEvent.Type.MouseButtonPress:
-            if event.button() == Qt.MouseButton.LeftButton:
-                button_rect = self.getButtonRect(option)
+            button_rect = self.getButtonRect(option)
+            
+            if event.button() == Qt.MouseButton.LeftButton and button_rect.contains(event.position().toPoint()):
+                self.menu_requested.emit(index)
+                return True
                 
-                if button_rect.contains(event.position().toPoint()):
-                    self.menu_requested.emit(index)
-                    
             model.setData(index, not index.data(Qt.ItemDataRole.UserRole + 1), Qt.ItemDataRole.UserRole + 1)
 
         return super().editorEvent(event, model, option, index)
@@ -157,8 +157,8 @@ class TreeViewBase(QTreeView):
             visual_rect = self.visualRect(index)
             global_pos = self.viewport().mapToGlobal(visual_rect.bottomRight())
             
-            global_pos.setX(global_pos.x() - 16)
-            global_pos.setY(global_pos.y() - 36)
+            global_pos.setX(global_pos.x() - 26)
+            global_pos.setY(global_pos.y() - 43)
 
         elif isinstance(context_data, QPoint):
             position = context_data
