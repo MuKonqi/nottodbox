@@ -16,10 +16,12 @@
 # along with Nottodbox.  If not, see <https://www.gnu.org/licenses/>.
     
 
+import os
 from PySide6.QtCore import Slot
-from PySide6.QtGui import QIcon
+from PySide6.QtGui import QIcon, QPixmap
 from PySide6.QtWidgets import *
-from widgets.controls import HSeperator, Label, PushButton
+from widgets.controls import HSeperator, Label, ToolButton
+from consts import DARK_COLOR_SCHEME, ICON_DIR, ICON_FILE
 
 
 class Sidebar(QWidget):
@@ -30,11 +32,13 @@ class Sidebar(QWidget):
         
         self.layout_ = QVBoxLayout(self)
         
-        self.home_button = PushButton(self, self.showHome, self.tr("Home"), True, True, None, 30)
+        self.home_button = ToolButton(self, self.showHome, self.tr("Home"), True, self.makeIcon("home"), 40)
         
-        self.focus_button = PushButton(self, self.setFocus, self.tr("Focus"), True, True, None, 30)
+        self.focus_button = ToolButton(self, self.setFocus, self.tr("Focus"), True, self.makeIcon("focus"), 40)
         
-        self.settings_button = PushButton(self, self.showSettings, self.tr("Settings"), True, True, None, 30)
+        self.settings_button = ToolButton(self, self.showSettings, self.tr("Settings"), True, self.makeIcon("settings"), 40)
+        
+        self.about_button = ToolButton(self, self.showSettings, self.tr("Settings"), True, QIcon(ICON_FILE), 40)
         
         self.favorites = Favorites(self)
         
@@ -50,12 +54,14 @@ class Sidebar(QWidget):
         self.layout_.addWidget(self.home_button)
         self.layout_.addWidget(self.focus_button)
         self.layout_.addWidget(self.settings_button)
+        self.layout_.addWidget(self.about_button)
         self.layout_.addWidget(HSeperator(self))
         self.layout_.addWidget(self.favorites)
         self.layout_.addWidget(HSeperator(self))
         self.layout_.addWidget(self.row_spinbox)
         self.layout_.addWidget(self.layout_label)
         self.layout_.addWidget(self.column_spinbox)
+        self.layout_.setContentsMargins(5, 5, 5, 5)
         
     @Slot()
     def setFocus(self) -> None:
@@ -68,6 +74,9 @@ class Sidebar(QWidget):
     @Slot()
     def showSettings(self) -> None:
         pass
+    
+    def makeIcon(self, name: str) -> QIcon:
+        return QIcon(QPixmap(os.path.join(ICON_DIR, "actions", f"io.github.mukonqi.nottodbox_{name}_{"dark" if DARK_COLOR_SCHEME else "light"}.svg")))
     
     
 class Favorites(QWidget):

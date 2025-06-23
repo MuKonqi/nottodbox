@@ -75,3 +75,19 @@ class PushButton(QPushButton):
             
         if size is not None:
             self.setFixedWidth(size)
+            
+
+class ToolButton(QToolButton):
+    def __init__(self, parent: QWidget, clicked: object, text: str = "", checkable: bool = False, icon: QIcon | None = None, size: int | None = None) -> None:
+        super().__init__(parent)
+        
+        self.setText(text)
+        self.setCheckable(checkable)
+        self.setFixedHeight(size if size is not None else 30)
+        self.clicked.connect(clicked)
+        
+        if icon is not None:
+            self.setIcon(icon)
+            
+        if size is not None:
+            self.setFixedWidth(size)

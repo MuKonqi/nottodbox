@@ -18,6 +18,8 @@
 
 import getpass
 import os
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QApplication
 
 
 APP_ID = "io.github.mukonqi.nottodbox"
@@ -58,7 +60,9 @@ if not DESKTOP_FILE_FOUND and APP_MODE == "@MODE@":
     DESKTOP_FILE_FOUND = os.path.isfile(DESKTOP_FILE)
 
 
-ICON_FILE = os.path.join(DATA_DIR, "icons", "hicolor", "scalable", "apps", f"{APP_ID}.svg")
+ICON_DIR = os.path.join(DATA_DIR, "icons", "hicolor", "scalable")
+
+ICON_FILE = os.path.join(ICON_DIR, "apps", f"{APP_ID}.svg")
 
 
 USER_NAME = getpass.getuser()
@@ -84,3 +88,6 @@ os.makedirs(USER_DATABASES_DIR, exist_ok=True)
 
 
 SYSTEM_DESKTOP_FILE_FOUND = os.path.isfile(f"/usr/share/applications/{APP_ID}.desktop") or os.path.isfile(f"/usr/local/share/applications/{APP_ID}.desktop")
+
+
+DARK_COLOR_SCHEME = QApplication.styleHints().colorScheme() == Qt.ColorScheme.Dark

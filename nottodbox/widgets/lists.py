@@ -24,16 +24,13 @@ from .controls import Action
 
 class ButtonDelegate(QStyledItemDelegate):
     menu_requested = Signal(QModelIndex)
-    
-    width = 332
-    height = 100
 
     button_size = 24
 
     def paint(self, painter: QPainter, option: QStyleOptionViewItem, index: QModelIndex):
         painter.save()
         
-        name = index.data(Qt.ItemDataRole.UserRole)
+        name = index.data(Qt.ItemDataRole.UserRole + 10)
         
         name_font = QFont(option.font)
         name_font.setWeight(QFont.Weight.Bold)
@@ -43,18 +40,18 @@ class ButtonDelegate(QStyledItemDelegate):
         name_rect = QRect(option.rect)
         name_rect.setLeft(name_rect.left() + name_padding)
         name_rect.setTop(name_rect.top() + name_padding)
-        name_rect.setRight(name_rect.right() - name_padding)
+        name_rect.setRight(option.rect.width())
         name_rect.setHeight(name_fontmetrics.lineSpacing())
         
-        content = index.data(Qt.ItemDataRole.UserRole + 1)
+        content = index.data(Qt.ItemDataRole.UserRole + 11)
         
         content_rect = QRect(option.rect)
         content_rect.setLeft(content_rect.left() + name_padding)
         content_rect.setTop(name_rect.bottom() + name_padding / 2)
-        content_rect.setRight(self.width - name_padding - self.button_size - 4)
+        content_rect.setRight(option.rect.width() + (name_padding if option.rect.width() == 268 else 0) - 10)
         content_rect.setHeight(name_fontmetrics.lineSpacing())
         
-        creation_date = index.data(Qt.ItemDataRole.UserRole + 2)
+        creation_date = index.data(Qt.ItemDataRole.UserRole + 12)
         
         creation_rect = QRect(option.rect)
         creation_rect.setLeft(creation_rect.left() + name_padding)
@@ -62,27 +59,27 @@ class ButtonDelegate(QStyledItemDelegate):
         creation_rect.setRight(QFontMetrics(QFont(option.font)).horizontalAdvance(creation_date) + creation_rect.left() + name_padding)
         creation_rect.setHeight(name_fontmetrics.lineSpacing())
         
-        modification_date = index.data(Qt.ItemDataRole.UserRole + 3)
-        
-        modification_rect = QRect(option.rect)
-        modification_rect.setLeft(self.width - QFontMetrics(QFont(option.font)).horizontalAdvance(modification_date) - name_padding - self.button_size)
-        modification_rect.setTop(content_rect.bottom() + name_padding / 2)
-        modification_rect.setRight(self.width - name_padding - self.button_size)
-        modification_rect.setHeight(name_fontmetrics.lineSpacing())
+        modification_date = index.data(Qt.ItemDataRole.UserRole + 13)
 
+        modification_rect = QRect(option.rect)
+        modification_rect.setLeft(option.rect.width() - QFontMetrics(QFont(option.font)).horizontalAdvance(modification_date) + (name_padding if option.rect.width() == 268 else 0))
+        modification_rect.setTop(content_rect.bottom() + name_padding / 2)
+        modification_rect.setRight(option.rect.width() + (name_padding if option.rect.width() == 268 else 0))
+        modification_rect.setHeight(name_fontmetrics.lineSpacing())
+                
         painter.save()
         
-        border_rect = QRect(option.rect.marginsRemoved(QMargins(4, 4, 4, 4)))
+        border_rect = QRect(option.rect.marginsRemoved(QMargins(10, 10, 10, 10)))
 
         border_path = QPainterPath()
         border_path.addRoundedRect(border_rect, 10, 10)
         
-        border_pen = QPen(option.palette.highlight().color() if option.state & QStyle.StateFlag.State_MouseOver else option.palette.windowText().color(), 2)
+        border_pen = QPen(option.palette.linkVisited().color() if index.data(Qt.ItemDataRole.UserRole + 1) else option.palette.buttonText().color() if option.state & QStyle.StateFlag.State_MouseOver else option.palette.text().color(), 5)
         painter.setPen(border_pen)
 
         painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
         painter.drawPath(border_path)
-        painter.fillPath(border_path, option.palette.button().color() if option.state & QStyle.StateFlag.State_MouseOver else option.palette.base().color())
+        painter.fillPath(border_path, option.palette.link().color() if index.data(Qt.ItemDataRole.UserRole + 1) else option.palette.button().color() if option.state & QStyle.StateFlag.State_MouseOver else option.palette.base().color())
         
         painter.restore()
 
@@ -101,8 +98,7 @@ class ButtonDelegate(QStyledItemDelegate):
         button_rect = self.getButtonRect(option)
         
         painter.save()
-        painter.setPen(Qt.GlobalColor.white)
-        painter.setBrush(Qt.GlobalColor.white)
+        painter.setBrush(option.palette.text().color())
         
         dot_size = 4
         dot_padding = 8
@@ -114,38 +110,40 @@ class ButtonDelegate(QStyledItemDelegate):
         painter.drawEllipse(center_x - dot_size / 2, center_y + dot_padding - dot_size / 2, dot_size, dot_size)
 
         painter.restore()
-
+              
     def editorEvent(self, event: QEvent, model: QStandardItemModel, option: QStyleOptionViewItem, index: QModelIndex) -> bool:
-        if event.type() == QEvent.Type.MouseButtonPress and event.button() == Qt.MouseButton.LeftButton:
+        if event.type() == QEvent.Type.MouseButtonPress:
+            if event.button() == Qt.MouseButton.LeftButton:
                 button_rect = self.getButtonRect(option)
                 
                 if button_rect.contains(event.position().toPoint()):
                     self.menu_requested.emit(index)
-                    return True
-                
-                else:
-                    return True
+                    
+            model.setData(index, not index.data(Qt.ItemDataRole.UserRole + 1), Qt.ItemDataRole.UserRole + 1)
 
         return super().editorEvent(event, model, option, index)
 
     def getButtonRect(self, option: QStyleOptionViewItem) -> QRect:
-        return QRect(option.rect.topRight().x() - self.button_size, option.rect.topRight().y(), self.button_size, option.rect.height())
+        return QRect(option.rect.topRight().x() - self.button_size - 10, option.rect.topRight().y(), self.button_size, option.rect.height())
 
     def sizeHint(self, option: QStyleOptionViewItem, index: QModelIndex) -> QRect:
-        return QSize(self.width, self.height)
+        return QSize(option.rect.width(), 108)
     
 
 class TreeViewBase(QTreeView):
     def __init__(self, parent: QWidget) -> None:
         super().__init__(parent)
         
-        self.delegate = ButtonDelegate()
+        self.delegate = ButtonDelegate(self)
         self.delegate.menu_requested.connect(self.openMenu)
         
         self.setItemDelegate(self.delegate)
         self.setMouseTracking(True)
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
         self.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
+        self.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.customContextMenuRequested.connect(self.openMenu)
         
     @Slot(QPoint or QModelIndex)
@@ -174,7 +172,7 @@ class TreeViewBase(QTreeView):
         menu.addAction(Action(self, lambda: self.createDocument(index), self.tr("Create Document")))
         menu.addAction(Action(self, lambda: self.createNotebook(index), self.tr("Create Notebook")))
         
-        if index.data(Qt.ItemDataRole.UserRole - 1) == "document":
+        if index.data(Qt.ItemDataRole.UserRole + 2) == "document":
             menu.addSeparator()
             menu.addAction(Action(self, lambda: self.open(index), self.tr("Open")))
             menu.addAction(Action(self, lambda: self.showBackup(index), self.tr("Show Backup")))
@@ -185,8 +183,12 @@ class TreeViewBase(QTreeView):
         menu.addAction(Action(self, lambda: self.rename(index), self.tr("Rename")))
         menu.addAction(Action(self, lambda: self.delete(index), self.tr("Delete")))
         
-        if index.data(Qt.ItemDataRole.UserRole - 1) == "notebook":
+        if index.data(Qt.ItemDataRole.UserRole + 2) == "notebook":
             menu.addSeparator()
             menu.addAction(Action(self, lambda: self.deleteAllDocuments(index), self.tr("Delete All Documents")))
                 
         menu.exec(global_pos)
+        
+    @Slot(QModelIndex, QModelIndex)
+    def rowChanged(self, new: QModelIndex, old: QModelIndex) -> None:
+        self.model().setData(old, False, Qt.ItemDataRole.UserRole + 1)

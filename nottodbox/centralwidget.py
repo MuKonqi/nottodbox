@@ -77,14 +77,15 @@ class Selector(QWidget):
         for button in self.tree_view.buttons:
             self.buttons_layout.addWidget(button)
         
-        self.layout_.addWidget(self.buttons, 0, 0, 1, 3)
-        self.layout_.addWidget(HSeperator(self), 1, 0, 1, 3)
-        self.layout_.addWidget(self.calendar_widget, 2, 0, 1, 3)
-        self.layout_.addWidget(self.search_entry, 3, 0, 1, 1)
+        self.layout_.setColumnStretch(1, 2)
+        self.layout_.addWidget(self.buttons, 0, 0, 1, 2)
+        self.layout_.addWidget(HSeperator(self), 1, 0, 1, 2)
+        self.layout_.addWidget(self.calendar_widget, 2, 0, 1, 2)
+        self.layout_.addWidget(self.calender_checkbox, 3, 0, 1, 1)
         self.layout_.addWidget(self.filter_combobox, 3, 1, 1, 1)
-        self.layout_.addWidget(self.calender_checkbox, 3, 2, 1, 1)
-        self.layout_.addWidget(self.tree_view, 4, 0, 1, 3)
-        
+        self.layout_.addWidget(self.search_entry, 4, 0, 1, 2)
+        self.layout_.addWidget(self.tree_view, 5, 0, 1, 2)
+                
     @Slot(int or Qt.CheckState)
     def enableCalendar(self, signal: int | Qt.CheckState):
         self.calendar_widget.setVisible(False if signal == Qt.CheckState.Unchecked or signal == 0 else True)
@@ -109,24 +110,26 @@ class TreeView(TreeViewBase):
         
         self.types = ["note", "todo", "diary"]
         
-        self.model_ = QStandardItemModel()
+        self.model_ = QStandardItemModel(self)
         
         for i in range(2):
             notebook = QStandardItem()
-            notebook.setData("notebook", Qt.ItemDataRole.UserRole - 1)
-            notebook.setData(f"{i}. notebook", Qt.ItemDataRole.UserRole)
-            notebook.setData(f"6 notes", Qt.ItemDataRole.UserRole + 1)
-            notebook.setData("04.12.2008 14:19", Qt.ItemDataRole.UserRole + 2)
-            notebook.setData("04.12.2008 14:23", Qt.ItemDataRole.UserRole + 3)
+            notebook.setData(False, Qt.ItemDataRole.UserRole + 1)
+            notebook.setData("notebook", Qt.ItemDataRole.UserRole + 2)
+            notebook.setData(f"{i}. notebook", Qt.ItemDataRole.UserRole + 10)
+            notebook.setData(f"Lorem ipsum dolor sit amet, consectetur adipiscing elit. This is a long text.", Qt.ItemDataRole.UserRole + 11)
+            notebook.setData("04.12.2008 14:19", Qt.ItemDataRole.UserRole + 12)
+            notebook.setData("04.12.2008 14:23", Qt.ItemDataRole.UserRole + 13)
             
             for j in range(3):
                 document = QStandardItem()
-                document.setData(self.types[j], Qt.ItemDataRole.UserRole - 2)
-                document.setData("document", Qt.ItemDataRole.UserRole - 1)
-                document.setData(self.types[j].title(), Qt.ItemDataRole.UserRole)
-                document.setData(f"Lorem ipsum dolor sit amet, consectetur adipiscing elit. This is a long text.", Qt.ItemDataRole.UserRole + 1)
-                document.setData("01.01.1970 14:19", Qt.ItemDataRole.UserRole + 2)
-                document.setData("01.01.1970 14:23", Qt.ItemDataRole.UserRole + 3)
+                document.setData(False, Qt.ItemDataRole.UserRole + 1)
+                document.setData("document", Qt.ItemDataRole.UserRole + 2)
+                document.setData(self.types[j], Qt.ItemDataRole.UserRole + 3)
+                document.setData(self.types[j].title(), Qt.ItemDataRole.UserRole + 10)
+                document.setData(f"Lorem ipsum dolor sit amet, consectetur adipiscing elit. This is a long text.", Qt.ItemDataRole.UserRole + 11)
+                document.setData("01.01.1970 14:19", Qt.ItemDataRole.UserRole + 12)
+                document.setData("01.01.1970 14:23", Qt.ItemDataRole.UserRole + 13)
                 notebook.appendRow(document)
 
             self.model_.appendRow(notebook)
@@ -137,19 +140,20 @@ class TreeView(TreeViewBase):
         self.type_filterer.setSourceModel(self.model_)
         self.type_filterer.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
         self.type_filterer.setRecursiveFilteringEnabled(True)
-        self.type_filterer.setFilterRole(Qt.ItemDataRole.UserRole - 2)
+        self.type_filterer.setFilterRole(Qt.ItemDataRole.UserRole + 3)
         
         self.normal_filterer = QSortFilterProxyModel(self)
         self.normal_filterer.setSourceModel(self.type_filterer)
         self.normal_filterer.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
         self.normal_filterer.setRecursiveFilteringEnabled(True)
-        self.normal_filterer.setFilterRole(Qt.ItemDataRole.UserRole)
-
+        self.normal_filterer.setFilterRole(Qt.ItemDataRole.UserRole + 10)
+        
         self.setModel(self.normal_filterer)
+        self.selectionModel().currentRowChanged.connect(self.rowChanged)
         
     @Slot(int)
     def filterChanged(self, index: int) -> None:
-        self.normal_filterer.setFilterRole(Qt.ItemDataRole.UserRole + index)
+        self.normal_filterer.setFilterRole(Qt.ItemDataRole.UserRole + 10 + index)
         
     @Slot(str)
     def setFilter(self, text: str) -> None:
