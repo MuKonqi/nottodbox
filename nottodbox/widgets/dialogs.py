@@ -23,7 +23,7 @@ from PySide6.QtWidgets import *
 from .controls import Label, PushButton
 
 
-class ColorDialog(QColorDialog):
+class GetColor(QColorDialog):
     def __init__(self, parent: QWidget, show_global: bool, show_default: bool, color: QColor | Qt.GlobalColor, title: str) -> None:
         super().__init__(color, parent)
         
@@ -60,7 +60,7 @@ class ColorDialog(QColorDialog):
             return False, None, None
         
 
-class GetDialogBase(QDialog):
+class Dialog(QDialog):
     def __init__(self, parent: QWidget, window_title: str) -> None:
         super().__init__(parent)
         
@@ -76,10 +76,64 @@ class GetDialogBase(QDialog):
         self.base_layout.addWidget(self.input)
         self.base_layout.addWidget(self.buttons)
         
-        self.setWindowTitle(window_title)     
+        self.setWindowTitle(window_title)
+        self.resize(500, 350)
+
+
+class CreateBase(Dialog):
+    def __init__(self, parent: QWidget, window_title: str):
+        super().__init__(parent, window_title)
+        
+        self.name = QLineEdit(self.input)
+        self.name.setPlaceholderText(self.tr("Name (required)"))
+        
+        self.layout_ = QVBoxLayout(self.input)
+        self.layout_.addWidget(self.name)
+        
+        
+class GetName(CreateBase):
+    def __init__(self, parent: QWidget, window_title: str):
+        super().__init__(parent, window_title)
+        
+        self.exec()
+        
+    def getResult(self) -> tuple[bool, str]:
+        return self.result() == 1, self.name.text()
+    
+    
+class GetDescription(Dialog):
+    def __init__(self, parent: QWidget):
+        super().__init__(parent, self.tr("Edit Descpription"))
+        
+        self.layout_ = QVBoxLayout(self.input)
+        
+        self.description = QLineEdit(self.input)
+        self.description.setPlaceholderText(self.tr("Description (leave blank to remove)"))
+        
+        self.layout_.addWidget(self.description)
+        
+        self.exec()
+        
+    def getResult(self) -> tuple[bool, str]:
+        return self.result() == 1, self.description.text()
+    
+    
+class CreateNotebook(CreateBase):
+    def __init__(self, parent: QWidget):
+        super().__init__(parent, self.tr("Create Notebook"))
+        
+        self.description = QLineEdit(self.input)
+        self.description.setPlaceholderText(self.tr("Description (not required)"))
+        
+        self.layout_.addWidget(self.description)
+        
+        self.exec()
+        
+    def getResult(self) -> tuple[str, str]:
+        return self.name.text(), self.description.text()
 
         
-class GetDateDialog(GetDialogBase):
+class GetDate(Dialog):
     def __init__(self, parent: QWidget, title: str, label: str, name: str) -> None:
         super().__init__(parent, title)
         
@@ -101,7 +155,7 @@ class GetDateDialog(GetDialogBase):
             return "", False
 
 
-class GetTwoDialog(GetDialogBase):
+class GetTwoNumber(Dialog):
     def __init__(self, parent: QWidget, window_title: str, mode: str, 
                  top_text: str, bottom_text: str, top_extra: int | str, bottom_extra: int | str) -> None:
         super().__init__(parent, window_title)

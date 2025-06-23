@@ -16,10 +16,9 @@
 # along with Nottodbox.  If not, see <https://www.gnu.org/licenses/>.
 
 
-from PySide6.QtCore import QEvent, QMargins, QModelIndex, QRect, QSize, QPoint, Qt, Signal, Slot
+from PySide6.QtCore import QEvent, QMargins, QModelIndex, QRect, QSize, Qt, Signal, Slot
 from PySide6.QtGui import QFont, QFontMetrics, QPainter, QPainterPath, QPen, QStandardItemModel
 from PySide6.QtWidgets import *
-from .controls import Action
 
 
 class ButtonDelegate(QStyledItemDelegate):
@@ -30,7 +29,7 @@ class ButtonDelegate(QStyledItemDelegate):
     def paint(self, painter: QPainter, option: QStyleOptionViewItem, index: QModelIndex):
         painter.save()
         
-        name = index.data(Qt.ItemDataRole.UserRole + 10)
+        name = index.data(Qt.ItemDataRole.UserRole + 100)
         
         name_font = QFont(option.font)
         name_font.setWeight(QFont.Weight.Bold)
@@ -43,7 +42,7 @@ class ButtonDelegate(QStyledItemDelegate):
         name_rect.setRight(option.rect.width())
         name_rect.setHeight(name_fontmetrics.lineSpacing())
         
-        content = index.data(Qt.ItemDataRole.UserRole + 11)
+        content = index.data(Qt.ItemDataRole.UserRole + 103)
         
         content_rect = QRect(option.rect)
         content_rect.setLeft(content_rect.left() + name_padding)
@@ -51,7 +50,7 @@ class ButtonDelegate(QStyledItemDelegate):
         content_rect.setRight(option.rect.width() + (name_padding if index.data(Qt.ItemDataRole.UserRole + 2) == "document" else 0) - 10)
         content_rect.setHeight(name_fontmetrics.lineSpacing())
         
-        creation_date = index.data(Qt.ItemDataRole.UserRole + 12)
+        creation_date = index.data(Qt.ItemDataRole.UserRole + 101)
         
         creation_rect = QRect(option.rect)
         creation_rect.setLeft(creation_rect.left() + name_padding)
@@ -59,7 +58,7 @@ class ButtonDelegate(QStyledItemDelegate):
         creation_rect.setRight(QFontMetrics(QFont(option.font)).horizontalAdvance(creation_date) + creation_rect.left() + name_padding)
         creation_rect.setHeight(name_fontmetrics.lineSpacing())
         
-        modification_date = index.data(Qt.ItemDataRole.UserRole + 13)
+        modification_date = index.data(Qt.ItemDataRole.UserRole + 102)
 
         modification_rect = QRect(option.rect)
         modification_rect.setLeft(option.rect.width() - QFontMetrics(QFont(option.font)).horizontalAdvance(modification_date) + (name_padding if index.data(Qt.ItemDataRole.UserRole + 2) == "document" else 0))
@@ -135,59 +134,13 @@ class TreeViewBase(QTreeView):
         super().__init__(parent)
         
         self.delegate = ButtonDelegate(self)
-        self.delegate.menu_requested.connect(self.openMenu)
         
         self.setItemDelegate(self.delegate)
         self.setMouseTracking(True)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
         self.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
-        self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
         self.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
-        self.customContextMenuRequested.connect(self.openMenu)
-        
-    @Slot(QPoint or QModelIndex)
-    def openMenu(self, context_data: QPoint | QModelIndex):
-        index = None
-        position = None
-        
-        if isinstance(context_data, QModelIndex):
-            index = context_data
-
-            visual_rect = self.visualRect(index)
-            global_pos = self.viewport().mapToGlobal(visual_rect.bottomRight())
-            
-            global_pos.setX(global_pos.x() - 26)
-            global_pos.setY(global_pos.y() - 43)
-
-        elif isinstance(context_data, QPoint):
-            position = context_data
-            index = self.indexAt(position)
-            global_pos = self.viewport().mapToGlobal(position)
-        
-        if not index or not index.isValid():
-            return
-            
-        menu = QMenu()
-        menu.addAction(Action(self, lambda: self.createDocument(index), self.tr("Create Document")))
-        menu.addAction(Action(self, lambda: self.createNotebook(index), self.tr("Create Notebook")))
-        
-        if index.data(Qt.ItemDataRole.UserRole + 2) == "document":
-            menu.addSeparator()
-            menu.addAction(Action(self, lambda: self.open(index), self.tr("Open")))
-            menu.addAction(Action(self, lambda: self.showBackup(index), self.tr("Show Backup")))
-            menu.addAction(Action(self, lambda: self.restoreContent(index), self.tr("Restore Content")))
-            menu.addAction(Action(self, lambda: self.clearContent(index), self.tr("Clear Content")))
-        
-        menu.addSeparator()
-        menu.addAction(Action(self, lambda: self.rename(index), self.tr("Rename")))
-        menu.addAction(Action(self, lambda: self.delete(index), self.tr("Delete")))
-        
-        if index.data(Qt.ItemDataRole.UserRole + 2) == "notebook":
-            menu.addSeparator()
-            menu.addAction(Action(self, lambda: self.deleteAllDocuments(index), self.tr("Delete All Documents")))
-                
-        menu.exec(global_pos)
         
     @Slot(QModelIndex, QModelIndex)
     def rowChanged(self, new: QModelIndex, old: QModelIndex) -> None:

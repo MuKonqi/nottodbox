@@ -21,7 +21,7 @@ AppDir:
     id: io.github.mukonqi.nottodbox
     name: nottodbox
     icon: io.github.mukonqi.nottodbox
-    version: v0.0.10
+    version: v0.0.90
     exec: usr/bin/python3
     exec_args: "-m nottodbox $@"
 

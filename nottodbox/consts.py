@@ -26,7 +26,7 @@ APP_ID = "io.github.mukonqi.nottodbox"
 
 APP_MODE = "@MODE@"
 
-APP_VERSION = "v0.0.10"
+APP_VERSION = "v0.0.90"
 
 
 if APP_MODE == "meson":
