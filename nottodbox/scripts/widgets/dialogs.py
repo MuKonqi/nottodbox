@@ -21,6 +21,7 @@ from PySide6.QtCore import Qt, QDate
 from PySide6.QtGui import QColor
 from PySide6.QtWidgets import *
 from .controls import CalendarWidget, Label, PushButton
+from ..consts import APP_ID
 
 
 class GetColor(QColorDialog):

@@ -20,8 +20,8 @@ import os
 from PySide6.QtCore import Slot
 from PySide6.QtGui import QIcon, QPixmap
 from PySide6.QtWidgets import *
-from widgets.controls import HSeperator, Label, ToolButton
-from consts import DARK_COLOR_SCHEME, ICON_DIR
+from .widgets.controls import HSeperator, Label, ToolButton
+from .consts import DARK_COLOR_SCHEME, ICON_DIR
 
 
 class Sidebar(QWidget):

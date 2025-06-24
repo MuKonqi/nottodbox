@@ -20,8 +20,8 @@ import os
 from PySide6.QtCore import Qt, qVersion
 from PySide6.QtGui import QFontDatabase
 from PySide6.QtWidgets import *
-from consts import APP_VERSION
-from widgets.controls import HSeperator, Label, PushButton
+from .consts import APP_VERSION
+from .widgets.controls import HSeperator, Label, PushButton
 
 
 class About(QWidget):
@@ -49,8 +49,8 @@ class About(QWidget):
         self.developer_label.setOpenExternalLinks(True)
         
         with open("@APP_DIR@/LICENSE.txt" if os.path.isfile("@APP_DIR@/LICENSE.txt") else 
-                    f"{os.path.dirname(__file__)}/LICENSE.txt" if os.path.isfile(f"{os.path.dirname(__file__)}/LICENSE.txt") else
-                    f"{os.path.dirname(os.path.dirname(__file__))}/LICENSE.txt") as license_file:
+                    f"{os.path.dirname(os.path.dirname(__file__))}/LICENSE.txt" if os.path.isfile(f"{os.path.dirname(__file__)}/LICENSE.txt") else
+                    f"{os.path.dirname(os.path.dirname(os.path.dirname(__file__)))}/LICENSE.txt") as license_file:
             license_text = license_file.read()
             
         self.license_textedit = QTextEdit(self)

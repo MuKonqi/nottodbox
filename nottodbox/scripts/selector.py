@@ -20,12 +20,12 @@ import datetime
 from PySide6.QtCore import QEvent, QModelIndex, QPoint, QSortFilterProxyModel, Qt, Slot
 from PySide6.QtGui import QStandardItem, QStandardItemModel
 from PySide6.QtWidgets import *
-from widgets.controls import Action, CalendarWidget, Label, HSeperator, PushButton
-from widgets.dialogs import GetName, GetNameAndDescription, GetDescription
-from widgets.documents import BackupView, NormalView
-from widgets.lists import ButtonDelegateBase, TreeViewBase
-from consts import APP_SETTINGS, APP_DEFAULTS
-from databases import MainDB
+from .widgets.controls import Action, CalendarWidget, Label, HSeperator, PushButton
+from .widgets.dialogs import GetName, GetNameAndDescription, GetDescription
+from .widgets.documents import BackupView, NormalView
+from .widgets.lists import ButtonDelegateBase, TreeViewBase
+from .consts import APP_SETTINGS, APP_DEFAULTS
+from .databases import MainDB
 
 
 maindb = MainDB()

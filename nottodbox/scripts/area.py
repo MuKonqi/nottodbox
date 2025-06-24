@@ -18,7 +18,7 @@
 
 from PySide6.QtCore import Slot
 from PySide6.QtWidgets import *
-from widgets.controls import HSeperator, PushButton, VSeperator 
+from .widgets.controls import HSeperator, PushButton, VSeperator 
         
 
 class Area(QStackedWidget):

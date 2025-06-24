@@ -41,13 +41,13 @@ if APP_MODE == "meson":
 
 else:
     if APP_MODE == "appimage":
-        DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))), "share")
+        DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))))), "share")
     
     else:
-        DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "share")
+        DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "share")
     
     
-    LOCALE_DIR = os.path.join(os.path.dirname(__file__), "locale")
+    LOCALE_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "locale")
 
     
 if APP_MODE == "appimage":

@@ -21,7 +21,7 @@
 import sqlite3
 import datetime
 from PySide6.QtCore import Qt
-from consts import USER_DATABASES_DIR
+from .consts import USER_DATABASES_DIR
 
 
 class Base:
