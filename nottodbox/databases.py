@@ -103,10 +103,10 @@ class MainDB(Base):
         
         return self.checkIfItExists(name, table)
         
-    def createDocument(self, document: str, notebook: str) -> bool:
+    def createDocument(self, locked: str | None, document: str, notebook: str) -> bool:
         date = datetime.datetime.now().strftime("%d/%m/%Y %H:%M")
         
-        if self.create(document, notebook, date) and self.checkIfTheDocumentExists(document, notebook):
+        if self.create(document, notebook, date) and self.checkIfTheDocumentExists(document, notebook) and self.set(locked, "locked", document, notebook):
             return self.updateModification(notebook, "__main__", date)
         
         return False
@@ -146,8 +146,8 @@ class MainDB(Base):
             """
             )
         
-    def createNotebook(self, name: str, description: str) -> bool:
-        if self.create(name) and self.set(description, "content", name):
+    def createNotebook(self, locked: str | None, description: str, name: str) -> bool:
+        if self.create(name) and self.set(locked, "locked", name) and self.set(description, "content", name):
             self.cur.execute(
                 f"""
                 CREATE TABLE IF NOT EXISTS '{name}' (
@@ -242,8 +242,8 @@ class MainDB(Base):
         
         return data
     
-    def rename(self, new_name: str, name: str, table: str = "__main__") -> bool:  
-        self.cur.execute(f"update '{table}' set name = ? where name = ?", (new_name, name))
+    def rename(self, locked: str | None, new_name: str, name: str, table: str = "__main__") -> bool:  
+        self.cur.execute(f"update '{table}' set locked = ?, name = ? where name = ?", (locked, new_name, name))
         self.db.commit()
         
         if table == "__main__":

@@ -20,7 +20,7 @@ from gettext import gettext as _
 from PySide6.QtCore import Qt, QDate
 from PySide6.QtGui import QColor
 from PySide6.QtWidgets import *
-from .controls import Label, PushButton
+from .controls import CalendarWidget, Label, PushButton
 
 
 class GetColor(QColorDialog):
@@ -83,15 +83,19 @@ class Dialog(QDialog):
 class GetName(Dialog):
     def __init__(self, parent: QWidget, window_title: str):
         super().__init__(parent, window_title)
-        
+
         self.name = QLineEdit(self.input)
         self.name.setPlaceholderText(self.tr("Name (required)"))
+        
+        self.calendar = CalendarWidget(self)
+        self.calendar.selectionChanged.connect(lambda: self.name.setText(self.calendar.selectedDate().toString("dd/MM/yyyy")))
         
     def get(self) -> tuple[bool, str]:
         return self.result() == 1, self.name.text()
     
     def set(self) -> int:
         self.layout_ = QVBoxLayout(self.input)
+        self.layout_.addWidget(self.calendar)
         self.layout_.addWidget(self.name)
         
         return self.exec()
@@ -120,6 +124,7 @@ class GetNameAndDescription(GetName, GetDescription):
     
     def set(self) -> int:
         self.layout_ = QVBoxLayout(self.input)
+        self.layout_.addWidget(self.calendar)
         self.layout_.addWidget(self.name)
         self.layout_.addWidget(self.description)
         

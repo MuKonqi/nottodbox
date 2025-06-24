@@ -16,8 +16,9 @@
 # along with Nottodbox.  If not, see <https://www.gnu.org/licenses/>.
 
 
-from PySide6.QtCore import Qt
-from PySide6.QtGui import QAction, QIcon
+import datetime
+from PySide6.QtCore import QDate, QRect, Qt, Slot
+from PySide6.QtGui import QPainter, QAction, QIcon
 from PySide6.QtWidgets import *
 
 
@@ -29,6 +30,20 @@ class Action(QAction):
         
         if icon is not None:
             self.setIcon(icon)
+            
+            
+class CalendarWidget(QCalendarWidget):
+    def __init__(self, parent: QWidget) -> None:
+        super().__init__(parent)
+        
+        self.setMaximumDate(QDate.currentDate())
+    
+    @Slot(QPainter, QRect, QDate or datetime.date)
+    def paintCell(self, painter: QPainter | None, rect: QRect, date: QDate | datetime.date) -> None:
+        super().paintCell(painter, rect, date)
+        
+        if date >= self.maximumDate():
+            painter.setOpacity(0)
         
         
 class Combobox(QComboBox):

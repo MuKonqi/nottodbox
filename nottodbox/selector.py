@@ -17,10 +17,10 @@
 
 
 import datetime
-from PySide6.QtCore import QDate, QModelIndex, QPoint, QRect, QSortFilterProxyModel, Qt, Slot
-from PySide6.QtGui import QPainter, QStandardItem, QStandardItemModel
+from PySide6.QtCore import QModelIndex, QPoint, QSortFilterProxyModel, Qt, Slot
+from PySide6.QtGui import QStandardItem, QStandardItemModel
 from PySide6.QtWidgets import *
-from widgets.controls import Action, Label, HSeperator, PushButton
+from widgets.controls import Action, CalendarWidget, Label, HSeperator, PushButton
 from widgets.dialogs import GetName, GetNameAndDescription, GetDescription
 from widgets.lists import TreeViewBase
 from databases import MainDB
@@ -37,17 +37,11 @@ class Selector(QWidget):
                 
         self.options = Options(self)
         
-        self.layout_ = QGridLayout(self)
+        self.layout_ = QVBoxLayout(self)
         
         self.buttons = QWidget(self)
         
-        self.buttons_layout = QHBoxLayout(self.buttons)
-        self.buttons_layout.setContentsMargins(0, 0, 0, 0)
-        
         self.tree_view = TreeView(self)
-        
-        self.calendar_widget = CalendarWidget(self)
-        self.calendar_widget.setMaximumDate(QDate.currentDate())
         
         self.search_entry = QLineEdit(self)
         self.search_entry.setClearButtonEnabled(True)
@@ -58,31 +52,43 @@ class Selector(QWidget):
         self.filter_combobox.addItems([self.tr("By name"), self.tr("By creation date"), self.tr("By modification date"), self.tr("By content / description")])
         self.filter_combobox.currentIndexChanged.connect(self.tree_view.filterChanged)
         
-        self.calender_checkbox = QCheckBox(self)
-        self.calender_checkbox.setText(self.tr("Calendar"))
-        self.calender_checkbox.setChecked(True)
+        self.calendar_widget = CalendarWidget(self)
+        self.calendar_widget.selectionChanged.connect(self.selectedDateChanged)
+        
+        self.calendar_checkbox = QCheckBox(self)
+        self.calendar_checkbox.setText(self.tr("Calendar"))
+        self.calendar_checkbox.setChecked(True)
         try:
-            self.calender_checkbox.checkStateChanged.connect(self.enableCalendar)
+            self.calendar_checkbox.checkStateChanged.connect(self.enableCalendar)
         except:
-            self.calender_checkbox.stateChanged.connect(self.enableCalendar)
+            self.calendar_checkbox.stateChanged.connect(self.enableCalendar)
             
         self.create_first_notebook = CreateFirstNotebook(self)
+        
+        self.buttons_layout = QHBoxLayout(self.buttons)
+        self.buttons_layout.setContentsMargins(0, 0, 0, 0)
+        
+        self.container = QWidget(self)
+        self.container_layout = QGridLayout(self.container)
             
         self.pages = QStackedWidget(self)
         self.pages.addWidget(self.create_first_notebook)
-        self.pages.addWidget(self.tree_view)
+        self.pages.addWidget(self.container)
         
         for button in self.tree_view.buttons:
             self.buttons_layout.addWidget(button)
+            
+        self.container_layout.setContentsMargins(0, 0, 0, 0)
+        self.container_layout.setColumnStretch(1, 2)
+        self.container_layout.addWidget(self.calendar_checkbox, 0, 0, 1, 1)
+        self.container_layout.addWidget(self.filter_combobox, 0, 1, 1, 1)
+        self.container_layout.addWidget(self.search_entry, 1, 0, 1, 2)
+        self.container_layout.addWidget(self.tree_view, 2, 0, 1, 2)
         
-        self.layout_.setColumnStretch(1, 2)
-        self.layout_.addWidget(self.buttons, 0, 0, 1, 2)
-        self.layout_.addWidget(HSeperator(self), 1, 0, 1, 2)
-        self.layout_.addWidget(self.calendar_widget, 2, 0, 1, 2)
-        self.layout_.addWidget(self.calender_checkbox, 3, 0, 1, 1)
-        self.layout_.addWidget(self.filter_combobox, 3, 1, 1, 1)
-        self.layout_.addWidget(self.search_entry, 4, 0, 1, 2)
-        self.layout_.addWidget(self.pages, 5, 0, 1, 2)
+        self.layout_.addWidget(self.buttons)
+        self.layout_.addWidget(HSeperator(self))
+        self.layout_.addWidget(self.calendar_widget)
+        self.layout_.addWidget(self.pages)
         
         self.tree_view.appendAll()
         
@@ -99,18 +105,17 @@ class Selector(QWidget):
         else:
             self.pages.setCurrentIndex(1)
             
+    @Slot()
+    def selectedDateChanged(self) -> None:
+        if self.pages.currentIndex() == 0:
+            self.create_first_notebook.name.setText(self.calendar_widget.selectedDate().toString("dd/MM/yyyy"))
+            
+        elif self.pages.currentIndex() == 1:
+            self.search_entry.setText(self.calendar_widget.selectedDate().toString("dd/MM/yyyy"))
+            
     def setVisible(self, visible: bool):
         self.parent_.seperator.setVisible(visible)
         return super().setVisible(visible)
-        
-        
-class CalendarWidget(QCalendarWidget):
-    @Slot(QPainter, QRect, QDate or datetime.date)
-    def paintCell(self, painter: QPainter | None, rect: QRect, date: QDate | datetime.date) -> None:
-        super().paintCell(painter, rect, date)
-        
-        if date >= self.maximumDate():
-            painter.setOpacity(0)
 
 
 class CreateFirstNotebook(QWidget):
@@ -149,6 +154,7 @@ class CreateFirstNotebook(QWidget):
             return
         
         if self.parent_.options.createNotebook(name, description):
+            self.name.clear()
             self.parent_.setPage()
             
             
@@ -187,8 +193,14 @@ class Options:
         dialog = GetName(self.parent_, self.parent_.tr("Create Document"))
         dialog.set()
         ok, document = dialog.get()
-        
+
         if ok:
+            try:
+                diary = bool(datetime.datetime.strptime(document, "%d/%m/%Y"))
+                
+            except ValueError:
+                diary = False
+            
             if index.data(Qt.ItemDataRole.UserRole + 2) == "notebook":
                 notebook = index.data(Qt.ItemDataRole.UserRole + 100)
                 
@@ -199,7 +211,7 @@ class Options:
                 QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.parent_.tr("A name is required."))
                 return
             
-            if maindb.createDocument(document, notebook):
+            if maindb.createDocument("yes" if diary else None, document, notebook):
                 self.parent_.tree_view.appendDocument(maindb.getDocument(document, notebook), maindb.items[(notebook, "__main__")], notebook)
                 
             else:
@@ -215,17 +227,27 @@ class Options:
             ok, name, description = dialog.get()
             
         if ok:
+            try:
+                diary = bool(datetime.datetime.strptime(name, "%d/%m/%Y"))
+                
+            except ValueError:
+                diary = False
+            
             if name == "":
                 QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.parent_.tr("A name is required."))
                 return
             
-            if maindb.createNotebook(name, description):
+            successful = maindb.createNotebook("yes" if diary else None, description, name)
+            
+            if successful:
                 self.parent_.tree_view.appendNotebook(maindb.getNotebook(name))
                 
             else:
                 QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.parent_.tr("Failed to create notebook."))
                 
             self.parent_.setPage()
+            
+            return successful
     
     @Slot(QModelIndex)
     def delete(self, index: QModelIndex) -> None:
@@ -320,11 +342,26 @@ class Options:
         ok, new_name = dialog.get()
         
         if ok:
+            try:
+                diary = bool(datetime.datetime.strptime(new_name, "%d/%m/%Y"))
+                
+            except ValueError:
+                diary = False
+            
             if new_name == "":
                 QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.parent_.tr("A name is required."))
                 return
             
-            if maindb.rename(new_name, name, table):
+            if maindb.rename("yes" if diary else None, new_name, name, table):
+                if index.data(Qt.ItemDataRole.UserRole + 2) == "notebook":
+                    for name_, table_ in maindb.items.copy().keys():
+                        if table_ == name:
+                            maindb.items[(name_, table_)].setData(new_name, Qt.ItemDataRole.UserRole)
+                            maindb.items[(name_, new_name)] = maindb.items.pop((name_, table_))
+                            
+                maindb.items[(new_name, table)] = maindb.items.pop((name, table))
+                
+                index.model().setData(index, "yes" if diary else None, Qt.ItemDataRole.UserRole + 21)
                 index.model().setData(index, new_name, Qt.ItemDataRole.UserRole + 100)
                 
             else:
@@ -420,20 +457,20 @@ class TreeView(TreeViewBase):
         for data in items:
             self.appendNotebook(data)
             
-    def appendDocument(self, data_: list, item: QStandardItem, notebook: str) -> None:
+    def appendDocument(self, data: list, item: QStandardItem, notebook: str) -> None:
         document = QStandardItem()
-        maindb.items[(data_[len(data_) - 5], notebook)] = document
+        maindb.items[(data[len(data) - 5], notebook)] = document
         
         document.setData(notebook, Qt.ItemDataRole.UserRole)
         document.setData(False, Qt.ItemDataRole.UserRole + 1)
         document.setData("document", Qt.ItemDataRole.UserRole + 2)
-        document.setData(self.getType(data_[1], data_[2]), Qt.ItemDataRole.UserRole + 3)
+        document.setData(self.getType(data[1], data[2]), Qt.ItemDataRole.UserRole + 3)
         
         for i in range(12):
-            document.setData(data_[1 + i], Qt.ItemDataRole.UserRole + 20 + i)
+            document.setData(data[1 + i], Qt.ItemDataRole.UserRole + 20 + i)
             
         for i in range(5):
-            document.setData(data_[len(data_) - 1 - i], Qt.ItemDataRole.UserRole + 104 - i)
+            document.setData(data[len(data) - 1 - i], Qt.ItemDataRole.UserRole + 104 - i)
             
         item.appendRow(document)
             
@@ -445,7 +482,7 @@ class TreeView(TreeViewBase):
         notebook.setData("notebook", Qt.ItemDataRole.UserRole + 2)
         
         for i in range(12):
-            notebook.setData(data[1 + i], Qt.ItemDataRole.UserRole + 20 + i)
+            notebook.setData(data[2 + i], Qt.ItemDataRole.UserRole + 20 + i)
             
         for i in range(4):
             notebook.setData(data[len(data) - 1 - i], Qt.ItemDataRole.UserRole + 103 - i)
