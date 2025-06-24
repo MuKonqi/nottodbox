@@ -21,7 +21,7 @@ from PySide6.QtCore import QDate, QModelIndex, QPoint, QRect, QSortFilterProxyMo
 from PySide6.QtGui import QPainter, QStandardItem, QStandardItemModel
 from PySide6.QtWidgets import *
 from widgets.controls import Action, Label, HSeperator, PushButton
-from widgets.dialogs import GetName, CreateNotebook, GetDescription
+from widgets.dialogs import GetName, GetNameAndDescription, GetDescription
 from widgets.lists import TreeViewBase
 from databases import MainDB
 
@@ -184,40 +184,48 @@ class Options:
         
     @Slot(QModelIndex)
     def createDocument(self, index: QModelIndex) -> None:
-        document = GetName(self.parent_, self.parent_.tr("Create Document")).getResult()
+        dialog = GetName(self.parent_, self.parent_.tr("Create Document"))
+        dialog.set()
+        ok, document = dialog.get()
         
-        if index.data(Qt.ItemDataRole.UserRole + 2) == "notebook":
-            notebook = index.data(Qt.ItemDataRole.UserRole + 100)
+        if ok:
+            if index.data(Qt.ItemDataRole.UserRole + 2) == "notebook":
+                notebook = index.data(Qt.ItemDataRole.UserRole + 100)
+                
+            elif index.data(Qt.ItemDataRole.UserRole + 2) == "document":
+                notebook = index.data(Qt.ItemDataRole.UserRole)
             
-        elif index.data(Qt.ItemDataRole.UserRole + 2) == "document":
-            notebook = index.data(Qt.ItemDataRole.UserRole)
-        
-        if document == "":
-            QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.parent_.tr("A name is required."))
-            return
-        
-        if maindb.createDocument(document, notebook):
-            self.parent_.tree_view.appendDocument(maindb.getDocument(document, notebook), maindb.items[(notebook, "__main__")], notebook)
+            if document == "":
+                QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.parent_.tr("A name is required."))
+                return
             
-        else:
-            QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.parent_.tr("Failed to create document."))
+            if maindb.createDocument(document, notebook):
+                self.parent_.tree_view.appendDocument(maindb.getDocument(document, notebook), maindb.items[(notebook, "__main__")], notebook)
+                
+            else:
+                QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.parent_.tr("Failed to create document."))
     
     @Slot(str or None, str or None)
     def createNotebook(self, name: str | None = None, description: str | None = None) -> bool | None:
-        if name is None:
-            name, description = CreateNotebook(self.parent_)
-            
-        if name == "":
-            QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.parent_.tr("A name is required."))
-            return
+        ok = True
         
-        if maindb.createNotebook(name, description):
-            self.parent_.tree_view.appendNotebook(maindb.getNotebook(name))
+        if name is None:
+            dialog = GetNameAndDescription(self.parent_, self.parent_.tr("Create Notebook"))
+            dialog.set()
+            ok, name, description = dialog.get()
             
-        else:
-            QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.parent_.tr("Failed to create notebook."))
+        if ok:
+            if name == "":
+                QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.parent_.tr("A name is required."))
+                return
             
-        self.parent_.setPage()
+            if maindb.createNotebook(name, description):
+                self.parent_.tree_view.appendNotebook(maindb.getNotebook(name))
+                
+            else:
+                QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.parent_.tr("Failed to create notebook."))
+                
+            self.parent_.setPage()
     
     @Slot(QModelIndex)
     def delete(self, index: QModelIndex) -> None:
@@ -245,7 +253,9 @@ class Options:
     def editDescription(self, index: QModelIndex) -> None:
         name = index.data(Qt.ItemDataRole.UserRole + 100)
         
-        ok, description = GetDescription(self.parent_).getResult()
+        dialog = GetDescription(self.parent_, self.parent_.tr("Edit Description"))
+        dialog.set()
+        ok, description = dialog.get()
         
         if ok:
             if maindb.set(description, "content", name):
@@ -305,7 +315,9 @@ class Options:
     def rename(self, index: QModelIndex) -> None:
         name, table = self.get(index)
         
-        ok, new_name = GetName(self.parent_, self.parent_.tr("Rename")).getResult()
+        dialog = GetName(self.parent_, self.parent_.tr("Rename"))
+        dialog.set()
+        ok, new_name = dialog.get()
         
         if ok:
             if new_name == "":

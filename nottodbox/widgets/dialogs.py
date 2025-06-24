@@ -80,57 +80,50 @@ class Dialog(QDialog):
         self.resize(500, 350)
 
 
-class CreateBase(Dialog):
+class GetName(Dialog):
     def __init__(self, parent: QWidget, window_title: str):
         super().__init__(parent, window_title)
         
         self.name = QLineEdit(self.input)
         self.name.setPlaceholderText(self.tr("Name (required)"))
         
+    def get(self) -> tuple[bool, str]:
+        return self.result() == 1, self.name.text()
+    
+    def set(self) -> int:
         self.layout_ = QVBoxLayout(self.input)
         self.layout_.addWidget(self.name)
         
-        
-class GetName(CreateBase):
-    def __init__(self, parent: QWidget, window_title: str):
-        super().__init__(parent, window_title)
-        
-        self.exec()
-        
-    def getResult(self) -> tuple[bool, str]:
-        return self.result() == 1, self.name.text()
+        return self.exec()
     
     
 class GetDescription(Dialog):
-    def __init__(self, parent: QWidget):
-        super().__init__(parent, self.tr("Edit Descpription"))
-        
-        self.layout_ = QVBoxLayout(self.input)
-        
+    def __init__(self, parent: QWidget, window_title: str):
+        super().__init__(parent, window_title)
+
         self.description = QLineEdit(self.input)
         self.description.setPlaceholderText(self.tr("Description (leave blank to remove)"))
         
-        self.layout_.addWidget(self.description)
-        
-        self.exec()
-        
-    def getResult(self) -> tuple[bool, str]:
+    def get(self) -> tuple[bool, str]:
         return self.result() == 1, self.description.text()
     
-    
-class CreateNotebook(CreateBase):
-    def __init__(self, parent: QWidget):
-        super().__init__(parent, self.tr("Create Notebook"))
-        
-        self.description = QLineEdit(self.input)
-        self.description.setPlaceholderText(self.tr("Description (not required)"))
-        
+    def set(self) -> int:
+        self.layout_ = QVBoxLayout(self.input)
         self.layout_.addWidget(self.description)
         
-        self.exec()
+        return self.exec()
+    
+    
+class GetNameAndDescription(GetName, GetDescription):        
+    def get(self) -> tuple[bool, str, str]:
+        return self.result() == 1, self.name.text(), self.description.text()
+    
+    def set(self) -> int:
+        self.layout_ = QVBoxLayout(self.input)
+        self.layout_.addWidget(self.name)
+        self.layout_.addWidget(self.description)
         
-    def getResult(self) -> tuple[str, str]:
-        return self.name.text(), self.description.text()
+        return self.exec()
 
         
 class GetDate(Dialog):
