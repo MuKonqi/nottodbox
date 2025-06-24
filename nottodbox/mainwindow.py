@@ -46,6 +46,10 @@ class MainWindow(QMainWindow):
         self.qsettings.setValue("mainwindow/geometry", self.saveGeometry())
         self.qsettings.setValue("mainwindow/state", self.saveState())
         
-        self.centralWidget().home.selector.options.close(self.centralWidget().home.selector.options.pages[self.centralWidget().home.area.pages.focused_on])
+        try:
+            self.centralWidget().home.selector.options.close(self.centralWidget().home.selector.options.pages[self.centralWidget().home.area.pages.focused_on])
+            
+        except KeyError:
+            pass
         
         return super().closeEvent(event)
