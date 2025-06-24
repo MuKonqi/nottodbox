@@ -221,7 +221,7 @@ class MainDB(Base):
         return items
     
     def getBackup(self, document: str, notebook: str) -> str:
-        return self.get("content", document, notebook)
+        return self.get("backup", document, notebook)
     
     def getContent(self, document: str, notebook: str) -> str:
         return self.get("content", document, notebook)
@@ -318,6 +318,7 @@ class MainDB(Base):
             self.items[(table, "__main__")].setData(date, Qt.ItemDataRole.UserRole + 103)
             
         successful = self.set(date, "modification", name, table) & successful
+        
         self.items[(name, table)].setData(date, Qt.ItemDataRole.UserRole + 103)
     
         return successful
