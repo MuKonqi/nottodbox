@@ -31,6 +31,12 @@ class ButtonDelegateBase(QStyledItemDelegate):
         
         name = index.data(Qt.ItemDataRole.UserRole + 101)
         
+        if index.data(Qt.ItemDataRole.UserRole + 20) == "completed":
+            name = f"[+] {name}"
+            
+        elif index.data(Qt.ItemDataRole.UserRole + 20) == "uncompleted":
+            name = f"[-] {name}"
+        
         name_font = QFont(option.font)
         name_font.setWeight(QFont.Weight.Bold)
         name_fontmetrics = QFontMetrics(name_font)
