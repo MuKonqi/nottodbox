@@ -32,6 +32,8 @@ class Document(QWidget):
         
         self.parent_ = parent
         
+        self.settings = {}
+        
         self.db = db
         self.index = index
         self.mode = mode
@@ -41,35 +43,24 @@ class Document(QWidget):
         self.content = index.data(Qt.ItemDataRole.UserRole + 104) if mode == "normal" else index.data(Qt.ItemDataRole.UserRole + 105)
         self.creation = index.data(Qt.ItemDataRole.UserRole + 102)
         
-        self.settings = {}
-        
-        self.settings[("autosave", "default")] = "enabled"
-        self.settings[("format", "default")] = "markdown"
-        self.settings[("locked", "default")] = None
-        
-        self.settings[("autosave", "global")] = "enabled" # tmp
-        self.settings[("format", "global")] = "markdown" # tmp
-        self.settings[("locked", "global")] = None # tmp
-        
-        self.settings[("autosave", "notebook")] = self.db.items[(self.notebook, "__main__")].data(Qt.ItemDataRole.UserRole + 22)
-        self.settings[("format", "notebook")] = self.db.items[(self.notebook, "__main__")].data(Qt.ItemDataRole.UserRole + 23)
-        self.settings[("locked", "notebook")] = self.db.items[(self.notebook, "__main__")].data(Qt.ItemDataRole.UserRole + 21)
-        
-        self.settings[("autosave", "document")] = index.data(Qt.ItemDataRole.UserRole + 22)
-        self.settings[("format", "document")] = index.data(Qt.ItemDataRole.UserRole + 23)
-        self.settings[("locked", "document")] = index.data(Qt.ItemDataRole.UserRole + 21)
-        
-        self.setSetting("autosave")
-        self.setSetting("format")
-        self.setSetting("locked")
-        
         self.today = QDate.currentDate()
-            
+        
         self.input = TextEdit(self)
         self.input.setAcceptRichText(True)
         
-        self.helper = DocumentHelper(self, self.settings["format"])
+        self.helper = DocumentHelper(self)
         self.input.cursorPositionChanged.connect(self.helper.updateButtons)
+
+        self.handleSettings()
+        
+        if self.settings["format"] == "plain-text":
+            self.input.setPlainText(self.content)
+            
+        elif self.settings["format"] == "markdown":
+            self.input.setMarkdown(self.content)
+            
+        elif self.settings["format"] == "html":
+            self.input.setHtml(self.content)
         
         self.layout_ = QVBoxLayout(self)
         self.layout_.addWidget(self.helper)
@@ -92,19 +83,13 @@ class Document(QWidget):
         else:
             return self.settings[(setting, "notebook")]
         
-    def setSetting(self, setting: str) -> None:
-        if self.settings[(setting, "document")] is None:
-            self.settings[setting] = self.settings[(setting, "default")]
+    def handleSettings(self) -> None:
+        self.settings["autosave"] = self.index.data(Qt.ItemDataRole.UserRole + 22)[1]
+        self.settings["format"] = self.index.data(Qt.ItemDataRole.UserRole + 23)[1]
+        self.settings["locked"] = self.index.data(Qt.ItemDataRole.UserRole + 21)[1]
             
-        elif self.settings[(setting, "document")] == "global":
-            self.settings[setting] = self.handleGlobal(setting)
-            
-        elif self.settings[(setting, "document")] == "notebook":
-            self.settings[setting] = self.handleNotebook(setting)
+        self.helper.updateStatus(self.settings["format"])
         
-        else:
-            self.settings[setting] = self.settings[(setting, "document")]
-            
 
 class BackupView(Document):
     def __init__(self, parent: QWidget, db, index: QModelIndex) -> None:
@@ -188,20 +173,14 @@ class NormalView(Document):
         else:
             QMessageBox.critical(self, self.tr("Error"), self.tr("Failed to save document."))
             
-    def refresh(self, caller: str, settings: dict) -> None:
-        for setting, value in settings.items():
-            self.settings[(setting, caller)] = value
-            
-            if self.settings[(setting, "document")] == caller:
-                self.settings[setting] = self.handleGlobal(setting) if caller == "global" else self.handleNotebook(setting)
-                
-        self.helper.updateStatus(self.settings["format"])
+    def refreshSettings(self) -> None:
+        super().handleSettings()
             
         self.changeAutosaveConnections()
             
             
 class DocumentHelper(QToolBar):
-    def __init__(self, parent: BackupView | NormalView, format: str) -> None:
+    def __init__(self, parent: BackupView | NormalView) -> None:
         super().__init__(parent)
         
         self.parent_ = parent
@@ -288,8 +267,6 @@ class DocumentHelper(QToolBar):
         
         self.background_color = self.addAction(self.tr("Background color"), self.setBackgroundColor)
         self.background_color.setStatusTip(self.tr("Setting background color is only available in HTML format."))
-        
-        self.updateStatus(format)
         
         self.fixTable()
         
@@ -601,15 +578,6 @@ class TextEdit(QTextEdit):
         super().__init__(parent)
         
         self.parent_ = parent
-        
-        if self.parent_.settings["format"] == "plain-text":
-            self.setPlainText(self.parent_.content)
-            
-        elif self.parent_.settings["format"] == "markdown":
-            self.setMarkdown(self.parent_.content)
-            
-        elif self.parent_.settings["format"] == "html":
-            self.setHtml(self.parent_.content)
     
     def mousePressEvent(self, event: QMouseEvent):
         self.anchor = self.anchorAt(event.pos())

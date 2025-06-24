@@ -28,6 +28,10 @@ APP_MODE = "@MODE@"
 
 APP_VERSION = "v0.0.90"
 
+APP_SETTINGS = ["completed", "locked", "autosave", "format", "sync", "icon", "bg_normal", "bg_hover", "bg_clicked", "fg_normal", "fg_hover", "fg_clicked", "bc_normal", "bc_hover", "bc_clicked", "br_normal", "br_hover", "br_clicked"]
+
+APP_DEFAULTS = [None, None, "enabled", "markdown", None, None, None, None, None, None, None, None, None, None, None, 5, 5, 5]
+
 
 if APP_MODE == "meson":
     DATA_DIR = "@DATA_DIR@"

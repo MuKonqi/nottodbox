@@ -31,10 +31,10 @@ class ButtonDelegateBase(QStyledItemDelegate):
         
         name = index.data(Qt.ItemDataRole.UserRole + 101)
         
-        if index.data(Qt.ItemDataRole.UserRole + 20) == "completed":
+        if index.data(Qt.ItemDataRole.UserRole + 20)[1] == "completed":
             name = f"[+] {name}"
             
-        elif index.data(Qt.ItemDataRole.UserRole + 20) == "uncompleted":
+        elif index.data(Qt.ItemDataRole.UserRole + 20)[1] == "uncompleted":
             name = f"[-] {name}"
         
         name_font = QFont(option.font)
@@ -142,7 +142,6 @@ class TreeViewBase(QTreeView):
         super().__init__(parent)
         
         self.setMouseTracking(True)
-        self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
         self.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
         self.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)

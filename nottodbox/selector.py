@@ -24,6 +24,7 @@ from widgets.controls import Action, CalendarWidget, Label, HSeperator, PushButt
 from widgets.dialogs import GetName, GetNameAndDescription, GetDescription
 from widgets.documents import BackupView, NormalView
 from widgets.lists import ButtonDelegateBase, TreeViewBase
+from consts import APP_SETTINGS, APP_DEFAULTS
 from databases import MainDB
 
 
@@ -164,6 +165,18 @@ class Options:
     
     def __init__(self, parent: Selector) -> None:
         self.parent_ = parent
+        
+    @Slot(QModelIndex)
+    def addLock(self, index: QModelIndex) -> None:
+        name, table = self.get(index)
+
+        if maindb.set("yes", "locked", name, table):
+            index.model().setData(index, ["self", "yes"], Qt.ItemDataRole.UserRole + 21)
+            
+            QMessageBox.information(self.parent_, self.parent_.tr("Successful"), self.parent_.tr("Lock added."))
+
+        else:
+            QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.parent_.tr("Failed to add lock."))
         
     @Slot(QModelIndex)
     def changeAppearance(self, index: QModelIndex) -> None:
@@ -316,9 +329,7 @@ class Options:
         name, table = self.get(index)
         
         if maindb.set("completed", "completed", name, table):
-            index.model().setData(index, "completed", Qt.ItemDataRole.UserRole + 20)
-            
-            QMessageBox.information(self.parent_, self.parent_.tr("Successful"), self.parent_.tr("Marked as completed."))
+            index.model().setData(index, ["self", "completed"], Qt.ItemDataRole.UserRole + 20)
             
         else:
             QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.parent_.tr("Failed to mark as completed."))
@@ -328,9 +339,7 @@ class Options:
         name, table = self.get(index)
         
         if maindb.set("uncompleted", "completed", name, table):
-            index.model().setData(index, "uncompleted", Qt.ItemDataRole.UserRole + 20)
-            
-            QMessageBox.information(self.parent_, self.parent_.tr("Successful"), self.parent_.tr("Marked as uncompleted."))
+            index.model().setData(index, ["self", "uncompleted"], Qt.ItemDataRole.UserRole + 20)
             
         else:
             QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.parent_.tr("Failed to mark as uncompleted."))
@@ -352,6 +361,18 @@ class Options:
         index.model().setData(index, NormalView(self.parent_.parent_.area.pages, maindb, index) if mode == "normal" else BackupView(self.parent_.parent_.area.pages, maindb, index), Qt.ItemDataRole.UserRole + 5)
         
         self.parent_.parent_.area.pages.layout_.replaceWidget(self.parent_.parent_.area.pages.focused_on, index.data(Qt.ItemDataRole.UserRole + 5))
+    
+    @Slot(QModelIndex)
+    def removeLock(self, index: QModelIndex) -> None:
+        name, table = self.get(index)
+
+        if maindb.set(None, "locked", name, table):
+            index.model().setData(index, ["self", None], Qt.ItemDataRole.UserRole + 21)
+            
+            QMessageBox.information(self.parent_, self.parent_.tr("Successful"), self.parent_.tr("Lock removed."))
+
+        else:
+            QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.parent_.tr("Failed to remove lock."))
     
     @Slot(QModelIndex)
     def rename(self, index: QModelIndex) -> None:
@@ -419,9 +440,7 @@ class Options:
         name, table = self.get(index)
         
         if maindb.set(None, "completed", name, table):
-            index.model().setData(index, None, Qt.ItemDataRole.UserRole + 20)
-            
-            QMessageBox.information(self.parent_, self.parent_.tr("Successful"), self.parent_.tr("Unmarked."))
+            index.model().setData(index, ["self", None], Qt.ItemDataRole.UserRole + 20)
             
         else:
             QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.parent_.tr("Failed to unmark."))
@@ -484,13 +503,12 @@ class TreeView(TreeViewBase):
         document.setData("document", Qt.ItemDataRole.UserRole + 2)
         document.setData(self.getType(data[1], data[2]), Qt.ItemDataRole.UserRole + 3)
         
-        for i in range(12):
-            document.setData(data[1 + i], Qt.ItemDataRole.UserRole + 20 + i)
-           
-        document.setData(notebook, Qt.ItemDataRole.UserRole + 100)
-         
+        document.setData(notebook, Qt.ItemDataRole.UserRole + 100) 
         for i in range(5):
             document.setData(data[len(data) - 1 - i], Qt.ItemDataRole.UserRole + 105 - i)
+            
+        for i in range(12):
+            document.setData(self.handleSetting(notebook, i, data[1 + i]), Qt.ItemDataRole.UserRole + 20 + i)
             
         item.appendRow(document)
             
@@ -501,16 +519,46 @@ class TreeView(TreeViewBase):
         notebook.setData(False, Qt.ItemDataRole.UserRole + 1)
         notebook.setData("notebook", Qt.ItemDataRole.UserRole + 2)
         
-        for i in range(12):
-            notebook.setData(data[2 + i], Qt.ItemDataRole.UserRole + 20 + i)
-            
         for i in range(4):
             notebook.setData(data[len(data) - 1 - i], Qt.ItemDataRole.UserRole + 104 - i)
+            
+        for i in range(12):
+            notebook.setData(self.handleSetting(notebook, i, data[2 + i]), Qt.ItemDataRole.UserRole + 20 + i)
             
         for data_ in data[0]:
             self.appendDocument(data_, notebook, data[len(data) - 4])
         
         self.model_.appendRow(notebook)
+        
+    def handleSettingViaGlobal(self, setting: str) -> str | None:
+        if setting is None:
+            return APP_DEFAULTS[setting]
+                
+        else:
+            return APP_DEFAULTS[setting] # tmp
+        
+    def handleSettingViaNotebook(self, index: QModelIndex, number: int) -> str | None:
+        if maindb.items[(index.data(Qt.ItemDataRole.UserRole + 100), "__main__")].data(Qt.ItemDataRole.UserRole + 20 + number)[1] is None:
+            return APP_DEFAULTS[APP_SETTINGS[number]]
+            
+        elif maindb.items[(index.data(Qt.ItemDataRole.UserRole + 100), "__main__")].data(Qt.ItemDataRole.UserRole + 20 + number)[1] == "global":
+            return self.handleGlobal(number)
+                
+        else:
+            return maindb.items[(index.data(Qt.ItemDataRole.UserRole + 100), "__main__")].data(Qt.ItemDataRole.UserRole + 20 + number)[1]
+        
+    def handleSetting(self, index: QModelIndex, number: int, value: str | None) -> tuple[str, str | None]:
+        if value is None:
+            return "default", APP_DEFAULTS[number]
+            
+        elif value == "global":
+            return "global", self.handleSettingViaGlobal(APP_SETTINGS[number])
+            
+        elif value == "notebook":
+            return "notebook", self.handleSettingViaNotebook(index, number)
+        
+        else:
+            return "self", value
         
     @Slot(int)
     def filterChanged(self, index: int) -> None:
@@ -566,17 +614,23 @@ class TreeView(TreeViewBase):
             menu.addAction(Action(self, lambda: self.parent_.options.clearContent(index), self.tr("Clear Content")))
             
         menu.addSeparator()
-        if index.data(Qt.ItemDataRole.UserRole + 20) == "completed":
+        if index.data(Qt.ItemDataRole.UserRole + 20)[1] == "completed":
             menu.addAction(Action(self, lambda: self.parent_.options.markAsUncompleted(index), self.tr("Mark as Uncompleted")))
             menu.addAction(Action(self, lambda: self.parent_.options.unmark(index), self.tr("Unmark")))
         
-        elif index.data(Qt.ItemDataRole.UserRole + 20) == "uncompleted":
+        elif index.data(Qt.ItemDataRole.UserRole + 20)[1] == "uncompleted":
             menu.addAction(Action(self, lambda: self.parent_.options.markAsCompleted(index), self.tr("Mark as Completed")))
             menu.addAction(Action(self, lambda: self.parent_.options.unmark(index), self.tr("Unmark")))
         
         else:
             menu.addAction(Action(self, lambda: self.parent_.options.markAsCompleted(index), self.tr("Mark as Completed")))
             menu.addAction(Action(self, lambda: self.parent_.options.markAsUncompleted(index), self.tr("Mark as Uncompleted")))
+            
+        menu.addSeparator()
+        if index.data(Qt.ItemDataRole.UserRole + 21)[1] == "yes":
+            menu.addAction(Action(self, lambda: self.parent_.options.removeLock(index), self.tr("Remove Lock")))
+        else:
+            menu.addAction(Action(self, lambda: self.parent_.options.addLock(index), self.tr("Add Lock")))
         
         menu.addSeparator()
         menu.addAction(Action(self, lambda: self.parent_.options.rename(index), self.tr("Rename")))

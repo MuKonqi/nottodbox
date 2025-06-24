@@ -40,6 +40,8 @@ class Sidebar(QWidget):
             ToolButton(self, lambda checked: self.setCurrentIndex(checked, 2), self.tr("About"), True, self.makeIcon("about"), 40)
         ]
         
+        self.set_focus = ToolButton(self, lambda: self.parent_.home.selector.setVisible(False if self.parent_.home.selector.isVisible() else True), self.tr("Focus"), True, self.makeIcon("focus"), 40)
+        
         self.favorites = Favorites(self)
         
         # self.row_spinbox = QSpinBox(self)
@@ -56,7 +58,7 @@ class Sidebar(QWidget):
         for button in self.buttons:
             self.layout_.addWidget(button)
             
-        self.layout_.addWidget(ToolButton(self, lambda: self.parent_.home.selector.setVisible(False if self.parent_.home.selector.isVisible() else True), self.tr("Focus"), True, self.makeIcon("focus"), 40))
+        self.layout_.addWidget(self.set_focus)
         self.layout_.addWidget(HSeperator(self))
         self.layout_.addWidget(self.favorites)
         # self.layout_.addWidget(HSeperator(self))
@@ -70,6 +72,12 @@ class Sidebar(QWidget):
        
     @Slot(bool, int) 
     def setCurrentIndex(self, checked: bool, index: int) -> None:
+        if (checked and index != 0) or (not checked and self.old_index != 0):
+            self.set_focus.setVisible(False)
+            
+        else:
+            self.set_focus.setVisible(True)
+        
         self.buttons[self.old_index].setChecked(False if checked else True)
         
         self.old_index = index
