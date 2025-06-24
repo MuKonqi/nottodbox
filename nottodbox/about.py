@@ -17,11 +17,11 @@
 
 
 import os
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, qVersion
 from PySide6.QtGui import QFontDatabase
 from PySide6.QtWidgets import *
 from consts import APP_VERSION
-from widgets.controls import HSeperator, Label
+from widgets.controls import HSeperator, Label, PushButton
 
 
 class About(QWidget):
@@ -44,13 +44,9 @@ class About(QWidget):
         
         self.source_label = Label(self, self.tr("Source codes") + ': <a href="https://github.com/mukonqi/nottodbox">GitHub</a>')
         self.source_label.setOpenExternalLinks(True)
-        
+
         self.developer_label = Label(self, self.tr("Developer") + ': <a href="https://mukonqi.github.io">MuKonqi (Muhammed S.)</a>')
         self.developer_label.setOpenExternalLinks(True)
-        
-        self.copyright_label = Label(self, self.tr("Copyright (C)") + f': 2024-2025 MuKonqi (Muhammed S.)')
-        
-        self.license_label = Label(self, self.tr("License: GNU General Public License, Version 3 or later"))
         
         with open("@APP_DIR@/LICENSE.txt" if os.path.isfile("@APP_DIR@/LICENSE.txt") else 
                     f"{os.path.dirname(__file__)}/LICENSE.txt" if os.path.isfile(f"{os.path.dirname(__file__)}/LICENSE.txt") else
@@ -76,10 +72,11 @@ class About(QWidget):
         self.layout_.addWidget(HSeperator(self))
         self.layout_.addWidget(self.version_label)
         self.layout_.addWidget(self.source_label)
+        self.layout_.addWidget(PushButton(self, QApplication.aboutQt, self.tr("Qt version:") + f" v{qVersion()}", False, True))
         self.layout_.addWidget(HSeperator(self))
         self.layout_.addWidget(self.developer_label)
         self.layout_.addWidget(HSeperator(self))
-        self.layout_.addWidget(self.copyright_label)
-        self.layout_.addWidget(self.license_label)
+        self.layout_.addWidget(Label(self, self.tr("Copyright (C)") + f': 2024-2025 MuKonqi (Muhammed S.)'))
+        self.layout_.addWidget(Label(self, self.tr("License: GNU General Public License, Version 3 or later")))
         self.layout_.addWidget(self.license_textedit, 0, Qt.AlignmentFlag.AlignCenter)
         self.layout_.setStretchFactor(self.icon_and_nottodbox, 2)
