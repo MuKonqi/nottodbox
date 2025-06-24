@@ -16,10 +16,9 @@
 # along with Nottodbox.  If not, see <https://www.gnu.org/licenses/>.
     
 
-from PySide6.QtCore import Qt, QSettings, QByteArray, Slot
+from PySide6.QtCore import QByteArray, QSettings, Qt, Slot
 from PySide6.QtGui import QCloseEvent
 from PySide6.QtWidgets import *
-from sidebar import Sidebar
 from centralwidget import CentralWidget
 
 
@@ -31,12 +30,6 @@ class MainWindow(QMainWindow):
         
         self.qsettings = QSettings("io.github.mukonqi", "nottodbox")
         
-        self.dock = QDockWidget(self)
-        self.dock.setObjectName("Dock")
-        self.dock.setFixedWidth(50)
-        self.dock.setTitleBarWidget(QWidget())
-        self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.dock)
-        
         self.show()
         self.restoreGeometry(QByteArray(self.qsettings.value("mainwindow/geometry")))
         self.restoreState(QByteArray(self.qsettings.value("mainwindow/state")))
@@ -46,10 +39,13 @@ class MainWindow(QMainWindow):
         self.setStatusBar(QStatusBar(self))
         self.setStatusTip(self.tr("There may be important information and tips here. Don't forget to look here!"))
         
-        self.dock.setWidget(Sidebar(self, self.dock))
         self.setCentralWidget(CentralWidget(self))
         
     @Slot(QCloseEvent)
-    def closeEvent(self, a0: QCloseEvent):
+    def closeEvent(self, event: QCloseEvent) -> None:
         self.qsettings.setValue("mainwindow/geometry", self.saveGeometry())
         self.qsettings.setValue("mainwindow/state", self.saveState())
+        
+        self.centralWidget().home.selector.options.close(self.centralWidget().home.selector.options.pages[self.centralWidget().home.area.pages.focused_on])
+        
+        return super().closeEvent(event)

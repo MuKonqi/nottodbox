@@ -21,7 +21,7 @@ from PySide6.QtGui import QFont, QFontMetrics, QPainter, QPainterPath, QPen, QSt
 from PySide6.QtWidgets import *
 
 
-class ButtonDelegate(QStyledItemDelegate):
+class ButtonDelegateBase(QStyledItemDelegate):
     menu_requested = Signal(QModelIndex)
 
     button_size = 24
@@ -29,7 +29,7 @@ class ButtonDelegate(QStyledItemDelegate):
     def paint(self, painter: QPainter, option: QStyleOptionViewItem, index: QModelIndex):
         painter.save()
         
-        name = index.data(Qt.ItemDataRole.UserRole + 100)
+        name = index.data(Qt.ItemDataRole.UserRole + 101)
         
         name_font = QFont(option.font)
         name_font.setWeight(QFont.Weight.Bold)
@@ -42,7 +42,7 @@ class ButtonDelegate(QStyledItemDelegate):
         name_rect.setRight(option.rect.width())
         name_rect.setHeight(name_fontmetrics.lineSpacing())
         
-        content = index.data(Qt.ItemDataRole.UserRole + 103)
+        content = index.data(Qt.ItemDataRole.UserRole + 104)
         
         content_rect = QRect(option.rect)
         content_rect.setLeft(content_rect.left() + name_padding)
@@ -50,7 +50,7 @@ class ButtonDelegate(QStyledItemDelegate):
         content_rect.setRight(option.rect.width() + (name_padding if index.data(Qt.ItemDataRole.UserRole + 2) == "document" else 0) - 10)
         content_rect.setHeight(name_fontmetrics.lineSpacing())
         
-        creation_date = index.data(Qt.ItemDataRole.UserRole + 101)
+        creation_date = index.data(Qt.ItemDataRole.UserRole + 102)
         
         creation_rect = QRect(option.rect)
         creation_rect.setLeft(creation_rect.left() + name_padding)
@@ -58,7 +58,7 @@ class ButtonDelegate(QStyledItemDelegate):
         creation_rect.setRight(QFontMetrics(QFont(option.font)).horizontalAdvance(creation_date) + creation_rect.left() + name_padding)
         creation_rect.setHeight(name_fontmetrics.lineSpacing())
         
-        modification_date = index.data(Qt.ItemDataRole.UserRole + 102)
+        modification_date = index.data(Qt.ItemDataRole.UserRole + 103)
 
         modification_rect = QRect(option.rect)
         modification_rect.setLeft(option.rect.width() - QFontMetrics(QFont(option.font)).horizontalAdvance(modification_date) + (name_padding if index.data(Qt.ItemDataRole.UserRole + 2) == "document" else 0))
@@ -73,12 +73,12 @@ class ButtonDelegate(QStyledItemDelegate):
         border_path = QPainterPath()
         border_path.addRoundedRect(border_rect, 10, 10)
         
-        border_pen = QPen(option.palette.linkVisited().color() if index.data(Qt.ItemDataRole.UserRole + 1) else option.palette.buttonText().color() if option.state & QStyle.StateFlag.State_MouseOver else option.palette.text().color(), 5)
+        border_pen = QPen(option.palette.linkVisited().color() if (index.data(Qt.ItemDataRole.UserRole + 1) and index.data(Qt.ItemDataRole.UserRole + 2) == "document") else option.palette.buttonText().color() if option.state & QStyle.StateFlag.State_MouseOver else option.palette.text().color(), 5)
         painter.setPen(border_pen)
 
         painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
         painter.drawPath(border_path)
-        painter.fillPath(border_path, option.palette.link().color() if index.data(Qt.ItemDataRole.UserRole + 1) else option.palette.button().color() if option.state & QStyle.StateFlag.State_MouseOver else option.palette.base().color())
+        painter.fillPath(border_path, option.palette.link().color() if (index.data(Qt.ItemDataRole.UserRole + 1) and index.data(Qt.ItemDataRole.UserRole + 2) == "document") else option.palette.button().color() if option.state & QStyle.StateFlag.State_MouseOver else option.palette.base().color())
         
         painter.restore()
 
@@ -114,11 +114,13 @@ class ButtonDelegate(QStyledItemDelegate):
         if event.type() == QEvent.Type.MouseButtonPress:
             button_rect = self.getButtonRect(option)
             
-            if event.button() == Qt.MouseButton.LeftButton and button_rect.contains(event.position().toPoint()):
-                self.menu_requested.emit(index)
-                return True
+            if event.button() == Qt.MouseButton.LeftButton:
+                if button_rect.contains(event.position().toPoint()):
+                    self.menu_requested.emit(index)
+                    return True
                 
-            model.setData(index, not index.data(Qt.ItemDataRole.UserRole + 1), Qt.ItemDataRole.UserRole + 1)
+                else:
+                    model.setData(index, not index.data(Qt.ItemDataRole.UserRole + 1), Qt.ItemDataRole.UserRole + 1)
 
         return super().editorEvent(event, model, option, index)
 
@@ -133,9 +135,6 @@ class TreeViewBase(QTreeView):
     def __init__(self, parent: QWidget) -> None:
         super().__init__(parent)
         
-        self.delegate = ButtonDelegate(self)
-        
-        self.setItemDelegate(self.delegate)
         self.setMouseTracking(True)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
         self.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)

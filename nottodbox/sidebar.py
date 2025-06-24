@@ -25,7 +25,7 @@ from consts import DARK_COLOR_SCHEME, ICON_DIR
 
 
 class Sidebar(QWidget):
-    def __init__(self, parent: QMainWindow, dock: QDockWidget) -> None:
+    def __init__(self, parent: QWidget) -> None:
         super().__init__(parent)
         
         self.parent_ = parent
@@ -42,30 +42,30 @@ class Sidebar(QWidget):
         
         self.favorites = Favorites(self)
         
-        self.row_spinbox = QSpinBox(self)
-        self.row_spinbox.setMinimum(1)
-        # self.row_spinbox.valueChanged.connect()
+        # self.row_spinbox = QSpinBox(self)
+        # self.row_spinbox.setMinimum(1)
+        # self.row_spinbox.valueChanged.connect(lambda value: self.parent_.home.area.pages.setArea(value, self.column_spinbox.value()))
         
-        self.layout_label = Label(self, "x")
-        self.layout_label.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Maximum)
+        # self.layout_label = Label(self, "x")
+        # self.layout_label.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Maximum)
         
-        self.column_spinbox = QSpinBox(self)
-        self.column_spinbox.setMinimum(1)
-        # self.column_spinbox.valueChanged.connect()
+        # self.column_spinbox = QSpinBox(self)
+        # self.column_spinbox.setMinimum(1)
+        # self.column_spinbox.valueChanged.connect(lambda value: self.parent_.home.area.pages.setArea(self.row_spinbox.value(), value))
 
         for button in self.buttons:
             self.layout_.addWidget(button)
             
-        self.layout_.addWidget(ToolButton(self, lambda: self.parent_.centralWidget().home.selector.setVisible(False if self.parent_.centralWidget().home.selector.isVisible() else True), self.tr("Focus"), True, self.makeIcon("focus"), 40))
+        self.layout_.addWidget(ToolButton(self, lambda: self.parent_.home.selector.setVisible(False if self.parent_.home.selector.isVisible() else True), self.tr("Focus"), True, self.makeIcon("focus"), 40))
         self.layout_.addWidget(HSeperator(self))
         self.layout_.addWidget(self.favorites)
-        self.layout_.addWidget(HSeperator(self))
-        self.layout_.addWidget(self.row_spinbox)
-        self.layout_.addWidget(self.layout_label)
-        self.layout_.addWidget(self.column_spinbox)
+        # self.layout_.addWidget(HSeperator(self))
+        # self.layout_.addWidget(self.row_spinbox)
+        # self.layout_.addWidget(self.layout_label)
+        # self.layout_.addWidget(self.column_spinbox)
         self.layout_.setContentsMargins(5, 5, 5, 5)
         
-        self.setFixedWidth(dock.width())
+        self.setFixedWidth(50)
         self.buttons[0].setChecked(True)
        
     @Slot(bool, int) 
@@ -74,7 +74,7 @@ class Sidebar(QWidget):
         
         self.old_index = index
         
-        self.parent_.centralWidget().setCurrentIndex(checked, index)
+        self.parent_.setCurrentIndex(checked, index)
     
     def makeIcon(self, name: str) -> QIcon:
         return QIcon(QPixmap(os.path.join(ICON_DIR, "actions", f"io.github.mukonqi.nottodbox_{name}_{"dark" if DARK_COLOR_SCHEME else "light"}.svg")))

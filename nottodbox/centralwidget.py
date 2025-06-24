@@ -20,13 +20,18 @@ from PySide6.QtCore import Slot
 from PySide6.QtWidgets import *
 from widgets.controls import VSeperator
 from about import About
-from selector import Selector
 from area import Area
+from selector import Selector
+from sidebar import Sidebar
 
 
-class CentralWidget(QStackedWidget):
+class CentralWidget(QWidget):
     def __init__(self, parent: QMainWindow) -> None:
         super().__init__(parent)
+        
+        self.sidebar = Sidebar(self)
+        
+        self.pages = QStackedWidget(self)
         
         self.old_index = 0
         
@@ -34,15 +39,20 @@ class CentralWidget(QStackedWidget):
         self.settings = QWidget(self)
         self.about = About(self)
         
-        self.addWidget(self.home)
-        self.addWidget(self.settings)
-        self.addWidget(self.about)
+        self.pages.addWidget(self.home)
+        self.pages.addWidget(self.settings)
+        self.pages.addWidget(self.about)
+        
+        self.layout_ = QHBoxLayout(self)
+        self.layout_.addWidget(self.sidebar)
+        self.layout_.addWidget(VSeperator(self))
+        self.layout_.addWidget(self.pages)
         
     @Slot(bool, int)
     def setCurrentIndex(self, checked: bool, index: int):
-        super().setCurrentIndex(self.old_index if not checked else index)
+        self.pages.setCurrentIndex(self.old_index if not checked else index)
         
-        self.old_index = self.currentIndex()
+        self.old_index = self.pages.currentIndex()
         
         
 class Home(QWidget):

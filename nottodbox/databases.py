@@ -128,10 +128,10 @@ class MainDB(Base):
                 id INTEGER PRIMARY KEY,
                 completed TEXT,
                 locked TEXT,
-                icon TEXT,
                 autosave TEXT,
                 format TEXT,
                 sync TEXT,
+                icon TEXT,
                 bg_normal TEXT,
                 bg_hover TEXT,
                 bg_clicked TEXT,
@@ -154,10 +154,10 @@ class MainDB(Base):
                     id INTEGER PRIMARY KEY,
                     completed TEXT,
                     locked TEXT,
-                    icon TEXT,
                     autosave TEXT,
                     format TEXT,
                     sync TEXT,
+                    icon TEXT,
                     bg_normal TEXT,
                     bg_hover TEXT,
                     bg_clicked TEXT,
@@ -261,6 +261,7 @@ class MainDB(Base):
     
     def reset(self, name: str) -> bool:
         self.cur.execute(f"delete from '{name}'")
+        self.db.commit()
         
         return self.getNotebook(name)[0] == []
     
@@ -277,7 +278,7 @@ class MainDB(Base):
         return False
         
     def saveDocument(self, content: str, backup: str, autosave: bool, document: str, notebook: str) -> bool:        
-        if self.checkIfTheChildExists(document, notebook):
+        if self.checkIfTheDocumentExists(document, notebook):
             self.cur.execute(f"update '{notebook}' set content = ? where name = ?", (content, document))
             self.db.commit()
         
@@ -298,7 +299,7 @@ class MainDB(Base):
         return self.get(column, name, table) == value
     
     def setBackup(self, content: str, document: str, notebook: str) -> bool:
-        if not self.getLocked(document, notebook) or (self.getLocked(document, notebook) and datetime.datetime.strptime(self.get("creation", document, notebook), "dd/MM/yyyy") == datetime.datetime.now()):
+        if self.getLocked(document, notebook) != "yes" or (self.getLocked(document, notebook) == "yes" and datetime.datetime.strptime(self.get("creation", document, notebook), "dd/MM/yyyy") == datetime.datetime.now()):
             self.cur.execute(f"update '{notebook}' set backup = ? where name = ?", (content, document))
             self.db.commit()
             
@@ -314,10 +315,10 @@ class MainDB(Base):
             
         if table != "__main__":
             successful = self.set(date, "modification", table)
-            self.items[(table, "__main__")].setData(date, Qt.ItemDataRole.UserRole + 102)
+            self.items[(table, "__main__")].setData(date, Qt.ItemDataRole.UserRole + 103)
             
         successful = self.set(date, "modification", name, table) & successful
-        self.items[(name, table)].setData(date, Qt.ItemDataRole.UserRole + 102)
+        self.items[(name, table)].setData(date, Qt.ItemDataRole.UserRole + 103)
     
         return successful
     

@@ -43,4 +43,4 @@
 
 
 ## Credit
-- While making [nottodbox/widgets/pages.py](./nottodbox/widgets/pages.py)'s PageHelper class, [KDE - Marknote: master/src/documenthandler.cpp](https://invent.kde.org/office/marknote/-/blob/master/src/documenthandler.cpp) helped me as a referance.
+- While making [nottodbox/widgets/documents.py](./nottodbox/widgets/documents.py)'s DocumentHelper class, [KDE - Marknote: master/src/documenthandler.cpp](https://invent.kde.org/office/marknote/-/blob/master/src/documenthandler.cpp) helped me as a referance.
