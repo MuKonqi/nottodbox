@@ -20,8 +20,8 @@ import datetime
 from PySide6.QtCore import QEvent, QModelIndex, QPoint, QSortFilterProxyModel, Qt, Slot
 from PySide6.QtGui import QStandardItem, QStandardItemModel
 from PySide6.QtWidgets import *
-from .widgets.controls import Action, CalendarWidget, Label, HSeperator, PushButton
-from .widgets.dialogs import GetName, GetNameAndDescription, GetDescription
+from .widgets.controls import Action, CalendarWidget, Label, LineEdit, HSeperator, PushButton
+from .widgets.dialogs import ChangeAppearance, ChangeSettings, GetName, GetNameAndDescription, GetDescription
 from .widgets.documents import BackupView, NormalView
 from .widgets.lists import ButtonDelegateBase, TreeViewBase
 from .consts import APP_SETTINGS, APP_DEFAULTS
@@ -45,9 +45,7 @@ class Selector(QWidget):
         
         self.tree_view = TreeView(self)
         
-        self.search_entry = QLineEdit(self)
-        self.search_entry.setClearButtonEnabled(True)
-        self.search_entry.setPlaceholderText(self.tr("Search..."))
+        self.search_entry = LineEdit(self, self.tr("Search"))
         self.search_entry.textChanged.connect(self.tree_view.setFilter)
         
         self.filter_combobox = QComboBox(self)
@@ -181,10 +179,14 @@ class Options:
     @Slot(QModelIndex)
     def changeAppearance(self, index: QModelIndex) -> None:
         name, table = self.get(index)
+        
+        ChangeAppearance(self.parent_, maindb, index).get()
     
     @Slot(QModelIndex)
     def changeSettings(self, index: QModelIndex) -> None:
         name, table = self.get(index)
+        
+        ChangeSettings(self.parent_, maindb, index).get()
     
     @Slot(QModelIndex)
     def clearContent(self, index: QModelIndex) -> None:

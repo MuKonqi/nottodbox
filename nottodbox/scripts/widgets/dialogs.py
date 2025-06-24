@@ -16,33 +16,36 @@
 # along with Nottodbox.  If not, see <https://www.gnu.org/licenses/>.
 
 
-from gettext import gettext as _
-from PySide6.QtCore import Qt, QDate
-from PySide6.QtGui import QColor
+from PySide6.QtCore import QModelIndex, QDate, Qt, Slot
+from PySide6.QtGui import QColor, QPixmap
 from PySide6.QtWidgets import *
-from .controls import CalendarWidget, Label, PushButton
-from ..consts import APP_ID
+from .controls import CalendarWidget, Label, LineEdit, PushButton
+from ..consts import APP_DEFAULTS, APP_OPTIONS
+from ..databases import MainDB
 
 
 class GetColor(QColorDialog):
-    def __init__(self, parent: QWidget, show_global: bool, show_default: bool, color: QColor | Qt.GlobalColor, title: str) -> None:
+    def __init__(self, parent: QWidget, show_default: bool, show_global: bool, show_notebook: bool, color: QColor | Qt.GlobalColor, title: str) -> None:
         super().__init__(color, parent)
         
         self.setOption(QColorDialog.ColorDialogOption.DontUseNativeDialog, True)
         
         self.buttonbox = self.findChild(QDialogButtonBox)
         
+        if show_default:
+            self.set_to_default = PushButton(self.buttonbox, lambda: self.done(2), self.tr("Set to default"))
+        
+            self.buttonbox.addButton(self.set_to_default, QDialogButtonBox.ButtonRole.ResetRole)
+        
         if show_global:
-            self.set_to_global = PushButton(self.buttonbox, _("Set to global"))
-            self.set_to_global.clicked.connect(lambda: self.done(2))
+            self.set_to_global = PushButton(self.buttonbox, lambda: self.done(3), self.tr("Set to global"))
             
             self.buttonbox.addButton(self.set_to_global, QDialogButtonBox.ButtonRole.ResetRole)
             
-        if show_default:
-            self.set_to_default = PushButton(self.buttonbox, _("Set to default"))
-            self.set_to_default.clicked.connect(lambda: self.done(3))
-        
-            self.buttonbox.addButton(self.set_to_default, QDialogButtonBox.ButtonRole.ResetRole)
+        if show_notebook:
+            self.set_to_notebook = PushButton(self.buttonbox, lambda: self.done(4), self.tr("Set to notebook"))
+            
+            self.buttonbox.addButton(self.set_to_notebook, QDialogButtonBox.ButtonRole.ResetRole)
         
         self.setWindowTitle(title)
         self.exec()
@@ -52,20 +55,69 @@ class GetColor(QColorDialog):
             return True, "new", self.selectedColor()
         
         elif self.result() == 2:
-            return True, "global", None
+            return True, "default", None
         
         elif self.result() == 3:
-            return True, "default", None
+            return True, "global", None
+        
+        elif self.result() == 4:
+            return True, "notebook", None
         
         else:
             return False, None, None
+        
+    
+class ColorSelector(QWidget):
+    def __init__(self, parent: QWidget, show_default: bool, show_global: bool, show_notebook: bool, color: QColor | Qt.GlobalColor, title: str) -> None:
+        super().__init__(parent)
+        
+        self.selected = None
+        
+        self.show_default = show_default
+        self.show_global = show_global
+        self.show_notebook = show_notebook
+        self.color = color
+        self.title = title
+        
+        self.selector = PushButton(self, self.selectColor, self.tr("Select color ({})").format(self.tr("none")))
+        
+        self.label = Label(self)
+        
+        self.viewer = QPixmap(self.selector.height(), self.selector.height())
+
+        self.layout_ = QHBoxLayout(self)
+        self.layout_.setContentsMargins(0, 0, 0, 0)
+        self.layout_.addWidget(self.selector)
+        self.layout_.addWidget(self.label)
+        
+    @Slot()
+    def selectColor(self) -> None:
+        ok, status, qcolor = GetColor(self, self.show_default, self.show_global, self.show_notebook, self.color, self.title).getColor()
+        
+        if ok:
+            if status == "new":
+                self.selected = qcolor.name()
+                
+            else:
+                self.selected = status
+                
+            self.previewColor(self.selected)
+        
+    def previewColor(self, color: str) -> None:
+        self.selector.setText(self.tr("Select color ({})").format(color if color != "" else self.tr("none")))
+        self.viewer.fill(color if color != "" and QColor(color).isValid() else Qt.GlobalColor.transparent)
+        self.label.setPixmap(self.viewer)
         
 
 class Dialog(QDialog):
     def __init__(self, parent: QWidget, window_title: str) -> None:
         super().__init__(parent)
         
-        self.input = QWidget(self)
+        self.scroll_area = QScrollArea(self, widgetResizable=True)
+        
+        self.input = QWidget(self.scroll_area)
+        
+        self.scroll_area.setWidget(self.input)
         
         self.buttons = QDialogButtonBox(self)
         self.buttons.addButton(QDialogButtonBox.StandardButton.Cancel)
@@ -74,7 +126,7 @@ class Dialog(QDialog):
         self.buttons.accepted.connect(lambda: self.done(1))
         
         self.base_layout = QVBoxLayout(self)
-        self.base_layout.addWidget(self.input)
+        self.base_layout.addWidget(self.scroll_area)
         self.base_layout.addWidget(self.buttons)
         
         self.setWindowTitle(window_title)
@@ -162,13 +214,9 @@ class GetTwoNumber(Dialog):
         self.mode = mode
         
         if self.mode == "text":
-            self.top_widget = QLineEdit(self.input)
-            self.top_widget.setClearButtonEnabled(True)
-            self.top_widget.setPlaceholderText(top_extra)
+            self.top_widget = LineEdit(self.input, top_extra)
             
-            self.bottom_widget = QLineEdit(self.input)
-            self.bottom_widget.setClearButtonEnabled(True)
-            self.bottom_widget.setPlaceholderText(bottom_extra)
+            self.bottom_widget = LineEdit(self.input, bottom_extra)
         
         elif self.mode == "number":
             self.top_widget = QSpinBox(self.input)
@@ -201,3 +249,105 @@ class GetTwoNumber(Dialog):
 
         else:
             return "cancel", None, None
+        
+        
+class Settings(Dialog):
+    def __init__(self, parent: QWidget, db: MainDB, index: QModelIndex, window_title: str) -> None:
+        super().__init__(parent, window_title)
+        
+        self.parent_ = parent
+        
+        self.db = db
+        
+        self.index = index
+        
+        self.layout_ = QFormLayout(self.input)
+        self.layout_.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.ExpandingFieldsGrow)
+        
+        
+class ChangeAppearance(Settings):
+    def __init__(self, parent: QWidget, db: MainDB, index: QModelIndex) -> None:
+        super().__init__(parent, db, index, self.tr("Change Appearance"))
+        
+        self.localizeds = [
+            self.tr("Background color"),
+            self.tr("Background color when mouse is over"),
+            self.tr("Background color when clicked"),
+            self.tr("Foreground color"),
+            self.tr("Foreground color when mouse is over"),
+            self.tr("Foreground color when clicked"),
+            self.tr("Border color"),
+            self.tr("Border color when mouse is over"),
+            self.tr("Border color when clicked")
+            ]
+        
+        self.buttons = []
+        
+        for i in range(9):
+            self.buttons.append(ColorSelector(self.input, True, True, index.data(Qt.ItemDataRole.UserRole + 2) == "document", QColor("#376296"), self.tr("Select Color")))
+            self.layout_.addRow(f"{self.localizeds[i]}:", self.buttons[-1])
+            
+        self.exec()
+                
+    def get(self):
+        return self.result()
+        
+        
+class ChangeSettings(Settings):
+    def __init__(self, parent: QWidget, db: MainDB, index: QModelIndex) -> None:
+        super().__init__(parent, db, index, self.tr("Change Settings"))
+        
+        self.settings = APP_OPTIONS.copy()
+        
+        if index.data(Qt.ItemDataRole.UserRole + 2) == "document":
+            self.settings.append("notebook")
+        
+        self.localizeds = [
+            self.tr("Completion status*"),
+            self.tr("Lock status**"),
+            self.tr("Auto-save"),
+            self.tr("Format")
+            ]
+        
+        self.options = [
+            [self.tr("Completed"), self.tr("Uncompleted")],
+            [self.tr("Yes"), self.tr("None")],
+            [self.tr("Enabled"), self.tr("Disabled")],
+            ["Markdown", "HTML", self.tr("Plain-text")]
+        ]
+        
+        self.values = [
+            ["completed", "uncompleted"],
+            ["yes", None],
+            ["enabled", "disabled"],
+            ["markdown", "html", "plain-text"]
+        ]
+        
+        for i in range(4):
+            combobox = QComboBox(self.input)
+            combobox.addItems([
+                self.tr("Follow default ({})").format(APP_DEFAULTS[0]),
+                self.tr("Follow global ({})").format(APP_DEFAULTS[0]) # tmp
+            ])
+            
+            if index.data(Qt.ItemDataRole.UserRole + 2) == "document":
+                combobox.insertItem(2, self.tr("Follow notebook ({})").
+                                      format(self.db.items[(index.data(Qt.ItemDataRole.UserRole + 100), "__main__")].data(Qt.ItemDataRole.UserRole + 20 + i)[1]))
+                
+            combobox.addItems(self.options[i])
+            
+            self.layout_.addRow(Label(self.input, f"{self.localizeds[i]}:", Qt.AlignmentFlag.AlignRight), combobox)
+    
+            try:
+                combobox.setCurrentIndex(self.settings.index(index.data(Qt.ItemDataRole.UserRole + 20 + i)[0]))
+            
+            except ValueError:
+                combobox.setCurrentIndex(len(self.settings) + self.values[i].index(index.data(Qt.ItemDataRole.UserRole + 20 + i)[1]))
+                
+        self.layout_.addRow(Label(self.input, self.tr("*Setting this to 'Completed' or 'Uncompleted' converts to a to-do."), Qt.AlignmentFlag.AlignLeft))
+        self.layout_.addRow(Label(self.input, self.tr("**Setting this to 'Yes' converts to a diary."), Qt.AlignmentFlag.AlignLeft))
+                
+        self.exec()
+                
+    def get(self):
+        return self.result()

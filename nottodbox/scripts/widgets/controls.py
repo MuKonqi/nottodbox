@@ -68,6 +68,16 @@ class Label(QLabel):
         
         self.setAlignment(alignment)
         
+        
+class LineEdit(QLineEdit):
+    def __init__(self, parent: QWidget, text: str | None = None, clearer: bool = True) -> None:
+        super().__init__(parent)
+        
+        if text is not None:
+            self.setPlaceholderText(text)
+            
+        self.setClearButtonEnabled(clearer)
+        
 
 class VSeperator(QFrame):
     def __init__(self, parent: QWidget) -> None:

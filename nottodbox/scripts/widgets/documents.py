@@ -309,7 +309,7 @@ class DocumentHelper(QToolBar):
         cur.mergeCharFormat(format)
         
     def setBackgroundColor(self) -> None:
-        ok, status, qcolor = GetColor(self, False, True, Qt.GlobalColor.white, self.tr("Select {} Color").format(self.tr("Background"))).getColor()
+        ok, status, qcolor = GetColor(self, True, False, False, Qt.GlobalColor.white, self.tr("Select {} Color").format(self.tr("Background"))).getColor()
         
         if ok:
             if status == "new":
@@ -435,7 +435,7 @@ class DocumentHelper(QToolBar):
                 QMessageBox.critical(self, self.tr("Error"), self.tr("The row and column numbers are required, they can not be blank."))
                 
     def setTextColor(self) -> None:
-        ok, status, qcolor = GetColor(self, False, True, Qt.GlobalColor.white, self.tr("Select {} Color").format(self.tr("Text"))).getColor()
+        ok, status, qcolor = GetColor(self, True, False, False, Qt.GlobalColor.white, self.tr("Select {} Color").format(self.tr("Text"))).getColor()
         
         if ok:
             if status == "new":
