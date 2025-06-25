@@ -509,7 +509,7 @@ class TreeView(TreeViewBase):
         for i in range(5):
             document.setData(data[len(data) - 1 - i], Qt.ItemDataRole.UserRole + 105 - i)
             
-        for i in range(12):
+        for i in range(15):
             document.setData(self.handleSetting(notebook, i, data[1 + i]), Qt.ItemDataRole.UserRole + 20 + i)
             
         item.appendRow(document)
@@ -524,7 +524,7 @@ class TreeView(TreeViewBase):
         for i in range(4):
             notebook.setData(data[len(data) - 1 - i], Qt.ItemDataRole.UserRole + 104 - i)
             
-        for i in range(12):
+        for i in range(15):
             notebook.setData(self.handleSetting(notebook, i, data[2 + i]), Qt.ItemDataRole.UserRole + 20 + i)
             
         for data_ in data[0]:

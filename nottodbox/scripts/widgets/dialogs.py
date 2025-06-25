@@ -20,7 +20,7 @@ from PySide6.QtCore import QModelIndex, QDate, Qt, Slot
 from PySide6.QtGui import QColor, QPixmap
 from PySide6.QtWidgets import *
 from .controls import CalendarWidget, Label, LineEdit, PushButton
-from ..consts import APP_DEFAULTS, APP_OPTIONS
+from .settings import changeAppearance, changeSettings
 from ..databases import MainDB
 
 
@@ -33,19 +33,19 @@ class GetColor(QColorDialog):
         self.buttonbox = self.findChild(QDialogButtonBox)
         
         if show_default:
-            self.set_to_default = PushButton(self.buttonbox, lambda: self.done(2), self.tr("Set to default"))
+            self.follow_default = PushButton(self.buttonbox, lambda: self.done(2), self.tr("Follow default"))
         
-            self.buttonbox.addButton(self.set_to_default, QDialogButtonBox.ButtonRole.ResetRole)
+            self.buttonbox.addButton(self.follow_default, QDialogButtonBox.ButtonRole.ResetRole)
         
         if show_global:
-            self.set_to_global = PushButton(self.buttonbox, lambda: self.done(3), self.tr("Set to global"))
+            self.follow_global = PushButton(self.buttonbox, lambda: self.done(3), self.tr("Follow global"))
             
-            self.buttonbox.addButton(self.set_to_global, QDialogButtonBox.ButtonRole.ResetRole)
+            self.buttonbox.addButton(self.follow_global, QDialogButtonBox.ButtonRole.ResetRole)
             
         if show_notebook:
-            self.set_to_notebook = PushButton(self.buttonbox, lambda: self.done(4), self.tr("Set to notebook"))
+            self.follow_notebook = PushButton(self.buttonbox, lambda: self.done(4), self.tr("Follow notebook"))
             
-            self.buttonbox.addButton(self.set_to_notebook, QDialogButtonBox.ButtonRole.ResetRole)
+            self.buttonbox.addButton(self.follow_notebook, QDialogButtonBox.ButtonRole.ResetRole)
         
         self.setWindowTitle(title)
         self.exec()
@@ -66,9 +66,9 @@ class GetColor(QColorDialog):
         else:
             return False, None, None
         
-    
+  
 class ColorSelector(QWidget):
-    def __init__(self, parent: QWidget, show_default: bool, show_global: bool, show_notebook: bool, color: QColor | Qt.GlobalColor, title: str) -> None:
+    def __init__(self, parent: QWidget, show_default: bool, show_global: bool, show_notebook: bool, color: QColor | Qt.GlobalColor | str, title: str) -> None:
         super().__init__(parent)
         
         self.selected = None
@@ -79,7 +79,7 @@ class ColorSelector(QWidget):
         self.color = color
         self.title = title
         
-        self.selector = PushButton(self, self.selectColor, self.tr("Select color ({})").format(self.tr("none")))
+        self.selector = PushButton(self, self.selectColor, self.tr("Select color ({})").format(color))
         
         self.label = Label(self)
         
@@ -269,23 +269,7 @@ class ChangeAppearance(Settings):
     def __init__(self, parent: QWidget, db: MainDB, index: QModelIndex) -> None:
         super().__init__(parent, db, index, self.tr("Change Appearance"))
         
-        self.localizeds = [
-            self.tr("Background color"),
-            self.tr("Background color when mouse is over"),
-            self.tr("Background color when clicked"),
-            self.tr("Foreground color"),
-            self.tr("Foreground color when mouse is over"),
-            self.tr("Foreground color when clicked"),
-            self.tr("Border color"),
-            self.tr("Border color when mouse is over"),
-            self.tr("Border color when clicked")
-            ]
-        
-        self.buttons = []
-        
-        for i in range(9):
-            self.buttons.append(ColorSelector(self.input, True, True, index.data(Qt.ItemDataRole.UserRole + 2) == "document", QColor("#376296"), self.tr("Select Color")))
-            self.layout_.addRow(f"{self.localizeds[i]}:", self.buttons[-1])
+        changeAppearance(self, index, True, ColorSelector)
             
         self.exec()
                 
@@ -297,55 +281,7 @@ class ChangeSettings(Settings):
     def __init__(self, parent: QWidget, db: MainDB, index: QModelIndex) -> None:
         super().__init__(parent, db, index, self.tr("Change Settings"))
         
-        self.settings = APP_OPTIONS.copy()
-        
-        if index.data(Qt.ItemDataRole.UserRole + 2) == "document":
-            self.settings.append("notebook")
-        
-        self.localizeds = [
-            self.tr("Completion status*"),
-            self.tr("Lock status**"),
-            self.tr("Auto-save"),
-            self.tr("Format")
-            ]
-        
-        self.options = [
-            [self.tr("Completed"), self.tr("Uncompleted")],
-            [self.tr("Yes"), self.tr("None")],
-            [self.tr("Enabled"), self.tr("Disabled")],
-            ["Markdown", "HTML", self.tr("Plain-text")]
-        ]
-        
-        self.values = [
-            ["completed", "uncompleted"],
-            ["yes", None],
-            ["enabled", "disabled"],
-            ["markdown", "html", "plain-text"]
-        ]
-        
-        for i in range(4):
-            combobox = QComboBox(self.input)
-            combobox.addItems([
-                self.tr("Follow default ({})").format(APP_DEFAULTS[0]),
-                self.tr("Follow global ({})").format(APP_DEFAULTS[0]) # tmp
-            ])
-            
-            if index.data(Qt.ItemDataRole.UserRole + 2) == "document":
-                combobox.insertItem(2, self.tr("Follow notebook ({})").
-                                      format(self.db.items[(index.data(Qt.ItemDataRole.UserRole + 100), "__main__")].data(Qt.ItemDataRole.UserRole + 20 + i)[1]))
-                
-            combobox.addItems(self.options[i])
-            
-            self.layout_.addRow(Label(self.input, f"{self.localizeds[i]}:", Qt.AlignmentFlag.AlignRight), combobox)
-    
-            try:
-                combobox.setCurrentIndex(self.settings.index(index.data(Qt.ItemDataRole.UserRole + 20 + i)[0]))
-            
-            except ValueError:
-                combobox.setCurrentIndex(len(self.settings) + self.values[i].index(index.data(Qt.ItemDataRole.UserRole + 20 + i)[1]))
-                
-        self.layout_.addRow(Label(self.input, self.tr("*Setting this to 'Completed' or 'Uncompleted' converts to a to-do."), Qt.AlignmentFlag.AlignLeft))
-        self.layout_.addRow(Label(self.input, self.tr("**Setting this to 'Yes' converts to a diary."), Qt.AlignmentFlag.AlignLeft))
+        changeSettings(self, index, True)
                 
         self.exec()
                 
