@@ -25,7 +25,7 @@ from .widgets.dialogs import ChangeAppearance, ChangeSettings, GetName, GetNameA
 from .widgets.documents import BackupView, NormalView
 from .widgets.lists import ButtonDelegateBase, TreeViewBase
 from .consts import APP_DEFAULTS, APP_OPTIONS, APP_SETTINGS
-from .databases import MainDB
+from .database import MainDB
 
 
 maindb = MainDB()
@@ -233,27 +233,31 @@ class Options:
         default = options[default]
 
         if ok:
-            try:
-                diary = bool(datetime.datetime.strptime(document, "%d/%m/%Y"))
-                
-            except ValueError:
-                diary = False
-            
             if index.data(Qt.ItemDataRole.UserRole + 2) == "notebook":
                 notebook = index.data(Qt.ItemDataRole.UserRole + 101)
                 
             elif index.data(Qt.ItemDataRole.UserRole + 2) == "document":
                 notebook = index.data(Qt.ItemDataRole.UserRole + 100)
             
-            if document == "":
-                QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.parent_.tr("A name is required."))
-                return
-            
-            if maindb.createDocument(default, "yes" if diary else None, document, notebook):
-                self.parent_.tree_view.appendDocument(maindb.getDocument(document, notebook), maindb.items[(notebook, "__main__")], notebook)
+            if not maindb.checkIfItExists(document, notebook):
+                try:
+                    diary = bool(datetime.datetime.strptime(document, "%d/%m/%Y"))
+                    
+                except ValueError:
+                    diary = False
+                
+                if document == "":
+                    QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.parent_.tr("A name is required."))
+                    return
+                
+                if maindb.createDocument(default, "yes" if diary else None, document, notebook):
+                    self.parent_.tree_view.appendDocument(maindb.getDocument(document, notebook), maindb.items[(notebook, "__main__")], notebook)
+                    
+                else:
+                    QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.parent_.tr("Failed to create document."))
                 
             else:
-                QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.parent_.tr("Failed to create document."))
+                QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.parent_.tr("This item is already exists."))
     
     @Slot(str or None, str or None)
     def createNotebook(self, name: str | None = None, description: str | None = None) -> bool | None:
@@ -270,27 +274,32 @@ class Options:
             default = "default"
             
         if ok:
-            try:
-                diary = bool(datetime.datetime.strptime(name, "%d/%m/%Y"))
+            if not maindb.checkIfItExists(name):
+                try:
+                    diary = bool(datetime.datetime.strptime(name, "%d/%m/%Y"))
+                    
+                except ValueError:
+                    diary = False
                 
-            except ValueError:
-                diary = False
-            
-            if name == "":
-                QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.parent_.tr("A name is required."))
-                return
-            
-            successful = maindb.createNotebook(default, "yes" if diary else None, description, name)
-            
-            if successful:
-                self.parent_.tree_view.appendNotebook(maindb.getNotebook(name))
+                if name == "":
+                    QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.parent_.tr("A name is required."))
+                    return
                 
+                successful = maindb.createNotebook(default, "yes" if diary else None, description, name)
+                
+                if successful:
+                    self.parent_.tree_view.appendNotebook(maindb.getNotebook(name))
+                    
+                else:
+                    QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.parent_.tr("Failed to create notebook."))
+                    
+                self.parent_.setPage()
+                
+                return successful
+            
             else:
-                QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.parent_.tr("Failed to create notebook."))
-                
-            self.parent_.setPage()
-            
-            return successful
+                QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.parent_.tr("This item is already exists."))
+                return False
     
     @Slot(QModelIndex)
     def delete(self, index: QModelIndex) -> None:
@@ -405,20 +414,24 @@ class Options:
                 QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.parent_.tr("A name is required."))
                 return
             
-            if maindb.rename("yes" if diary else None, new_name, name, table):
-                if index.data(Qt.ItemDataRole.UserRole + 2) == "notebook":
-                    for name_, table_ in maindb.items.copy().keys():
-                        if table_ == name:
-                            maindb.items[(name_, table_)].setData(new_name, Qt.ItemDataRole.UserRole + 100)
-                            maindb.items[(name_, new_name)] = maindb.items.pop((name_, table_))
-                            
-                maindb.items[(new_name, table)] = maindb.items.pop((name, table))
-                
-                index.model().setData(index, "yes" if diary else None, Qt.ItemDataRole.UserRole + 21)
-                index.model().setData(index, new_name, Qt.ItemDataRole.UserRole + 101)
-                
+            if not maindb.checkIfItExists(name, table):
+                if maindb.rename("yes" if diary else None, new_name, name, table):
+                    if index.data(Qt.ItemDataRole.UserRole + 2) == "notebook":
+                        for name_, table_ in maindb.items.copy().keys():
+                            if table_ == name:
+                                maindb.items[(name_, table_)].setData(new_name, Qt.ItemDataRole.UserRole + 100)
+                                maindb.items[(name_, new_name)] = maindb.items.pop((name_, table_))
+                                
+                    maindb.items[(new_name, table)] = maindb.items.pop((name, table))
+                    
+                    index.model().setData(index, "yes" if diary else None, Qt.ItemDataRole.UserRole + 21)
+                    index.model().setData(index, new_name, Qt.ItemDataRole.UserRole + 101)
+                    
+                else:
+                    QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.parent_.tr("Failed to rename."))
+                    
             else:
-                QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.parent_.tr("Failed to rename."))
+                QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.parent_.tr("This item is already exists."))
     
     @Slot(QModelIndex)
     def reset(self, index: QModelIndex) -> None:
@@ -526,19 +539,19 @@ class TreeView(TreeViewBase):
             
     def appendNotebook(self, data: list) -> None:
         notebook = QStandardItem()
-        maindb.items[(data[len(data) - 4], "__main__")] = notebook
+        maindb.items[(data[len(data) - 5], "__main__")] = notebook
         
         notebook.setData(False, Qt.ItemDataRole.UserRole + 1)
         notebook.setData("notebook", Qt.ItemDataRole.UserRole + 2)
         
-        for i in range(4):
-            notebook.setData(data[len(data) - 1 - i], Qt.ItemDataRole.UserRole + 104 - i)
+        for i in range(5):
+            notebook.setData(data[len(data) - 1 - i], Qt.ItemDataRole.UserRole + 105 - i)
             
         for i in range(15):
             notebook.setData(self.handleSetting(notebook, i, data[2 + i]), Qt.ItemDataRole.UserRole + 20 + i)
             
         for data_ in data[0]:
-            self.appendDocument(data_, notebook, data[len(data) - 4])
+            self.appendDocument(data_, notebook, data[len(data) - 5])
         
         self.model_.appendRow(notebook)
         

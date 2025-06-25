@@ -21,7 +21,6 @@ from PySide6.QtGui import QColor, QPixmap
 from PySide6.QtWidgets import *
 from .controls import CalendarWidget, Label, LineEdit, PushButton
 from .settings import changeAppearance, changeSettings
-from ..databases import MainDB
 
 
 class GetColor(QColorDialog):
@@ -280,7 +279,7 @@ class GetTwoNumber(Dialog):
         
         
 class Settings(Dialog):
-    def __init__(self, parent: QWidget, db: MainDB, index: QModelIndex, window_title: str) -> None:
+    def __init__(self, parent: QWidget, db, index: QModelIndex, window_title: str) -> None:
         super().__init__(parent, window_title)
         
         self.parent_ = parent
@@ -295,7 +294,7 @@ class Settings(Dialog):
         
         
 class ChangeAppearance(Settings):
-    def __init__(self, parent: QWidget, db: MainDB, index: QModelIndex) -> None:
+    def __init__(self, parent: QWidget, db, index: QModelIndex) -> None:
         super().__init__(parent, db, index, self.tr("Change Appearance"))
         
         changeAppearance(self, index, True, ColorSelector)
@@ -311,7 +310,7 @@ class ChangeAppearance(Settings):
         
         
 class ChangeSettings(Settings):
-    def __init__(self, parent: QWidget, db: MainDB, index: QModelIndex) -> None:
+    def __init__(self, parent: QWidget, db, index: QModelIndex) -> None:
         super().__init__(parent, db, index, self.tr("Change Settings"))
         
         changeSettings(self, index, True)
