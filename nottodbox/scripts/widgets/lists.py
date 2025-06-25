@@ -17,7 +17,7 @@
 
 
 from PySide6.QtCore import QEvent, QMargins, QModelIndex, QRect, QSize, Qt, Signal, Slot
-from PySide6.QtGui import QFont, QFontMetrics, QPainter, QPainterPath, QPen, QStandardItemModel
+from PySide6.QtGui import QColor, QFont, QFontMetrics, QPainter, QPainterPath, QPen, QStandardItemModel
 from PySide6.QtWidgets import *
 
 
@@ -79,15 +79,45 @@ class ButtonDelegateBase(QStyledItemDelegate):
         border_path = QPainterPath()
         border_path.addRoundedRect(border_rect, 10, 10)
         
-        border_pen = QPen(option.palette.linkVisited().color() if (index.data(Qt.ItemDataRole.UserRole + 1) and index.data(Qt.ItemDataRole.UserRole + 2) == "document") else option.palette.buttonText().color() if option.state & QStyle.StateFlag.State_MouseOver else option.palette.text().color(), 5)
+        situations = [
+            bool(index.data(Qt.ItemDataRole.UserRole + 1) and index.data(Qt.ItemDataRole.UserRole + 2) == "document"), 
+            bool(option.state & QStyle.StateFlag.State_MouseOver), 
+            bool(True)
+            ]
+        
+        defaults = [
+            [option.palette.base().color(), option.palette.text().color(), option.palette.text().color()],
+            [option.palette.button().color(), option.palette.text().color(), option.palette.buttonText().color()],
+            [option.palette.link().color(), option.palette.text().color(), option.palette.linkVisited().color()]
+            ]
+        
+        colors = []
+        
+        i = 2
+        
+        for status in situations:
+            if status:
+                for j in range(3):
+                    if index.data(Qt.ItemDataRole.UserRole + 26 + j * 3 + i)[1] == None:
+                        colors.append(defaults[i][j])
+                        
+                    else:
+                        colors.append(QColor(index.data(Qt.ItemDataRole.UserRole + 26 + j * 3 + i)[1]))
+                        
+                break
+                    
+            i -= 1
+
+        border_pen = QPen(colors[2], 5)
         painter.setPen(border_pen)
 
         painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
         painter.drawPath(border_path)
-        painter.fillPath(border_path, option.palette.link().color() if (index.data(Qt.ItemDataRole.UserRole + 1) and index.data(Qt.ItemDataRole.UserRole + 2) == "document") else option.palette.button().color() if option.state & QStyle.StateFlag.State_MouseOver else option.palette.base().color())
+        painter.fillPath(border_path, colors[0])
         
         painter.restore()
 
+        painter.setPen(colors[1])
         painter.setFont(name_font)
         painter.drawText(name_rect, Qt.AlignmentFlag.AlignLeading, name_fontmetrics.elidedText(name, Qt.TextElideMode.ElideRight, name_rect.width()))
         

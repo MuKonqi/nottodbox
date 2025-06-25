@@ -24,7 +24,7 @@ from .widgets.controls import Action, CalendarWidget, Label, LineEdit, HSeperato
 from .widgets.dialogs import ChangeAppearance, ChangeSettings, GetName, GetNameAndDescription, GetDescription
 from .widgets.documents import BackupView, NormalView
 from .widgets.lists import ButtonDelegateBase, TreeViewBase
-from .consts import APP_DEFAULTS, APP_OPTIONS, APP_SETTINGS
+from .consts import APP_DEFAULTS, APP_OPTIONS, APP_SETTINGS, APP_VALUES
 from .database import MainDB
 
 
@@ -181,12 +181,59 @@ class Options:
         name, table = self.get(index)
         
         ok, values = ChangeAppearance(self.parent_, maindb, index).get()
-    
+        
+        if ok:
+            successful = True
+            
+            for i in range(9):
+                if maindb.set(values[i], APP_SETTINGS[6 + i], name, table):
+                    index.model().setData(index, self.parent_.tree_view.handleSetting(maindb.items[(name, table)], 6 + i, values[i]), Qt.ItemDataRole.UserRole + 26 + i)
+                    
+                    if table == "__main__":
+                        for name_, table_ in maindb.items.keys():
+                            if table_ == name and maindb.items[(name_, table_)].data(Qt.ItemDataRole.UserRole + 26 + i)[0] == "notebook":
+                                maindb.items[(name_, table_)].setData(self.parent_.tree_view.handleSetting(maindb.items[(name_, table_)], 6 + i, values[i]), Qt.ItemDataRole.UserRole + 26 + i)
+                                
+                else:
+                    successful = False
+                    
+            if successful:
+                QMessageBox.information(self.parent_, self.parent_.tr("Successful"), self.parent_.tr("New appearance applied."))
+                
+            else:
+                QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.parent_.tr("Failed to apply new appearance."))
+                    
     @Slot(QModelIndex)
     def changeSettings(self, index: QModelIndex) -> None:
         name, table = self.get(index)
         
         ok, values = ChangeSettings(self.parent_, maindb, index).get()
+        
+        if ok:
+            successful = True
+            
+            for i in range(4):
+                options = APP_OPTIONS + APP_VALUES[i]
+                
+                if table != "__main__":
+                    options.insert("notebook", 2)
+                    
+                if maindb.set(options[values[i]], APP_SETTINGS[i], name, table):
+                    index.model().setData(index, self.parent_.tree_view.handleSetting(maindb.items[(name, table)], i, options[values[i]]), Qt.ItemDataRole.UserRole + 20 + i)
+                    
+                    if table == "__main__":
+                        for name_, table_ in maindb.items.keys():
+                            if table_ == name and maindb.items[(name_, table_)].data(Qt.ItemDataRole.UserRole + 20 + i)[0] == "notebook":
+                                maindb.items[(name_, table_)].setData(self.parent_.tree_view.handleSetting(maindb.items[(name_, table_)], i, options[values[i]]), Qt.ItemDataRole.UserRole + 20 + i)
+                                
+                else:
+                    successful = False
+                    
+            if successful:
+                QMessageBox.information(self.parent_, self.parent_.tr("Successful"), self.parent_.tr("New settings applied."))
+                
+            else:
+                QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.parent_.tr("Failed to apply new settings."))
     
     @Slot(QModelIndex)
     def clearContent(self, index: QModelIndex) -> None:
@@ -250,7 +297,7 @@ class Options:
                     QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.parent_.tr("A name is required."))
                     return
                 
-                if maindb.createDocument(default, "yes" if diary else None, document, notebook):
+                if maindb.createDocument(default, "yes" if diary else default, document, notebook):
                     self.parent_.tree_view.appendDocument(maindb.getDocument(document, notebook), maindb.items[(notebook, "__main__")], notebook)
                     
                 else:
@@ -285,7 +332,7 @@ class Options:
                     QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.parent_.tr("A name is required."))
                     return
                 
-                successful = maindb.createNotebook(default, "yes" if diary else None, description, name)
+                successful = maindb.createNotebook(default, "yes" if diary else default, description, name)
                 
                 if successful:
                     self.parent_.tree_view.appendNotebook(maindb.getNotebook(name))

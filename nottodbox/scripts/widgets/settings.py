@@ -36,7 +36,7 @@ def changeAppearance(self: QDialog, index: QModelIndex, show_global: bool, color
             ]
         
     for i in range(9):
-        self.selectors.append(color_selector(self.input, True, show_global, index.data(Qt.ItemDataRole.UserRole + 2) == "document", index.data(Qt.ItemDataRole.UserRole + 26 + i)[1] if index.data(Qt.ItemDataRole.UserRole + 26 + i)[0] != "self" else index.data(Qt.ItemDataRole.UserRole + 26 + i)[0], self.tr("Select Color")))
+        self.selectors.append(color_selector(self.input, True, show_global, index.data(Qt.ItemDataRole.UserRole + 2) == "document", index.data(Qt.ItemDataRole.UserRole + 26 + i)[1] if index.data(Qt.ItemDataRole.UserRole + 26 + i)[0] == "self" else index.data(Qt.ItemDataRole.UserRole + 26 + i)[0], self.tr("Select Color")))
         self.layout_.addRow(f"{self.localizeds[i]}:", self.selectors[-1])
         
         

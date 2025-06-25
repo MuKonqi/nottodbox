@@ -70,7 +70,7 @@ class ColorSelector(QWidget):
     def __init__(self, parent: QWidget, show_default: bool, show_global: bool, show_notebook: bool, color: QColor | Qt.GlobalColor | str, title: str) -> None:
         super().__init__(parent)
         
-        self.selected = None
+        self.selected = color
         
         self.show_default = show_default
         self.show_global = show_global
@@ -88,6 +88,8 @@ class ColorSelector(QWidget):
         self.layout_.setContentsMargins(0, 0, 0, 0)
         self.layout_.addWidget(self.selector)
         self.layout_.addWidget(self.label)
+        
+        self.previewColor(self.selected)
         
     @Slot()
     def selectColor(self) -> None:
@@ -152,11 +154,11 @@ class GetName(Dialog):
                 
             self.selector_layout.addWidget(self.combobox)
 
-        self.name = QLineEdit(self.input)
-        self.name.setPlaceholderText(self.tr("Name (required)"))
-        
         self.calendar = CalendarWidget(self.input)
         self.calendar.selectionChanged.connect(lambda: self.name.setText(self.calendar.selectedDate().toString("dd/MM/yyyy")))
+        
+        self.name = LineEdit(self.input, self.tr("Name (required)"))
+        self.name.setText(self.calendar.selectedDate().toString("dd/MM/yyyy"))
         
     def get(self) -> tuple[bool, str] | tuple[bool, int, str]:
         if self.creation:
@@ -179,8 +181,7 @@ class GetDescription(Dialog):
     def __init__(self, parent: QWidget, window_title: str):
         super().__init__(parent, window_title)
 
-        self.description = QLineEdit(self.input)
-        self.description.setPlaceholderText(self.tr("Description (leave blank to remove)"))
+        self.description = LineEdit(self.input, self.tr("Description (leave blank to remove)"))
         
     def get(self) -> tuple[bool, str]:        
         return self.result() == 1, self.description.text()
@@ -301,12 +302,12 @@ class ChangeAppearance(Settings):
             
         self.exec()
                 
-    def get(self) -> tuple[bool, list[str]]:
+    def get(self) -> tuple[bool, list[str] | None]:
         if self.result() == 1:
-            True, [selector.selected for selector in self.selectors]
+            return True, [selector.selected for selector in self.selectors]
             
         else:
-            False, None
+            return False, None
         
         
 class ChangeSettings(Settings):
@@ -317,9 +318,9 @@ class ChangeSettings(Settings):
                 
         self.exec()
                 
-    def get(self) -> tuple[bool, list[int]]:
+    def get(self) -> tuple[bool, list[int] | None]:
         if self.result() == 1:
-            True, [selector.currentIndex() for selector in self.selectors]
+            return True, [selector.currentIndex() for selector in self.selectors]
             
         else:
-            False, None
+            return False, None
