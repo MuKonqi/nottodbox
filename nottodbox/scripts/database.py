@@ -128,7 +128,7 @@ class MainDB:
         return True
         
     def createNotebook(self, default: str, locked: str | None, description: str, name: str) -> bool:
-        return self.createTable(name) & self.create(default, name, "__main__", description) & self.set(locked, "locked", name)
+        return self.createTable(name) & self.create(default, name, "__main__", None, description) & self.set(locked, "locked", name)
     
     def delete(self, name: str, table: str = "__main__") -> bool:
         self.cur.execute(f"delete from '{table}' where name = ?", (name,))

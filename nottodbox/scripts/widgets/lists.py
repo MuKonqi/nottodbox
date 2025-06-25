@@ -24,6 +24,8 @@ from PySide6.QtWidgets import *
 class ButtonDelegateBase(QStyledItemDelegate):
     menu_requested = Signal(QModelIndex)
 
+    dot_size = 4
+    dot_padding = 8
     button_size = 24
 
     def paint(self, painter: QPainter, option: QStyleOptionViewItem, index: QModelIndex):
@@ -119,30 +121,28 @@ class ButtonDelegateBase(QStyledItemDelegate):
 
         painter.setPen(colors[1])
         painter.setFont(name_font)
+        
         painter.drawText(name_rect, Qt.AlignmentFlag.AlignLeading, name_fontmetrics.elidedText(name, Qt.TextElideMode.ElideRight, name_rect.width()))
         
         painter.setFont(option.font)
-
-        painter.drawText(content_rect, Qt.AlignmentFlag.AlignLeading, QFontMetrics(QFont(option.font)).elidedText(content, Qt.TextElideMode.ElideRight, content_rect.width()))
         
+        painter.drawText(content_rect, Qt.AlignmentFlag.AlignLeading, QFontMetrics(QFont(option.font)).elidedText(content, Qt.TextElideMode.ElideRight, content_rect.width()))
         painter.drawText(creation_rect, Qt.AlignmentFlag.AlignLeading, creation_date)
         painter.drawText(modification_rect, Qt.AlignmentFlag.AlignLeading, modification_date)
 
         painter.restore()
+        painter.save()
+        
+        painter.setPen(colors[2])
+        painter.setBrush(colors[1])
 
         button_rect = self.getButtonRect(option)
-        
-        painter.save()
-        painter.setBrush(option.palette.text().color())
-        
-        dot_size = 4
-        dot_padding = 8
         center_y = button_rect.center().y()
         center_x = button_rect.center().x()
 
-        painter.drawEllipse(center_x - dot_size / 2, center_y - dot_padding - dot_size / 2, dot_size, dot_size)
-        painter.drawEllipse(center_x - dot_size / 2, center_y - dot_size / 2, dot_size, dot_size)
-        painter.drawEllipse(center_x - dot_size / 2, center_y + dot_padding - dot_size / 2, dot_size, dot_size)
+        painter.drawEllipse(center_x - self.dot_size / 2, center_y - self.dot_padding - self.dot_size / 2, self.dot_size, self.dot_size)
+        painter.drawEllipse(center_x - self.dot_size / 2, center_y - self.dot_size / 2, self.dot_size, self.dot_size)
+        painter.drawEllipse(center_x - self.dot_size / 2, center_y + self.dot_padding - self.dot_size / 2, self.dot_size, self.dot_size)
 
         painter.restore()
               
