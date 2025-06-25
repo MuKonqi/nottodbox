@@ -87,26 +87,26 @@ class MainDB(Base):
             
         return False
         
-    def create(self, name: str, table: str = "__main__", date: str | None = None) -> bool:
+    def create(self, default: str, name: str, table: str = "__main__", date: str | None = None) -> bool:
         if date is None:
             date = datetime.datetime.now().strftime("%d/%m/%Y %H:%M")
         
         self.cur.execute(
             f"""
             INSERT INTO '{table}'
-            (name, creation, modification)
-            values (?, ?, ?)
+            (name, creation, modification, completed, locked, autosave, format, sync, icon, bg_normal, bg_hover, bg_clicked, fg_normal, fg_hover, fg_clicked, bd_normal, bd_hover, bd_clicked)
+            values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
-            (name, date, date)
+            (name, date, date, default, default, default, default, default, default, default, default, default, default, default, default, default, default, default)
         )
         self.db.commit()
         
         return self.checkIfItExists(name, table)
         
-    def createDocument(self, locked: str | None, document: str, notebook: str) -> bool:
+    def createDocument(self, default: str, locked: str | None, document: str, notebook: str) -> bool:
         date = datetime.datetime.now().strftime("%d/%m/%Y %H:%M")
         
-        if self.create(document, notebook, date) and self.checkIfTheDocumentExists(document, notebook) and self.set(locked, "locked", document, notebook):
+        if self.create(default, document, notebook, date) and self.checkIfTheDocumentExists(document, notebook) and self.set(locked, "locked", document, notebook):
             return self.updateModification(notebook, "__main__", date)
         
         return False
@@ -128,19 +128,19 @@ class MainDB(Base):
                 id INTEGER PRIMARY KEY,
                 completed TEXT,
                 locked TEXT,
-                autosave TEXT,
-                format TEXT,
+                autosave TEXT NOT NULL,
+                format TEXT NOT NULL,
                 sync TEXT,
                 icon TEXT,
-                bg_normal TEXT,
-                bg_hover TEXT,
-                bg_clicked TEXT,
-                fg_normal TEXT,
-                fg_hover TEXT,
-                fg_clicked TEXT,
-                bd_normal TEXT,
-                bd_hover TEXT,
-                bd_clicked TEXT,
+                bg_normal TEXT NOT NULL,
+                bg_hover TEXT NOT NULL,
+                bg_clicked TEXT NOT NULL,
+                fg_normal TEXT NOT NULL,
+                fg_hover TEXT NOT NULL,
+                fg_clicked TEXT NOT NULL,
+                bd_normal TEXT NOT NULL,
+                bd_hover TEXT NOT NULL,
+                bd_clicked TEXT NOT NULL,
                 name TEXT NOT NULL,
                 creation TEXT NOT NULL,
                 modification TEXT NOT NULL,
@@ -149,27 +149,27 @@ class MainDB(Base):
             """
             )
         
-    def createNotebook(self, locked: str | None, description: str, name: str) -> bool:
-        if self.create(name) and self.set(locked, "locked", name) and self.set(description, "content", name):
+    def createNotebook(self, default: str, locked: str | None, description: str, name: str) -> bool:
+        if self.create(default, name) and self.set(locked, "locked", name) and self.set(description, "content", name):
             self.cur.execute(
                 f"""
                 CREATE TABLE IF NOT EXISTS '{name}' (
                     id INTEGER PRIMARY KEY,
                     completed TEXT,
                     locked TEXT,
-                    autosave TEXT,
-                    format TEXT,
+                    autosave TEXT NOT NULL,
+                    format TEXT NOT NULL,
                     sync TEXT,
                     icon TEXT,
-                    bg_normal TEXT,
-                    bg_hover TEXT,
-                    bg_clicked TEXT,
-                    fg_normal TEXT,
-                    fg_hover TEXT,
-                    fg_clicked TEXT,
-                    bd_normal TEXT,
-                    bd_hover TEXT,
-                    bd_clicked TEXT,
+                    bg_normal TEXT NOT NULL,
+                    bg_hover TEXT NOT NULL,
+                    bg_clicked TEXT NOT NULL,
+                    fg_normal TEXT NOT NULL,
+                    fg_hover TEXT NOT NULL,
+                    fg_clicked TEXT NOT NULL,
+                    bd_normal TEXT NOT NULL,
+                    bd_hover TEXT NOT NULL,
+                    bd_clicked TEXT NOT NULL,
                     name TEXT NOT NULL,
                     creation TEXT NOT NULL,
                     modification TEXT NOT NULL,

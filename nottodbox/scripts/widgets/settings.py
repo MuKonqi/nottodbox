@@ -19,7 +19,7 @@
 from PySide6.QtCore import QModelIndex, Qt
 from PySide6.QtWidgets import *
 from .controls import Label
-from ..consts import APP_DEFAULTS, APP_OPTIONS
+from ..consts import APP_DEFAULTS, APP_OPTIONS, APP_VALUES
 
 
 def changeAppearance(self: QDialog, index: QModelIndex, show_global: bool, color_selector: QWidget) -> None:
@@ -34,12 +34,10 @@ def changeAppearance(self: QDialog, index: QModelIndex, show_global: bool, color
             self.tr("Border color when mouse is over"),
             self.tr("Border color when clicked")
             ]
-    
-    self.buttons = []
         
     for i in range(9):
-        self.buttons.append(color_selector(self.input, True, show_global, index.data(Qt.ItemDataRole.UserRole + 2) == "document", index.data(Qt.ItemDataRole.UserRole + 26 + i)[1] if index.data(Qt.ItemDataRole.UserRole + 26 + i)[0] != "self" else index.data(Qt.ItemDataRole.UserRole + 26 + i)[0], self.tr("Select Color")))
-        self.layout_.addRow(f"{self.localizeds[i]}:", self.buttons[-1])
+        self.selectors.append(color_selector(self.input, True, show_global, index.data(Qt.ItemDataRole.UserRole + 2) == "document", index.data(Qt.ItemDataRole.UserRole + 26 + i)[1] if index.data(Qt.ItemDataRole.UserRole + 26 + i)[0] != "self" else index.data(Qt.ItemDataRole.UserRole + 26 + i)[0], self.tr("Select Color")))
+        self.layout_.addRow(f"{self.localizeds[i]}:", self.selectors[-1])
         
         
 def changeSettings(self: QDialog, index: QModelIndex, show_global: bool) -> None:
@@ -56,17 +54,10 @@ def changeSettings(self: QDialog, index: QModelIndex, show_global: bool) -> None
         ]
     
     self.options = [
-        [self.tr("Completed"), self.tr("Uncompleted")],
+        [self.tr("Completed"), self.tr("Uncompleted"), self.tr("None")],
         [self.tr("Yes"), self.tr("None")],
         [self.tr("Enabled"), self.tr("Disabled")],
         ["Markdown", "HTML", self.tr("Plain-text")]
-    ]
-    
-    self.values = [
-        ["completed", "uncompleted"],
-        ["yes", None],
-        ["enabled", "disabled"],
-        ["markdown", "html", "plain-text"]
     ]
     
     for i in range(4):
@@ -88,7 +79,9 @@ def changeSettings(self: QDialog, index: QModelIndex, show_global: bool) -> None
             combobox.setCurrentIndex(self.settings.index(index.data(Qt.ItemDataRole.UserRole + 20 + i)[0]))
         
         except ValueError:
-            combobox.setCurrentIndex(len(self.settings) + self.values[i].index(index.data(Qt.ItemDataRole.UserRole + 20 + i)[1]))
+            combobox.setCurrentIndex(len(self.settings) + APP_VALUES[i].index(index.data(Qt.ItemDataRole.UserRole + 20 + i)[1]))
+            
+        self.selectors.append(combobox)
             
     self.layout_.addRow(Label(self.input, self.tr("*Setting this to 'Completed' or 'Uncompleted' converts to a to-do."), Qt.AlignmentFlag.AlignLeft))
     self.layout_.addRow(Label(self.input, self.tr("**Setting this to 'Yes' converts to a diary."), Qt.AlignmentFlag.AlignLeft))

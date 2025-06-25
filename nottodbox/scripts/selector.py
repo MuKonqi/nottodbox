@@ -24,7 +24,7 @@ from .widgets.controls import Action, CalendarWidget, Label, LineEdit, HSeperato
 from .widgets.dialogs import ChangeAppearance, ChangeSettings, GetName, GetNameAndDescription, GetDescription
 from .widgets.documents import BackupView, NormalView
 from .widgets.lists import ButtonDelegateBase, TreeViewBase
-from .consts import APP_SETTINGS, APP_DEFAULTS
+from .consts import APP_DEFAULTS, APP_OPTIONS, APP_SETTINGS
 from .databases import MainDB
 
 
@@ -180,13 +180,13 @@ class Options:
     def changeAppearance(self, index: QModelIndex) -> None:
         name, table = self.get(index)
         
-        ChangeAppearance(self.parent_, maindb, index).get()
+        ok, values = ChangeAppearance(self.parent_, maindb, index).get()
     
     @Slot(QModelIndex)
     def changeSettings(self, index: QModelIndex) -> None:
         name, table = self.get(index)
         
-        ChangeSettings(self.parent_, maindb, index).get()
+        ok, values = ChangeSettings(self.parent_, maindb, index).get()
     
     @Slot(QModelIndex)
     def clearContent(self, index: QModelIndex) -> None:
@@ -223,9 +223,14 @@ class Options:
         
     @Slot(QModelIndex)
     def createDocument(self, index: QModelIndex) -> None:
-        dialog = GetName(self.parent_, self.parent_.tr("Create Document"))
+        dialog = GetName(self.parent_, self.parent_.tr("Create Document"), True, "document")
         dialog.set()
-        ok, document = dialog.get()
+        ok, default, document = dialog.get()
+        
+        options = APP_OPTIONS.copy()
+        options.append("notebook")
+        
+        default = options[default]
 
         if ok:
             try:
@@ -244,7 +249,7 @@ class Options:
                 QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.parent_.tr("A name is required."))
                 return
             
-            if maindb.createDocument("yes" if diary else None, document, notebook):
+            if maindb.createDocument(default, "yes" if diary else None, document, notebook):
                 self.parent_.tree_view.appendDocument(maindb.getDocument(document, notebook), maindb.items[(notebook, "__main__")], notebook)
                 
             else:
@@ -255,9 +260,14 @@ class Options:
         ok = True
         
         if name is None:
-            dialog = GetNameAndDescription(self.parent_, self.parent_.tr("Create Notebook"))
+            dialog = GetNameAndDescription(self.parent_, self.parent_.tr("Create Notebook"), True, "notebook")
             dialog.set()
-            ok, name, description = dialog.get()
+            ok, default, name, description = dialog.get()
+            
+            default = APP_OPTIONS[default]
+            
+        else:
+            default = "default"
             
         if ok:
             try:
@@ -270,7 +280,7 @@ class Options:
                 QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.parent_.tr("A name is required."))
                 return
             
-            successful = maindb.createNotebook("yes" if diary else None, description, name)
+            successful = maindb.createNotebook(default, "yes" if diary else None, description, name)
             
             if successful:
                 self.parent_.tree_view.appendNotebook(maindb.getNotebook(name))
@@ -510,7 +520,7 @@ class TreeView(TreeViewBase):
             document.setData(data[len(data) - 1 - i], Qt.ItemDataRole.UserRole + 105 - i)
             
         for i in range(15):
-            document.setData(self.handleSetting(notebook, i, data[1 + i]), Qt.ItemDataRole.UserRole + 20 + i)
+            document.setData(self.handleSetting(document, i, data[1 + i]), Qt.ItemDataRole.UserRole + 20 + i)
             
         item.appendRow(document)
             
@@ -533,31 +543,31 @@ class TreeView(TreeViewBase):
         self.model_.appendRow(notebook)
         
     def handleSettingViaGlobal(self, setting: str) -> str | None:
-        if setting is None:
+        if setting == "default":
             return APP_DEFAULTS[setting]
                 
         else:
             return APP_DEFAULTS[setting] # tmp
         
-    def handleSettingViaNotebook(self, index: QModelIndex, number: int) -> str | None:
-        if maindb.items[(index.data(Qt.ItemDataRole.UserRole + 100), "__main__")].data(Qt.ItemDataRole.UserRole + 20 + number)[1] is None:
+    def handleSettingViaNotebook(self, item: QStandardItem, number: int) -> str | None:
+        if maindb.items[(item.data(Qt.ItemDataRole.UserRole + 100), "__main__")].data(Qt.ItemDataRole.UserRole + 20 + number)[1] == "default":
             return APP_DEFAULTS[APP_SETTINGS[number]]
             
-        elif maindb.items[(index.data(Qt.ItemDataRole.UserRole + 100), "__main__")].data(Qt.ItemDataRole.UserRole + 20 + number)[1] == "global":
-            return self.handleGlobal(number)
+        elif maindb.items[(item.data(Qt.ItemDataRole.UserRole + 100), "__main__")].data(Qt.ItemDataRole.UserRole + 20 + number)[1] == "global":
+            return self.handleSettingViaGlobal(number)
                 
         else:
-            return maindb.items[(index.data(Qt.ItemDataRole.UserRole + 100), "__main__")].data(Qt.ItemDataRole.UserRole + 20 + number)[1]
+            return maindb.items[(item.data(Qt.ItemDataRole.UserRole + 100), "__main__")].data(Qt.ItemDataRole.UserRole + 20 + number)[1]
         
-    def handleSetting(self, index: QModelIndex, number: int, value: str | None) -> tuple[str, str | None]:
-        if value is None:
+    def handleSetting(self, item: QStandardItem, number: int, value: str | None) -> tuple[str, str | None]:
+        if value == "default":
             return "default", APP_DEFAULTS[number]
             
         elif value == "global":
-            return "global", self.handleSettingViaGlobal(APP_SETTINGS[number])
+            return "global", self.handleSettingViaGlobal(number)
             
         elif value == "notebook":
-            return "notebook", self.handleSettingViaNotebook(index, number)
+            return "notebook", self.handleSettingViaNotebook(item, number)
         
         else:
             return "self", value

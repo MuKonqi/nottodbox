@@ -134,20 +134,42 @@ class Dialog(QDialog):
 
 
 class GetName(Dialog):
-    def __init__(self, parent: QWidget, window_title: str):
+    def __init__(self, parent: QWidget, window_title: str, creation: bool = False, item: str = None) -> None:
         super().__init__(parent, window_title)
+        
+        self.creation = creation
+        
+        if creation:
+            self.selector = QWidget(self.input)
+            
+            self.selector_layout = QHBoxLayout(self.selector)
+            self.selector_layout.setContentsMargins(0, 0, 0, 0)
+            self.selector_layout.addWidget(Label(self.selector, self.tr("Settings will follow:")))
+            
+            self.combobox = QComboBox(self.selector)
+            self.combobox.addItems([self.tr("Defaults"), self.tr("Globals")])
+            if item == "document":
+                self.combobox.addItem(self.tr("Notebooks'"))
+                
+            self.selector_layout.addWidget(self.combobox)
 
         self.name = QLineEdit(self.input)
         self.name.setPlaceholderText(self.tr("Name (required)"))
         
-        self.calendar = CalendarWidget(self)
+        self.calendar = CalendarWidget(self.input)
         self.calendar.selectionChanged.connect(lambda: self.name.setText(self.calendar.selectedDate().toString("dd/MM/yyyy")))
         
-    def get(self) -> tuple[bool, str]:
-        return self.result() == 1, self.name.text()
+    def get(self) -> tuple[bool, str] | tuple[bool, int, str]:
+        if self.creation:
+            return self.result() == 1, self.combobox.currentIndex(), self.name.text()
+        
+        else:
+            return self.result() == 1, self.name.text()
     
     def set(self) -> int:
         self.layout_ = QVBoxLayout(self.input)
+        if self.creation:
+            self.layout_.addWidget(self.selector)
         self.layout_.addWidget(self.calendar)
         self.layout_.addWidget(self.name)
         
@@ -161,7 +183,7 @@ class GetDescription(Dialog):
         self.description = QLineEdit(self.input)
         self.description.setPlaceholderText(self.tr("Description (leave blank to remove)"))
         
-    def get(self) -> tuple[bool, str]:
+    def get(self) -> tuple[bool, str]:        
         return self.result() == 1, self.description.text()
     
     def set(self) -> int:
@@ -172,11 +194,17 @@ class GetDescription(Dialog):
     
     
 class GetNameAndDescription(GetName, GetDescription):        
-    def get(self) -> tuple[bool, str, str]:
-        return self.result() == 1, self.name.text(), self.description.text()
+    def get(self) -> tuple[bool, str, str] | tuple[bool, int, str, str]:
+        if self.creation:
+            return self.result() == 1, self.combobox.currentIndex(), self.name.text(), self.description.text()
+        
+        else:
+            return self.result() == 1, self.name.text(), self.description.text()
     
     def set(self) -> int:
         self.layout_ = QVBoxLayout(self.input)
+        if self.creation:
+            self.layout_.addWidget(self.selector)
         self.layout_.addWidget(self.calendar)
         self.layout_.addWidget(self.name)
         self.layout_.addWidget(self.description)
@@ -261,8 +289,9 @@ class Settings(Dialog):
         
         self.index = index
         
+        self.selectors = []
+        
         self.layout_ = QFormLayout(self.input)
-        self.layout_.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.ExpandingFieldsGrow)
         
         
 class ChangeAppearance(Settings):
@@ -273,8 +302,12 @@ class ChangeAppearance(Settings):
             
         self.exec()
                 
-    def get(self):
-        return self.result()
+    def get(self) -> tuple[bool, list[str]]:
+        if self.result() == 1:
+            True, [selector.selected for selector in self.selectors]
+            
+        else:
+            False, None
         
         
 class ChangeSettings(Settings):
@@ -285,5 +318,9 @@ class ChangeSettings(Settings):
                 
         self.exec()
                 
-    def get(self):
-        return self.result()
+    def get(self) -> tuple[bool, list[int]]:
+        if self.result() == 1:
+            True, [selector.currentIndex() for selector in self.selectors]
+            
+        else:
+            False, None

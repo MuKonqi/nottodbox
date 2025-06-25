@@ -34,6 +34,8 @@ APP_OPTIONS = ["default", "global"]
 
 APP_SETTINGS = ["completed", "locked", "autosave", "format", "sync", "icon", "bg_normal", "bg_hover", "bg_clicked", "fg_normal", "fg_hover", "fg_clicked", "bd_normal", "bd_hover", "bd_clicked"]
 
+APP_VALUES = [["completed", "uncompleted", None], ["yes", None], ["enabled", "disabled"], ["markdown", "html", "plain-text"]]
+
 
 if APP_MODE == "meson":
     DATA_DIR = "@DATA_DIR@"
