@@ -16,7 +16,7 @@
 # along with Nottodbox.  If not, see <https://www.gnu.org/licenses/>.
     
 
-from PySide6.QtCore import QByteArray, QSettings, Qt, Slot
+from PySide6.QtCore import QByteArray, QSettings, Slot
 from PySide6.QtGui import QCloseEvent
 from PySide6.QtWidgets import *
 from .centralwidget import CentralWidget

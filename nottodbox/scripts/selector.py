@@ -217,15 +217,21 @@ class Options:
                 options = APP_OPTIONS + APP_VALUES[i]
                 
                 if table != "__main__":
-                    options.insert("notebook", 2)
+                    options.insert(2, "notebook")
                     
                 if maindb.set(options[values[i]], APP_SETTINGS[i], name, table):
                     index.model().setData(index, self.parent_.tree_view.handleSetting(maindb.items[(name, table)], i, options[values[i]]), Qt.ItemDataRole.UserRole + 20 + i)
+                    
+                    for value in self.pages.values():
+                        value.data(Qt.ItemDataRole.UserRole + 5).refreshSettings()
                     
                     if table == "__main__":
                         for name_, table_ in maindb.items.keys():
                             if table_ == name and maindb.items[(name_, table_)].data(Qt.ItemDataRole.UserRole + 20 + i)[0] == "notebook":
                                 maindb.items[(name_, table_)].setData(("notebook", self.parent_.tree_view.handleSettingViaNotebook(maindb.items[(name_, table_)], i)), Qt.ItemDataRole.UserRole + 20 + i)
+                                
+                                if maindb.items[(name_, table_)].index() in self.pages.values():
+                                    maindb.items[(name_, table_)].data(Qt.ItemDataRole.UserRole + 5).refreshSettings()
                                 
                 else:
                     successful = False
@@ -252,9 +258,21 @@ class Options:
             
     @Slot(QModelIndex)
     def close(self, index: QModelIndex) -> None:
-        index.model().setData(index, False, Qt.ItemDataRole.UserRole + 1)
-        
         try:
+            if index.data(Qt.ItemDataRole.UserRole + 5).mode == "normal" and not index.data(Qt.ItemDataRole.UserRole + 5).last_content == index.data(Qt.ItemDataRole.UserRole + 5).getText():
+                self.question = QMessageBox.question(
+                    self.parent_, self.parent_.tr("Question"), self.parent_.tr("Document not saved.\nWhat would you like to do?"),
+                    QMessageBox.StandardButton.Save | QMessageBox.StandardButton.Discard | QMessageBox.StandardButton.Cancel, QMessageBox.StandardButton.Save)
+                            
+                if self.question == QMessageBox.StandardButton.Save:
+                    if not index.data(Qt.ItemDataRole.UserRole + 5).saver.saveChild():
+                        return
+                
+                elif self.question != QMessageBox.StandardButton.Discard:
+                    return
+        
+            index.model().setData(index, False, Qt.ItemDataRole.UserRole + 1)
+        
             self.parent_.parent_.area.pages.layout_.replaceWidget(index.data(Qt.ItemDataRole.UserRole + 5), index.data(Qt.ItemDataRole.UserRole + 4))
             
             if index.data(Qt.ItemDataRole.UserRole + 5).mode == "normal":
@@ -266,7 +284,7 @@ class Options:
             del self.pages[index.data(Qt.ItemDataRole.UserRole + 4)]
             index.model().setData(index, None, Qt.ItemDataRole.UserRole + 4)
         
-        except RuntimeError:
+        except RuntimeError or AttributeError:
             pass
         
     @Slot(QModelIndex)
@@ -745,7 +763,7 @@ class TreeView(TreeViewBase):
     def rowChanged(self, new: QModelIndex, old: QModelIndex) -> None:
         super().rowChanged(new, old)
         
-        if old.isValid() and old.data(Qt.ItemDataRole.UserRole + 2) == "document":
+        if new.isValid() and new.data(Qt.ItemDataRole.UserRole + 1) and old.isValid() and old.data(Qt.ItemDataRole.UserRole + 2) == "document":
             self.parent_.options.close(old)
         
         

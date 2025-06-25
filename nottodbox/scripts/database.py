@@ -68,17 +68,17 @@ class MainDB:
             
         return False
         
-    def create(self, default: str, name: str, table: str = "__main__", date: str | None = None) -> bool:
+    def create(self, default: str, name: str, table: str = "__main__", date: str | None = None, content: str = "") -> bool:
         if date is None:
             date = datetime.datetime.now().strftime("%d/%m/%Y %H:%M")
         
         self.cur.execute(
             f"""
             INSERT INTO '{table}'
-            (name, creation, modification, completed, locked, autosave, format, sync, icon, bg_normal, bg_hover, bg_clicked, fg_normal, fg_hover, fg_clicked, bd_normal, bd_hover, bd_clicked)
-            values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            (name, content, creation, modification, completed, locked, autosave, format, sync, icon, bg_normal, bg_hover, bg_clicked, fg_normal, fg_hover, fg_clicked, bd_normal, bd_hover, bd_clicked)
+            values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
-            (name, date, date, default, default, default, default, default, default, default, default, default, default, default, default, default, default, default)
+            (name, content, date, date, default, default, default, default, default, default, default, default, default, default, default, default, default, default, default)
         )
         self.db.commit()
         
@@ -128,7 +128,7 @@ class MainDB:
         return True
         
     def createNotebook(self, default: str, locked: str | None, description: str, name: str) -> bool:
-        return self.createTable(name) & self.create(default, name) & self.set(locked, "locked", name) & self.set(description, "content", name)
+        return self.createTable(name) & self.create(default, name, "__main__", description) & self.set(locked, "locked", name)
     
     def delete(self, name: str, table: str = "__main__") -> bool:
         self.cur.execute(f"delete from '{table}' where name = ?", (name,))
