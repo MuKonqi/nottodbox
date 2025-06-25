@@ -17,13 +17,12 @@
 
 
 import datetime
-from PySide6.QtCore import QEvent, QModelIndex, QPoint, QSortFilterProxyModel, Qt, Slot
-from PySide6.QtGui import QStandardItem, QStandardItemModel
+from PySide6.QtCore import QEvent, QMargins, QModelIndex, QPoint, QRect, QSize, QSortFilterProxyModel, Qt, Signal, Slot
+from PySide6.QtGui import QColor, QFont, QFontMetrics, QPainter, QPainterPath, QPen, QStandardItem, QStandardItemModel
 from PySide6.QtWidgets import *
 from .widgets.controls import Action, CalendarWidget, Label, LineEdit, HSeperator, PushButton
 from .widgets.dialogs import ChangeAppearance, ChangeSettings, GetName, GetNameAndDescription, GetDescription
 from .widgets.documents import BackupView, NormalView
-from .widgets.lists import ButtonDelegateBase, TreeViewBase
 from .consts import APP_DEFAULTS, APP_OPTIONS, APP_SETTINGS, APP_VALUES
 from .database import MainDB
 
@@ -172,6 +171,9 @@ class Options:
         if maindb.set("yes", "locked", name, table):
             index.model().setData(index, ["self", "yes"], Qt.ItemDataRole.UserRole + 21)
             
+            if len(self.pages) > 0 and self.pages[self.parent_.parent_.area.pages.focused_on] == index:
+                index.data(Qt.ItemDataRole.UserRole + 5).refreshSettings()
+            
             QMessageBox.information(self.parent_, self.parent_.tr("Successful"), self.parent_.tr("Lock added."))
 
         else:
@@ -251,6 +253,9 @@ class Options:
             index.model().setData(index, "", Qt.ItemDataRole.UserRole + 104)
             index.model().setData(index, maindb.getBackup(document, notebook), Qt.ItemDataRole.UserRole + 105)
             
+            if len(self.pages) > 0 and self.pages[self.parent_.parent_.area.pages.focused_on] == index:
+                index.data(Qt.ItemDataRole.UserRole + 5).refreshContent()
+            
             QMessageBox.information(self.parent_, self.parent_.tr("Successful"), self.parent_.tr("Content cleared."))
             
         else:
@@ -265,7 +270,7 @@ class Options:
                     QMessageBox.StandardButton.Save | QMessageBox.StandardButton.Discard | QMessageBox.StandardButton.Cancel, QMessageBox.StandardButton.Save)
                             
                 if self.question == QMessageBox.StandardButton.Save:
-                    if not index.data(Qt.ItemDataRole.UserRole + 5).saver.saveChild():
+                    if not index.data(Qt.ItemDataRole.UserRole + 5).saver.saveDocument():
                         return
                 
                 elif self.question != QMessageBox.StandardButton.Discard:
@@ -377,9 +382,15 @@ class Options:
                 
                 for name_, table_ in maindb.items.copy().keys():
                     if table_ == name:
+                        if len(self.pages) > 0 and self.pages[self.parent_.parent_.area.pages.focused_on] == maindb.items[(name_, table_)].index():
+                            self.close(maindb.items[(name_, table_)].index())
+                        
                         del maindb.items[(name_, table_)]
             
             elif index.data(Qt.ItemDataRole.UserRole + 2) == "document":
+                if len(self.pages) > 0 and self.pages[self.parent_.parent_.area.pages.focused_on] == index:
+                    self.close(index)
+                
                 maindb.items[(table, "__main__")].removeRow(index.row()) 
                 
             del maindb.items[(name, table)]
@@ -456,6 +467,9 @@ class Options:
         if maindb.set(None, "locked", name, table):
             index.model().setData(index, ["self", None], Qt.ItemDataRole.UserRole + 21)
             
+            if len(self.pages) > 0 and self.pages[self.parent_.parent_.area.pages.focused_on] == index:
+                index.data(Qt.ItemDataRole.UserRole + 5).refreshSettings()
+            
             QMessageBox.information(self.parent_, self.parent_.tr("Successful"), self.parent_.tr("Lock removed."))
 
         else:
@@ -485,8 +499,15 @@ class Options:
                     if index.data(Qt.ItemDataRole.UserRole + 2) == "notebook":
                         for name_, table_ in maindb.items.copy().keys():
                             if table_ == name:
+                                if len(self.pages) > 0 and self.pages[self.parent_.parent_.area.pages.focused_on] == maindb.items[(name_, table_)].index():
+                                    self.close(maindb.items[(name_, table_)].index())
+                                
                                 maindb.items[(name_, table_)].setData(new_name, Qt.ItemDataRole.UserRole + 100)
                                 maindb.items[(name_, new_name)] = maindb.items.pop((name_, table_))
+                                
+                    elif index.data(Qt.ItemDataRole.UserRole + 2) == "document":
+                        if len(self.pages) > 0 and self.pages[self.parent_.parent_.area.pages.focused_on] == index:
+                            self.close(index)
                                 
                     maindb.items[(new_name, table)] = maindb.items.pop((name, table))
                     
@@ -508,6 +529,9 @@ class Options:
             
             for name_, table_ in maindb.items.copy().keys():
                 if table_ == name:
+                    if len(self.pages) > 0 and self.pages[self.parent_.parent_.area.pages.focused_on] == maindb.items[(name_, table_)].index():
+                        self.close(maindb.items[(name_, table_)].index())
+                    
                     del maindb.items[(name_, table_)]
             
         else:
@@ -520,6 +544,9 @@ class Options:
         if maindb.restoreContent(document, notebook):
             index.model().setData(index, maindb.getContent(document, notebook), Qt.ItemDataRole.UserRole + 104)
             index.model().setData(index, maindb.getBackup(document, notebook), Qt.ItemDataRole.UserRole + 105)
+            
+            if len(self.pages) > 0 and self.pages[self.parent_.parent_.area.pages.focused_on] == index:
+                index.data(Qt.ItemDataRole.UserRole + 5).refreshContent()
             
             QMessageBox.information(self.parent_, self.parent_.tr("Successful"), self.parent_.tr("Content restored."))
             
@@ -537,7 +564,7 @@ class Options:
             QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.parent_.tr("Failed to unmark."))
     
     
-class TreeView(TreeViewBase):
+class TreeView(QTreeView):
     def __init__(self, parent: Selector):
         super().__init__(parent)
         
@@ -569,10 +596,13 @@ class TreeView(TreeViewBase):
         
         self.delegate = ButtonDelegate(self)
         
+        self.setMouseTracking(True)
+        self.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
+        self.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.setItemDelegate(self.delegate)
         self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.setModel(self.normal_filterer)
-        self.selectionModel().currentRowChanged.connect(self.rowChanged)
         
         self.delegate.menu_requested.connect(self.openMenu)
         self.customContextMenuRequested.connect(self.openMenu)
@@ -759,24 +789,155 @@ class TreeView(TreeViewBase):
         self.type_filterer.setFilterFixedString(self.types[index] if self.buttons[index].isChecked() else "")
         self.type_filterer.endResetModel()
         
-    @Slot(QModelIndex, QModelIndex)
-    def rowChanged(self, new: QModelIndex, old: QModelIndex) -> None:
-        super().rowChanged(new, old)
         
-        if new.isValid() and new.data(Qt.ItemDataRole.UserRole + 1) and old.isValid() and old.data(Qt.ItemDataRole.UserRole + 2) == "document":
-            self.parent_.options.close(old)
-        
-        
-class ButtonDelegate(ButtonDelegateBase):
+class ButtonDelegate(QStyledItemDelegate):
+    menu_requested = Signal(QModelIndex)
+
+    dot_size = 4
+    dot_padding = 8
+    button_size = 24
+    
     def __init__(self, parent: TreeView) -> None:
         super().__init__(parent)
         
         self.parent_ = parent
-    
-    def editorEvent(self, event: QEvent, model: QStandardItemModel, option: QStyleOptionViewItem, index: QModelIndex) -> bool:
-        button_rect = self.getButtonRect(option)
+
+    def paint(self, painter: QPainter, option: QStyleOptionViewItem, index: QModelIndex):
+        painter.save()
         
-        if index.data(Qt.ItemDataRole.UserRole + 2) == "document" and event.type() == QEvent.Type.MouseButtonPress and event.button() == Qt.MouseButton.LeftButton and not button_rect.contains(event.position().toPoint()):
-            self.parent_.parent_.options.open(index, "normal")
+        name = index.data(Qt.ItemDataRole.UserRole + 101)
+        
+        if index.data(Qt.ItemDataRole.UserRole + 20)[1] == "completed":
+            name = f"[+] {name}"
+            
+        elif index.data(Qt.ItemDataRole.UserRole + 20)[1] == "uncompleted":
+            name = f"[-] {name}"
+        
+        name_font = QFont(option.font)
+        name_font.setWeight(QFont.Weight.Bold)
+        name_fontmetrics = QFontMetrics(name_font)
+        name_padding = name_fontmetrics.lineSpacing()
+
+        name_rect = QRect(option.rect)
+        name_rect.setLeft(name_rect.left() + name_padding)
+        name_rect.setTop(name_rect.top() + name_padding)
+        name_rect.setRight(option.rect.width())
+        name_rect.setHeight(name_fontmetrics.lineSpacing())
+        
+        content = index.data(Qt.ItemDataRole.UserRole + 104)
+        
+        content_rect = QRect(option.rect)
+        content_rect.setLeft(content_rect.left() + name_padding)
+        content_rect.setTop(name_rect.bottom() + name_padding / 2)
+        content_rect.setRight(option.rect.width() + (name_padding if index.data(Qt.ItemDataRole.UserRole + 2) == "document" else 0) - 10)
+        content_rect.setHeight(name_fontmetrics.lineSpacing())
+        
+        creation_date = index.data(Qt.ItemDataRole.UserRole + 102)
+        
+        creation_rect = QRect(option.rect)
+        creation_rect.setLeft(creation_rect.left() + name_padding)
+        creation_rect.setTop(content_rect.bottom() + name_padding / 2)
+        creation_rect.setRight(QFontMetrics(QFont(option.font)).horizontalAdvance(creation_date) + creation_rect.left() + name_padding)
+        creation_rect.setHeight(name_fontmetrics.lineSpacing())
+        
+        modification_date = index.data(Qt.ItemDataRole.UserRole + 103)
+
+        modification_rect = QRect(option.rect)
+        modification_rect.setLeft(option.rect.width() - QFontMetrics(QFont(option.font)).horizontalAdvance(modification_date) + (name_padding if index.data(Qt.ItemDataRole.UserRole + 2) == "document" else 0))
+        modification_rect.setTop(content_rect.bottom() + name_padding / 2)
+        modification_rect.setRight(option.rect.width() + (name_padding if index.data(Qt.ItemDataRole.UserRole + 2) == "document" else 0))
+        modification_rect.setHeight(name_fontmetrics.lineSpacing())
+                
+        painter.save()
+        
+        border_rect = QRect(option.rect.marginsRemoved(QMargins(10, 10, 10, 10)))
+
+        border_path = QPainterPath()
+        border_path.addRoundedRect(border_rect, 10, 10)
+        
+        situations = [
+            bool(index.data(Qt.ItemDataRole.UserRole + 1) and index.data(Qt.ItemDataRole.UserRole + 2) == "document"), 
+            bool(option.state & QStyle.StateFlag.State_MouseOver), 
+            bool(True)
+            ]
+        
+        defaults = [
+            [option.palette.base().color(), option.palette.text().color(), option.palette.text().color()],
+            [option.palette.button().color(), option.palette.text().color(), option.palette.buttonText().color()],
+            [option.palette.link().color(), option.palette.text().color(), option.palette.linkVisited().color()]
+            ]
+        
+        colors = []
+        
+        i = 2
+        
+        for status in situations:
+            if status:
+                for j in range(3):
+                    if index.data(Qt.ItemDataRole.UserRole + 26 + j * 3 + i)[1] == None:
+                        colors.append(defaults[i][j])
+                        
+                    else:
+                        colors.append(QColor(index.data(Qt.ItemDataRole.UserRole + 26 + j * 3 + i)[1]))
+                        
+                break
+                    
+            i -= 1
+
+        border_pen = QPen(colors[2], 5)
+        painter.setPen(border_pen)
+
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+        painter.drawPath(border_path)
+        painter.fillPath(border_path, colors[0])
+        
+        painter.restore()
+
+        painter.setPen(colors[1])
+        painter.setFont(name_font)
+        
+        painter.drawText(name_rect, Qt.AlignmentFlag.AlignLeading, name_fontmetrics.elidedText(name, Qt.TextElideMode.ElideRight, name_rect.width()))
+        
+        painter.setFont(option.font)
+        
+        painter.drawText(content_rect, QFontMetrics(QFont(option.font)).elidedText(content, Qt.TextElideMode.ElideRight, content_rect.width()))
+        painter.drawText(creation_rect, creation_date)
+        painter.drawText(modification_rect, modification_date)
+
+        painter.restore()
+        painter.save()
+        
+        painter.setPen(colors[2])
+        painter.setBrush(colors[1])
+
+        button_rect = self.getButtonRect(option)
+        center_y = button_rect.center().y()
+        center_x = button_rect.center().x()
+
+        painter.drawEllipse(center_x - self.dot_size / 2, center_y - self.dot_padding - self.dot_size / 2, self.dot_size, self.dot_size)
+        painter.drawEllipse(center_x - self.dot_size / 2, center_y - self.dot_size / 2, self.dot_size, self.dot_size)
+        painter.drawEllipse(center_x - self.dot_size / 2, center_y + self.dot_padding - self.dot_size / 2, self.dot_size, self.dot_size)
+
+        painter.restore()
+              
+    def editorEvent(self, event: QEvent, model: QStandardItemModel, option: QStyleOptionViewItem, index: QModelIndex) -> bool:
+        if event.type() == QEvent.Type.MouseButtonPress:
+            button_rect = self.getButtonRect(option)
+            
+            if event.button() == Qt.MouseButton.LeftButton:
+                if button_rect.contains(event.position().toPoint()):
+                    self.menu_requested.emit(index)
+                    return True
+                
+                elif index.data(Qt.ItemDataRole.UserRole + 2) == "document":
+                    self.parent_.parent_.options.open(index, "normal")
+                
+                model.setData(index, not index.data(Qt.ItemDataRole.UserRole + 1), Qt.ItemDataRole.UserRole + 1)
 
         return super().editorEvent(event, model, option, index)
+
+    def getButtonRect(self, option: QStyleOptionViewItem) -> QRect:
+        return QRect(option.rect.topRight().x() - self.button_size - 10, option.rect.topRight().y(), self.button_size, option.rect.height())
+
+    def sizeHint(self, option: QStyleOptionViewItem, index: QModelIndex) -> QRect:
+        return QSize(option.rect.width(), 108)

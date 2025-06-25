@@ -40,7 +40,6 @@ class Document(QWidget):
         
         self.document = index.data(Qt.ItemDataRole.UserRole + 101)
         self.notebook = index.data(Qt.ItemDataRole.UserRole + 100)
-        self.content = index.data(Qt.ItemDataRole.UserRole + 104) if mode == "normal" else index.data(Qt.ItemDataRole.UserRole + 105)
         self.creation = index.data(Qt.ItemDataRole.UserRole + 102)
         
         self.today = QDate.currentDate()
@@ -50,21 +49,13 @@ class Document(QWidget):
         
         self.helper = DocumentHelper(self)
         self.input.cursorPositionChanged.connect(self.helper.updateButtons)
-
-        self.handleSettings()
-        
-        if self.settings["format"] == "plain-text":
-            self.input.setPlainText(self.content)
-            
-        elif self.settings["format"] == "markdown":
-            self.input.setMarkdown(self.content)
-            
-        elif self.settings["format"] == "html":
-            self.input.setHtml(self.content)
         
         self.layout_ = QVBoxLayout(self)
         self.layout_.addWidget(self.helper)
         self.layout_.addWidget(self.input)
+
+        self.handleSettings()
+        self.refreshContent()
         
     def handleGlobal(self, setting: str) -> str:
         if self.settings[(setting, "global")] is None:
@@ -89,6 +80,18 @@ class Document(QWidget):
         self.settings["locked"] = self.index.data(Qt.ItemDataRole.UserRole + 21)[1]
             
         self.helper.updateStatus(self.settings["format"])
+        
+    def refreshContent(self) -> None:
+        self.content = self.index.data(Qt.ItemDataRole.UserRole + 104) if self.mode == "normal" else self.index.data(Qt.ItemDataRole.UserRole + 105)
+        
+        if self.settings["format"] == "plain-text":
+            self.input.setPlainText(self.content)
+            
+        elif self.settings["format"] == "markdown":
+            self.input.setMarkdown(self.content)
+            
+        elif self.settings["format"] == "html":
+            self.input.setHtml(self.content)
         
 
 class BackupView(Document):
@@ -116,6 +119,9 @@ class BackupView(Document):
             
         else:
             QMessageBox.critical(self, self.tr("Error"), self.tr("Failed to restore content."))
+            
+    def refreshSettings(self) -> None:
+        self.handleSettings()
 
 
 class NormalView(Document):
@@ -144,12 +150,12 @@ class NormalView(Document):
         self.changeAutosaveConnections()
                 
     def changeAutosaveConnections(self, event: str | None = None) -> None:
-        if self.settings["locked"] == None and (self.settings["autosave"] == "enabled" and not self.connected) or event == "connect":
+        if self.settings["locked"] == None and ((self.settings["autosave"] == "enabled" and not self.connected) or event == "connect"):
             self.input.textChanged.connect(self.save)
             self.saver_thread.start()
             self.connected = True
             
-        elif self.settings["autosave"] == "disabled" or event == "disconnect":
+        elif self.settings["locked"] == "yes" or self.settings["autosave"] == "disabled" or event == "disconnect":
             if self.connected:
                 self.input.textChanged.disconnect(self.save)
             self.saver_thread.quit()
@@ -174,7 +180,7 @@ class NormalView(Document):
             QMessageBox.critical(self, self.tr("Error"), self.tr("Failed to save document."))
             
     def refreshSettings(self) -> None:
-        super().handleSettings()
+        self.handleSettings()
             
         self.changeAutosaveConnections()
             
@@ -556,14 +562,14 @@ class DocumentSaver(QObject):
                     return
 
             if self.parent_.db.saveDocument(self.parent_.getText(), self.parent_.content, autosave, self.parent_.document, self.parent_.notebook):
-                if not autosave:
-                    self.parent_.show_messages.emit(True)
-                    
-                    self.parent_.index.model().setData(self.parent_.index, self.parent_.db.getBackup(self.parent_.document, self.parent_.notebook), Qt.ItemDataRole.UserRole + 105)
+                self.parent_.last_content = self.parent_.getText()   
                     
                 self.parent_.index.model().setData(self.parent_.index, self.parent_.getText(), Qt.ItemDataRole.UserRole + 104)
+                
+                if not autosave:
+                    self.parent_.index.model().setData(self.parent_.index, self.parent_.db.getBackup(self.parent_.document, self.parent_.notebook), Qt.ItemDataRole.UserRole + 105)
                     
-                self.parent_.last_content = self.parent_.getText()
+                    self.parent_.show_messages.emit(True)
                     
                 return True
                 
@@ -588,7 +594,7 @@ class TextEdit(QTextEdit):
         super().mousePressEvent(event)
             
     def mouseReleaseEvent(self, event: QMouseEvent):
-        if self.anchor:
+        if hasattr(self, "anchor") and self.anchor:
             QDesktopServices.openUrl(self.anchor)
             QApplication.setOverrideCursor(Qt.CursorShape.ArrowCursor)
             self.anchor = None
