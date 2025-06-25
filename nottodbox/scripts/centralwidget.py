@@ -22,6 +22,7 @@ from .widgets.controls import VSeperator
 from .about import About
 from .area import Area
 from .selector import Selector
+from .settings import Settings
 from .sidebar import Sidebar
 
 
@@ -36,7 +37,7 @@ class CentralWidget(QWidget):
         self.old_index = 0
         
         self.home = Home(self)
-        self.settings = QWidget(self)
+        self.settings = Settings(self)
         self.about = About(self)
         
         self.pages.addWidget(self.home)

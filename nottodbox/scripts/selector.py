@@ -263,34 +263,30 @@ class Options:
             
     @Slot(QModelIndex)
     def close(self, index: QModelIndex) -> None:
-        try:
-            if index.data(Qt.ItemDataRole.UserRole + 5).mode == "normal" and not index.data(Qt.ItemDataRole.UserRole + 5).last_content == index.data(Qt.ItemDataRole.UserRole + 5).getText():
-                self.question = QMessageBox.question(
-                    self.parent_, self.parent_.tr("Question"), self.parent_.tr("Document not saved.\nWhat would you like to do?"),
-                    QMessageBox.StandardButton.Save | QMessageBox.StandardButton.Discard | QMessageBox.StandardButton.Cancel, QMessageBox.StandardButton.Save)
-                            
-                if self.question == QMessageBox.StandardButton.Save:
-                    if not index.data(Qt.ItemDataRole.UserRole + 5).saver.saveDocument():
-                        return
-                
-                elif self.question != QMessageBox.StandardButton.Discard:
+        if index.data(Qt.ItemDataRole.UserRole + 5).mode == "normal" and not index.data(Qt.ItemDataRole.UserRole + 5).last_content == index.data(Qt.ItemDataRole.UserRole + 5).getText():
+            self.question = QMessageBox.question(
+                self.parent_, self.parent_.tr("Question"), self.parent_.tr("Document not saved.\nWhat would you like to do?"),
+                QMessageBox.StandardButton.Save | QMessageBox.StandardButton.Discard | QMessageBox.StandardButton.Cancel, QMessageBox.StandardButton.Save)
+                        
+            if self.question == QMessageBox.StandardButton.Save:
+                if not index.data(Qt.ItemDataRole.UserRole + 5).saver.saveDocument():
                     return
-        
-            index.model().setData(index, False, Qt.ItemDataRole.UserRole + 1)
-        
-            self.parent_.parent_.area.pages.layout_.replaceWidget(index.data(Qt.ItemDataRole.UserRole + 5), index.data(Qt.ItemDataRole.UserRole + 4))
             
-            if index.data(Qt.ItemDataRole.UserRole + 5).mode == "normal":
-                index.data(Qt.ItemDataRole.UserRole + 5).changeAutosaveConnections("disconnect")
-            
-            index.data(Qt.ItemDataRole.UserRole + 5).deleteLater()
-            index.model().setData(index, None, Qt.ItemDataRole.UserRole + 5)
-            
-            del self.pages[index.data(Qt.ItemDataRole.UserRole + 4)]
-            index.model().setData(index, None, Qt.ItemDataRole.UserRole + 4)
+            elif self.question != QMessageBox.StandardButton.Discard:
+                return
+    
+        index.model().setData(index, False, Qt.ItemDataRole.UserRole + 1)
+    
+        self.parent_.parent_.area.pages.layout_.replaceWidget(index.data(Qt.ItemDataRole.UserRole + 5), index.data(Qt.ItemDataRole.UserRole + 4))
         
-        except RuntimeError or AttributeError:
-            pass
+        if index.data(Qt.ItemDataRole.UserRole + 5).mode == "normal":
+            index.data(Qt.ItemDataRole.UserRole + 5).changeAutosaveConnections("disconnect")
+        
+        index.data(Qt.ItemDataRole.UserRole + 5).deleteLater()
+        index.model().setData(index, None, Qt.ItemDataRole.UserRole + 5)
+        
+        del self.pages[index.data(Qt.ItemDataRole.UserRole + 4)]
+        index.model().setData(index, None, Qt.ItemDataRole.UserRole + 4)
         
     @Slot(QModelIndex)
     def createDocument(self, index: QModelIndex) -> None:
@@ -378,14 +374,14 @@ class Options:
         
         if maindb.delete(name, table):
             if index.data(Qt.ItemDataRole.UserRole + 2) == "notebook":
-                self.parent_.tree_view.model_.removeRow(index.row())
-                
                 for name_, table_ in maindb.items.copy().keys():
                     if table_ == name:
                         if len(self.pages) > 0 and self.pages[self.parent_.parent_.area.pages.focused_on] == maindb.items[(name_, table_)].index():
                             self.close(maindb.items[(name_, table_)].index())
                         
                         del maindb.items[(name_, table_)]
+                        
+                self.parent_.tree_view.model_.removeRow(index.row())
             
             elif index.data(Qt.ItemDataRole.UserRole + 2) == "document":
                 if len(self.pages) > 0 and self.pages[self.parent_.parent_.area.pages.focused_on] == index:
@@ -494,7 +490,7 @@ class Options:
                 QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.parent_.tr("A name is required."))
                 return
             
-            if not maindb.checkIfItExists(name, table):
+            if not maindb.checkIfItExists(new_name, table):
                 if maindb.rename("yes" if diary else None, new_name, name, table):
                     if index.data(Qt.ItemDataRole.UserRole + 2) == "notebook":
                         for name_, table_ in maindb.items.copy().keys():
@@ -802,7 +798,7 @@ class ButtonDelegate(QStyledItemDelegate):
         
         self.parent_ = parent
 
-    def paint(self, painter: QPainter, option: QStyleOptionViewItem, index: QModelIndex):
+    def paint(self, painter: QPainter, option: QStyleOptionViewItem, index: QModelIndex) -> None:
         painter.save()
         
         name = index.data(Qt.ItemDataRole.UserRole + 101)
@@ -896,7 +892,7 @@ class ButtonDelegate(QStyledItemDelegate):
         painter.setPen(colors[1])
         painter.setFont(name_font)
         
-        painter.drawText(name_rect, Qt.AlignmentFlag.AlignLeading, name_fontmetrics.elidedText(name, Qt.TextElideMode.ElideRight, name_rect.width()))
+        painter.drawText(name_rect, name_fontmetrics.elidedText(name, Qt.TextElideMode.ElideRight, name_rect.width()))
         
         painter.setFont(option.font)
         
