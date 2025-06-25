@@ -36,8 +36,19 @@ def changeAppearance(self: QDialog, index: QModelIndex, show_global: bool, color
             ]
         
     for i in range(9):
-        self.selectors.append(color_selector(self.input, True, show_global, index.data(Qt.ItemDataRole.UserRole + 2) == "document", index.data(Qt.ItemDataRole.UserRole + 26 + i)[1] if index.data(Qt.ItemDataRole.UserRole + 26 + i)[0] == "self" else index.data(Qt.ItemDataRole.UserRole + 26 + i)[0], self.tr("Select Color")))
-        self.layout_.addRow(f"{self.localizeds[i]}:", self.selectors[-1])
+        widget = QWidget(self.input)
+        layout = QHBoxLayout(widget)
+        layout.setContentsMargins(0, 0, 0, 0)
+        
+        label = Label(widget, f"{self.localizeds[i]}:", Qt.AlignmentFlag.AlignRight)
+        label.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Ignored)
+        
+        self.selectors.append(color_selector(widget, True, show_global, index.data(Qt.ItemDataRole.UserRole + 2) == "document", index.data(Qt.ItemDataRole.UserRole + 26 + i)[1] if index.data(Qt.ItemDataRole.UserRole + 26 + i)[0] == "self" else index.data(Qt.ItemDataRole.UserRole + 26 + i)[0], self.tr("Select Color")))
+        
+        layout.addWidget(label)
+        layout.addWidget(self.selectors[-1])
+        
+        self.layout_.addWidget(widget)
         
         
 def changeSettings(self: QDialog, index: QModelIndex, show_global: bool) -> None:
@@ -61,27 +72,36 @@ def changeSettings(self: QDialog, index: QModelIndex, show_global: bool) -> None
     ]
     
     for i in range(4):
-        combobox = QComboBox(self.input)
-        combobox.addItem(self.tr("Follow default ({})").format(APP_DEFAULTS[0]))
+        widget = QWidget(self.input)
+        layout = QHBoxLayout(widget)
+        layout.setContentsMargins(0, 0, 0, 0)
+        
+        self.selectors.append(QComboBox(widget))
+        
+        self.selectors[-1].addItem(self.tr("Follow default ({})").format(APP_DEFAULTS[0]))
         
         if show_global:
-            combobox.insertItem(1, self.tr("Follow global ({})").format(APP_DEFAULTS[0])) # tmp
+            self.selectors[-1].insertItem(1, self.tr("Follow global ({})").format(APP_DEFAULTS[0])) # tmp
         
         if index.data(Qt.ItemDataRole.UserRole + 2) == "document":
-            combobox.insertItem(2 if show_global else 1, self.tr("Follow notebook ({})").
+            self.selectors[-1].insertItem(2 if show_global else 1, self.tr("Follow notebook ({})").
                                     format(self.db.items[(index.data(Qt.ItemDataRole.UserRole + 100), "__main__")].data(Qt.ItemDataRole.UserRole + 20 + i)[1]))
-            
-        combobox.addItems(self.options[i])
         
-        self.layout_.addRow(Label(self.input, f"{self.localizeds[i]}:", Qt.AlignmentFlag.AlignRight), combobox)
+        self.selectors[-1].addItems(self.options[i])
+        
+        label = Label(widget, f"{self.localizeds[i]}:", Qt.AlignmentFlag.AlignRight)
+        label.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Ignored)
+        
+        layout.addWidget(label)
+        layout.addWidget(self.selectors[-1])
+        
+        self.layout_.addWidget(widget)
 
         try:
-            combobox.setCurrentIndex(self.settings.index(index.data(Qt.ItemDataRole.UserRole + 20 + i)[0]))
+            self.selectors[-1].setCurrentIndex(self.settings.index(index.data(Qt.ItemDataRole.UserRole + 20 + i)[0]))
         
         except ValueError:
-            combobox.setCurrentIndex(len(self.settings) + APP_VALUES[i].index(index.data(Qt.ItemDataRole.UserRole + 20 + i)[1]))
+            self.selectors[-1].setCurrentIndex(len(self.settings) + APP_VALUES[i].index(index.data(Qt.ItemDataRole.UserRole + 20 + i)[1]))
             
-        self.selectors.append(combobox)
-            
-    self.layout_.addRow(Label(self.input, self.tr("*Setting this to 'Completed' or 'Uncompleted' converts to a to-do."), Qt.AlignmentFlag.AlignLeft))
-    self.layout_.addRow(Label(self.input, self.tr("**Setting this to 'Yes' converts to a diary."), Qt.AlignmentFlag.AlignLeft))
+    self.layout_.addWidget(Label(self.input, self.tr("*Setting this to 'Completed' or 'Uncompleted' converts to a to-do."), Qt.AlignmentFlag.AlignLeft))
+    self.layout_.addWidget(Label(self.input, self.tr("**Setting this to 'Yes' converts to a diary."), Qt.AlignmentFlag.AlignLeft))

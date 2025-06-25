@@ -131,7 +131,7 @@ class Dialog(QDialog):
         self.base_layout.addWidget(self.buttons)
         
         self.setWindowTitle(window_title)
-        self.resize(500, 350)
+        self.resize(690, 460)
 
 
 class GetName(Dialog):
@@ -291,7 +291,7 @@ class Settings(Dialog):
         
         self.selectors = []
         
-        self.layout_ = QFormLayout(self.input)
+        self.layout_ = QVBoxLayout(self.input)
         
         
 class ChangeAppearance(Settings):

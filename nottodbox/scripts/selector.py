@@ -100,6 +100,7 @@ class Selector(QWidget):
         
     def setPage(self) -> None:
         if self.tree_view.model_.rowCount() == 0:
+            self.calendar_checkbox.setCheckState(Qt.CheckState.Checked)
             self.pages.setCurrentIndex(0)
             
         else:
@@ -192,7 +193,7 @@ class Options:
                     if table == "__main__":
                         for name_, table_ in maindb.items.keys():
                             if table_ == name and maindb.items[(name_, table_)].data(Qt.ItemDataRole.UserRole + 26 + i)[0] == "notebook":
-                                maindb.items[(name_, table_)].setData(self.parent_.tree_view.handleSetting(maindb.items[(name_, table_)], 6 + i, values[i]), Qt.ItemDataRole.UserRole + 26 + i)
+                                maindb.items[(name_, table_)].setData(("notebook", self.parent_.tree_view.handleSettingViaNotebook(maindb.items[(name_, table_)], 6 + i)), Qt.ItemDataRole.UserRole + 26 + i)
                                 
                 else:
                     successful = False
@@ -224,7 +225,7 @@ class Options:
                     if table == "__main__":
                         for name_, table_ in maindb.items.keys():
                             if table_ == name and maindb.items[(name_, table_)].data(Qt.ItemDataRole.UserRole + 20 + i)[0] == "notebook":
-                                maindb.items[(name_, table_)].setData(self.parent_.tree_view.handleSetting(maindb.items[(name_, table_)], i, options[values[i]]), Qt.ItemDataRole.UserRole + 20 + i)
+                                maindb.items[(name_, table_)].setData(("notebook", self.parent_.tree_view.handleSettingViaNotebook(maindb.items[(name_, table_)], i)), Qt.ItemDataRole.UserRole + 20 + i)
                                 
                 else:
                     successful = False
