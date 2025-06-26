@@ -46,7 +46,7 @@ class CalendarWidget(QCalendarWidget):
             painter.setOpacity(0)
         
         
-class Combobox(QComboBox):
+class ComboBox(QComboBox):
     def addItems(self, texts: list[str] | tuple[str]) -> None:
         self.clear()
         return super().addItems(texts)

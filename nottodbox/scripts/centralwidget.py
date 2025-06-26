@@ -22,7 +22,7 @@ from .widgets.controls import VSeperator
 from .about import About
 from .area import Area
 from .selector import Selector
-from .settings import Settings
+from .settings import SettingsPage
 from .sidebar import Sidebar
 
 
@@ -30,15 +30,16 @@ class CentralWidget(QWidget):
     def __init__(self, parent: QMainWindow) -> None:
         super().__init__(parent)
         
+        self.parent_ = parent
+        
         self.sidebar = Sidebar(self)
+        self.home = Home(self)
+        self.settings = SettingsPage(self)
+        self.about = About(self)
         
         self.pages = QStackedWidget(self)
         
         self.old_index = 0
-        
-        self.home = Home(self)
-        self.settings = Settings(self)
-        self.about = About(self)
         
         self.pages.addWidget(self.home)
         self.pages.addWidget(self.settings)
@@ -50,7 +51,7 @@ class CentralWidget(QWidget):
         self.layout_.addWidget(self.pages)
         
     @Slot(bool, int)
-    def setCurrentIndex(self, checked: bool, index: int):
+    def setCurrentIndex(self, checked: bool, index: int) -> None:
         self.pages.setCurrentIndex(self.old_index if not checked else index)
         
         self.old_index = self.pages.currentIndex()
@@ -60,11 +61,13 @@ class Home(QWidget):
     def __init__(self, parent: CentralWidget) -> None:
         super().__init__(parent)
         
+        self.parent_ = parent
+        
         self.layout_ = QHBoxLayout(self)
         
-        self.selector = Selector(self)
-        
         self.seperator = VSeperator(self)
+        
+        self.selector = Selector(self)
         
         self.area = Area(self)
         

@@ -18,10 +18,10 @@
 
 import os
 from PySide6.QtCore import Slot
-from PySide6.QtGui import QIcon, QPixmap
+from PySide6.QtGui import QIcon, QPalette, QPixmap
 from PySide6.QtWidgets import *
 from .widgets.controls import HSeperator, Label, ToolButton
-from .consts import DARK_COLOR_SCHEME, ICON_DIR
+from .consts import ICON_DIR
 
 
 class Sidebar(QWidget):
@@ -32,15 +32,14 @@ class Sidebar(QWidget):
         
         self.old_index = 0
         
-        self.layout_ = QVBoxLayout(self)
+        self.icons = ["home", "settings", "about", "focus"]
         
         self.buttons = [
-            ToolButton(self, lambda checked: self.setCurrentIndex(checked, 0), self.tr("Home"), True, self.makeIcon("home"), 40),
-            ToolButton(self, lambda checked: self.setCurrentIndex(checked, 1), self.tr("Settings"), True, self.makeIcon("settings"), 40),
-            ToolButton(self, lambda checked: self.setCurrentIndex(checked, 2), self.tr("About"), True, self.makeIcon("about"), 40)
+            ToolButton(self, lambda checked: self.setCurrentIndex(checked, 0), self.tr("Home"), True, None, 40),
+            ToolButton(self, lambda checked: self.setCurrentIndex(checked, 1), self.tr("Settings"), True, None, 40),
+            ToolButton(self, lambda checked: self.setCurrentIndex(checked, 2), self.tr("About"), True, None, 40),
+            ToolButton(self, lambda: self.parent_.home.selector.setVisible(False if self.parent_.home.selector.isVisible() else True), self.tr("Focus"), True, None, 40)
         ]
-        
-        self.set_focus = ToolButton(self, lambda: self.parent_.home.selector.setVisible(False if self.parent_.home.selector.isVisible() else True), self.tr("Focus"), True, self.makeIcon("focus"), 40)
         
         self.favorites = Favorites(self)
         
@@ -54,11 +53,12 @@ class Sidebar(QWidget):
         # self.column_spinbox = QSpinBox(self)
         # self.column_spinbox.setMinimum(1)
         # self.column_spinbox.valueChanged.connect(lambda value: self.parent_.home.area.pages.setArea(self.row_spinbox.value(), value))
+        
+        self.layout_ = QVBoxLayout(self)
 
         for button in self.buttons:
             self.layout_.addWidget(button)
             
-        self.layout_.addWidget(self.set_focus)
         self.layout_.addWidget(HSeperator(self))
         self.layout_.addWidget(self.favorites)
         # self.layout_.addWidget(HSeperator(self))
@@ -73,10 +73,10 @@ class Sidebar(QWidget):
     @Slot(bool, int) 
     def setCurrentIndex(self, checked: bool, index: int) -> None:
         if (checked and index != 0) or (not checked and self.old_index != 0):
-            self.set_focus.setVisible(False)
+            self.buttons[-1].setVisible(False)
             
         else:
-            self.set_focus.setVisible(True)
+            self.buttons[-1].setVisible(True)
         
         self.buttons[self.old_index].setChecked(False if checked else True)
         
@@ -85,7 +85,11 @@ class Sidebar(QWidget):
         self.parent_.setCurrentIndex(checked, index)
     
     def makeIcon(self, name: str) -> QIcon:
-        return QIcon(QPixmap(os.path.join(ICON_DIR, "actions", f"io.github.mukonqi.nottodbox_{name}_{"dark" if DARK_COLOR_SCHEME else "light"}.svg")))
+        return QIcon(QPixmap(os.path.join(ICON_DIR, "actions", f"io.github.mukonqi.nottodbox_{name}_{"dark" if QApplication.palette().color(QPalette.ColorRole.WindowText).lightness() > QApplication.palette().color(QPalette.ColorRole.Window).lightness() else "light"}.svg")))
+    
+    def refresh(self) -> None:
+        for i in range(4):
+            self.buttons[i].setIcon(self.makeIcon(self.icons[i]))
     
     
 class Favorites(QWidget):

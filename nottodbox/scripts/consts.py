@@ -96,6 +96,3 @@ os.makedirs(USER_DATABASES_DIR, exist_ok=True)
 
 
 SYSTEM_DESKTOP_FILE_FOUND = os.path.isfile(f"/usr/share/applications/{APP_ID}.desktop") or os.path.isfile(f"/usr/local/share/applications/{APP_ID}.desktop")
-
-
-DARK_COLOR_SCHEME = QApplication.styleHints().colorScheme() == Qt.ColorScheme.Dark

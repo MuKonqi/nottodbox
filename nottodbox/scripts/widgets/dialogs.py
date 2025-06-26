@@ -67,7 +67,7 @@ class GetColor(QColorDialog):
         
   
 class ColorSelector(QWidget):
-    def __init__(self, parent: QWidget, show_default: bool, show_global: bool, show_notebook: bool, color: QColor | Qt.GlobalColor | str, title: str) -> None:
+    def __init__(self, parent: QWidget, show_default: bool, show_global: bool, show_notebook: bool, color: QColor | Qt.GlobalColor | str) -> None:
         super().__init__(parent)
         
         self.selected = color
@@ -76,7 +76,6 @@ class ColorSelector(QWidget):
         self.show_global = show_global
         self.show_notebook = show_notebook
         self.color = color
-        self.title = title
         
         self.selector = PushButton(self, self.selectColor, self.tr("Select color ({})").format(color))
         
@@ -93,7 +92,7 @@ class ColorSelector(QWidget):
         
     @Slot()
     def selectColor(self) -> None:
-        ok, status, qcolor = GetColor(self, self.show_default, self.show_global, self.show_notebook, self.color, self.title).getColor()
+        ok, status, qcolor = GetColor(self, self.show_default, self.show_global, self.show_notebook, self.color, self.tr("Select a Color")).getColor()
         
         if ok:
             if status == "new":
@@ -318,7 +317,7 @@ class ChangeAppearance(Settings):
             label = Label(widget, f"{self.localizeds[i]}:", Qt.AlignmentFlag.AlignRight)
             label.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Ignored)
             
-            self.selectors.append(ColorSelector(widget, True, True, index.data(Qt.ItemDataRole.UserRole + 2) == "document", index.data(Qt.ItemDataRole.UserRole + 26 + i)[1] if index.data(Qt.ItemDataRole.UserRole + 26 + i)[0] == "self" else index.data(Qt.ItemDataRole.UserRole + 26 + i)[0], self.tr("Select Color")))
+            self.selectors.append(ColorSelector(widget, True, True, index.data(Qt.ItemDataRole.UserRole + 2) == "document", index.data(Qt.ItemDataRole.UserRole + 26 + i)[1] if index.data(Qt.ItemDataRole.UserRole + 26 + i)[0] == "self" else index.data(Qt.ItemDataRole.UserRole + 26 + i)[0]))
             
             layout.addWidget(label)
             layout.addWidget(self.selectors[-1])
