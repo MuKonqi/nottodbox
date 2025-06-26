@@ -67,7 +67,7 @@ class GetColor(QColorDialog):
         
   
 class ColorSelector(QWidget):
-    def __init__(self, parent: QWidget, show_default: bool, show_global: bool, show_notebook: bool, color: QColor | Qt.GlobalColor | str) -> None:
+    def __init__(self, parent: QWidget, show_default: bool, show_global: bool, show_notebook: bool, color: str = "default") -> None:
         super().__init__(parent)
         
         self.selected = color
@@ -77,7 +77,7 @@ class ColorSelector(QWidget):
         self.show_notebook = show_notebook
         self.color = color
         
-        self.selector = PushButton(self, self.selectColor, self.tr("Select color ({})").format(color))
+        self.selector = PushButton(self, self.selectColor, self.tr("Select color ({})").format(self.tr("default") if self.color == "default" else color))
         
         self.label = Label(self)
         
@@ -88,23 +88,18 @@ class ColorSelector(QWidget):
         self.layout_.addWidget(self.selector)
         self.layout_.addWidget(self.label)
         
-        self.previewColor(self.selected)
+        self.setColor(self.selected)
         
     @Slot()
     def selectColor(self) -> None:
-        ok, status, qcolor = GetColor(self, self.show_default, self.show_global, self.show_notebook, self.color, self.tr("Select a Color")).getColor()
+        ok, status, color = GetColor(self, self.show_default, self.show_global, self.show_notebook, self.color, self.tr("Select a Color")).getColor()
         
         if ok:
-            if status == "new":
-                self.selected = qcolor.name()
-                
-            else:
-                self.selected = status
-                
-            self.previewColor(self.selected)
+            self.setColor(color.name() if status == "new" else status)
         
-    def previewColor(self, color: str) -> None:
-        self.selector.setText(self.tr("Select color ({})").format(color if color != "" else self.tr("none")))
+    def setColor(self, color: str) -> None:
+        self.selected = color
+        self.selector.setText(self.tr("Select color ({})").format(color if color != "" else self.tr("default")))
         self.viewer.fill(color if color != "" and QColor(color).isValid() else Qt.GlobalColor.transparent)
         self.label.setPixmap(self.viewer)
         

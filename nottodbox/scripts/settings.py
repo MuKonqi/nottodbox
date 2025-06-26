@@ -23,7 +23,7 @@ from PySide6.QtCore import QEvent, QMargins, QModelIndex, QRect, QSettings, QSta
 from PySide6.QtGui import QColor, QFont, QFontMetrics, QPainter, QPainterPath, QPalette, QPen, QPixmap, QStandardItem, QStandardItemModel
 from PySide6.QtWidgets import *
 from .widgets.controls import ComboBox, HSeperator, Label, PushButton, VSeperator
-from .widgets.dialogs import GetColor
+from .widgets.dialogs import ColorSelector
 from .consts import USER_NAME
 
 
@@ -705,7 +705,8 @@ class Appearance(QWidget):
         
         else:
             return number
-    
+
+
 class CustomColorSchemes(QWidget):
     def __init__(self, parent: Appearance) -> None:
         super().__init__(parent)
@@ -716,48 +717,47 @@ class CustomColorSchemes(QWidget):
         self.name.setClearButtonEnabled(True)
         self.name.setPlaceholderText(f"Color scheme by {USER_NAME}")
         
-        self.ComboBox = ComboBox(self)
+        self.combobox = ComboBox(self)
         
         self.createList()
         
-        self.ComboBox.currentTextChanged.connect(self.baseColorSchemeChanged)
+        self.combobox.currentTextChanged.connect(self.baseColorSchemeChanged)
                
-        self.labels = {"Window": self.tr("Window"),
-                       "WindowText": self.tr("Window text"),
-                       "Base": self.tr("Base"),
-                       "AlternateBase": self.tr("Alternate base"),
-                       "ToolTipBase": self.tr("Tooltip base"),
-                       "ToolTipText": self.tr("Tooltip text"),
-                       "PlaceholderText": self.tr("Placeholder text"),
-                       "Text": self.tr("Text"),
-                       "Button": self.tr("Button"),
-                       "ButtonText": self.tr("Button text"),
-                       "BrightText": self.tr("Bright text"),
-                       "Light": self.tr("Light"),
-                       "Midlight": self.tr("Mid light"),
-                       "Dark": self.tr("Dark"),
-                       "Mid": self.tr("Mid"),
-                       "Shadow": self.tr("Shadow"),
-                       "Highlight": self.tr("Highlight"),
-                       "Accent": self.tr("Accent"),
-                       "HighlightedText": self.tr("Highlighted text"),
-                       "Link": self.tr("Link"),
-                       "LinkVisited": self.tr("Visited link")}
+        self.labels = {
+            "Window": self.tr("Window"),
+            "WindowText": self.tr("Window text"),
+            "Base": self.tr("Base"),
+            "AlternateBase": self.tr("Alternate base"),
+            "ToolTipBase": self.tr("Tooltip base"),
+            "ToolTipText": self.tr("Tooltip text"),
+            "PlaceholderText": self.tr("Placeholder text"),
+            "Text": self.tr("Text"),
+            "Button": self.tr("Button"),
+            "ButtonText": self.tr("Button text"),
+            "BrightText": self.tr("Bright text"),
+            "Light": self.tr("Light"),
+            "Midlight": self.tr("Mid light"),
+            "Dark": self.tr("Dark"),
+            "Mid": self.tr("Mid"),
+            "Shadow": self.tr("Shadow"),
+            "Highlight": self.tr("Highlight"),
+            "Accent": self.tr("Accent"),
+            "HighlightedText": self.tr("Highlighted text"),
+            "Link": self.tr("Link"),
+            "LinkVisited": self.tr("Visited link")
+            }
         
         self.buttons = {}
-        self.values = {}
         
         number = 0
         
         self.form = QFormLayout(self)
-        self.form.addRow("{}:".format(self.tr("Color scheme to be edited")), self.ComboBox)
+        self.form.addRow("{}:".format(self.tr("Color scheme to be edited")), self.combobox)
         
         for color_role in self.labels.keys():
             number += 1
-                        
-            self.values[color_role] = ""
             
-            self.buttons[color_role] = ColorSelectionWidget(self, color_role, self.labels, self.values)
+            self.buttons[color_role] = ColorSelector(self, True, False, False)
             
             if number == 1:
                 self.form.addRow(Label(self, self.tr("General")))
@@ -803,8 +803,8 @@ class CustomColorSchemes(QWidget):
             color_scheme = {}
             
             for color_role in self.labels.keys():
-                if self.values[color_role] != "":
-                    color_scheme[color_role] = self.values[color_role]
+                if self.buttons[color_role].selected != "default":
+                    color_scheme[color_role] = self.buttons[color_role].selected
                 
             data["colors"] = color_scheme
             
@@ -856,54 +856,12 @@ class CustomColorSchemes(QWidget):
         self.color_schemes_list.insert(0, self.tr("none").title())
         self.color_schemes_list.pop(-1)
         
-        self.ComboBox.addItems(self.color_schemes_list)
+        self.combobox.addItems(self.color_schemes_list)
     
     @Slot(bool)
     def setEnabled(self, enabled: bool) -> None:
         super().setEnabled(enabled)
         self.name.setEnabled(enabled)
-        
-        
-class ColorSelectionWidget(QWidget):
-    def __init__(self, parent: QWidget, color_role: QPalette.ColorRole, labels: dict, values: dict) -> None:
-        super().__init__(parent)
-        
-        self.color_role = color_role
-        self.labels = labels
-        self.values = values
-        
-        self.selector = PushButton(self, self.selectColor, self.tr("Select color ({})").format(self.tr("none")))
-        
-        self.label = Label(self)
-        
-        self.viewer = QPixmap(self.selector.height(), self.selector.height())
-
-        self.layout_ = QHBoxLayout(self)
-        self.layout_.setContentsMargins(0, 0, 0, 0)
-        self.layout_.addWidget(self.selector)
-        self.layout_.addWidget(self.label)
-        
-    @Slot()
-    def selectColor(self) -> None:
-        ok, status, qcolor = GetColor(self, True, False, False, 
-                                         QColor(self.values[self.color_role] if self.color_role in self.values else "#000000"), 
-                                         self.tr("Select {} Color").format(self.labels[self.color_role].title())).getColor()
-        
-        if ok:
-            if status == "new":
-                self.setColor(qcolor.name())
-                
-            elif status == "default":
-                self.setColor("")
-                
-    def setColor(self, color: str) -> None:
-        self.values[self.color_role] = color
-        
-        self.selector.setText(self.tr("Select color ({})")
-                              .format(self.values[self.color_role] if color != "" else self.tr("none")))
-        
-        self.viewer.fill(color if color != "" else Qt.GlobalColor.transparent)
-        self.label.setPixmap(self.viewer)
         
         
 class DocumentSettings(QWidget):

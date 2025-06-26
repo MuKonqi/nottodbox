@@ -217,10 +217,10 @@ class Options:
                     successful = False
                     
             if successful:
-                QMessageBox.information(self.parent_, self.parent_.tr("Successful"), self.tr("New appearance applied {of_item}.", index))
+                QMessageBox.information(self.parent_, self.parent_.tr("Successful"), self.tr("New appearance applied {to_item}.", index))
                 
             else:
-                QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.tr("Failed to apply new appearance {of_item}.", index))
+                QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.tr("Failed to apply new appearance {to_item}.", index))
                     
     @Slot(QModelIndex)
     def changeSettings(self, index: QModelIndex) -> None:
@@ -255,10 +255,10 @@ class Options:
                     successful = False
                     
             if successful:
-                QMessageBox.information(self.parent_, self.parent_.tr("Successful"), self.tr("New settings applied {of_item}.", index))
+                QMessageBox.information(self.parent_, self.parent_.tr("Successful"), self.tr("New settings applied {to_item}.", index))
                 
             else:
-                QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.tr("Failed to apply new settings {of_item}.", index))
+                QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.tr("Failed to apply new settings {to_item}.", index))
     
     @Slot(QModelIndex)
     def clearContent(self, index: QModelIndex) -> None:
@@ -272,10 +272,10 @@ class Options:
             if len(self.pages) > 0 and self.pages[self.parent_.parent_.area.pages.focused_on] == index:
                 index.data(Qt.ItemDataRole.UserRole + 5).refreshContent()
             
-            QMessageBox.information(self.parent_, self.parent_.tr("Successful"), self.tr("Content cleared {of_item}.", index))
+            QMessageBox.information(self.parent_, self.parent_.tr("Successful"), self.tr("The content {of_item} cleared.", index))
             
         else:
-            QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.tr("Failed to clear content {of_item}.", index))
+            QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.tr("Failed to clear the content {of_item}.", index))
             
     @Slot(QModelIndex)
     def close(self, index: QModelIndex) -> None:
@@ -563,7 +563,7 @@ class Options:
             if len(self.pages) > 0 and self.pages[self.parent_.parent_.area.pages.focused_on] == index:
                 index.data(Qt.ItemDataRole.UserRole + 5).refreshContent()
             
-            QMessageBox.information(self.parent_, self.parent_.tr("Successful"), self.tr("Restored content {of_item}.", index))
+            QMessageBox.information(self.parent_, self.parent_.tr("Successful"), self.tr("The content {of_item} restored.", index))
             
         else:
             QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.tr("Failed to restore content {of_item}.", index))
@@ -589,7 +589,7 @@ class Options:
                 return text.format(from_item = self.parent_.tr("from '{name}' document").format(name = name))
             
             elif "{of_item}" in text:
-                return text.format(of_item = self.parent_.tr("of '{name}' notebook").format(name = name))
+                return text.format(of_item = self.parent_.tr("of '{name}' document").format(name = name))
             
             elif "{to_item}" in text:
                 return text.format(to_item = self.parent_.tr("to '{name}' document").format(name = name))
