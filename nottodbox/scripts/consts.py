@@ -18,8 +18,6 @@
 
 import getpass
 import os
-from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QApplication
 
 
 APP_ID = "io.github.mukonqi.nottodbox"

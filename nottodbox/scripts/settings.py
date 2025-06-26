@@ -24,7 +24,7 @@ from PySide6.QtGui import QColor, QFont, QFontMetrics, QPainter, QPainterPath, Q
 from PySide6.QtWidgets import *
 from .widgets.controls import ComboBox, HSeperator, Label, PushButton, VSeperator
 from .widgets.dialogs import ColorSelector
-from .consts import USER_NAME
+from .consts import APP_DEFAULTS, APP_SETTINGS, APP_VALUES, USER_NAME
 
 
 COLOR_SCHEMES_DIRS = []
@@ -65,6 +65,10 @@ class SettingsPage(QWidget):
         
         self.settings = QSettings("io.github.mukonqi", "nottodbox")
         
+        for setting in APP_SETTINGS:
+            if self.settings.value(f"globals/{setting}") == None:
+                self.settings.setValue(f"globals/{setting}", "default")
+        
         self.pages = [self.makeScrollable(Appearance(self)), self.makeScrollable(DocumentSettings(self)), self.makeScrollable(ListSettings(self))]
         
         self.widget = QStackedWidget(self)
@@ -86,7 +90,7 @@ class SettingsPage(QWidget):
         self.layout_.addWidget(self.buttons, 2, 2, 1, 1)
         
     def askFormat(self, page: QWidget, do_not_asked_before: bool, format_change_acceptted: bool) -> tuple[bool, bool]:
-        if (type(page.widget()).__name__ == "DocumentSettings" and do_not_asked_before and page.widget().format_changed):
+        if (type(page.widget()).__name__ == "DocumentSettings" and do_not_asked_before and page.widget().selectors[3].currentIndex() != page.widget().values[3].index(self.settings.value(f"globals/{APP_SETTINGS[3]}"))):
                 do_not_asked_before = False
                 
                 question = QMessageBox.question(
@@ -864,11 +868,11 @@ class CustomColorSchemes(QWidget):
         self.name.setEnabled(enabled)
         
         
-class DocumentSettings(QWidget):
+class GlobalSettings(QWidget):
     def __init__(self, parent: SettingsPage) -> None:
         super().__init__(parent)
         
-        self.format_changed = False
+        self.parent_ = parent
         
         self.selectors = []
         
@@ -876,33 +880,139 @@ class DocumentSettings(QWidget):
         
     @Slot(bool)
     def apply(self, format_change_acceptted: bool = True) -> bool:
-        return True
-    
-    @Slot()
-    def load(self) -> None:
-        pass
-    
+        return self.save("apply", format_change_acceptted)
+        
     @Slot(bool)
     def reset(self, format_change_acceptted: bool = True) -> bool:
-        return True
+        successful = self.save("reset", format_change_acceptted)
+        
+        if successful:
+            self.load()
+            
+        return successful
         
         
-class ListSettings(QWidget):
+class DocumentSettings(GlobalSettings):
     def __init__(self, parent: SettingsPage) -> None:
         super().__init__(parent)
         
-        self.selectors = []
+        self.localized_labels = [
+            self.tr("Completion status*"),
+            self.tr("Lock status**"),
+            self.tr("Auto-save"),
+            self.tr("Format")
+            ]
         
-        self.layout_ = QVBoxLayout(self)
+        self.localized_options = [
+            [self.tr("Completed"), self.tr("Uncompleted"), self.tr("None")],
+            [self.tr("Yes"), self.tr("None")],
+            [self.tr("Enabled"), self.tr("Disabled")],
+            ["Markdown", "HTML", self.tr("Plain-text")]
+        ]
         
-    @Slot(bool)
-    def apply(self, format_change_acceptted: bool = True) -> bool:
-        return True
+        self.values = [["default"] + values for values in APP_VALUES]
+        
+        for i in range(4):
+            widget = QWidget(self)
+            layout = QHBoxLayout(widget)
+            layout.setContentsMargins(0, 0, 0, 0)
+            
+            self.selectors.append(QComboBox(widget))
+            
+            self.selectors[-1].addItem(self.tr("Follow default ({})").format(APP_DEFAULTS[i]))
+
+            self.selectors[-1].addItems(self.localized_options[i])
+            
+            label = Label(widget, f"{self.localized_labels[i]}:", Qt.AlignmentFlag.AlignRight)
+            label.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Ignored)
+            
+            layout.addWidget(label)
+            layout.addWidget(self.selectors[-1])
+            
+            self.layout_.addWidget(widget)
+                
+        self.layout_.addWidget(Label(self, self.tr("*Setting this to 'Completed' or 'Uncompleted' converts to a to-do."), Qt.AlignmentFlag.AlignLeft))
+        self.layout_.addWidget(Label(self, self.tr("**Setting this to 'Yes' converts to a diary."), Qt.AlignmentFlag.AlignLeft))
+        
+        self.load()
     
     @Slot()
     def load(self) -> None:
-        pass
+        for i in range(4):
+            self.selectors[i].setCurrentIndex(self.values[i].index(self.parent_.settings.value(f"globals/{APP_SETTINGS[i]}")))
     
-    @Slot(bool)
-    def reset(self, format_change_acceptted: bool = True) -> bool:
-        return True
+    def save(self, mode: str, format_change_acceptted: bool = True) -> bool:
+        if not format_change_acceptted:
+            self.selectors[3].setCurrentIndex(self.values[3].index(self.parent_.settings.value(f"globals/{APP_SETTINGS[3]}")))
+            
+        successful = True
+            
+        for i in range(4):
+            self.parent_.settings.setValue(f"globals/{APP_SETTINGS[i]}", self.values[i][self.selectors[i].currentIndex()] if mode == "apply" else "default")
+            
+            check = self.parent_.settings.value(f"globals/{APP_SETTINGS[i]}") == (self.values[i][self.selectors[i].currentIndex()] if mode == "apply" else "default")
+
+            successful &= check
+            
+            if check:
+                for item in self.parent_.parent_.home.selector.maindb.items.values():
+                    if item.data(Qt.ItemDataRole.UserRole + 20 + i)[0] == "global":
+                        item.setData(("global", self.parent_.parent_.home.selector.tree_view.handleSettingViaGlobal(i)), Qt.ItemDataRole.UserRole + 20 + i)
+        
+        return successful
+        
+        
+class ListSettings(GlobalSettings):
+    def __init__(self, parent: SettingsPage) -> None:
+        super().__init__(parent)
+        
+        self.localizeds = [
+                self.tr("Background color"),
+                self.tr("Background color when mouse is over"),
+                self.tr("Background color when clicked"),
+                self.tr("Foreground color"),
+                self.tr("Foreground color when mouse is over"),
+                self.tr("Foreground color when clicked"),
+                self.tr("Border color"),
+                self.tr("Border color when mouse is over"),
+                self.tr("Border color when clicked")
+                ]
+            
+        for i in range(9):
+            widget = QWidget(self)
+            layout = QHBoxLayout(widget)
+            layout.setContentsMargins(0, 0, 0, 0)
+            
+            label = Label(widget, f"{self.localizeds[i]}:", Qt.AlignmentFlag.AlignRight)
+            label.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Ignored)
+            
+            self.selectors.append(ColorSelector(widget, True, False, False))
+            
+            layout.addWidget(label)
+            layout.addWidget(self.selectors[-1])
+            
+            self.layout_.addWidget(widget)
+            
+        self.load()
+
+    @Slot()
+    def load(self) -> None:
+        for i in range(9):
+            self.selectors[i].setColor(self.parent_.settings.value(f"globals/{APP_SETTINGS[6 + i]}"))
+    
+    def save(self, mode: str, format_change_acepptted: bool = True) -> bool:
+        successful = True
+        
+        for i in range(9):
+            self.parent_.settings.setValue(f"globals/{APP_SETTINGS[6 + i]}", self.selectors[i].selected if mode == "apply" else "default")
+            
+            check = self.parent_.settings.value(f"globals/{APP_SETTINGS[6 + i]}") == (self.selectors[i].selected if mode == "apply" else "default")
+
+            successful &= check
+            
+            if check:
+                for item in self.parent_.parent_.home.selector.maindb.items.values():
+                    if item.data(Qt.ItemDataRole.UserRole + 26 + i)[0] == "global":
+                        item.setData(("global", self.parent_.parent_.home.selector.tree_view.handleSettingViaGlobal(6 + i)), Qt.ItemDataRole.UserRole + 26 + i)
+                        
+        return successful

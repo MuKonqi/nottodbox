@@ -16,11 +16,11 @@
 # along with Nottodbox.  If not, see <https://www.gnu.org/licenses/>.
 
 
-from PySide6.QtCore import QModelIndex, QDate, Qt, Slot
+from PySide6.QtCore import QModelIndex, QDate, QSettings, Qt, Slot
 from PySide6.QtGui import QColor, QPixmap
 from PySide6.QtWidgets import *
 from .controls import CalendarWidget, Label, LineEdit, PushButton
-from ..consts import APP_DEFAULTS, APP_OPTIONS, APP_VALUES
+from ..consts import APP_DEFAULTS, APP_OPTIONS, APP_SETTINGS, APP_VALUES
 
 
 class GetColor(QColorDialog):
@@ -292,7 +292,7 @@ class ChangeAppearance(Settings):
     def __init__(self, parent: QWidget, db, index: QModelIndex) -> None:
         super().__init__(parent, db, index, self.tr("Change Appearance"))
         
-        self.localizeds = [
+        self.localized_labels = [
                 self.tr("Background color"),
                 self.tr("Background color when mouse is over"),
                 self.tr("Background color when clicked"),
@@ -309,7 +309,7 @@ class ChangeAppearance(Settings):
             layout = QHBoxLayout(widget)
             layout.setContentsMargins(0, 0, 0, 0)
             
-            label = Label(widget, f"{self.localizeds[i]}:", Qt.AlignmentFlag.AlignRight)
+            label = Label(widget, f"{self.localized_labels[i]}:", Qt.AlignmentFlag.AlignRight)
             label.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Ignored)
             
             self.selectors.append(ColorSelector(widget, True, True, index.data(Qt.ItemDataRole.UserRole + 2) == "document", index.data(Qt.ItemDataRole.UserRole + 26 + i)[1] if index.data(Qt.ItemDataRole.UserRole + 26 + i)[0] == "self" else index.data(Qt.ItemDataRole.UserRole + 26 + i)[0]))
@@ -333,19 +333,21 @@ class ChangeSettings(Settings):
     def __init__(self, parent: QWidget, db, index: QModelIndex) -> None:
         super().__init__(parent, db, index, self.tr("Change Settings"))
         
-        self.settings = APP_OPTIONS.copy()
+        self.settings = QSettings("io.github.mukonqi", "nottodbox")
+        
+        self.options = APP_OPTIONS.copy()
         
         if index.data(Qt.ItemDataRole.UserRole + 2) == "document":
-            self.settings.append("notebook")
+            self.options.append("notebook")
         
-        self.localizeds = [
+        self.localized_labels = [
             self.tr("Completion status*"),
             self.tr("Lock status**"),
             self.tr("Auto-save"),
             self.tr("Format")
             ]
         
-        self.options = [
+        self.localized_options = [
             [self.tr("Completed"), self.tr("Uncompleted"), self.tr("None")],
             [self.tr("Yes"), self.tr("None")],
             [self.tr("Enabled"), self.tr("Disabled")],
@@ -359,16 +361,16 @@ class ChangeSettings(Settings):
             
             self.selectors.append(QComboBox(widget))
             
-            self.selectors[-1].addItem(self.tr("Follow default ({})").format(APP_DEFAULTS[0]))
-            self.selectors[-1].addItem(self.tr("Follow global ({})").format(APP_DEFAULTS[0])) # tmp
+            self.selectors[-1].addItem(self.tr("Follow default ({})").format(APP_DEFAULTS[i]))
+            self.selectors[-1].addItem(self.tr("Follow global ({})").format(self.settings.value(f"globals/{APP_SETTINGS[i]}")))
             
             if index.data(Qt.ItemDataRole.UserRole + 2) == "document":
                 self.selectors[-1].insertItem(2 if True else 1, self.tr("Follow notebook ({})").
                                         format(self.db.items[(index.data(Qt.ItemDataRole.UserRole + 100), "__main__")].data(Qt.ItemDataRole.UserRole + 20 + i)[1]))
             
-            self.selectors[-1].addItems(self.options[i])
+            self.selectors[-1].addItems(self.localized_options[i])
             
-            label = Label(widget, f"{self.localizeds[i]}:", Qt.AlignmentFlag.AlignRight)
+            label = Label(widget, f"{self.localized_labels[i]}:", Qt.AlignmentFlag.AlignRight)
             label.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Ignored)
             
             layout.addWidget(label)
@@ -377,10 +379,10 @@ class ChangeSettings(Settings):
             self.layout_.addWidget(widget)
 
             try:
-                self.selectors[-1].setCurrentIndex(self.settings.index(index.data(Qt.ItemDataRole.UserRole + 20 + i)[0]))
+                self.selectors[-1].setCurrentIndex(self.options.index(index.data(Qt.ItemDataRole.UserRole + 20 + i)[0]))
             
             except ValueError:
-                self.selectors[-1].setCurrentIndex(len(self.settings) + APP_VALUES[i].index(index.data(Qt.ItemDataRole.UserRole + 20 + i)[1]))
+                self.selectors[-1].setCurrentIndex(len(self.options) + APP_VALUES[i].index(index.data(Qt.ItemDataRole.UserRole + 20 + i)[1]))
                 
         self.layout_.addWidget(Label(self.input, self.tr("*Setting this to 'Completed' or 'Uncompleted' converts to a to-do."), Qt.AlignmentFlag.AlignLeft))
         self.layout_.addWidget(Label(self.input, self.tr("**Setting this to 'Yes' converts to a diary."), Qt.AlignmentFlag.AlignLeft))

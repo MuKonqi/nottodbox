@@ -25,9 +25,6 @@ from .widgets.dialogs import ChangeAppearance, ChangeSettings, GetName, GetNameA
 from .widgets.documents import BackupView, NormalView
 from .consts import APP_DEFAULTS, APP_OPTIONS, APP_SETTINGS, APP_VALUES
 from .database import MainDB
-
-
-maindb = MainDB()
         
         
 class Selector(QWidget):
@@ -35,6 +32,8 @@ class Selector(QWidget):
         super().__init__(parent)
         
         self.parent_ = parent
+        
+        self.maindb = MainDB()
         
         self.settings = QSettings("io.github.mukonqi", "nottodbox")
         
@@ -183,7 +182,7 @@ class Options:
     def addLock(self, index: QModelIndex) -> None:
         name, table = self.get(index)
 
-        if maindb.set("yes", "locked", name, table):
+        if self.parent_.maindb.set("yes", "locked", name, table):
             index.model().setData(index, ["self", "yes"], Qt.ItemDataRole.UserRole + 21)
             self.parent_.tree_view.setType(index)
             
@@ -199,19 +198,19 @@ class Options:
     def changeAppearance(self, index: QModelIndex) -> None:
         name, table = self.get(index)
         
-        ok, values = ChangeAppearance(self.parent_, maindb, index).get()
+        ok, values = ChangeAppearance(self.parent_, self.parent_.maindb, index).get()
         
         if ok:
             successful = True
             
             for i in range(9):
-                if maindb.set(values[i], APP_SETTINGS[6 + i], name, table):
-                    index.model().setData(index, self.parent_.tree_view.handleSetting(maindb.items[(name, table)], 6 + i, values[i]), Qt.ItemDataRole.UserRole + 26 + i)
+                if self.parent_.maindb.set(values[i], APP_SETTINGS[6 + i], name, table):
+                    index.model().setData(index, self.parent_.tree_view.handleSetting(self.parent_.maindb.items[(name, table)], 6 + i, values[i]), Qt.ItemDataRole.UserRole + 26 + i)
                     
                     if table == "__main__":
-                        for name_, table_ in maindb.items.keys():
-                            if table_ == name and maindb.items[(name_, table_)].data(Qt.ItemDataRole.UserRole + 26 + i)[0] == "notebook":
-                                maindb.items[(name_, table_)].setData(("notebook", self.parent_.tree_view.handleSettingViaNotebook(maindb.items[(name_, table_)], 6 + i)), Qt.ItemDataRole.UserRole + 26 + i)
+                        for name_, table_ in self.parent_.maindb.items.keys():
+                            if table_ == name and self.parent_.maindb.items[(name_, table_)].data(Qt.ItemDataRole.UserRole + 26 + i)[0] == "notebook":
+                                self.parent_.maindb.items[(name_, table_)].setData(("notebook", self.parent_.tree_view.handleSettingViaNotebook(self.parent_.maindb.items[(name_, table_)], 6 + i)), Qt.ItemDataRole.UserRole + 26 + i)
                                 
                 else:
                     successful = False
@@ -226,7 +225,7 @@ class Options:
     def changeSettings(self, index: QModelIndex) -> None:
         name, table = self.get(index)
         
-        ok, values = ChangeSettings(self.parent_, maindb, index).get()
+        ok, values = ChangeSettings(self.parent_, self.parent_.maindb, index).get()
         
         if ok:
             successful = True
@@ -237,19 +236,19 @@ class Options:
                 if table != "__main__":
                     options.insert(2, "notebook")
                     
-                if maindb.set(options[values[i]], APP_SETTINGS[i], name, table):
-                    index.model().setData(index, self.parent_.tree_view.handleSetting(maindb.items[(name, table)], i, options[values[i]]), Qt.ItemDataRole.UserRole + 20 + i)
+                if self.parent_.maindb.set(options[values[i]], APP_SETTINGS[i], name, table):
+                    index.model().setData(index, self.parent_.tree_view.handleSetting(self.parent_.maindb.items[(name, table)], i, options[values[i]]), Qt.ItemDataRole.UserRole + 20 + i)
                     
                     for value in self.pages.values():
                         value.data(Qt.ItemDataRole.UserRole + 5).refreshSettings()
                     
                     if table == "__main__":
-                        for name_, table_ in maindb.items.keys():
-                            if table_ == name and maindb.items[(name_, table_)].data(Qt.ItemDataRole.UserRole + 20 + i)[0] == "notebook":
-                                maindb.items[(name_, table_)].setData(("notebook", self.parent_.tree_view.handleSettingViaNotebook(maindb.items[(name_, table_)], i)), Qt.ItemDataRole.UserRole + 20 + i)
+                        for name_, table_ in self.parent_.maindb.items.keys():
+                            if table_ == name and self.parent_.maindb.items[(name_, table_)].data(Qt.ItemDataRole.UserRole + 20 + i)[0] == "notebook":
+                                self.parent_.maindb.items[(name_, table_)].setData(("notebook", self.parent_.tree_view.handleSettingViaNotebook(self.parent_.maindb.items[(name_, table_)], i)), Qt.ItemDataRole.UserRole + 20 + i)
                                 
-                                if maindb.items[(name_, table_)].index() in self.pages.values():
-                                    maindb.items[(name_, table_)].data(Qt.ItemDataRole.UserRole + 5).refreshSettings()
+                                if self.parent_.maindb.items[(name_, table_)].index() in self.pages.values():
+                                    self.parent_.maindb.items[(name_, table_)].data(Qt.ItemDataRole.UserRole + 5).refreshSettings()
                                 
                 else:
                     successful = False
@@ -265,9 +264,9 @@ class Options:
         document = index.data(Qt.ItemDataRole.UserRole + 101)
         notebook = index.data(Qt.ItemDataRole.UserRole + 100)
         
-        if maindb.clearContent(document, notebook):
+        if self.parent_.maindb.clearContent(document, notebook):
             index.model().setData(index, "", Qt.ItemDataRole.UserRole + 104)
-            index.model().setData(index, maindb.getBackup(document, notebook), Qt.ItemDataRole.UserRole + 105)
+            index.model().setData(index, self.parent_.maindb.getBackup(document, notebook), Qt.ItemDataRole.UserRole + 105)
             
             if len(self.pages) > 0 and self.pages[self.parent_.parent_.area.pages.focused_on] == index:
                 index.data(Qt.ItemDataRole.UserRole + 5).refreshContent()
@@ -322,7 +321,7 @@ class Options:
             elif index.data(Qt.ItemDataRole.UserRole + 2) == "document":
                 notebook = index.data(Qt.ItemDataRole.UserRole + 100)
             
-            if not maindb.checkIfItExists(document, notebook):
+            if not self.parent_.maindb.checkIfItExists(document, notebook):
                 try:
                     diary = bool(datetime.datetime.strptime(document, "%d/%m/%Y"))
                     
@@ -333,8 +332,8 @@ class Options:
                     QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.parent_.tr("A name is required."))
                     return
                 
-                if maindb.createDocument(default, "yes" if diary else default, document, notebook):
-                    self.parent_.tree_view.appendDocument(maindb.getDocument(document, notebook), maindb.items[(notebook, "__main__")], notebook)
+                if self.parent_.maindb.createDocument(default, "yes" if diary else default, document, notebook):
+                    self.parent_.tree_view.appendDocument(self.parent_.maindb.getDocument(document, notebook), self.parent_.maindb.items[(notebook, "__main__")], notebook)
                     
                 else:
                     QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.parent_.tr("Failed to create document."))
@@ -357,7 +356,7 @@ class Options:
             default = "default"
             
         if ok:
-            if not maindb.checkIfItExists(name):
+            if not self.parent_.maindb.checkIfItExists(name):
                 try:
                     diary = bool(datetime.datetime.strptime(name, "%d/%m/%Y"))
                     
@@ -368,10 +367,10 @@ class Options:
                     QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.parent_.tr("A name is required."))
                     return
                 
-                successful = maindb.createNotebook(default, "yes" if diary else default, description, name)
+                successful = self.parent_.maindb.createNotebook(default, "yes" if diary else default, description, name)
                 
                 if successful:
-                    self.parent_.tree_view.appendNotebook(maindb.getNotebook(name))
+                    self.parent_.tree_view.appendNotebook(self.parent_.maindb.getNotebook(name))
                     
                 else:
                     QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.parent_.tr("Failed to create notebook."))
@@ -388,14 +387,14 @@ class Options:
     def delete(self, index: QModelIndex) -> None:
         name, table = self.get(index)
         
-        if maindb.delete(name, table):
+        if self.parent_.maindb.delete(name, table):
             if index.data(Qt.ItemDataRole.UserRole + 2) == "notebook":
-                for name_, table_ in maindb.items.copy().keys():
+                for name_, table_ in self.parent_.maindb.items.copy().keys():
                     if table_ == name:
-                        if len(self.pages) > 0 and self.pages[self.parent_.parent_.area.pages.focused_on] == maindb.items[(name_, table_)].index():
-                            self.close(maindb.items[(name_, table_)].index())
+                        if len(self.pages) > 0 and self.pages[self.parent_.parent_.area.pages.focused_on] == self.parent_.maindb.items[(name_, table_)].index():
+                            self.close(self.parent_.maindb.items[(name_, table_)].index())
                         
-                        del maindb.items[(name_, table_)]
+                        del self.parent_.maindb.items[(name_, table_)]
                         
                 self.parent_.tree_view.model_.removeRow(index.row())
             
@@ -403,9 +402,9 @@ class Options:
                 if len(self.pages) > 0 and self.pages[self.parent_.parent_.area.pages.focused_on] == index:
                     self.close(index)
                 
-                maindb.items[(table, "__main__")].removeRow(index.row()) 
+                self.parent_.maindb.items[(table, "__main__")].removeRow(index.row()) 
                 
-            del maindb.items[(name, table)]
+            del self.parent_.maindb.items[(name, table)]
             
         else:
             QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.tr("Failed to delete {the_item}.", index))
@@ -421,7 +420,7 @@ class Options:
         ok, description = dialog.get()
         
         if ok:
-            if maindb.set(description, "content", name):
+            if self.parent_.maindb.set(description, "content", name):
                 index.model().setData(index, description, Qt.ItemDataRole.UserRole + 104)
                 
             else:
@@ -438,7 +437,7 @@ class Options:
     def markAsCompleted(self, index: QModelIndex) -> None:
         name, table = self.get(index)
         
-        if maindb.set("completed", "completed", name, table):
+        if self.parent_.maindb.set("completed", "completed", name, table):
             index.model().setData(index, ["self", "completed"], Qt.ItemDataRole.UserRole + 20)
             self.parent_.tree_view.setType(index)
             
@@ -449,7 +448,7 @@ class Options:
     def markAsUncompleted(self, index: QModelIndex) -> None:
         name, table = self.get(index)
         
-        if maindb.set("uncompleted", "completed", name, table):
+        if self.parent_.maindb.set("uncompleted", "completed", name, table):
             index.model().setData(index, ["self", "uncompleted"], Qt.ItemDataRole.UserRole + 20)
             self.parent_.tree_view.setType(index)
             
@@ -470,7 +469,7 @@ class Options:
         self.pages[self.parent_.parent_.area.pages.focused_on] = index
         
         index.model().setData(index, self.parent_.parent_.area.pages.focused_on, Qt.ItemDataRole.UserRole + 4)
-        index.model().setData(index, NormalView(self.parent_.parent_.area.pages, maindb, index) if mode == "normal" else BackupView(self.parent_.parent_.area.pages, maindb, index), Qt.ItemDataRole.UserRole + 5)
+        index.model().setData(index, NormalView(self.parent_.parent_.area.pages, self.parent_.maindb, index) if mode == "normal" else BackupView(self.parent_.parent_.area.pages, self.parent_.maindb, index), Qt.ItemDataRole.UserRole + 5)
         
         self.parent_.parent_.area.pages.layout_.replaceWidget(self.parent_.parent_.area.pages.focused_on, index.data(Qt.ItemDataRole.UserRole + 5))
     
@@ -478,7 +477,7 @@ class Options:
     def removeLock(self, index: QModelIndex) -> None:
         name, table = self.get(index)
 
-        if maindb.set(None, "locked", name, table):
+        if self.parent_.maindb.set(None, "locked", name, table):
             index.model().setData(index, ["self", None], Qt.ItemDataRole.UserRole + 21)
             self.parent_.tree_view.setType(index)
             
@@ -509,22 +508,22 @@ class Options:
                 QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.parent_.tr("A name is required."))
                 return
             
-            if not maindb.checkIfItExists(new_name, table):
-                if maindb.rename("yes" if diary else None, new_name, name, table):
+            if not self.parent_.maindb.checkIfItExists(new_name, table):
+                if self.parent_.maindb.rename("yes" if diary else None, new_name, name, table):
                     if index.data(Qt.ItemDataRole.UserRole + 2) == "notebook":
-                        for name_, table_ in maindb.items.copy().keys():
+                        for name_, table_ in self.parent_.maindb.items.copy().keys():
                             if table_ == name:
-                                if len(self.pages) > 0 and self.pages[self.parent_.parent_.area.pages.focused_on] == maindb.items[(name_, table_)].index():
-                                    self.close(maindb.items[(name_, table_)].index())
+                                if len(self.pages) > 0 and self.pages[self.parent_.parent_.area.pages.focused_on] == self.parent_.maindb.items[(name_, table_)].index():
+                                    self.close(self.parent_.maindb.items[(name_, table_)].index())
                                 
-                                maindb.items[(name_, table_)].setData(new_name, Qt.ItemDataRole.UserRole + 100)
-                                maindb.items[(name_, new_name)] = maindb.items.pop((name_, table_))
+                                self.parent_.maindb.items[(name_, table_)].setData(new_name, Qt.ItemDataRole.UserRole + 100)
+                                self.parent_.maindb.items[(name_, new_name)] = self.parent_.maindb.items.pop((name_, table_))
                                 
                     elif index.data(Qt.ItemDataRole.UserRole + 2) == "document":
                         if len(self.pages) > 0 and self.pages[self.parent_.parent_.area.pages.focused_on] == index:
                             self.close(index)
                                 
-                    maindb.items[(new_name, table)] = maindb.items.pop((name, table))
+                    self.parent_.maindb.items[(new_name, table)] = self.parent_.maindb.items.pop((name, table))
                     
                     index.model().setData(index, "yes" if diary else None, Qt.ItemDataRole.UserRole + 21)
                     index.model().setData(index, new_name, Qt.ItemDataRole.UserRole + 101)
@@ -539,15 +538,15 @@ class Options:
     def reset(self, index: QModelIndex) -> None:
         name, table = self.get(index)
         
-        if maindb.reset(name):
-            maindb.items[(name, table)].removeRows(0, maindb.items[(name, table)].rowCount())
+        if self.parent_.maindb.reset(name):
+            self.parent_.maindb.items[(name, table)].removeRows(0, self.parent_.maindb.items[(name, table)].rowCount())
             
-            for name_, table_ in maindb.items.copy().keys():
+            for name_, table_ in self.parent_.maindb.items.copy().keys():
                 if table_ == name:
-                    if len(self.pages) > 0 and self.pages[self.parent_.parent_.area.pages.focused_on] == maindb.items[(name_, table_)].index():
-                        self.close(maindb.items[(name_, table_)].index())
+                    if len(self.pages) > 0 and self.pages[self.parent_.parent_.area.pages.focused_on] == self.parent_.maindb.items[(name_, table_)].index():
+                        self.close(self.parent_.maindb.items[(name_, table_)].index())
                     
-                    del maindb.items[(name_, table_)]
+                    del self.parent_.maindb.items[(name_, table_)]
             
         else:
             QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.parent_.tr("Failed to reset."))
@@ -556,9 +555,9 @@ class Options:
     def restoreContent(self, index: QModelIndex) -> None:
         document, notebook = self.get(index)
         
-        if maindb.restoreContent(document, notebook):
-            index.model().setData(index, maindb.getContent(document, notebook), Qt.ItemDataRole.UserRole + 104)
-            index.model().setData(index, maindb.getBackup(document, notebook), Qt.ItemDataRole.UserRole + 105)
+        if self.parent_.maindb.restoreContent(document, notebook):
+            index.model().setData(index, self.parent_.maindb.getContent(document, notebook), Qt.ItemDataRole.UserRole + 104)
+            index.model().setData(index, self.parent_.maindb.getBackup(document, notebook), Qt.ItemDataRole.UserRole + 105)
             
             if len(self.pages) > 0 and self.pages[self.parent_.parent_.area.pages.focused_on] == index:
                 index.data(Qt.ItemDataRole.UserRole + 5).refreshContent()
@@ -601,7 +600,7 @@ class Options:
     def unmark(self, index: QModelIndex) -> None:
         name, table = self.get(index)
         
-        if maindb.set(None, "completed", name, table):
+        if self.parent_.maindb.set(None, "completed", name, table):
             index.model().setData(index, ["self", None], Qt.ItemDataRole.UserRole + 20)
             self.parent_.tree_view.setType(index)
             
@@ -653,7 +652,7 @@ class TreeView(QTreeView):
         self.customContextMenuRequested.connect(self.openMenu)
         
     def appendAll(self) -> None:            
-        items = maindb.getAll()
+        items = self.parent_.maindb.getAll()
         
         if items != []:
             self.parent_.pages.setCurrentIndex(1)
@@ -663,7 +662,7 @@ class TreeView(QTreeView):
             
     def appendDocument(self, data: list, item: QStandardItem, notebook: str) -> None:
         document = QStandardItem()
-        maindb.items[(data[len(data) - 5], notebook)] = document
+        self.parent_.maindb.items[(data[len(data) - 5], notebook)] = document
         
         document.setData(False, Qt.ItemDataRole.UserRole + 1)
         document.setData("document", Qt.ItemDataRole.UserRole + 2)   
@@ -681,7 +680,7 @@ class TreeView(QTreeView):
             
     def appendNotebook(self, data: list) -> None:
         notebook = QStandardItem()
-        maindb.items[(data[len(data) - 5], "__main__")] = notebook
+        self.parent_.maindb.items[(data[len(data) - 5], "__main__")] = notebook
         
         notebook.setData(False, Qt.ItemDataRole.UserRole + 1)
         notebook.setData("notebook", Qt.ItemDataRole.UserRole + 2)
@@ -699,22 +698,22 @@ class TreeView(QTreeView):
         
         self.model_.appendRow(notebook)
         
-    def handleSettingViaGlobal(self, setting: str) -> str | None:
-        if setting == "default":
-            return APP_DEFAULTS[setting]
+    def handleSettingViaGlobal(self, number: int) -> str | None:
+        if self.parent_.settings.value(f"globals/{APP_SETTINGS[number]}") == "default":
+            return APP_DEFAULTS[number]
                 
         else:
-            return APP_DEFAULTS[setting] # tmp
+            return self.parent_.settings.value(f"globals/{APP_SETTINGS[number]}")
         
     def handleSettingViaNotebook(self, item: QStandardItem, number: int) -> str | None:
-        if maindb.items[(item.data(Qt.ItemDataRole.UserRole + 100), "__main__")].data(Qt.ItemDataRole.UserRole + 20 + number)[1] == "default":
-            return APP_DEFAULTS[APP_SETTINGS[number]]
+        if self.parent_.maindb.items[(item.data(Qt.ItemDataRole.UserRole + 100), "__main__")].data(Qt.ItemDataRole.UserRole + 20 + number)[1] == "default":
+            return APP_DEFAULTS[number]
             
-        elif maindb.items[(item.data(Qt.ItemDataRole.UserRole + 100), "__main__")].data(Qt.ItemDataRole.UserRole + 20 + number)[1] == "global":
+        elif self.parent_.maindb.items[(item.data(Qt.ItemDataRole.UserRole + 100), "__main__")].data(Qt.ItemDataRole.UserRole + 20 + number)[1] == "global":
             return self.handleSettingViaGlobal(number)
                 
         else:
-            return maindb.items[(item.data(Qt.ItemDataRole.UserRole + 100), "__main__")].data(Qt.ItemDataRole.UserRole + 20 + number)[1]
+            return self.parent_.maindb.items[(item.data(Qt.ItemDataRole.UserRole + 100), "__main__")].data(Qt.ItemDataRole.UserRole + 20 + number)[1]
         
     def handleSetting(self, item: QStandardItem, number: int, value: str | None) -> tuple[str, str | None]:
         if value == "default":
