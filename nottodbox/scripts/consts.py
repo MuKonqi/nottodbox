@@ -26,14 +26,6 @@ APP_MODE = "@MODE@"
 
 APP_VERSION = "v0.0.90"
 
-APP_DEFAULTS = [None, None, "enabled", "markdown", None, None, None, None, None, None, None, None, None, None, None]
-
-APP_OPTIONS = ["default", "global"]
-
-APP_SETTINGS = ["completed", "locked", "autosave", "format", "sync", "icon", "bg_normal", "bg_hover", "bg_clicked", "fg_normal", "fg_hover", "fg_clicked", "bd_normal", "bd_hover", "bd_clicked"]
-
-APP_VALUES = [["completed", "uncompleted", None], ["yes", None], ["enabled", "disabled"], ["markdown", "html", "plain-text"]]
-
 
 if APP_MODE == "meson":
     DATA_DIR = "@DATA_DIR@"
@@ -71,8 +63,19 @@ ICON_DIR = os.path.join(DATA_DIR, "icons", "hicolor", "scalable")
 ICON_FILE = os.path.join(ICON_DIR, "apps", f"{APP_ID}.svg")
 
 
-USER_NAME = getpass.getuser()
+SETTINGS_DEFAULTS = [None, "disabled", "enabled", "markdown", None, "no", None, None, None, None, None, None, None, None, None]
 
+SETTINGS_OPTIONS = ["default", "global"]
+
+SETTINGS_KEYS = ["completed", "locked", "autosave", "format", "sync", "pinned", "bg_normal", "bg_hover", "bg_clicked", "fg_normal", "fg_hover", "fg_clicked", "bd_normal", "bd_hover", "bd_clicked"]
+
+SETTINGS_VALUES = [["completed", "uncompleted", None], ["enabled", "disabled"], ["enabled", "disabled"], ["markdown", "html", "plain-text"], ["pdf", "odt", "html", "markdown", "plain-text"], ["yes", "no"]]
+
+
+SYSTEM_DESKTOP_FILE_FOUND = os.path.isfile(f"/usr/share/applications/{APP_ID}.desktop") or os.path.isfile(f"/usr/local/share/applications/{APP_ID}.desktop")
+
+
+USER_NAME = getpass.getuser()
 
 USER_DESKTOP_FILE = f"/home/{USER_NAME}/.local/share/applications/{APP_ID}.desktop"
 
@@ -88,9 +91,5 @@ with open("/etc/passwd") as f:
             
             break
 
-
 USER_DATABASES_DIR = f"/home/{USER_NAME}/.local/share/nottodbox/databases"
 os.makedirs(USER_DATABASES_DIR, exist_ok=True)
-
-
-SYSTEM_DESKTOP_FILE_FOUND = os.path.isfile(f"/usr/share/applications/{APP_ID}.desktop") or os.path.isfile(f"/usr/local/share/applications/{APP_ID}.desktop")

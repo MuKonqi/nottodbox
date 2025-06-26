@@ -20,7 +20,7 @@ from PySide6.QtCore import QModelIndex, QDate, QSettings, Qt, Slot
 from PySide6.QtGui import QColor, QPixmap
 from PySide6.QtWidgets import *
 from .controls import CalendarWidget, Label, LineEdit, PushButton
-from ..consts import APP_DEFAULTS, APP_OPTIONS, APP_SETTINGS, APP_VALUES
+from ..consts import SETTINGS_KEYS, SETTINGS_OPTIONS, SETTINGS_VALUES
 
 
 class GetColor(QColorDialog):
@@ -335,34 +335,47 @@ class ChangeSettings(Settings):
         
         self.settings = QSettings("io.github.mukonqi", "nottodbox")
         
-        self.options = APP_OPTIONS.copy()
+        self.options = SETTINGS_OPTIONS.copy()
         
         if index.data(Qt.ItemDataRole.UserRole + 2) == "document":
             self.options.append("notebook")
+            
+        self.localized_defaults = [
+            self.tr("None").lower(),
+            self.tr("Disabled").lower(),
+            self.tr("Enabled").lower(),
+            "Markdown",
+            self.tr("None").lower(),
+            self.tr("No").lower()
+        ]
         
         self.localized_labels = [
             self.tr("Completion status*"),
-            self.tr("Lock status**"),
+            self.tr("Content lock**"),
             self.tr("Auto-save"),
-            self.tr("Format")
+            self.tr("Document format"),
+            self.tr("External synchronization"),
+            self.tr("Pinned to sidebar")
             ]
         
         self.localized_options = [
             [self.tr("Completed"), self.tr("Uncompleted"), self.tr("None")],
-            [self.tr("Yes"), self.tr("None")],
             [self.tr("Enabled"), self.tr("Disabled")],
-            ["Markdown", "HTML", self.tr("Plain-text")]
+            [self.tr("Enabled"), self.tr("Disabled")],
+            ["Markdown", "HTML", self.tr("Plain-text")],
+            ["PDF", "ODT", "Markdown", "HTML", self.tr("Plain-text")],
+            [self.tr("Yes"), self.tr("No")]
         ]
         
-        for i in range(4):
+        for i in range(6):
             widget = QWidget(self.input)
             layout = QHBoxLayout(widget)
             layout.setContentsMargins(0, 0, 0, 0)
             
             self.selectors.append(QComboBox(widget))
             
-            self.selectors[-1].addItem(self.tr("Follow default ({})").format(APP_DEFAULTS[i]))
-            self.selectors[-1].addItem(self.tr("Follow global ({})").format(self.settings.value(f"globals/{APP_SETTINGS[i]}")))
+            self.selectors[-1].addItem(self.tr("Follow default ({})").format(self.localized_defaults[i]))
+            self.selectors[-1].addItem(self.tr("Follow global ({})").format(self.settings.value(f"globals/{SETTINGS_KEYS[i]}")))
             
             if index.data(Qt.ItemDataRole.UserRole + 2) == "document":
                 self.selectors[-1].insertItem(2 if True else 1, self.tr("Follow notebook ({})").
@@ -382,10 +395,10 @@ class ChangeSettings(Settings):
                 self.selectors[-1].setCurrentIndex(self.options.index(index.data(Qt.ItemDataRole.UserRole + 20 + i)[0]))
             
             except ValueError:
-                self.selectors[-1].setCurrentIndex(len(self.options) + APP_VALUES[i].index(index.data(Qt.ItemDataRole.UserRole + 20 + i)[1]))
+                self.selectors[-1].setCurrentIndex(len(self.options) + SETTINGS_VALUES[i].index(index.data(Qt.ItemDataRole.UserRole + 20 + i)[1]))
                 
         self.layout_.addWidget(Label(self.input, self.tr("*Setting this to 'Completed' or 'Uncompleted' converts to a to-do."), Qt.AlignmentFlag.AlignLeft))
-        self.layout_.addWidget(Label(self.input, self.tr("**Setting this to 'Yes' converts to a diary."), Qt.AlignmentFlag.AlignLeft))
+        self.layout_.addWidget(Label(self.input, self.tr("**Setting this to 'Enabled' converts to a diary."), Qt.AlignmentFlag.AlignLeft))
                     
         self.exec()
                 

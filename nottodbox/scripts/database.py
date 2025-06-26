@@ -75,7 +75,7 @@ class MainDB:
         self.cur.execute(
             f"""
             INSERT INTO '{table}'
-            (name, content, creation, modification, completed, locked, autosave, format, sync, icon, bg_normal, bg_hover, bg_clicked, fg_normal, fg_hover, fg_clicked, bd_normal, bd_hover, bd_clicked)
+            (name, content, creation, modification, completed, locked, autosave, format, sync, pinned, bg_normal, bg_hover, bg_clicked, fg_normal, fg_hover, fg_clicked, bd_normal, bd_hover, bd_clicked)
             values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (name, content, date, date, default, default, default, default, default, default, default, default, default, default, default, default, default, default, default)
@@ -84,7 +84,7 @@ class MainDB:
         
         return self.checkIfItExists(name, table)
         
-    def createDocument(self, default: str, locked: str | None, document: str, notebook: str) -> bool:
+    def createDocument(self, default: str, locked: str, document: str, notebook: str) -> bool:
         date = datetime.datetime.now().strftime("%d/%m/%Y %H:%M")
         
         if self.create(default, document, notebook, date) and self.checkIfItExists(document, notebook) and self.set(locked, "locked", document, notebook):
@@ -98,11 +98,11 @@ class MainDB:
             CREATE TABLE IF NOT EXISTS '{name}' (
                 id INTEGER PRIMARY KEY,
                 completed TEXT,
-                locked TEXT,
+                locked TEXT NOT NULL,
                 autosave TEXT NOT NULL,
                 format TEXT NOT NULL,
                 sync TEXT,
-                icon TEXT,
+                pinned TEXT NOT NULL,
                 bg_normal TEXT NOT NULL,
                 bg_hover TEXT NOT NULL,
                 bg_clicked TEXT NOT NULL,
@@ -127,7 +127,7 @@ class MainDB:
             
         return True
         
-    def createNotebook(self, default: str, locked: str | None, description: str, name: str) -> bool:
+    def createNotebook(self, default: str, locked: str, description: str, name: str) -> bool:
         return self.createTable(name) & self.create(default, name, "__main__", None, description) & self.set(locked, "locked", name)
     
     def delete(self, name: str, table: str = "__main__") -> bool:
@@ -195,7 +195,7 @@ class MainDB:
         
         return data
     
-    def rename(self, locked: str | None, new_name: str, name: str, table: str = "__main__") -> bool:  
+    def rename(self, locked: str, new_name: str, name: str, table: str = "__main__") -> bool:  
         self.cur.execute(f"update '{table}' set locked = ?, name = ? where name = ?", (locked, new_name, name))
         self.db.commit()
         
@@ -251,7 +251,7 @@ class MainDB:
         return self.get(column, name, table) == value
     
     def setBackup(self, content: str, document: str, notebook: str) -> bool:
-        if self.getLocked(document, notebook) != "yes" or (self.getLocked(document, notebook) == "yes" and datetime.datetime.strptime(self.get("creation", document, notebook), "%d/%m/%Y %H:%M").date() == datetime.datetime.today().date()):
+        if self.getLocked(document, notebook) != "enabled" or (self.getLocked(document, notebook) == "enabled" and datetime.datetime.strptime(self.get("creation", document, notebook), "%d/%m/%Y %H:%M").date() == datetime.datetime.today().date()):
             self.cur.execute(f"update '{notebook}' set backup = ? where name = ?", (content, document))
             self.db.commit()
             

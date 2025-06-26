@@ -104,7 +104,7 @@ class BackupView(Document):
             
     @Slot()
     def restoreContent(self) -> None:
-        if self.settings["locked"] == "yes" and datetime.datetime.strptime(self.creation, "%d/%m/%Y %H:%M").date() != datetime.datetime.today().date():
+        if self.settings["locked"] == "enabled" and datetime.datetime.strptime(self.creation, "%d/%m/%Y %H:%M").date() != datetime.datetime.today().date():
             question = QMessageBox.question(
                 self, self.tr("Question"), self.tr("Diaries are unique to the day they are written.\nDo you really want to change the content?"))
             
@@ -150,12 +150,12 @@ class NormalView(Document):
         self.changeAutosaveConnections()
                 
     def changeAutosaveConnections(self, event: str | None = None) -> None:
-        if self.settings["locked"] == None and ((self.settings["autosave"] == "enabled" and not self.connected) or event == "connect"):
+        if self.settings["locked"] == "disabled" and ((self.settings["autosave"] == "enabled" and not self.connected) or event == "connect"):
             self.input.textChanged.connect(self.save)
             self.saver_thread.start()
             self.connected = True
             
-        elif self.settings["locked"] == "yes" or self.settings["autosave"] == "disabled" or event == "disconnect":
+        elif self.settings["locked"] == "enabled" or self.settings["autosave"] == "disabled" or event == "disconnect":
             if self.connected:
                 self.input.textChanged.disconnect(self.save)
             self.saver_thread.quit()
@@ -549,7 +549,7 @@ class DocumentSaver(QObject):
     @Slot(bool)
     def saveDocument(self, autosave: bool = False) -> bool:        
         if not autosave or (autosave and self.parent_.settings["autosave"] == "enabled"):
-            if self.parent_.settings["locked"] == "yes" and datetime.datetime.strptime(self.parent_.creation, "%d/%m/%Y %H:%M").date() != datetime.datetime.today().date():
+            if self.parent_.settings["locked"] == "enabled" and datetime.datetime.strptime(self.parent_.creation, "%d/%m/%Y %H:%M").date() != datetime.datetime.today().date():
                 if autosave:
                     self.parent_.show_messages.emit(False)
                     

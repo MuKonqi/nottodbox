@@ -20,11 +20,11 @@ import os
 import json
 import configparser
 from PySide6.QtCore import QEvent, QMargins, QModelIndex, QRect, QSettings, QStandardPaths, QSize, Qt, Slot
-from PySide6.QtGui import QColor, QFont, QFontMetrics, QPainter, QPainterPath, QPalette, QPen, QPixmap, QStandardItem, QStandardItemModel
+from PySide6.QtGui import QColor, QFont, QFontMetrics, QPainter, QPainterPath, QPalette, QPen, QStandardItem, QStandardItemModel
 from PySide6.QtWidgets import *
 from .widgets.controls import ComboBox, HSeperator, Label, PushButton, VSeperator
 from .widgets.dialogs import ColorSelector
-from .consts import APP_DEFAULTS, APP_SETTINGS, APP_VALUES, USER_NAME
+from .consts import SETTINGS_KEYS, SETTINGS_VALUES, USER_NAME
 
 
 COLOR_SCHEMES_DIRS = []
@@ -65,7 +65,7 @@ class SettingsPage(QWidget):
         
         self.settings = QSettings("io.github.mukonqi", "nottodbox")
         
-        for setting in APP_SETTINGS:
+        for setting in SETTINGS_KEYS:
             if self.settings.value(f"globals/{setting}") == None:
                 self.settings.setValue(f"globals/{setting}", "default")
         
@@ -90,7 +90,7 @@ class SettingsPage(QWidget):
         self.layout_.addWidget(self.buttons, 2, 2, 1, 1)
         
     def askFormat(self, page: QWidget, do_not_asked_before: bool, format_change_acceptted: bool) -> tuple[bool, bool]:
-        if (type(page.widget()).__name__ == "DocumentSettings" and do_not_asked_before and page.widget().selectors[3].currentIndex() != page.widget().values[3].index(self.settings.value(f"globals/{APP_SETTINGS[3]}"))):
+        if (type(page.widget()).__name__ == "DocumentSettings" and do_not_asked_before and page.widget().selectors[3].currentIndex() != page.widget().values[3].index(self.settings.value(f"globals/{SETTINGS_KEYS[3]}"))):
                 do_not_asked_before = False
                 
                 question = QMessageBox.question(
@@ -845,7 +845,7 @@ class CustomColorSchemes(QWidget):
             for color_role in self.labels.keys():
                 self.buttons[color_role].setColor(palette.color(QPalette.ColorRole[color_role]).name())
         
-        elif name == self.tr("none").title():
+        elif name == self.tr("None"):
             for color_role in self.labels.keys():
                 self.buttons[color_role].setColor("")
         
@@ -857,7 +857,7 @@ class CustomColorSchemes(QWidget):
                 
     def createList(self) -> None:
         self.color_schemes_list = self.parent_.color_schemes_list.copy()
-        self.color_schemes_list.insert(0, self.tr("none").title())
+        self.color_schemes_list.insert(0, self.tr("None"))
         self.color_schemes_list.pop(-1)
         
         self.combobox.addItems(self.color_schemes_list)
@@ -896,30 +896,43 @@ class DocumentSettings(GlobalSettings):
     def __init__(self, parent: SettingsPage) -> None:
         super().__init__(parent)
         
+        self.localized_defaults = [
+            self.tr("None").lower(),
+            self.tr("Disabled").lower(),
+            self.tr("Enabled").lower(),
+            "Markdown",
+            self.tr("None").lower(),
+            self.tr("No").lower()
+        ]
+        
         self.localized_labels = [
             self.tr("Completion status*"),
-            self.tr("Lock status**"),
+            self.tr("Content lock**"),
             self.tr("Auto-save"),
-            self.tr("Format")
+            self.tr("Document format"),
+            self.tr("External synchronization"),
+            self.tr("Pinned to sidebar")
             ]
         
         self.localized_options = [
             [self.tr("Completed"), self.tr("Uncompleted"), self.tr("None")],
-            [self.tr("Yes"), self.tr("None")],
             [self.tr("Enabled"), self.tr("Disabled")],
-            ["Markdown", "HTML", self.tr("Plain-text")]
+            [self.tr("Enabled"), self.tr("Disabled")],
+            ["Markdown", "HTML", self.tr("Plain-text")],
+            ["PDF", "ODT", "Markdown", "HTML", self.tr("Plain-text")],
+            [self.tr("Yes"), self.tr("No")]
         ]
         
-        self.values = [["default"] + values for values in APP_VALUES]
+        self.values = [["default"] + values for values in SETTINGS_VALUES]
         
-        for i in range(4):
+        for i in range(6):
             widget = QWidget(self)
             layout = QHBoxLayout(widget)
             layout.setContentsMargins(0, 0, 0, 0)
             
             self.selectors.append(QComboBox(widget))
             
-            self.selectors[-1].addItem(self.tr("Follow default ({})").format(APP_DEFAULTS[i]))
+            self.selectors[-1].addItem(self.tr("Follow default ({})").format(self.localized_defaults[i]))
 
             self.selectors[-1].addItems(self.localized_options[i])
             
@@ -932,25 +945,25 @@ class DocumentSettings(GlobalSettings):
             self.layout_.addWidget(widget)
                 
         self.layout_.addWidget(Label(self, self.tr("*Setting this to 'Completed' or 'Uncompleted' converts to a to-do."), Qt.AlignmentFlag.AlignLeft))
-        self.layout_.addWidget(Label(self, self.tr("**Setting this to 'Yes' converts to a diary."), Qt.AlignmentFlag.AlignLeft))
+        self.layout_.addWidget(Label(self, self.tr("**Setting this to 'Enabled' converts to a diary."), Qt.AlignmentFlag.AlignLeft))
         
         self.load()
     
     @Slot()
     def load(self) -> None:
-        for i in range(4):
-            self.selectors[i].setCurrentIndex(self.values[i].index(self.parent_.settings.value(f"globals/{APP_SETTINGS[i]}")))
+        for i in range(6):
+            self.selectors[i].setCurrentIndex(self.values[i].index(self.parent_.settings.value(f"globals/{SETTINGS_KEYS[i]}")))
     
     def save(self, mode: str, format_change_acceptted: bool = True) -> bool:
         if not format_change_acceptted:
-            self.selectors[3].setCurrentIndex(self.values[3].index(self.parent_.settings.value(f"globals/{APP_SETTINGS[3]}")))
+            self.selectors[3].setCurrentIndex(self.values[3].index(self.parent_.settings.value(f"globals/{SETTINGS_KEYS[3]}")))
             
         successful = True
             
-        for i in range(4):
-            self.parent_.settings.setValue(f"globals/{APP_SETTINGS[i]}", self.values[i][self.selectors[i].currentIndex()] if mode == "apply" else "default")
+        for i in range(6):
+            self.parent_.settings.setValue(f"globals/{SETTINGS_KEYS[i]}", self.values[i][self.selectors[i].currentIndex()] if mode == "apply" else "default")
             
-            check = self.parent_.settings.value(f"globals/{APP_SETTINGS[i]}") == (self.values[i][self.selectors[i].currentIndex()] if mode == "apply" else "default")
+            check = self.parent_.settings.value(f"globals/{SETTINGS_KEYS[i]}") == (self.values[i][self.selectors[i].currentIndex()] if mode == "apply" else "default")
 
             successful &= check
             
@@ -998,15 +1011,15 @@ class ListSettings(GlobalSettings):
     @Slot()
     def load(self) -> None:
         for i in range(9):
-            self.selectors[i].setColor(self.parent_.settings.value(f"globals/{APP_SETTINGS[6 + i]}"))
+            self.selectors[i].setColor(self.parent_.settings.value(f"globals/{SETTINGS_KEYS[6 + i]}"))
     
     def save(self, mode: str, format_change_acepptted: bool = True) -> bool:
         successful = True
         
         for i in range(9):
-            self.parent_.settings.setValue(f"globals/{APP_SETTINGS[6 + i]}", self.selectors[i].selected if mode == "apply" else "default")
+            self.parent_.settings.setValue(f"globals/{SETTINGS_KEYS[6 + i]}", self.selectors[i].selected if mode == "apply" else "default")
             
-            check = self.parent_.settings.value(f"globals/{APP_SETTINGS[6 + i]}") == (self.selectors[i].selected if mode == "apply" else "default")
+            check = self.parent_.settings.value(f"globals/{SETTINGS_KEYS[6 + i]}") == (self.selectors[i].selected if mode == "apply" else "default")
 
             successful &= check
             

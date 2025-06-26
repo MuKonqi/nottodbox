@@ -23,7 +23,7 @@ from PySide6.QtWidgets import *
 from .widgets.controls import Action, CalendarWidget, Label, LineEdit, HSeperator, PushButton
 from .widgets.dialogs import ChangeAppearance, ChangeSettings, GetName, GetNameAndDescription, GetDescription
 from .widgets.documents import BackupView, NormalView
-from .consts import APP_DEFAULTS, APP_OPTIONS, APP_SETTINGS, APP_VALUES
+from .consts import SETTINGS_DEFAULTS, SETTINGS_OPTIONS, SETTINGS_KEYS, SETTINGS_VALUES
 from .database import MainDB
         
         
@@ -182,8 +182,8 @@ class Options:
     def addLock(self, index: QModelIndex) -> None:
         name, table = self.get(index)
 
-        if self.parent_.maindb.set("yes", "locked", name, table):
-            index.model().setData(index, ["self", "yes"], Qt.ItemDataRole.UserRole + 21)
+        if self.parent_.maindb.set("enabled", "locked", name, table):
+            index.model().setData(index, ["self", "enabled"], Qt.ItemDataRole.UserRole + 21)
             self.parent_.tree_view.setType(index)
             
             if len(self.pages) > 0 and self.pages[self.parent_.parent_.area.pages.focused_on] == index:
@@ -204,7 +204,7 @@ class Options:
             successful = True
             
             for i in range(9):
-                if self.parent_.maindb.set(values[i], APP_SETTINGS[6 + i], name, table):
+                if self.parent_.maindb.set(values[i], SETTINGS_KEYS[6 + i], name, table):
                     index.model().setData(index, self.parent_.tree_view.handleSetting(self.parent_.maindb.items[(name, table)], 6 + i, values[i]), Qt.ItemDataRole.UserRole + 26 + i)
                     
                     if table == "__main__":
@@ -230,13 +230,13 @@ class Options:
         if ok:
             successful = True
             
-            for i in range(4):
-                options = APP_OPTIONS + APP_VALUES[i]
+            for i in range(6):
+                options = SETTINGS_OPTIONS + SETTINGS_VALUES[i]
                 
                 if table != "__main__":
                     options.insert(2, "notebook")
                     
-                if self.parent_.maindb.set(options[values[i]], APP_SETTINGS[i], name, table):
+                if self.parent_.maindb.set(options[values[i]], SETTINGS_KEYS[i], name, table):
                     index.model().setData(index, self.parent_.tree_view.handleSetting(self.parent_.maindb.items[(name, table)], i, options[values[i]]), Qt.ItemDataRole.UserRole + 20 + i)
                     
                     for value in self.pages.values():
@@ -309,7 +309,7 @@ class Options:
         dialog.set()
         ok, default, document = dialog.get()
         
-        options = APP_OPTIONS.copy()
+        options = SETTINGS_OPTIONS.copy()
         options.append("notebook")
         
         default = options[default]
@@ -332,7 +332,7 @@ class Options:
                     QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.parent_.tr("A name is required."))
                     return
                 
-                if self.parent_.maindb.createDocument(default, "yes" if diary else default, document, notebook):
+                if self.parent_.maindb.createDocument(default, "enabled" if diary else default, document, notebook):
                     self.parent_.tree_view.appendDocument(self.parent_.maindb.getDocument(document, notebook), self.parent_.maindb.items[(notebook, "__main__")], notebook)
                     
                 else:
@@ -350,7 +350,7 @@ class Options:
             dialog.set()
             ok, default, name, description = dialog.get()
             
-            default = APP_OPTIONS[default]
+            default = SETTINGS_OPTIONS[default]
             
         else:
             default = "default"
@@ -367,7 +367,7 @@ class Options:
                     QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.parent_.tr("A name is required."))
                     return
                 
-                successful = self.parent_.maindb.createNotebook(default, "yes" if diary else default, description, name)
+                successful = self.parent_.maindb.createNotebook(default, "enabled" if diary else default, description, name)
                 
                 if successful:
                     self.parent_.tree_view.appendNotebook(self.parent_.maindb.getNotebook(name))
@@ -477,8 +477,8 @@ class Options:
     def removeLock(self, index: QModelIndex) -> None:
         name, table = self.get(index)
 
-        if self.parent_.maindb.set(None, "locked", name, table):
-            index.model().setData(index, ["self", None], Qt.ItemDataRole.UserRole + 21)
+        if self.parent_.maindb.set("disabled", "locked", name, table):
+            index.model().setData(index, ["self", "disabled"], Qt.ItemDataRole.UserRole + 21)
             self.parent_.tree_view.setType(index)
             
             if len(self.pages) > 0 and self.pages[self.parent_.parent_.area.pages.focused_on] == index:
@@ -509,7 +509,7 @@ class Options:
                 return
             
             if not self.parent_.maindb.checkIfItExists(new_name, table):
-                if self.parent_.maindb.rename("yes" if diary else None, new_name, name, table):
+                if self.parent_.maindb.rename("enabled" if diary else None, new_name, name, table):
                     if index.data(Qt.ItemDataRole.UserRole + 2) == "notebook":
                         for name_, table_ in self.parent_.maindb.items.copy().keys():
                             if table_ == name:
@@ -525,7 +525,7 @@ class Options:
                                 
                     self.parent_.maindb.items[(new_name, table)] = self.parent_.maindb.items.pop((name, table))
                     
-                    index.model().setData(index, "yes" if diary else None, Qt.ItemDataRole.UserRole + 21)
+                    index.model().setData(index, "enabled" if diary else None, Qt.ItemDataRole.UserRole + 21)
                     index.model().setData(index, new_name, Qt.ItemDataRole.UserRole + 101)
                     
                 else:
@@ -699,15 +699,15 @@ class TreeView(QTreeView):
         self.model_.appendRow(notebook)
         
     def handleSettingViaGlobal(self, number: int) -> str | None:
-        if self.parent_.settings.value(f"globals/{APP_SETTINGS[number]}") == "default":
-            return APP_DEFAULTS[number]
+        if self.parent_.settings.value(f"globals/{SETTINGS_KEYS[number]}") == "default":
+            return SETTINGS_DEFAULTS[number]
                 
         else:
-            return self.parent_.settings.value(f"globals/{APP_SETTINGS[number]}")
+            return self.parent_.settings.value(f"globals/{SETTINGS_KEYS[number]}")
         
     def handleSettingViaNotebook(self, item: QStandardItem, number: int) -> str | None:
         if self.parent_.maindb.items[(item.data(Qt.ItemDataRole.UserRole + 100), "__main__")].data(Qt.ItemDataRole.UserRole + 20 + number)[1] == "default":
-            return APP_DEFAULTS[number]
+            return SETTINGS_DEFAULTS[number]
             
         elif self.parent_.maindb.items[(item.data(Qt.ItemDataRole.UserRole + 100), "__main__")].data(Qt.ItemDataRole.UserRole + 20 + number)[1] == "global":
             return self.handleSettingViaGlobal(number)
@@ -717,7 +717,7 @@ class TreeView(QTreeView):
         
     def handleSetting(self, item: QStandardItem, number: int, value: str | None) -> tuple[str, str | None]:
         if value == "default":
-            return "default", APP_DEFAULTS[number]
+            return "default", SETTINGS_DEFAULTS[number]
             
         elif value == "global":
             return "global", self.handleSettingViaGlobal(number)
@@ -751,19 +751,6 @@ class TreeView(QTreeView):
         self.type_filterer.setFilterFixedString(self.types[index] if self.buttons[index].isChecked() else "")
         self.type_filterer.endResetModel()
         
-    def getType(self, completed: str | None, locked: str | None) -> str:
-        if completed is None and locked is None:
-            return "note"
-        
-        elif completed is not None and locked is not None:
-            return "todo diary"
-        
-        elif completed is not None:
-            return "todo"
-        
-        elif locked is not None:
-            return "diary"
-        
     def setData(self, context_data: QModelIndex | QStandardItem, value: str, role: Qt.ItemDataRole) -> None:
         if isinstance(context_data, QModelIndex):
             context_data.model().setData(context_data, value, role)
@@ -772,16 +759,16 @@ class TreeView(QTreeView):
             context_data.setData(value, role)
         
     def setType(self, context_data: QModelIndex | QStandardItem) -> None:
-        if context_data.data(Qt.ItemDataRole.UserRole + 20)[1] is None and context_data.data(Qt.ItemDataRole.UserRole + 21)[1] is None:
+        if context_data.data(Qt.ItemDataRole.UserRole + 20)[1] is None and context_data.data(Qt.ItemDataRole.UserRole + 21)[1] == "disabled":
             self.setData(context_data, "note", Qt.ItemDataRole.UserRole + 3) 
         
-        elif context_data.data(Qt.ItemDataRole.UserRole + 20)[1] in ["completed", "uncompleted"] and context_data.data(Qt.ItemDataRole.UserRole + 21)[1] == "yes":
+        elif context_data.data(Qt.ItemDataRole.UserRole + 20)[1] in ["completed", "uncompleted"] and context_data.data(Qt.ItemDataRole.UserRole + 21)[1] == "enabled":
             self.setData(context_data, "todo diary", Qt.ItemDataRole.UserRole + 3) 
         
         elif context_data.data(Qt.ItemDataRole.UserRole + 20)[1] in ["completed", "uncompleted"]:
             self.setData(context_data, "todo", Qt.ItemDataRole.UserRole + 3) 
         
-        elif context_data.data(Qt.ItemDataRole.UserRole + 21)[1] == "yes":
+        elif context_data.data(Qt.ItemDataRole.UserRole + 21)[1] == "enabled":
             self.setData(context_data, "diary", Qt.ItemDataRole.UserRole + 3) 
         
     @Slot(QPoint or QModelIndex)
@@ -834,9 +821,9 @@ class TreeView(QTreeView):
             menu.addAction(Action(self, lambda: self.parent_.options.markAsUncompleted(index), self.tr("Mark as Uncompleted")))
             
         menu.addSeparator()
-        if index.data(Qt.ItemDataRole.UserRole + 21)[1] == "yes":
+        if index.data(Qt.ItemDataRole.UserRole + 21)[1] == "enabled":
             menu.addAction(Action(self, lambda: self.parent_.options.removeLock(index), self.tr("Remove Lock")))
-        else:
+        elif index.data(Qt.ItemDataRole.UserRole + 21)[1] == "disabled":
             menu.addAction(Action(self, lambda: self.parent_.options.addLock(index), self.tr("Add Lock")))
         
         menu.addSeparator()
