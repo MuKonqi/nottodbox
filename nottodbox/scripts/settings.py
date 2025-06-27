@@ -969,8 +969,8 @@ class DocumentSettings(GlobalSettings):
             
             if check:
                 for item in self.parent_.parent_.home.selector.maindb.items.values():
-                    if item.data(Qt.ItemDataRole.UserRole + 20 + i)[0] == "global":
-                        item.setData(("global", self.parent_.parent_.home.selector.tree_view.handleSettingViaGlobal(i)), Qt.ItemDataRole.UserRole + 20 + i)
+                    if "global" in item.data(Qt.ItemDataRole.UserRole + 20 + i)[0]:
+                        item.setData((item.data(Qt.ItemDataRole.UserRole + 20 + i)[0], self.parent_.parent_.home.selector.tree_view.handleSettingViaGlobal(i)), Qt.ItemDataRole.UserRole + 20 + i)
         
         return successful
         
@@ -1025,7 +1025,7 @@ class ListSettings(GlobalSettings):
             
             if check:
                 for item in self.parent_.parent_.home.selector.maindb.items.values():
-                    if item.data(Qt.ItemDataRole.UserRole + 26 + i)[0] == "global":
-                        item.setData(("global", self.parent_.parent_.home.selector.tree_view.handleSettingViaGlobal(6 + i)), Qt.ItemDataRole.UserRole + 26 + i)
+                    if "global" in item.data(Qt.ItemDataRole.UserRole + 26 + i)[0]:
+                        item.setData((item.data(Qt.ItemDataRole.UserRole + 26 + i)[0], self.parent_.parent_.home.selector.tree_view.handleSettingViaGlobal(6 + i)), Qt.ItemDataRole.UserRole + 26 + i)
                         
         return successful

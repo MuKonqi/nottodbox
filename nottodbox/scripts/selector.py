@@ -96,6 +96,7 @@ class Selector(QWidget):
         
         self.setFixedWidth(345)
         self.enableCalendar(Qt.CheckState.Unchecked if self.settings.value("selector/calendar") == "hidden" else Qt.CheckState.Checked)
+        self.setPage()
         self.setVisible(False if self.settings.value("selector/self") == "hidden" else True)
         self.parent_.parent_.sidebar.buttons[-1].setChecked(True if self.settings.value("selector/self") == "hidden" else False)
                 
@@ -209,8 +210,8 @@ class Options:
                     
                     if table == "__main__":
                         for name_, table_ in self.parent_.maindb.items.keys():
-                            if table_ == name and self.parent_.maindb.items[(name_, table_)].data(Qt.ItemDataRole.UserRole + 26 + i)[0] == "notebook":
-                                self.parent_.maindb.items[(name_, table_)].setData(("notebook", self.parent_.tree_view.handleSettingViaNotebook(self.parent_.maindb.items[(name_, table_)], 6 + i)), Qt.ItemDataRole.UserRole + 26 + i)
+                            if table_ == name and "notebook" in self.parent_.maindb.items[(name_, table_)].data(Qt.ItemDataRole.UserRole + 26 + i)[0]:
+                                self.parent_.maindb.items[(name_, table_)].setData(self.parent_.tree_view.handleSetting(self.parent_.maindb.items[(name_, table_)], 6 + i, "notebook"), Qt.ItemDataRole.UserRole + 26 + i)
                                 
                 else:
                     successful = False
@@ -244,8 +245,8 @@ class Options:
                     
                     if table == "__main__":
                         for name_, table_ in self.parent_.maindb.items.keys():
-                            if table_ == name and self.parent_.maindb.items[(name_, table_)].data(Qt.ItemDataRole.UserRole + 20 + i)[0] == "notebook":
-                                self.parent_.maindb.items[(name_, table_)].setData(("notebook", self.parent_.tree_view.handleSettingViaNotebook(self.parent_.maindb.items[(name_, table_)], i)), Qt.ItemDataRole.UserRole + 20 + i)
+                            if table_ == name and "notebook" in self.parent_.maindb.items[(name_, table_)].data(Qt.ItemDataRole.UserRole + 20 + i)[0]:
+                                self.parent_.maindb.items[(name_, table_)].setData(self.parent_.tree_view.handleSetting(self.parent_.maindb.items[(name_, table_)], i, "notebook"), Qt.ItemDataRole.UserRole + 20 + i)
                                 
                                 if self.parent_.maindb.items[(name_, table_)].index() in self.pages.values():
                                     self.parent_.maindb.items[(name_, table_)].data(Qt.ItemDataRole.UserRole + 5).refreshSettings()
@@ -706,27 +707,28 @@ class TreeView(QTreeView):
             return self.parent_.settings.value(f"globals/{SETTINGS_KEYS[number]}")
         
     def handleSettingViaNotebook(self, item: QStandardItem, number: int) -> str | None:
-        if self.parent_.maindb.items[(item.data(Qt.ItemDataRole.UserRole + 100), "__main__")].data(Qt.ItemDataRole.UserRole + 20 + number)[1] == "default":
+        if self.parent_.maindb.items[(item.data(Qt.ItemDataRole.UserRole + 100), "__main__")].data(Qt.ItemDataRole.UserRole + 20 + number)[0][0] == "default":
             return SETTINGS_DEFAULTS[number]
-            
-        elif self.parent_.maindb.items[(item.data(Qt.ItemDataRole.UserRole + 100), "__main__")].data(Qt.ItemDataRole.UserRole + 20 + number)[1] == "global":
-            return self.handleSettingViaGlobal(number)
                 
         else:
             return self.parent_.maindb.items[(item.data(Qt.ItemDataRole.UserRole + 100), "__main__")].data(Qt.ItemDataRole.UserRole + 20 + number)[1]
         
-    def handleSetting(self, item: QStandardItem, number: int, value: str | None) -> tuple[str, str | None]:
+    def handleSetting(self, item: QStandardItem, number: int, value: str | None) -> tuple[tuple, str | None]:
         if value == "default":
-            return "default", SETTINGS_DEFAULTS[number]
+            return ("default",), SETTINGS_DEFAULTS[number]
             
         elif value == "global":
-            return "global", self.handleSettingViaGlobal(number)
+            return ("global",), self.handleSettingViaGlobal(number)
             
         elif value == "notebook":
-            return "notebook", self.handleSettingViaNotebook(item, number)
+            if self.parent_.maindb.items[(item.data(Qt.ItemDataRole.UserRole + 100), "__main__")].data(Qt.ItemDataRole.UserRole + 20 + number)[0][0] == "global":
+                return ("notebook", "global",), self.handleSettingViaGlobal(number)
+            
+            else:
+                return ("notebook",), self.handleSettingViaNotebook(item, number)
         
         else:
-            return "self", value
+            return ("self",), value
         
     @Slot(int)
     def filterChanged(self, index: int) -> None:

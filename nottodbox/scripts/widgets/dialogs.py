@@ -312,7 +312,7 @@ class ChangeAppearance(Settings):
             label = Label(widget, f"{self.localized_labels[i]}:", Qt.AlignmentFlag.AlignRight)
             label.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Ignored)
             
-            self.selectors.append(ColorSelector(widget, True, True, index.data(Qt.ItemDataRole.UserRole + 2) == "document", index.data(Qt.ItemDataRole.UserRole + 26 + i)[1] if index.data(Qt.ItemDataRole.UserRole + 26 + i)[0] == "self" else index.data(Qt.ItemDataRole.UserRole + 26 + i)[0]))
+            self.selectors.append(ColorSelector(widget, True, True, index.data(Qt.ItemDataRole.UserRole + 2) == "document", index.data(Qt.ItemDataRole.UserRole + 26 + i)[1] if index.data(Qt.ItemDataRole.UserRole + 26 + i)[0][0] == "self" else index.data(Qt.ItemDataRole.UserRole + 26 + i)[0][0]))
             
             layout.addWidget(label)
             layout.addWidget(self.selectors[-1])
@@ -392,7 +392,7 @@ class ChangeSettings(Settings):
             self.layout_.addWidget(widget)
 
             try:
-                self.selectors[-1].setCurrentIndex(self.options.index(index.data(Qt.ItemDataRole.UserRole + 20 + i)[0]))
+                self.selectors[-1].setCurrentIndex(self.options.index(index.data(Qt.ItemDataRole.UserRole + 20 + i)[0][0]))
             
             except ValueError:
                 self.selectors[-1].setCurrentIndex(len(self.options) + SETTINGS_VALUES[i].index(index.data(Qt.ItemDataRole.UserRole + 20 + i)[1]))
