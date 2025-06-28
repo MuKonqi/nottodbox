@@ -126,6 +126,27 @@ class Dialog(QDialog):
         
         self.setWindowTitle(window_title)
         self.resize(690, 460)
+        
+        
+class Export(Dialog):
+    def __init__(self, parent: QWidget) -> None:
+        super().__init__(parent, self.tr("Export As..."))
+        
+        self.layout_ = QVBoxLayout(self.input)
+        
+        self.combobox = QComboBox(self.input)
+        self.combobox.addItems(["PDF", "ODT", "Markdown", "HTML", self.tr("Plain-text")])
+        
+        self.layout_.addWidget(self.combobox)
+        
+        self.exec()
+        
+    def get(self) -> tuple[bool, str | None]:
+        if self.result() == 1:
+            return True, SETTINGS_VALUES[4][self.combobox.currentIndex()]
+        
+        else:
+            return False, None
 
 
 class GetName(Dialog):
@@ -312,7 +333,7 @@ class ChangeAppearance(Settings):
             label = Label(widget, f"{self.localized_labels[i]}:", Qt.AlignmentFlag.AlignRight)
             label.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Ignored)
             
-            self.selectors.append(ColorSelector(widget, True, True, index.data(Qt.ItemDataRole.UserRole + 2) == "document", index.data(Qt.ItemDataRole.UserRole + 26 + i)[1] if index.data(Qt.ItemDataRole.UserRole + 26 + i)[0][0] == "self" else index.data(Qt.ItemDataRole.UserRole + 26 + i)[0][0]))
+            self.selectors.append(ColorSelector(widget, True, True, index.data(Qt.ItemDataRole.UserRole + 2) == "document", index.data(Qt.ItemDataRole.UserRole + 27 + i)[1] if index.data(Qt.ItemDataRole.UserRole + 27 + i)[0][0] == "self" else index.data(Qt.ItemDataRole.UserRole + 27 + i)[0][0]))
             
             layout.addWidget(label)
             layout.addWidget(self.selectors[-1])
@@ -346,6 +367,7 @@ class ChangeSettings(Settings):
             self.tr("Enabled").lower(),
             "Markdown",
             self.tr("None").lower(),
+            self.tr("Documents").lower(),
             self.tr("No").lower()
         ]
         
@@ -355,6 +377,7 @@ class ChangeSettings(Settings):
             self.tr("Auto-save"),
             self.tr("Document format"),
             self.tr("External synchronization"),
+            self.tr("Export folder"),
             self.tr("Pinned to sidebar")
             ]
         
@@ -364,10 +387,11 @@ class ChangeSettings(Settings):
             [self.tr("Enabled"), self.tr("Disabled")],
             ["Markdown", "HTML", self.tr("Plain-text")],
             ["PDF", "ODT", "Markdown", "HTML", self.tr("Plain-text")],
+            [self.tr("Documents"), self.tr("Desktop")],
             [self.tr("Yes"), self.tr("No")]
         ]
         
-        for i in range(6):
+        for i in range(7):
             widget = QWidget(self.input)
             layout = QHBoxLayout(widget)
             layout.setContentsMargins(0, 0, 0, 0)

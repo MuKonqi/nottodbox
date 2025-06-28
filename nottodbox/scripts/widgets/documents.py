@@ -19,11 +19,13 @@
 
 
 import datetime
-from PySide6.QtCore import Qt, QDate, QModelIndex, QObject, Qt, QThread, Signal, Slot
-from PySide6.QtGui import QDesktopServices, QMouseEvent, QPalette, QTextCursor, QTextBlockFormat, QTextCharFormat, QTextFormat, QTextListFormat, QTextLength, QTextTable, QTextTableFormat
+import os
+from PySide6.QtCore import QDate, QModelIndex, QObject, Qt, QThread, Signal, Slot
+from PySide6.QtGui import QDesktopServices, QMouseEvent, QPalette, QPdfWriter, QTextCursor, QTextBlockFormat, QTextCharFormat, QTextDocument, QTextDocumentWriter, QTextFormat, QTextListFormat, QTextLength, QTextTable, QTextTableFormat
 from PySide6.QtWidgets import *
 from .dialogs import GetColor, GetTwoNumber
 from .controls import Action
+from ..consts import USER_DIRS
             
             
 class Document(QWidget):
@@ -38,8 +40,6 @@ class Document(QWidget):
         self.index = index
         self.mode = mode
         
-        self.document = index.data(Qt.ItemDataRole.UserRole + 101)
-        self.notebook = index.data(Qt.ItemDataRole.UserRole + 100)
         self.creation = index.data(Qt.ItemDataRole.UserRole + 102)
         
         self.today = QDate.currentDate()
@@ -56,6 +56,7 @@ class Document(QWidget):
 
         self.handleSettings()
         self.refreshContent()
+        self.refreshNames()
         
     def handleGlobal(self, setting: str) -> str:
         if self.settings[(setting, "global")] is None:
@@ -76,8 +77,10 @@ class Document(QWidget):
         
     def handleSettings(self) -> None:
         self.settings["autosave"] = self.index.data(Qt.ItemDataRole.UserRole + 22)[1]
+        self.settings["folder"] = self.index.data(Qt.ItemDataRole.UserRole + 25)[1]
         self.settings["format"] = self.index.data(Qt.ItemDataRole.UserRole + 23)[1]
         self.settings["locked"] = self.index.data(Qt.ItemDataRole.UserRole + 21)[1]
+        self.settings["sync"] = self.index.data(Qt.ItemDataRole.UserRole + 24)[1]
             
         self.helper.updateStatus(self.settings["format"])
         
@@ -92,6 +95,12 @@ class Document(QWidget):
             
         elif self.settings["format"] == "html":
             self.input.setHtml(self.content)
+            
+    def refreshNames(self) -> None:
+        self.document = self.index.data(Qt.ItemDataRole.UserRole + 101)
+        self.notebook = self.index.data(Qt.ItemDataRole.UserRole + 100)
+        
+        self.input.setDocumentTitle(self.document)
         
 
 class BackupView(Document):
@@ -161,14 +170,17 @@ class NormalView(Document):
             self.saver_thread.quit()
             self.connected = False
                 
-    def getText(self) -> str:
-        if self.settings["format"] == "plain-text":
+    def getText(self, format_: str | None = None) -> str:
+        if format_ is None:
+            format_ = self.settings["format"]
+        
+        if format_ == "plain-text":
             return self.input.toPlainText()
             
-        elif self.settings["format"] == "markdown":
+        elif format_ == "markdown":
             return self.input.toMarkdown()
             
-        elif self.settings["format"] == "html":
+        elif format_ == "html":
             return self.input.toHtml()
     
     @Slot(bool)
@@ -547,7 +559,7 @@ class DocumentSaver(QObject):
         self.parent_ = parent
     
     @Slot(bool)
-    def saveDocument(self, autosave: bool = False) -> bool:        
+    def saveDocument(self, autosave: bool = False) -> bool:
         if not autosave or (autosave and self.parent_.settings["autosave"] == "enabled"):
             if self.parent_.settings["locked"] == "enabled" and datetime.datetime.strptime(self.parent_.creation, "%d/%m/%Y %H:%M").date() != datetime.datetime.today().date():
                 if autosave:
@@ -562,7 +574,28 @@ class DocumentSaver(QObject):
                     return
 
             if self.parent_.db.saveDocument(self.parent_.getText(), self.parent_.content, autosave, self.parent_.document, self.parent_.notebook):
-                self.parent_.last_content = self.parent_.getText()   
+                self.parent_.last_content = self.parent_.getText()
+                
+                if self.parent_.settings["sync"] is not None:
+                    os.makedirs(os.path.join(USER_DIRS[self.parent_.settings["folder"]], "Nottodbox", self.parent_.notebook), exist_ok=True)
+                    
+                    if self.parent_.settings["sync"] is not None:
+                        if self.parent_.settings["sync"] == "pdf":
+                            writer = QPdfWriter(os.path.join(USER_DIRS[self.parent_.settings["folder"]], "Nottodbox", self.parent_.notebook, f"{self.parent_.document}.pdf"))
+                            writer.setTitle(self.parent_.document)
+                            
+                            document = QTextDocument(self.parent_.getText())
+                            document.print_(writer)
+                        
+                        elif self.parent_.settings["sync"] == "plain-text":
+                            with open(os.path.join(USER_DIRS[self.parent_.settings["folder"]], "Nottodbox", self.parent_.notebook, f"{self.parent_.document}.txt"), "w+") as f:
+                                f.write(self.parent_.input.toPlainText())
+                            
+                        else:
+                            document = QTextDocument(self.parent_.getText())
+                            
+                            writer = QTextDocumentWriter(os.path.join(USER_DIRS[self.parent_.settings["folder"]], "Nottodbox", self.parent_.notebook, f"{self.parent_.document}.{self.parent_.settings["sync"]}"), self.parent_.settings["sync"].encode("utf-8") if self.parent_.settings["sync"] != "odt" else "odf".encode("utf-8"))
+                            writer.write(document)    
                     
                 self.parent_.index.model().setData(self.parent_.index, self.parent_.getText(), Qt.ItemDataRole.UserRole + 104)
                 

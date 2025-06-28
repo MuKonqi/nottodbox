@@ -171,11 +171,11 @@ class ButtonDelegate(QStyledItemDelegate):
         for status in situations:
             if status:
                 for j in range(3):
-                    if index.data(Qt.ItemDataRole.UserRole + 2).data(Qt.ItemDataRole.UserRole + 26 + j * 3 + i)[1] == None:
+                    if index.data(Qt.ItemDataRole.UserRole + 2).data(Qt.ItemDataRole.UserRole + 27 + j * 3 + i)[1] == None:
                         colors.append(defaults[i][j])
                         
                     else:
-                        colors.append(QColor(index.data(Qt.ItemDataRole.UserRole + 2).data(Qt.ItemDataRole.UserRole + 26 + j * 3 + i)[1]))
+                        colors.append(QColor(index.data(Qt.ItemDataRole.UserRole + 2).data(Qt.ItemDataRole.UserRole + 27 + j * 3 + i)[1]))
                         
                 break
                     

@@ -18,6 +18,7 @@
 
 import getpass
 import os
+from PySide6.QtCore import QStandardPaths
 
 
 APP_ID = "io.github.mukonqi.nottodbox"
@@ -63,19 +64,21 @@ ICON_DIR = os.path.join(DATA_DIR, "icons", "hicolor", "scalable")
 ICON_FILE = os.path.join(ICON_DIR, "apps", f"{APP_ID}.svg")
 
 
-SETTINGS_DEFAULTS = [None, "disabled", "enabled", "markdown", None, "no", None, None, None, None, None, None, None, None, None]
+SETTINGS_DEFAULTS = [None, "disabled", "enabled", "markdown", None, "documents", "no", None, None, None, None, None, None, None, None, None]
 
 SETTINGS_OPTIONS = ["default", "global"]
 
-SETTINGS_KEYS = ["completed", "locked", "autosave", "format", "sync", "pinned", "bg_normal", "bg_hover", "bg_clicked", "fg_normal", "fg_hover", "fg_clicked", "bd_normal", "bd_hover", "bd_clicked"]
+SETTINGS_KEYS = ["completed", "locked", "autosave", "format", "sync", "folder", "pinned", "bg_normal", "bg_hover", "bg_clicked", "fg_normal", "fg_hover", "fg_clicked", "bd_normal", "bd_hover", "bd_clicked"]
 
-SETTINGS_VALUES = [["completed", "uncompleted", None], ["enabled", "disabled"], ["enabled", "disabled"], ["markdown", "html", "plain-text"], ["pdf", "odt", "html", "markdown", "plain-text"], ["yes", "no"]]
+SETTINGS_VALUES = [["completed", "uncompleted", None], ["enabled", "disabled"], ["enabled", "disabled"], ["markdown", "html", "plain-text"], ["pdf", "odt", "markdown", "html", "plain-text"], ["documents", "desktop"], ["yes", "no"]]
 
 
 SYSTEM_DESKTOP_FILE_FOUND = os.path.isfile(f"/usr/share/applications/{APP_ID}.desktop") or os.path.isfile(f"/usr/local/share/applications/{APP_ID}.desktop")
 
 
 USER_NAME = getpass.getuser()
+
+USER_DIRS = {"desktop": QStandardPaths.standardLocations(QStandardPaths.StandardLocation.DesktopLocation)[0], "documents": QStandardPaths.standardLocations(QStandardPaths.StandardLocation.DocumentsLocation)[0]}
 
 USER_DESKTOP_FILE = f"/home/{USER_NAME}/.local/share/applications/{APP_ID}.desktop"
 

@@ -902,6 +902,7 @@ class DocumentSettings(GlobalSettings):
             self.tr("Enabled").lower(),
             "Markdown",
             self.tr("None").lower(),
+            self.tr("Documents").lower(),
             self.tr("No").lower()
         ]
         
@@ -911,6 +912,7 @@ class DocumentSettings(GlobalSettings):
             self.tr("Auto-save"),
             self.tr("Document format"),
             self.tr("External synchronization"),
+            self.tr("Export folder"),
             self.tr("Pinned to sidebar")
             ]
         
@@ -920,12 +922,13 @@ class DocumentSettings(GlobalSettings):
             [self.tr("Enabled"), self.tr("Disabled")],
             ["Markdown", "HTML", self.tr("Plain-text")],
             ["PDF", "ODT", "Markdown", "HTML", self.tr("Plain-text")],
+            [self.tr("Documents"), self.tr("Desktop")],
             [self.tr("Yes"), self.tr("No")]
         ]
         
         self.values = [["default"] + values for values in SETTINGS_VALUES]
         
-        for i in range(6):
+        for i in range(7):
             widget = QWidget(self)
             layout = QHBoxLayout(widget)
             layout.setContentsMargins(0, 0, 0, 0)
@@ -951,7 +954,7 @@ class DocumentSettings(GlobalSettings):
     
     @Slot()
     def load(self) -> None:
-        for i in range(6):
+        for i in range(7):
             self.selectors[i].setCurrentIndex(self.values[i].index(self.parent_.settings.value(f"globals/{SETTINGS_KEYS[i]}")))
     
     def save(self, mode: str, format_change_acceptted: bool = True) -> bool:
@@ -960,7 +963,7 @@ class DocumentSettings(GlobalSettings):
             
         successful = True
             
-        for i in range(6):
+        for i in range(7):
             self.parent_.settings.setValue(f"globals/{SETTINGS_KEYS[i]}", self.values[i][self.selectors[i].currentIndex()] if mode == "apply" else "default")
             
             check = self.parent_.settings.value(f"globals/{SETTINGS_KEYS[i]}") == (self.values[i][self.selectors[i].currentIndex()] if mode == "apply" else "default")
@@ -972,7 +975,7 @@ class DocumentSettings(GlobalSettings):
                     if "global" in item.data(Qt.ItemDataRole.UserRole + 20 + i)[0]:
                         item.setData((item.data(Qt.ItemDataRole.UserRole + 20 + i)[0], self.parent_.parent_.home.selector.tree_view.handleSettingViaGlobal(i)), Qt.ItemDataRole.UserRole + 20 + i)
                         
-                        if i == 5:
+                        if i == 6:
                             if self.values[i][self.selectors[i].currentIndex()] == "yes":
                                 self.parent_.parent_.home.selector.options.pin(item.index(), False, False)
                                 
@@ -1018,21 +1021,21 @@ class ListSettings(GlobalSettings):
     @Slot()
     def load(self) -> None:
         for i in range(9):
-            self.selectors[i].setColor(self.parent_.settings.value(f"globals/{SETTINGS_KEYS[6 + i]}"))
+            self.selectors[i].setColor(self.parent_.settings.value(f"globals/{SETTINGS_KEYS[7 + i]}"))
     
     def save(self, mode: str, format_change_acepptted: bool = True) -> bool:
         successful = True
         
         for i in range(9):
-            self.parent_.settings.setValue(f"globals/{SETTINGS_KEYS[6 + i]}", self.selectors[i].selected if mode == "apply" else "default")
+            self.parent_.settings.setValue(f"globals/{SETTINGS_KEYS[7 + i]}", self.selectors[i].selected if mode == "apply" else "default")
             
-            check = self.parent_.settings.value(f"globals/{SETTINGS_KEYS[6 + i]}") == (self.selectors[i].selected if mode == "apply" else "default")
+            check = self.parent_.settings.value(f"globals/{SETTINGS_KEYS[7 + i]}") == (self.selectors[i].selected if mode == "apply" else "default")
 
             successful &= check
             
             if check:
                 for item in self.parent_.parent_.home.selector.maindb.items.values():
-                    if "global" in item.data(Qt.ItemDataRole.UserRole + 26 + i)[0]:
-                        item.setData((item.data(Qt.ItemDataRole.UserRole + 26 + i)[0], self.parent_.parent_.home.selector.tree_view.handleSettingViaGlobal(6 + i)), Qt.ItemDataRole.UserRole + 26 + i)
+                    if "global" in item.data(Qt.ItemDataRole.UserRole + 27 + i)[0]:
+                        item.setData((item.data(Qt.ItemDataRole.UserRole + 27 + i)[0], self.parent_.parent_.home.selector.tree_view.handleSettingViaGlobal(7 + i)), Qt.ItemDataRole.UserRole + 27 + i)
                         
         return successful

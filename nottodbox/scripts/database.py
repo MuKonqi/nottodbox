@@ -75,10 +75,10 @@ class MainDB:
         self.cur.execute(
             f"""
             INSERT INTO '{table}'
-            (name, content, creation, modification, completed, locked, autosave, format, sync, pinned, bg_normal, bg_hover, bg_clicked, fg_normal, fg_hover, fg_clicked, bd_normal, bd_hover, bd_clicked)
-            values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            (name, content, creation, modification, completed, locked, autosave, format, sync, folder, pinned, bg_normal, bg_hover, bg_clicked, fg_normal, fg_hover, fg_clicked, bd_normal, bd_hover, bd_clicked)
+            values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
-            (name, content, date, date, default, default, default, default, default, default, default, default, default, default, default, default, default, default, default)
+            (name, content, date, date, default, default, default, default, default, default, default, default, default, default, default, default, default, default, default, default)
         )
         self.db.commit()
         
@@ -102,6 +102,7 @@ class MainDB:
                 autosave TEXT NOT NULL,
                 format TEXT NOT NULL,
                 sync TEXT,
+                folder TEXT NOT NULL,
                 pinned TEXT NOT NULL,
                 bg_normal TEXT NOT NULL,
                 bg_hover TEXT NOT NULL,
