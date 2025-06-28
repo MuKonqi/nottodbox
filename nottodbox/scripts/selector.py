@@ -411,6 +411,8 @@ class Options:
                     if table_ == name:
                         if len(self.pages) > 0 and self.pages[self.parent_.parent_.area.pages.focused_on] == self.parent_.maindb.items[(name_, table_)].index():
                             self.close(self.parent_.maindb.items[(name_, table_)].index())
+                            
+                        self.unpin(self.parent_.maindb.items[(name_, table_)].index(), False, False)
                         
                         del self.parent_.maindb.items[(name_, table_)]
                         
@@ -1123,7 +1125,7 @@ class ButtonDelegate(QStyledItemDelegate):
                     return True
                 
                 elif index.data(Qt.ItemDataRole.UserRole + 2) == "document":
-                    self.parent_.parent_.options.open(index, "normal")
+                    self.parent_.parent_.options.open(self.parent_.mapToSource(index), "normal")
                 
                 model.setData(index, not index.data(Qt.ItemDataRole.UserRole + 1), Qt.ItemDataRole.UserRole + 1)
 
