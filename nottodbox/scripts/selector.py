@@ -116,6 +116,10 @@ class Selector(QWidget):
             self.pages.setCurrentIndex(0)
             
         else:
+            self.do_not_write = True
+            self.calendar_checkbox.setCheckState(Qt.CheckState.Unchecked if self.settings.value("selector/calendar") == "hidden" else Qt.CheckState.Checked)
+            self.do_not_write = False
+            
             self.pages.setCurrentIndex(1)
             
     @Slot()
@@ -208,7 +212,7 @@ class Options:
                 if self.parent_.maindb.set(values[i], SETTINGS_KEYS[6 + i], name, table):
                     index.model().setData(index, self.parent_.tree_view.handleSetting(self.parent_.maindb.items[(name, table)], 6 + i, values[i]), Qt.ItemDataRole.UserRole + 26 + i)
                     
-                    if table == "__main__":
+                    if index.data(Qt.ItemDataRole.UserRole + 2) == "notebook":
                         for name_, table_ in self.parent_.maindb.items.keys():
                             if table_ == name and "notebook" in self.parent_.maindb.items[(name_, table_)].data(Qt.ItemDataRole.UserRole + 26 + i)[0]:
                                 self.parent_.maindb.items[(name_, table_)].setData(self.parent_.tree_view.handleSetting(self.parent_.maindb.items[(name_, table_)], 6 + i, "notebook"), Qt.ItemDataRole.UserRole + 26 + i)
@@ -240,10 +244,10 @@ class Options:
                 if self.parent_.maindb.set(options[values[i]], SETTINGS_KEYS[i], name, table):
                     index.model().setData(index, self.parent_.tree_view.handleSetting(self.parent_.maindb.items[(name, table)], i, options[values[i]]), Qt.ItemDataRole.UserRole + 20 + i)
                     
-                    for value in self.pages.values():
-                        value.data(Qt.ItemDataRole.UserRole + 5).refreshSettings()
+                    if self.parent_.maindb.items[(name, table)].index() in self.pages.values():
+                        self.parent_.maindb.items[(name, table)].data(Qt.ItemDataRole.UserRole + 5).refreshSettings()
                     
-                    if table == "__main__":
+                    if index.data(Qt.ItemDataRole.UserRole + 2) == "notebook":
                         for name_, table_ in self.parent_.maindb.items.keys():
                             if table_ == name and "notebook" in self.parent_.maindb.items[(name_, table_)].data(Qt.ItemDataRole.UserRole + 20 + i)[0]:
                                 self.parent_.maindb.items[(name_, table_)].setData(self.parent_.tree_view.handleSetting(self.parent_.maindb.items[(name_, table_)], i, "notebook"), Qt.ItemDataRole.UserRole + 20 + i)
@@ -251,6 +255,13 @@ class Options:
                                 if self.parent_.maindb.items[(name_, table_)].index() in self.pages.values():
                                     self.parent_.maindb.items[(name_, table_)].data(Qt.ItemDataRole.UserRole + 5).refreshSettings()
                                 
+                    if i == 5:
+                        if options[values[i]] == "yes":
+                            self.pin(index, False, False)
+                            
+                        elif options[values[i]] == "no":
+                            self.unpin(index, False, False)
+                
                 else:
                     successful = False
                     
@@ -336,6 +347,9 @@ class Options:
                 if self.parent_.maindb.createDocument(default, "enabled" if diary else default, document, notebook):
                     self.parent_.tree_view.appendDocument(self.parent_.maindb.getDocument(document, notebook), self.parent_.maindb.items[(notebook, "__main__")], notebook)
                     
+                    if self.parent_.maindb.items[(document, notebook)].data(Qt.ItemDataRole.UserRole + 25)[1] == "yes":
+                        self.pin(self.parent_.maindb.items[(document, notebook)].index(), False, False)
+                    
                 else:
                     QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.parent_.tr("Failed to create document."))
                 
@@ -389,6 +403,8 @@ class Options:
         name, table = self.get(index)
         
         if self.parent_.maindb.delete(name, table):
+            self.unpin(index, False, False)
+            
             if index.data(Qt.ItemDataRole.UserRole + 2) == "notebook":
                 for name_, table_ in self.parent_.maindb.items.copy().keys():
                     if table_ == name:
@@ -473,6 +489,25 @@ class Options:
         index.model().setData(index, NormalView(self.parent_.parent_.area.pages, self.parent_.maindb, index) if mode == "normal" else BackupView(self.parent_.parent_.area.pages, self.parent_.maindb, index), Qt.ItemDataRole.UserRole + 5)
         
         self.parent_.parent_.area.pages.layout_.replaceWidget(self.parent_.parent_.area.pages.focused_on, index.data(Qt.ItemDataRole.UserRole + 5))
+    
+    @Slot(QModelIndex)
+    def pin(self, index: QModelIndex, write: bool = True, update: bool = True) -> None:
+        if index not in self.parent_.parent_.parent_.sidebar.list_view.items.keys():
+            name, table = self.get(index)
+            
+            if write and not self.parent_.maindb.set("yes", "pinned", name, table):
+                QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.tr("Failed to pin {the_item} to sidebar.", index))
+                return
+            
+            if update:
+                index.model().setData(index, ("self", "yes"), Qt.ItemDataRole.UserRole + 25)
+                
+            self.parent_.parent_.parent_.sidebar.list_view.addItem(index)
+                
+            if index.data(Qt.ItemDataRole.UserRole + 2) == "notebook":
+                for name_, table_ in self.parent_.maindb.items.copy().keys():
+                    if table_ == name and "notebook" in self.parent_.maindb.items[(name_, table_)].data(Qt.ItemDataRole.UserRole + 25)[0]:
+                        self.parent_.parent_.parent_.sidebar.list_view.addItem(self.parent_.maindb.items[(name_, table_)].index())
     
     @Slot(QModelIndex)
     def removeLock(self, index: QModelIndex) -> None:
@@ -607,6 +642,25 @@ class Options:
             
         else:
             QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.tr("Failed to unmark {the_item}.", index))
+            
+    @Slot(QModelIndex)
+    def unpin(self, index: QModelIndex, write: bool = True, update: bool = True) -> None:
+        if index in self.parent_.parent_.parent_.sidebar.list_view.items.keys():
+            name, table = self.get(index)
+            
+            if write and not self.parent_.maindb.set("no", "pinned", name, table):
+                QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.tr("Failed to unpin {the_item} from sidebar.", index))
+                return
+            
+            if update:
+                index.model().setData(index, ("self", "no"), Qt.ItemDataRole.UserRole + 25)
+            
+            self.parent_.parent_.parent_.sidebar.list_view.removeItem(index)
+            
+            if index.data(Qt.ItemDataRole.UserRole + 2) == "notebook":
+                for name_, table_ in self.parent_.maindb.items.copy().keys():
+                    if table_ == name and "notebook" in self.parent_.maindb.items[(name_, table_)].data(Qt.ItemDataRole.UserRole + 25)[0]:
+                        self.parent_.parent_.parent_.sidebar.list_view.removeItem(self.parent_.maindb.items[(name_, table_)].index())
     
     
 class TreeView(QTreeView):
@@ -661,12 +715,19 @@ class TreeView(QTreeView):
         for data in items:
             self.appendNotebook(data)
             
+        for item in self.parent_.maindb.items.values():
+            if item.data(Qt.ItemDataRole.UserRole + 25)[1] == "yes":
+                self.parent_.options.pin(item.index(), False, False)
+            
     def appendDocument(self, data: list, item: QStandardItem, notebook: str) -> None:
         document = QStandardItem()
         self.parent_.maindb.items[(data[len(data) - 5], notebook)] = document
         
         document.setData(False, Qt.ItemDataRole.UserRole + 1)
-        document.setData("document", Qt.ItemDataRole.UserRole + 2)   
+        document.setData("document", Qt.ItemDataRole.UserRole + 2)
+        
+        document.setData(self.setCurrentIndex, Qt.ItemDataRole.UserRole + 10)   
+        document.setData(self.parent_.options.open, Qt.ItemDataRole.UserRole + 11)
         
         document.setData(notebook, Qt.ItemDataRole.UserRole + 100) 
         for i in range(5):
@@ -686,6 +747,9 @@ class TreeView(QTreeView):
         notebook.setData(False, Qt.ItemDataRole.UserRole + 1)
         notebook.setData("notebook", Qt.ItemDataRole.UserRole + 2)
         
+        notebook.setData(self.setCurrentIndex, Qt.ItemDataRole.UserRole + 10)   
+        notebook.setData(self.parent_.options.open, Qt.ItemDataRole.UserRole + 11)
+        
         for i in range(5):
             notebook.setData(data[len(data) - 1 - i], Qt.ItemDataRole.UserRole + 105 - i)
             
@@ -698,6 +762,29 @@ class TreeView(QTreeView):
         self.setType(notebook)
         
         self.model_.appendRow(notebook)
+        
+    @Slot(int)
+    def filterChanged(self, index: int) -> None:
+        self.normal_filterer.setFilterRole(Qt.ItemDataRole.UserRole + 101 + index)
+        
+    @Slot(str)
+    def filterNormal(self, text: str) -> None:
+        self.normal_filterer.beginResetModel()
+        self.normal_filterer.setFilterFixedString(text)
+        self.normal_filterer.endResetModel()
+        
+    @Slot(int)
+    def filterType(self, index: int) -> None:
+        if self.buttons[index].isChecked():
+            buttons = self.buttons.copy()
+            del buttons[index]
+            
+            for button in buttons:
+                button.setChecked(False)
+        
+        self.type_filterer.beginResetModel()
+        self.type_filterer.setFilterFixedString(self.types[index] if self.buttons[index].isChecked() else "")
+        self.type_filterer.endResetModel()
         
     def handleSettingViaGlobal(self, number: int) -> str | None:
         if self.parent_.settings.value(f"globals/{SETTINGS_KEYS[number]}") == "default":
@@ -730,51 +817,11 @@ class TreeView(QTreeView):
         else:
             return ("self",), value
         
-    @Slot(int)
-    def filterChanged(self, index: int) -> None:
-        self.normal_filterer.setFilterRole(Qt.ItemDataRole.UserRole + 101 + index)
-        
-    @Slot(str)
-    def filterNormal(self, text: str) -> None:
-        self.normal_filterer.beginResetModel()
-        self.normal_filterer.setFilterFixedString(text)
-        self.normal_filterer.endResetModel()
-        
-    @Slot(int)
-    def filterType(self, index: int) -> None:
-        if self.buttons[index].isChecked():
-            buttons = self.buttons.copy()
-            del buttons[index]
-            
-            for button in buttons:
-                button.setChecked(False)
-        
-        self.type_filterer.beginResetModel()
-        self.type_filterer.setFilterFixedString(self.types[index] if self.buttons[index].isChecked() else "")
-        self.type_filterer.endResetModel()
-        
-    def setData(self, context_data: QModelIndex | QStandardItem, value: str, role: Qt.ItemDataRole) -> None:
-        if isinstance(context_data, QModelIndex):
-            context_data.model().setData(context_data, value, role)
-            
-        elif isinstance(context_data, QStandardItem):
-            context_data.setData(value, role)
-        
-    def setType(self, context_data: QModelIndex | QStandardItem) -> None:
-        if context_data.data(Qt.ItemDataRole.UserRole + 20)[1] is None and context_data.data(Qt.ItemDataRole.UserRole + 21)[1] == "disabled":
-            self.setData(context_data, "note", Qt.ItemDataRole.UserRole + 3) 
-        
-        elif context_data.data(Qt.ItemDataRole.UserRole + 20)[1] in ["completed", "uncompleted"] and context_data.data(Qt.ItemDataRole.UserRole + 21)[1] == "enabled":
-            self.setData(context_data, "todo diary", Qt.ItemDataRole.UserRole + 3) 
-        
-        elif context_data.data(Qt.ItemDataRole.UserRole + 20)[1] in ["completed", "uncompleted"]:
-            self.setData(context_data, "todo", Qt.ItemDataRole.UserRole + 3) 
-        
-        elif context_data.data(Qt.ItemDataRole.UserRole + 21)[1] == "enabled":
-            self.setData(context_data, "diary", Qt.ItemDataRole.UserRole + 3) 
+    def index(self, index: QModelIndex) -> QModelIndex:
+        return self.type_filterer.mapToSource(self.normal_filterer.mapToSource(index))
         
     @Slot(QPoint or QModelIndex)
-    def openMenu(self, context_data: QPoint | QModelIndex):
+    def openMenu(self, context_data: QPoint | QModelIndex) -> None:
         index = None
         position = None
         
@@ -796,54 +843,83 @@ class TreeView(QTreeView):
             return
             
         menu = QMenu()
-        menu.addAction(Action(self, lambda: self.parent_.options.createDocument(index), self.tr("Create Document")))
+        menu.addAction(Action(self, lambda: self.parent_.options.createDocument(self.index(index)), self.tr("Create Document")))
         menu.addAction(Action(self, lambda: self.parent_.options.createNotebook(), self.tr("Create Notebook")))
         
         menu.addSeparator()
         if index.data(Qt.ItemDataRole.UserRole + 2) == "notebook":
-            menu.addAction(Action(self, lambda: self.parent_.options.editDescription(index), self.tr("Edit Description")))
+            menu.addAction(Action(self, lambda: self.parent_.options.editDescription(self.index(index)), self.tr("Edit Description")))
         
         elif index.data(Qt.ItemDataRole.UserRole + 2) == "document":
-            menu.addAction(Action(self, lambda: self.parent_.options.open(index, "normal", True), self.tr("Open")))
-            menu.addAction(Action(self, lambda: self.parent_.options.open(index, "backup", True), self.tr("Show Backup")))
-            menu.addAction(Action(self, lambda: self.parent_.options.restoreContent(index), self.tr("Restore Content")))
-            menu.addAction(Action(self, lambda: self.parent_.options.clearContent(index), self.tr("Clear Content")))
+            menu.addAction(Action(self, lambda: self.parent_.options.open(self.index(index), "normal", True), self.tr("Open")))
+            menu.addAction(Action(self, lambda: self.parent_.options.open(self.index(index), "backup", True), self.tr("Show Backup")))
+            menu.addAction(Action(self, lambda: self.parent_.options.restoreContent(self.index(index)), self.tr("Restore Content")))
+            menu.addAction(Action(self, lambda: self.parent_.options.clearContent(self.index(index)), self.tr("Clear Content")))
             
         menu.addSeparator()
         if index.data(Qt.ItemDataRole.UserRole + 20)[1] == "completed":
-            menu.addAction(Action(self, lambda: self.parent_.options.markAsUncompleted(index), self.tr("Mark as Uncompleted")))
-            menu.addAction(Action(self, lambda: self.parent_.options.unmark(index), self.tr("Unmark")))
+            menu.addAction(Action(self, lambda: self.parent_.options.markAsUncompleted(self.index(index)), self.tr("Mark as Uncompleted")))
+            menu.addAction(Action(self, lambda: self.parent_.options.unmark(self.index(index)), self.tr("Unmark")))
         
         elif index.data(Qt.ItemDataRole.UserRole + 20)[1] == "uncompleted":
-            menu.addAction(Action(self, lambda: self.parent_.options.markAsCompleted(index), self.tr("Mark as Completed")))
-            menu.addAction(Action(self, lambda: self.parent_.options.unmark(index), self.tr("Unmark")))
+            menu.addAction(Action(self, lambda: self.parent_.options.markAsCompleted(self.index(index)), self.tr("Mark as Completed")))
+            menu.addAction(Action(self, lambda: self.parent_.options.unmark(self.index(index)), self.tr("Unmark")))
         
         else:
-            menu.addAction(Action(self, lambda: self.parent_.options.markAsCompleted(index), self.tr("Mark as Completed")))
-            menu.addAction(Action(self, lambda: self.parent_.options.markAsUncompleted(index), self.tr("Mark as Uncompleted")))
+            menu.addAction(Action(self, lambda: self.parent_.options.markAsCompleted(self.index(index)), self.tr("Mark as Completed")))
+            menu.addAction(Action(self, lambda: self.parent_.options.markAsUncompleted(self.index(index)), self.tr("Mark as Uncompleted")))
             
         menu.addSeparator()
         if index.data(Qt.ItemDataRole.UserRole + 21)[1] == "enabled":
-            menu.addAction(Action(self, lambda: self.parent_.options.removeLock(index), self.tr("Remove Lock")))
+            menu.addAction(Action(self, lambda: self.parent_.options.removeLock(self.index(index)), self.tr("Remove Lock")))
         elif index.data(Qt.ItemDataRole.UserRole + 21)[1] == "disabled":
-            menu.addAction(Action(self, lambda: self.parent_.options.addLock(index), self.tr("Add Lock")))
-        
-        menu.addSeparator()
-        menu.addAction(Action(self, lambda: self.parent_.options.rename(index), self.tr("Rename")))
-        menu.addAction(Action(self, lambda: self.parent_.options.delete(index), self.tr("Delete")))
-        
-        if index.data(Qt.ItemDataRole.UserRole + 2) == "notebook":
-            menu.addAction(Action(self, lambda: self.parent_.options.reset(index), self.tr("Reset")))
+            menu.addAction(Action(self, lambda: self.parent_.options.addLock(self.index(index)), self.tr("Add Lock")))
             
         menu.addSeparator()
-        menu.addAction(Action(self, lambda: self.parent_.options.changeAppearance(index), self.tr("Change Appearance")))
-        menu.addAction(Action(self, lambda: self.parent_.options.changeSettings(index), self.tr("Change Settings")))
+        if index.data(Qt.ItemDataRole.UserRole + 25)[1] == "yes":
+            menu.addAction(Action(self, lambda: self.parent_.options.unpin(self.index(index)), self.tr("Unpin from sidebar")))
+        elif index.data(Qt.ItemDataRole.UserRole + 25)[1] == "no":
+            menu.addAction(Action(self, lambda: self.parent_.options.pin(self.index(index)), self.tr("Pin to sidebar")))
+        
+        menu.addSeparator()
+        menu.addAction(Action(self, lambda: self.parent_.options.rename(self.index(index)), self.tr("Rename")))
+        menu.addAction(Action(self, lambda: self.parent_.options.delete(self.index(index)), self.tr("Delete")))
+        if index.data(Qt.ItemDataRole.UserRole + 2) == "notebook":
+            menu.addAction(Action(self, lambda: self.parent_.options.reset(self.index(index)), self.tr("Reset")))
+            
+        menu.addSeparator()
+        menu.addAction(Action(self, lambda: self.parent_.options.changeAppearance(self.index(index)), self.tr("Change Appearance")))
+        menu.addAction(Action(self, lambda: self.parent_.options.changeSettings(self.index(index)), self.tr("Change Settings")))
         
         if index.data(Qt.ItemDataRole.UserRole + 2) == "document" and index.data(Qt.ItemDataRole.UserRole + 4) is not None:
             menu.addSeparator()
-            menu.addAction(Action(self, lambda: self.parent_.options.close(index), self.tr("Close")))
+            menu.addAction(Action(self, lambda: self.parent_.options.close(self.index(index)), self.tr("Close")))
                 
         menu.exec(global_pos)
+        
+    @Slot(QModelIndex)
+    def setCurrentIndex(self, index: QModelIndex) -> None:
+        return super().setCurrentIndex(self.normal_filterer.mapFromSource(self.type_filterer.mapFromSource(index)))
+        
+    def setData(self, context_data: QModelIndex | QStandardItem, value: str, role: Qt.ItemDataRole) -> None:
+        if isinstance(context_data, QModelIndex):
+            context_data.model().setData(context_data, value, role)
+            
+        elif isinstance(context_data, QStandardItem):
+            context_data.setData(value, role)
+        
+    def setType(self, context_data: QModelIndex | QStandardItem) -> None:
+        if context_data.data(Qt.ItemDataRole.UserRole + 20)[1] is None and context_data.data(Qt.ItemDataRole.UserRole + 21)[1] == "disabled":
+            self.setData(context_data, "note", Qt.ItemDataRole.UserRole + 3) 
+        
+        elif context_data.data(Qt.ItemDataRole.UserRole + 20)[1] in ["completed", "uncompleted"] and context_data.data(Qt.ItemDataRole.UserRole + 21)[1] == "enabled":
+            self.setData(context_data, "todo diary", Qt.ItemDataRole.UserRole + 3) 
+        
+        elif context_data.data(Qt.ItemDataRole.UserRole + 20)[1] in ["completed", "uncompleted"]:
+            self.setData(context_data, "todo", Qt.ItemDataRole.UserRole + 3) 
+        
+        elif context_data.data(Qt.ItemDataRole.UserRole + 21)[1] == "enabled":
+            self.setData(context_data, "diary", Qt.ItemDataRole.UserRole + 3) 
         
         
 class ButtonDelegate(QStyledItemDelegate):

@@ -17,8 +17,8 @@
     
 
 import os
-from PySide6.QtCore import Slot
-from PySide6.QtGui import QIcon, QPalette, QPixmap
+from PySide6.QtCore import QEvent, QMargins, QModelIndex, QRect, QSize, Slot
+from PySide6.QtGui import QColor, QFont, QFontMetrics, QIcon, QPalette, QPixmap, QStandardItem, QStandardItemModel, QPainter, QPainterPath, QPen, Qt
 from PySide6.QtWidgets import *
 from .widgets.controls import HSeperator, Label, ToolButton
 from .consts import ICON_DIR
@@ -41,7 +41,7 @@ class Sidebar(QWidget):
             ToolButton(self, lambda: self.parent_.home.selector.setVisible(False if self.parent_.home.selector.isVisible() else True), self.tr("Focus"), True, None, 40)
         ]
         
-        self.favorites = Favorites(self)
+        self.list_view = ListView(self)
         
         # self.row_spinbox = QSpinBox(self)
         # self.row_spinbox.setMinimum(1)
@@ -60,7 +60,7 @@ class Sidebar(QWidget):
             self.layout_.addWidget(button)
             
         self.layout_.addWidget(HSeperator(self))
-        self.layout_.addWidget(self.favorites)
+        self.layout_.addWidget(self.list_view)
         # self.layout_.addWidget(HSeperator(self))
         # self.layout_.addWidget(self.row_spinbox)
         # self.layout_.addWidget(self.layout_label)
@@ -92,8 +92,125 @@ class Sidebar(QWidget):
             self.buttons[i].setIcon(self.makeIcon(self.icons[i]))
     
     
-class Favorites(QWidget):
+class ListView(QListView):
     def __init__(self, parent: Sidebar) -> None:
         super().__init__(parent)
         
+        self.parent_ = parent
+        
+        self.items = {}
+
+        self.model_ = QStandardItemModel(self)
+        
+        self.delegate = ButtonDelegate(self)
+        
+        self.setMouseTracking(True)
+        self.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
+        self.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+        self.setModel(self.model_)
+        self.setItemDelegate(self.delegate)
         self.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Ignored)
+        
+    def addItem(self, index: QModelIndex) -> None:
+        item = QStandardItem()
+        item.setData(False, Qt.ItemDataRole.UserRole + 1)
+        item.setData(index, Qt.ItemDataRole.UserRole + 2)
+        
+        self.model_.appendRow(item)
+        
+        self.items[index] = item
+        
+    def removeItem(self, index: QModelIndex) -> None:
+        self.model_.removeRow(self.items[index].row())
+        
+        del self.items[index]
+        
+        
+class ButtonDelegate(QStyledItemDelegate):
+    def __init__(self, parent: ListView) -> None:
+        super().__init__(parent)
+        
+        self.parent_ = parent
+        
+    def paint(self, painter: QPainter, option: QStyleOptionViewItem, index: QModelIndex) -> None:
+        painter.save()
+        
+        name = index.data(Qt.ItemDataRole.UserRole + 2).data(Qt.ItemDataRole.UserRole + 101)[0]
+                          
+        name_font = QFont(option.font)
+        name_font.setWeight(QFont.Weight.Bold)
+        
+        name_rect = QRect(option.rect)
+        name_rect.setTop(name_rect.top() + (option.rect.height() - QFontMetrics(name_font).height()) / 2)
+        name_rect.setLeft(name_rect.left() + (option.rect.width() - QFontMetrics(name_font).horizontalAdvance(name)) / 2)
+        name_rect.setRight(name_rect.left() + QFontMetrics(name_font).horizontalAdvance(name))
+        name_rect.setBottom(name_rect.top() + QFontMetrics(name_font).height())
+        
+        border_rect = QRect(option.rect.marginsRemoved(QMargins(5, 5, 5, 5)))
+
+        border_path = QPainterPath()
+        border_path.addRoundedRect(border_rect, 1, 1)
+    
+        situations = [
+            bool(index.data(Qt.ItemDataRole.UserRole + 1) and index.data(Qt.ItemDataRole.UserRole + 2).data(Qt.ItemDataRole.UserRole + 2) == "document"), 
+            bool(option.state & QStyle.StateFlag.State_MouseOver), 
+            bool(True)
+            ]
+        
+        defaults = [
+            [option.palette.base().color(), option.palette.text().color(), option.palette.text().color()],
+            [option.palette.button().color(), option.palette.text().color(), option.palette.buttonText().color()],
+            [option.palette.link().color(), option.palette.text().color(), option.palette.linkVisited().color()]
+            ]
+        
+        colors = []
+        
+        i = 2
+        
+        for status in situations:
+            if status:
+                for j in range(3):
+                    if index.data(Qt.ItemDataRole.UserRole + 2).data(Qt.ItemDataRole.UserRole + 26 + j * 3 + i)[1] == None:
+                        colors.append(defaults[i][j])
+                        
+                    else:
+                        colors.append(QColor(index.data(Qt.ItemDataRole.UserRole + 2).data(Qt.ItemDataRole.UserRole + 26 + j * 3 + i)[1]))
+                        
+                break
+                    
+            i -= 1
+        
+        border_pen = QPen(colors[2], 5)
+        painter.setPen(border_pen)
+
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+        painter.drawPath(border_path)
+        painter.fillPath(border_path, colors[0])
+        
+        painter.restore()
+
+        painter.setPen(colors[1])
+        painter.setFont(name_font)
+        
+        painter.drawText(name_rect, name)
+        
+    def editorEvent(self, event: QEvent, model: QStandardItemModel, option: QStyleOptionViewItem, index: QModelIndex) -> bool:
+        if event.type() == QEvent.Type.MouseButtonPress:
+            indexes = [item.index() for item in self.parent_.items.values()]
+            indexes.remove(index)
+            
+            for index_ in indexes:
+                model.setData(index_, False, Qt.ItemDataRole.UserRole + 1)
+            
+            model.setData(index, True, Qt.ItemDataRole.UserRole + 1)
+            
+            index.data(Qt.ItemDataRole.UserRole + 2).data(Qt.ItemDataRole.UserRole + 10)(index.data(Qt.ItemDataRole.UserRole + 2))
+            
+            if index.data(Qt.ItemDataRole.UserRole + 2).data(Qt.ItemDataRole.UserRole + 2) == "document":
+                index.data(Qt.ItemDataRole.UserRole + 2).data(Qt.ItemDataRole.UserRole + 11)(index.data(Qt.ItemDataRole.UserRole + 2), "normal", True)
+
+        return super().editorEvent(event, model, option, index)
+    
+    def sizeHint(self, option: QStyleOptionViewItem, index: QModelIndex) -> QRect:
+        return QSize(option.rect.width(), option.rect.width())

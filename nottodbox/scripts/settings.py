@@ -218,7 +218,7 @@ class ButtonDelegate(QStyledItemDelegate):
         border_rect = QRect(option.rect.marginsRemoved(QMargins(10, 10, 10, 10)))
 
         border_path = QPainterPath()
-        border_path.addRoundedRect(border_rect, 10, 10)
+        border_path.addRoundedRect(border_rect, 1, 1)
     
         situations = [
             bool(index.data(Qt.ItemDataRole.UserRole + 1)), 
@@ -971,6 +971,13 @@ class DocumentSettings(GlobalSettings):
                 for item in self.parent_.parent_.home.selector.maindb.items.values():
                     if "global" in item.data(Qt.ItemDataRole.UserRole + 20 + i)[0]:
                         item.setData((item.data(Qt.ItemDataRole.UserRole + 20 + i)[0], self.parent_.parent_.home.selector.tree_view.handleSettingViaGlobal(i)), Qt.ItemDataRole.UserRole + 20 + i)
+                        
+                        if i == 5:
+                            if self.values[i][self.selectors[i].currentIndex()] == "yes":
+                                self.parent_.parent_.home.selector.options.pin(item.index(), False, False)
+                                
+                            elif self.values[i][self.selectors[i].currentIndex()] == "no":
+                                self.parent_.parent_.home.selector.options.unpin(item.index(), False, False)
         
         return successful
         
