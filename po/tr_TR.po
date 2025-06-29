@@ -1,0 +1,44 @@
+# Turkish (Türkçe) language translation for Nottodbox's desktop and appdata files..
+# Copyright (C) 2024-2025 Nottodbox's copyright holder
+# This file is distributed under the same license as the Nottodbox package.
+# Muhammed S. <mukonqi@gmail.com>, 2024-2025.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-06-29 21:33+0300\n"
+"PO-Revision-Date: \n"
+"Last-Translator: Muhammed S. <mukonqi@gmail.com>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: tr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: share/applications/io.github.mukonqi.nottodbox.desktop.in.in:3
+#: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:5
+msgid "Nottodbox"
+msgstr "Nottodbox"
+
+#: share/applications/io.github.mukonqi.nottodbox.desktop.in.in:4
+#: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:6
+msgid "Organize notes, to-dos and diaries"
+msgstr "Notları, yapılacakları ve günlükleri düzenleyin"
+
+#: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:10
+msgid ""
+"Organize your notes, to-dos and diaries with highly customizable WYSIWYG-"
+"like editor."
+msgstr ""
+"Notlarınızı, yapılacaklarınızı ve günlüklerinizi yüksek derece "
+"özelleştirilebilir WYSIWYG-benzeri bir editörde düzenleyin."
+
+#: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:106
+msgid "Appearance when using 'Nottodbox Light' color scheme"
+msgstr "'Nottodbox Light' renk şeması kullanıldığında görünüm"
+
+#: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:110
+msgid "Appearance when using 'Nottodbox Dark' color scheme"
+msgstr "'Nottodbox Dark' renk şeması kullanıldığında görünüm"

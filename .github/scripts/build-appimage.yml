@@ -7,6 +7,7 @@ script:
   - cp -r nottodbox AppDir/usr/local/share
   - cp share/icons/hicolor/scalable/apps/io.github.mukonqi.nottodbox.svg AppDir/usr/share/icons/hicolor/scalable/apps
   - cp LICENSE.txt README.md AppDir/usr/local/share/nottodbox
+  - python3 .github/scripts/translations.py --appimage
   - pip install --ignore-installed --prefix=/usr --no-cache-dir --root=AppDir PySide6-Essentials
   
 
