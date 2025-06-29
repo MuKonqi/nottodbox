@@ -51,7 +51,7 @@ SETTINGS_OPTIONS = ["default", "global"]
 
 SETTINGS_KEYS = ["completed", "locked", "autosave", "format", "sync", "folder", "pinned", "bg_normal", "bg_hover", "bg_clicked", "fg_normal", "fg_hover", "fg_clicked", "bd_normal", "bd_hover", "bd_clicked"]
 
-SETTINGS_VALUES = [["completed", "uncompleted", None], ["enabled", "disabled"], ["enabled", "disabled"], ["markdown", "html", "plain-text"], ["pdf", "odt", "markdown", "html", "plain-text"], ["documents", "desktop"], ["yes", "no"]]
+SETTINGS_VALUES = [["completed", "uncompleted", None], ["enabled", "disabled"], ["enabled", "disabled"], ["markdown", "html", "plain-text"], ["format", "pdf", "odt", "markdown", "html", "plain-text"], ["documents", "desktop"], ["yes", "no"]]
 
 
 USER_NAME = getpass.getuser()

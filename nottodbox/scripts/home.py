@@ -576,9 +576,7 @@ class Options:
                         self.export(self.parent_.tree_view.mapFromSource(self.parent_.maindb.items[(name_, table_)].index()), export)
                 
             elif index.data(Qt.ItemDataRole.UserRole + 2) == "document":
-                content = self.parent_.maindb.getContent(name, table)
-                
-                input = QTextEdit(content)
+                input = QTextEdit(index.data(Qt.ItemDataRole.UserRole + 104))
                 
                 if index.data(Qt.ItemDataRole.UserRole + 23)[1] == "markdown":
                     content = input.toMarkdown()
@@ -598,11 +596,13 @@ class Options:
                     document = QTextDocument(content)
                     document.print_(writer)
                     
-                elif export == "plain-text":
+                elif export == "plain-text" or (export == "format" and index.data(Qt.ItemDataRole.UserRole + 23)[1] == "plain-text"):
                     with open(os.path.join(USER_DIRS[index.data(Qt.ItemDataRole.UserRole + 25)[1]], "Nottodbox", table, f"{name}.txt"), "w+") as f:
                         f.write(content)
                         
                 else:
+                    export = index.data(Qt.ItemDataRole.UserRole + 23)[1] if export == "format" else export
+                    
                     document = QTextDocument(content)
                     
                     writer = QTextDocumentWriter(os.path.join(USER_DIRS[index.data(Qt.ItemDataRole.UserRole + 25)[1]], "Nottodbox", table, f"{name}.{export}"), export.encode("utf-8") if export != "odt" else "odf".encode("utf-8"))

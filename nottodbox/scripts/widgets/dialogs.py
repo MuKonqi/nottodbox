@@ -135,7 +135,7 @@ class Export(Dialog):
         self.layout_ = QVBoxLayout(self.input)
         
         self.combobox = QComboBox(self.input)
-        self.combobox.addItems(["PDF", "ODT", "Markdown", "HTML", self.tr("Plain-text")])
+        self.combobox.addItems([self.tr("Follow format"), "PDF", "ODT", "Markdown", "HTML", self.tr("Plain-text")])
         
         self.layout_.addWidget(self.combobox)
         
@@ -386,7 +386,7 @@ class ChangeSettings(Settings):
             [self.tr("Enabled"), self.tr("Disabled")],
             [self.tr("Enabled"), self.tr("Disabled")],
             ["Markdown", "HTML", self.tr("Plain-text")],
-            ["PDF", "ODT", "Markdown", "HTML", self.tr("Plain-text")],
+            [self.tr("Follow format"), "PDF", "ODT", "Markdown", "HTML", self.tr("Plain-text")],
             [self.tr("Documents"), self.tr("Desktop")],
             [self.tr("Yes"), self.tr("No")]
         ]

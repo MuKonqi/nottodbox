@@ -344,6 +344,11 @@ Gerçekten içeriği değiştirmek istiyor musunuz?</translation>
         <translation>Düz metin</translation>
     </message>
     <message>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="389"/>
+        <source>Follow format</source>
+        <translation>Biçimi takip et</translation>
+    </message>
+    <message>
         <location filename="../nottodbox/scripts/widgets/dialogs.py" line="390"/>
         <source>Desktop</source>
         <translation>Masaüstü</translation>
@@ -597,8 +602,8 @@ Do you want to overwrite it?</source>
     </message>
     <message>
         <location filename="../nottodbox/scripts/widgets/documents.py" line="207"/>
-        <source>Auto-saves do not change backups and disabled for old diaries.</source>
-        <translation>Oto. kaydetmeler yedeği değiştirmez ve günlükler için devre dışıdır.</translation>
+        <source>Auto-saves do not change backups and disabled for outdated diaries.</source>
+        <translation>Oto. kaydetmeler yedekleri değiştirmez ve tarihi geçmiş günlükler için devre dışıdırlar.</translation>
     </message>
     <message>
         <location filename="../nottodbox/scripts/widgets/documents.py" line="209"/>
@@ -926,6 +931,11 @@ Gerçekten içeriği değiştirmek istiyor musunuz?</translation>
         <translation>Düz metin</translation>
     </message>
     <message>
+        <location filename="../nottodbox/scripts/settings.py" line="920"/>
+        <source>Follow format</source>
+        <translation>Biçimi takip et</translation>
+    </message>
+    <message>
         <location filename="../nottodbox/scripts/settings.py" line="921"/>
         <source>Desktop</source>
         <translation>Masaüstü</translation>
@@ -962,6 +972,11 @@ Gerçekten içeriği değiştirmek istiyor musunuz?</translation>
         <location filename="../nottodbox/scripts/widgets/dialogs.py" line="138"/>
         <source>Plain-text</source>
         <translation>Düz metin</translation>
+    </message>
+    <message>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="138"/>
+        <source>Follow format</source>
+        <translation>Biçimi takip et</translation>
     </message>
 </context>
 <context>

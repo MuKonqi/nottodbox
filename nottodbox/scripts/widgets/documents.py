@@ -159,12 +159,12 @@ class NormalView(Document):
         self.changeAutosaveConnections()
                 
     def changeAutosaveConnections(self, event: str | None = None) -> None:
-        if self.settings["locked"] == "disabled" and ((self.settings["autosave"] == "enabled" and not self.connected) or event == "connect"):
+        if (self.settings["locked"] == "disabled" or datetime.datetime.strptime(self.creation, "%d/%m/%Y %H:%M").date() == datetime.datetime.today().date()) and ((self.settings["autosave"] == "enabled" and not self.connected) or event == "connect"):
             self.input.textChanged.connect(self.save)
             self.saver_thread.start()
             self.connected = True
             
-        elif self.settings["locked"] == "enabled" or self.settings["autosave"] == "disabled" or event == "disconnect":
+        elif self.settings["autosave"] == "disabled" or event == "disconnect" or (self.settings["locked"] == "enabled" and datetime.datetime.strptime(self.creation, "%d/%m/%Y %H:%M").date() != datetime.datetime.today().date()):
             if self.connected:
                 self.input.textChanged.disconnect(self.save)
             self.saver_thread.quit()
@@ -204,7 +204,7 @@ class DocumentHelper(QToolBar):
         self.parent_ = parent
         
         self.button = self.addAction(self.tr("Save"))
-        self.button.setStatusTip(self.tr("Auto-saves do not change backups and disabled for old diaries."))
+        self.button.setStatusTip(self.tr("Auto-saves do not change backups and disabled for outdated diaries."))
         
         self.bold_action = Action(self, self.setBold, self.tr("Bold"))
         self.bold_action.setCheckable(True)
@@ -583,14 +583,16 @@ class DocumentSaver(QObject):
                             document = QTextDocument(self.parent_.getText())
                             document.print_(writer)
                         
-                        elif self.parent_.settings["sync"] == "plain-text":
+                        elif self.parent_.settings["sync"] == "plain-text" or (self.parent_.settings["sync"] == "format" and self.parent_.settings["format"] == "plain-text"):
                             with open(os.path.join(USER_DIRS[self.parent_.settings["folder"]], "Nottodbox", self.parent_.notebook, f"{self.parent_.document}.txt"), "w+") as f:
                                 f.write(self.parent_.input.toPlainText())
                             
                         else:
+                            export = self.parent_.settings["format"] if self.parent_.settings["sync"] == "format" else self.parent_.settings["sync"]
+                            
                             document = QTextDocument(self.parent_.getText())
                             
-                            writer = QTextDocumentWriter(os.path.join(USER_DIRS[self.parent_.settings["folder"]], "Nottodbox", self.parent_.notebook, f"{self.parent_.document}.{self.parent_.settings["sync"]}"), self.parent_.settings["sync"].encode("utf-8") if self.parent_.settings["sync"] != "odt" else "odf".encode("utf-8"))
+                            writer = QTextDocumentWriter(os.path.join(USER_DIRS[self.parent_.settings["folder"]], "Nottodbox", self.parent_.notebook, f"{self.parent_.document}.{export}"), export.encode("utf-8") if export != "odt" else "odf".encode("utf-8"))
                             writer.write(document)    
                     
                 self.parent_.index.model().setData(self.parent_.index, self.parent_.getText(), Qt.ItemDataRole.UserRole + 104)
