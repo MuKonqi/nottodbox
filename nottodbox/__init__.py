@@ -29,7 +29,7 @@ from PySide6.QtWidgets import QApplication
 
 sys.path.insert(1, "@APP_DIR@" if os.path.isdir("@APP_DIR@") else os.path.dirname(__file__))
 
-from scripts.consts import APP_ID, APP_VERSION, DESKTOP_FILE, ICON_FILE, USER_DESKTOP_FILE, USER_DESKTOP_FILE_FOUND  # type: ignore
+from scripts.consts import APP_ID, APP_VERSION, DESKTOP_FILE, ICON_FILE, USER_DESKTOP_FILE, USER_DESKTOP_FILE_FOUND
 from scripts.mainwindow import MainWindow
 
 class Application(QApplication):

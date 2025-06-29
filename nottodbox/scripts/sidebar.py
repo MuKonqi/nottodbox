@@ -43,16 +43,16 @@ class Sidebar(QWidget):
         
         self.list_view = ListView(self)
         
-        # self.row_spinbox = QSpinBox(self)
-        # self.row_spinbox.setMinimum(1)
-        # self.row_spinbox.valueChanged.connect(lambda value: self.parent_.home.area.pages.setArea(value, self.column_spinbox.value()))
+        self.row_spinbox = QSpinBox(self)
+        self.row_spinbox.setMinimum(1)
+        self.row_spinbox.valueChanged.connect(lambda value: self.parent_.home.area.setArea(value, self.column_spinbox.value()))
+
+        self.layout_label = Label(self, "x")
+        self.layout_label.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Maximum)
         
-        # self.layout_label = Label(self, "x")
-        # self.layout_label.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Maximum)
-        
-        # self.column_spinbox = QSpinBox(self)
-        # self.column_spinbox.setMinimum(1)
-        # self.column_spinbox.valueChanged.connect(lambda value: self.parent_.home.area.pages.setArea(self.row_spinbox.value(), value))
+        self.column_spinbox = QSpinBox(self)
+        self.column_spinbox.setMinimum(1)
+        self.column_spinbox.valueChanged.connect(lambda value: self.parent_.home.area.setArea(self.row_spinbox.value(), value))
         
         self.layout_ = QVBoxLayout(self)
 
@@ -61,10 +61,10 @@ class Sidebar(QWidget):
             
         self.layout_.addWidget(HSeperator(self))
         self.layout_.addWidget(self.list_view)
-        # self.layout_.addWidget(HSeperator(self))
-        # self.layout_.addWidget(self.row_spinbox)
-        # self.layout_.addWidget(self.layout_label)
-        # self.layout_.addWidget(self.column_spinbox)
+        self.layout_.addWidget(HSeperator(self))
+        self.layout_.addWidget(self.row_spinbox)
+        self.layout_.addWidget(self.layout_label)
+        self.layout_.addWidget(self.column_spinbox)
         self.layout_.setContentsMargins(5, 5, 5, 5)
         
         self.setFixedWidth(50)

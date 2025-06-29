@@ -22,7 +22,7 @@ import configparser
 from PySide6.QtCore import QEvent, QMargins, QModelIndex, QRect, QSettings, QStandardPaths, QSize, Qt, Slot
 from PySide6.QtGui import QColor, QFont, QFontMetrics, QPainter, QPainterPath, QPalette, QPen, QStandardItem, QStandardItemModel
 from PySide6.QtWidgets import *
-from .widgets.controls import ComboBox, HSeperator, Label, PushButton, VSeperator
+from .widgets.controls import ComboBox, HSeperator, Label, LineEdit, PushButton, VSeperator
 from .widgets.dialogs import ColorSelector
 from .consts import SETTINGS_KEYS, SETTINGS_VALUES, USER_NAME
 
@@ -717,9 +717,7 @@ class CustomColorSchemes(QWidget):
         
         self.parent_ = parent
         
-        self.name = QLineEdit(self.parent_)
-        self.name.setClearButtonEnabled(True)
-        self.name.setPlaceholderText(f"Color scheme by {USER_NAME}")
+        self.name = LineEdit(self.parent_, f"Color scheme by {USER_NAME}")
         
         self.combobox = ComboBox(self)
         

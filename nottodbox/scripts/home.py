@@ -21,15 +21,128 @@ import os
 from PySide6.QtCore import QEvent, QMargins, QModelIndex, QPoint, QRect, QSettings, QSize, QSortFilterProxyModel, Qt, Signal, Slot
 from PySide6.QtGui import QColor, QFont, QFontMetrics, QPainter, QPainterPath, QPdfWriter, QPen, QStandardItem, QStandardItemModel, QTextDocument, QTextDocumentWriter
 from PySide6.QtWidgets import *
-from .widgets.controls import Action, CalendarWidget, Label, LineEdit, HSeperator, PushButton
+from .widgets.controls import Action, CalendarWidget, HSeperator, Label, LineEdit, PushButton, VSeperator
 from .widgets.dialogs import ChangeAppearance, ChangeSettings, Export, GetName, GetNameAndDescription, GetDescription
 from .widgets.documents import BackupView, NormalView
 from .consts import SETTINGS_DEFAULTS, SETTINGS_OPTIONS, SETTINGS_KEYS, SETTINGS_VALUES, USER_DIRS
 from .database import MainDB
+
+
+class HomePage(QWidget):
+    def __init__(self, parent: QWidget) -> None:
+        super().__init__(parent)
+        
+        self.parent_ = parent
+        
+        self.layout_ = QHBoxLayout(self)
+        
+        self.selector = Selector(self)
+        
+        self.area = Area(self)
+        
+        self.layout_.addWidget(self.selector)
+        self.layout_.addWidget(self.area)
+        
+        
+class Area(QWidget):
+    pages = []
+    
+    def __init__(self, parent: HomePage)-> None:
+        super().__init__(parent)
+        
+        self.parent_ = parent
+        
+        self.layout_ = QGridLayout(self)
+        
+        self.setArea(1, 1)
+        
+    def closeAll(self) -> None:
+        pages = [page for page in self.pages if page.document is not None]
+        
+        for page in pages:
+            self.parent_.selector.options.close(page.document.index)
+        
+    @Slot(int, int)
+    def setArea(self, row: int, column: int) -> None:
+        self.closeAll()
+        
+        for index in range(self.layout_.count()):
+            self.layout_.itemAt(index).widget().deleteLater()
+               
+        self.pages = []
+        
+        for row_ in range(row):
+            for column_ in range(column):
+                self.pages.append(Page(self))
+                self.layout_.addWidget(self.pages[-1], row_, column_)
+                
+        self.target = self.pages[0]
+        self.target.setAsTarget()
+
+class Page(QWidget):
+    document = None
+    
+    def __init__(self, parent: Area) -> None:
+        super().__init__(parent)
+        
+        self.parent_ = parent
+        
+        self.pager = QStackedWidget(self)
+        
+        self.container = QWidget(self.pager)
+        
+        self.button = PushButton(self.container, self.setAsTarget, self.tr("Click this button\nto select a document for here"), False, True)
+        font = self.button.font()
+        font.setBold(True)
+        font.setPointSize(16)
+        self.button.setFixedHeight(QFontMetrics(font).height() * 3)
+        self.button.setFont(font)
+        
+        self.container_layout = QVBoxLayout(self.container)
+        self.container_layout.addStretch()
+        self.container_layout.addWidget(self.button)
+        self.container_layout.addStretch()
+        
+        self.pager.addWidget(self.container)
+        
+        self.layout_ = QGridLayout(self)
+        self.layout_.addWidget(self.pager, 1, 1)
+        self.layout_.addWidget(HSeperator(self), 0, 1)
+        self.layout_.addWidget(VSeperator(self), 1, 2)
+        self.layout_.addWidget(HSeperator(self), 2, 1)
+        self.layout_.addWidget(VSeperator(self), 1, 0)
+        
+    def addDocument(self, document: NormalView | BackupView) -> None:
+        if self.document is not None:
+            self.removeDocument()
+        
+        self.pager.addWidget(document)
+        self.pager.setCurrentIndex(1),
+        
+        self.document = document
+        
+    def removeDocument(self) -> None:
+        self.parent_.parent_.selector.options.close(self.document.index)
+        
+        self.pager.removeWidget(self.document)
+        self.pager.setCurrentIndex(0)
+        
+        self.document = None
+        
+    def setAsTarget(self) -> None:
+        pages = self.parent_.pages.copy()
+        pages.remove(self)
+        
+        for page in pages:
+            page.button.setText(self.tr("Click this button\nto select a document for here"))
+        
+        self.button.setText(self.tr("Select a document for here"))
+        
+        self.parent_.target = self
         
         
 class Selector(QWidget):
-    def __init__(self, parent: QWidget) -> None:
+    def __init__(self, parent: HomePage) -> None:
         super().__init__(parent)
         
         self.parent_ = parent
@@ -134,12 +247,11 @@ class Selector(QWidget):
     def setVisible(self, visible: bool) -> None:
         self.settings.setValue("selector/self", "hidden" if not visible else "visible")
         
-        self.parent_.seperator.setVisible(visible)
         return super().setVisible(visible)
 
 
 class CreateFirstNotebook(QWidget):
-    def __init__(self, parent: Selector):
+    def __init__(self, parent: Selector) -> None:
         super().__init__(parent)
         
         self.parent_ = parent
@@ -152,11 +264,10 @@ class CreateFirstNotebook(QWidget):
         font.setPointSize(16)
         self.label.setFont(font)
         
-        self.name = QLineEdit(self)
-        self.name.setPlaceholderText(self.tr("Name (required)"))
+        self.name = LineEdit(self, self.tr("Name (required)"))
+        self.name.setText(self.parent_.calendar_widget.selectedDate().toString("dd/MM/yyyy"))
         
-        self.description = QLineEdit(self)
-        self.description.setPlaceholderText(self.tr("Description (not required)"))
+        self.description = LineEdit(self, self.tr("Description (not required)"))
         
         self.buttons = QDialogButtonBox(self)
         self.buttons.addButton(QDialogButtonBox.StandardButton.Ok)
@@ -192,9 +303,9 @@ class Options:
             index.model().setData(index, ["self", "enabled"], Qt.ItemDataRole.UserRole + 21)
             self.parent_.tree_view.setType(index)
             
-            if len(self.pages) > 0 and self.pages[self.parent_.parent_.area.pages.focused_on] == index:
-                index.data(Qt.ItemDataRole.UserRole + 5).refreshSettings()
-            
+            for page in [page for page in self.parent_.parent_.area.pages if page.document is not None and page.document.index == index]:
+                page.document.refreshSettings()
+
             QMessageBox.information(self.parent_, self.parent_.tr("Successful"), self.tr("Lock added {to_item}.", index))
 
         else:
@@ -245,16 +356,16 @@ class Options:
                 if self.parent_.maindb.set(options[values[i]], SETTINGS_KEYS[i], name, table):
                     index.model().setData(index, self.parent_.tree_view.handleSetting(self.parent_.maindb.items[(name, table)], i, options[values[i]]), Qt.ItemDataRole.UserRole + 20 + i)
                     
-                    if self.parent_.maindb.items[(name, table)].index() in self.pages.values():
-                        self.parent_.maindb.items[(name, table)].data(Qt.ItemDataRole.UserRole + 5).refreshSettings()
+                    for page in [page for page in self.parent_.parent_.area.pages if page.document is not None and page.document.index == index]:
+                        page.document.refreshSettings()
                     
                     if index.data(Qt.ItemDataRole.UserRole + 2) == "notebook":
                         for name_, table_ in self.parent_.maindb.items.keys():
                             if table_ == name and "notebook" in self.parent_.maindb.items[(name_, table_)].data(Qt.ItemDataRole.UserRole + 20 + i)[0]:
                                 self.parent_.maindb.items[(name_, table_)].setData(self.parent_.tree_view.handleSetting(self.parent_.maindb.items[(name_, table_)], i, "notebook"), Qt.ItemDataRole.UserRole + 20 + i)
-                                
-                                if self.parent_.tree_view.mapFromSource(self.parent_.maindb.items[(name_, table_)].index()) in self.pages.values():
-                                    self.parent_.maindb.items[(name_, table_)].data(Qt.ItemDataRole.UserRole + 5).refreshSettings()
+                                    
+                                for page in [page for page in self.parent_.parent_.area.pages if page.document is not None and page.document.index == self.parent_.maindb.items[(name_, table_)].index()]:
+                                    page.document.refreshSettings()
                                 
                     if i == 6:
                         if options[values[i]] == "yes":
@@ -281,8 +392,8 @@ class Options:
             index.model().setData(index, "", Qt.ItemDataRole.UserRole + 104)
             index.model().setData(index, self.parent_.maindb.getBackup(document, notebook), Qt.ItemDataRole.UserRole + 105)
             
-            if len(self.pages) > 0 and self.pages[self.parent_.parent_.area.pages.focused_on] == index:
-                index.data(Qt.ItemDataRole.UserRole + 5).refreshContent()
+            for page in [page for page in self.parent_.parent_.area.pages if page.document is not None and page.document.index == index]:
+                page.document.refreshContent()
             
             QMessageBox.information(self.parent_, self.parent_.tr("Successful"), self.tr("The content {of_item} cleared.", index))
             
@@ -291,30 +402,23 @@ class Options:
             
     @Slot(QModelIndex)
     def close(self, index: QModelIndex) -> None:
-        if index.data(Qt.ItemDataRole.UserRole + 5).mode == "normal" and not index.data(Qt.ItemDataRole.UserRole + 5).last_content == index.data(Qt.ItemDataRole.UserRole + 5).getText():
-            self.question = QMessageBox.question(
-                self.parent_, self.parent_.tr("Question"), self.tr("{the_item} not saved.\nWhat would you like to do?", index),
-                QMessageBox.StandardButton.Save | QMessageBox.StandardButton.Discard | QMessageBox.StandardButton.Cancel, QMessageBox.StandardButton.Save)
-                        
-            if self.question == QMessageBox.StandardButton.Save:
-                if not index.data(Qt.ItemDataRole.UserRole + 5).saver.saveDocument():
+        for page in [page for page in self.parent_.parent_.area.pages if page.document is not None and page.document.index == index]:
+            if page.document.mode == "normal" and not page.document.last_content == page.document.getText():
+                self.question = QMessageBox.question(
+                    self.parent_, self.parent_.tr("Question"), self.tr("{the_item} not saved.\nWhat would you like to do?", index),
+                    QMessageBox.StandardButton.Save | QMessageBox.StandardButton.Discard | QMessageBox.StandardButton.Cancel, QMessageBox.StandardButton.Save)
+                            
+                if self.question == QMessageBox.StandardButton.Save:
+                    if not page.document.saver.saveDocument():
+                        return
+                
+                elif self.question != QMessageBox.StandardButton.Discard:
                     return
+    
+            index.model().setData(index, False, Qt.ItemDataRole.UserRole + 1)
             
-            elif self.question != QMessageBox.StandardButton.Discard:
-                return
-    
-        index.model().setData(index, False, Qt.ItemDataRole.UserRole + 1)
-    
-        self.parent_.parent_.area.pages.layout_.replaceWidget(index.data(Qt.ItemDataRole.UserRole + 5), index.data(Qt.ItemDataRole.UserRole + 4))
-        
-        if index.data(Qt.ItemDataRole.UserRole + 5).mode == "normal":
-            index.data(Qt.ItemDataRole.UserRole + 5).changeAutosaveConnections("disconnect")
-        
-        index.data(Qt.ItemDataRole.UserRole + 5).deleteLater()
-        index.model().setData(index, None, Qt.ItemDataRole.UserRole + 5)
-        
-        del self.pages[index.data(Qt.ItemDataRole.UserRole + 4)]
-        index.model().setData(index, None, Qt.ItemDataRole.UserRole + 4)
+            if page.document.mode == "normal":
+                page.document.changeAutosaveConnections("disconnect")
         
     @Slot(QModelIndex)
     def createDocument(self, index: QModelIndex) -> None:
@@ -355,7 +459,8 @@ class Options:
                     QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.parent_.tr("Failed to create document."))
                 
             else:
-                QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.tr("{the_item} is already exists."))
+                QMessageBox.critical(self.parent_, self.parent_.tr("Error"), 
+                                     self.parent_.tr("{the_item} is already exists.").format(the_item = self.parent_.tr("the {name} document").format(name = document)).capitalize())
     
     @Slot(str or None, str or None)
     def createNotebook(self, name: str | None = None, description: str | None = None) -> bool | None:
@@ -396,7 +501,8 @@ class Options:
                 return successful
             
             else:
-                QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.tr("{the_item} is already exists."))
+                QMessageBox.critical(self.parent_, self.parent_.tr("Error"), 
+                                     self.parent_.tr("{the_item} is already exists.").format(the_item = self.parent_.tr("the {name} notebook").format(name = name)).capitalize())
                 return False
     
     @Slot(QModelIndex)
@@ -409,8 +515,8 @@ class Options:
             if index.data(Qt.ItemDataRole.UserRole + 2) == "notebook":
                 for name_, table_ in self.parent_.maindb.items.copy().keys():
                     if table_ == name:
-                        if len(self.pages) > 0 and self.pages[self.parent_.parent_.area.pages.focused_on] == self.parent_.maindb.items[(name_, table_)].index():
-                            self.close(self.parent_.maindb.items[(name_, table_)].index())
+                        for page in [page for page in self.parent_.parent_.area.pages if page.document is not None and page.document.index == self.parent_.maindb.items[(name_, table_)].index()]:
+                            page.removeDocument()
                             
                         self.unpin(self.parent_.maindb.items[(name_, table_)].index(), False, False)
                         
@@ -419,8 +525,8 @@ class Options:
                 self.parent_.tree_view.model_.removeRow(index.row())
             
             elif index.data(Qt.ItemDataRole.UserRole + 2) == "document":
-                if len(self.pages) > 0 and self.pages[self.parent_.parent_.area.pages.focused_on] == index:
-                    self.close(index)
+                for page in [page for page in self.parent_.parent_.area.pages if page.document is not None and page.document.index == index]:
+                    page.removeDocument()
                 
                 self.parent_.maindb.items[(table, "__main__")].removeRow(index.row()) 
                 
@@ -532,21 +638,11 @@ class Options:
     
     @Slot(QModelIndex, str)
     def open(self, index: QModelIndex, mode: str, make: bool = False) -> None:
-        try:
-            self.close(self.pages[self.parent_.parent_.area.pages.focused_on])
-        
-        except KeyError:
-            pass
-        
-        if make:
-            index.model().setData(index, True, Qt.ItemDataRole.UserRole + 1)
-        
-        self.pages[self.parent_.parent_.area.pages.focused_on] = index
-        
-        index.model().setData(index, self.parent_.parent_.area.pages.focused_on, Qt.ItemDataRole.UserRole + 4)
-        index.model().setData(index, NormalView(self.parent_.parent_.area.pages, self.parent_.maindb, index) if mode == "normal" else BackupView(self.parent_.parent_.area.pages, self.parent_.maindb, index), Qt.ItemDataRole.UserRole + 5)
-        
-        self.parent_.parent_.area.pages.layout_.replaceWidget(self.parent_.parent_.area.pages.focused_on, index.data(Qt.ItemDataRole.UserRole + 5))
+        if not index in [page.document.index for page in self.parent_.parent_.area.pages if page.document is not None and page.document.index == index]:
+            if make:
+                index.model().setData(index, True, Qt.ItemDataRole.UserRole + 1)
+            
+            self.parent_.parent_.area.target.addDocument(NormalView(self.parent_.parent_.area, self.parent_.maindb, index) if mode == "normal" else BackupView(self.parent_.parent_.area, self.parent_.maindb, index))
     
     @Slot(QModelIndex)
     def pin(self, index: QModelIndex, write: bool = True, update: bool = True) -> None:
@@ -575,8 +671,8 @@ class Options:
             index.model().setData(index, ["self", "disabled"], Qt.ItemDataRole.UserRole + 21)
             self.parent_.tree_view.setType(index)
             
-            if len(self.pages) > 0 and self.pages[self.parent_.parent_.area.pages.focused_on] == index:
-                index.data(Qt.ItemDataRole.UserRole + 5).refreshSettings()
+            for page in [page for page in self.parent_.parent_.area.pages if page.document is not None and page.document.index == index]:
+                page.document.refreshSettings()
             
             QMessageBox.information(self.parent_, self.parent_.tr("Successful"), self.tr("Lock removed {from_item}.", index))
 
@@ -603,24 +699,33 @@ class Options:
                 return
             
             if not self.parent_.maindb.checkIfItExists(new_name, table):
-                if self.parent_.maindb.rename("enabled" if diary else None, new_name, name, table):
+                if self.parent_.maindb.rename("enabled" if diary else self.parent_.maindb.get("locked", name, table), new_name, name, table):
+                    if diary == "enabled":
+                        index.model().setData(index, ("self", "enabled"), Qt.ItemDataRole.UserRole + 21)
+                    
+                    index.model().setData(index, new_name, Qt.ItemDataRole.UserRole + 101)
+                    
                     if index.data(Qt.ItemDataRole.UserRole + 2) == "notebook":
                         for name_, table_ in self.parent_.maindb.items.copy().keys():
                             if table_ == name:
-                                if len(self.pages) > 0 and self.pages[self.parent_.parent_.area.pages.focused_on] == self.parent_.maindb.items[(name_, table_)].index():
-                                    self.close(self.parent_.maindb.items[(name_, table_)].index())
-                                
                                 self.parent_.maindb.items[(name_, table_)].setData(new_name, Qt.ItemDataRole.UserRole + 100)
+                                
+                                for page in [page for page in self.parent_.parent_.area.pages if page.document is not None and page.document.index == self.parent_.maindb.items[(name_, table_)].index()]:
+                                    page.document.refreshNames()
+                                    
+                                    if diary == "enabled":
+                                        page.document.refreshSettings()
+                                    
                                 self.parent_.maindb.items[(name_, new_name)] = self.parent_.maindb.items.pop((name_, table_))
                                 
                     elif index.data(Qt.ItemDataRole.UserRole + 2) == "document":
-                        if len(self.pages) > 0 and self.pages[self.parent_.parent_.area.pages.focused_on] == index:
-                            self.close(index)
+                        for page in [page for page in self.parent_.parent_.area.pages if page.document is not None and page.document.index == index]:
+                            page.document.refreshNames()
+                            
+                        if diary == "enabled":
+                            page.document.refreshSettings()
                                 
                     self.parent_.maindb.items[(new_name, table)] = self.parent_.maindb.items.pop((name, table))
-                    
-                    index.model().setData(index, "enabled" if diary else None, Qt.ItemDataRole.UserRole + 21)
-                    index.model().setData(index, new_name, Qt.ItemDataRole.UserRole + 101)
                     
                 else:
                     QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.tr("Failed to rename {the_item}.", index))
@@ -633,14 +738,14 @@ class Options:
         name, table = self.get(index)
         
         if self.parent_.maindb.reset(name):
-            self.parent_.maindb.items[(name, table)].removeRows(0, self.parent_.maindb.items[(name, table)].rowCount())
-            
             for name_, table_ in self.parent_.maindb.items.copy().keys():
                 if table_ == name:
-                    if len(self.pages) > 0 and self.pages[self.parent_.parent_.area.pages.focused_on] == self.parent_.maindb.items[(name_, table_)].index():
-                        self.close(self.parent_.maindb.items[(name_, table_)].index())
+                    for page in [page for page in self.parent_.parent_.area.pages if page.document is not None and page.document.index == self.parent_.maindb.items[(name_, table_)].index()]:
+                        page.removeDocument()
                     
                     del self.parent_.maindb.items[(name_, table_)]
+                    
+            self.parent_.maindb.items[(name, table)].removeRows(0, self.parent_.maindb.items[(name, table)].rowCount())
             
         else:
             QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.parent_.tr("Failed to reset."))
@@ -653,8 +758,8 @@ class Options:
             index.model().setData(index, self.parent_.maindb.getContent(document, notebook), Qt.ItemDataRole.UserRole + 104)
             index.model().setData(index, self.parent_.maindb.getBackup(document, notebook), Qt.ItemDataRole.UserRole + 105)
             
-            if len(self.pages) > 0 and self.pages[self.parent_.parent_.area.pages.focused_on] == index:
-                index.data(Qt.ItemDataRole.UserRole + 5).refreshContent()
+            for page in [page for page in self.parent_.parent_.area.pages if page.document is not None and page.document.index == index]:
+                page.document.refreshContent()
             
             QMessageBox.information(self.parent_, self.parent_.tr("Successful"), self.tr("The content {of_item} restored.", index))
             
@@ -901,62 +1006,66 @@ class TreeView(QTreeView):
         
         if not index or not index.isValid():
             return
+        
+        index = self.mapToSource(index)
             
         menu = QMenu()
-        menu.addAction(Action(self, lambda: self.parent_.options.createDocument(self.mapToSource(index)), self.tr("Create Document")))
+        menu.addAction(Action(self, lambda: self.parent_.options.createDocument(index), self.tr("Create Document")))
         menu.addAction(Action(self, lambda: self.parent_.options.createNotebook(), self.tr("Create Notebook")))
         
         menu.addSeparator()
         if index.data(Qt.ItemDataRole.UserRole + 2) == "notebook":
-            menu.addAction(Action(self, lambda: self.parent_.options.editDescription(self.mapToSource(index)), self.tr("Edit Description")))
+            menu.addAction(Action(self, lambda: self.parent_.options.editDescription(index), self.tr("Edit Description")))
         
         elif index.data(Qt.ItemDataRole.UserRole + 2) == "document":
-            menu.addAction(Action(self, lambda: self.parent_.options.open(self.mapToSource(index), "normal", True), self.tr("Open")))
-            menu.addAction(Action(self, lambda: self.parent_.options.open(self.mapToSource(index), "backup", True), self.tr("Show Backup")))
-            menu.addAction(Action(self, lambda: self.parent_.options.restoreContent(self.mapToSource(index)), self.tr("Restore Content")))
-            menu.addAction(Action(self, lambda: self.parent_.options.clearContent(self.mapToSource(index)), self.tr("Clear Content")))
+            menu.addAction(Action(self, lambda: self.parent_.options.open(index, "normal", True), self.tr("Open")))
+            menu.addAction(Action(self, lambda: self.parent_.options.open(index, "backup", True), self.tr("Show Backup")))
+            menu.addAction(Action(self, lambda: self.parent_.options.restoreContent(index), self.tr("Restore Content")))
+            menu.addAction(Action(self, lambda: self.parent_.options.clearContent(index), self.tr("Clear Content")))
             
         menu.addSeparator()
         if index.data(Qt.ItemDataRole.UserRole + 20)[1] == "completed":
-            menu.addAction(Action(self, lambda: self.parent_.options.markAsUncompleted(self.mapToSource(index)), self.tr("Mark as Uncompleted")))
-            menu.addAction(Action(self, lambda: self.parent_.options.unmark(self.mapToSource(index)), self.tr("Unmark")))
+            menu.addAction(Action(self, lambda: self.parent_.options.markAsUncompleted(index), self.tr("Mark as Uncompleted")))
+            menu.addAction(Action(self, lambda: self.parent_.options.unmark(index), self.tr("Unmark")))
         
         elif index.data(Qt.ItemDataRole.UserRole + 20)[1] == "uncompleted":
-            menu.addAction(Action(self, lambda: self.parent_.options.markAsCompleted(self.mapToSource(index)), self.tr("Mark as Completed")))
-            menu.addAction(Action(self, lambda: self.parent_.options.unmark(self.mapToSource(index)), self.tr("Unmark")))
+            menu.addAction(Action(self, lambda: self.parent_.options.markAsCompleted(index), self.tr("Mark as Completed")))
+            menu.addAction(Action(self, lambda: self.parent_.options.unmark(index), self.tr("Unmark")))
         
         else:
-            menu.addAction(Action(self, lambda: self.parent_.options.markAsCompleted(self.mapToSource(index)), self.tr("Mark as Completed")))
-            menu.addAction(Action(self, lambda: self.parent_.options.markAsUncompleted(self.mapToSource(index)), self.tr("Mark as Uncompleted")))
+            menu.addAction(Action(self, lambda: self.parent_.options.markAsCompleted(index), self.tr("Mark as Completed")))
+            menu.addAction(Action(self, lambda: self.parent_.options.markAsUncompleted(index), self.tr("Mark as Uncompleted")))
             
         menu.addSeparator()
         if index.data(Qt.ItemDataRole.UserRole + 21)[1] == "enabled":
-            menu.addAction(Action(self, lambda: self.parent_.options.removeLock(self.mapToSource(index)), self.tr("Remove Lock")))
+            menu.addAction(Action(self, lambda: self.parent_.options.removeLock(index), self.tr("Remove Lock")))
         elif index.data(Qt.ItemDataRole.UserRole + 21)[1] == "disabled":
-            menu.addAction(Action(self, lambda: self.parent_.options.addLock(self.mapToSource(index)), self.tr("Add Lock")))
+            menu.addAction(Action(self, lambda: self.parent_.options.addLock(index), self.tr("Add Lock")))
             
         menu.addSeparator()
         if index.data(Qt.ItemDataRole.UserRole + 26)[1] == "yes":
-            menu.addAction(Action(self, lambda: self.parent_.options.unpin(self.mapToSource(index)), self.tr("Unpin from sidebar")))
+            menu.addAction(Action(self, lambda: self.parent_.options.unpin(index), self.tr("Unpin from sidebar")))
         elif index.data(Qt.ItemDataRole.UserRole + 26)[1] == "no":
-            menu.addAction(Action(self, lambda: self.parent_.options.pin(self.mapToSource(index)), self.tr("Pin to sidebar")))
+            menu.addAction(Action(self, lambda: self.parent_.options.pin(index), self.tr("Pin to sidebar")))
             
         menu.addSeparator()
-        menu.addAction(Action(self, lambda: self.parent_.options.export(self.mapToSource(index)), self.tr("Export")))
+        menu.addAction(Action(self, lambda: self.parent_.options.export(index), self.tr("Export")))
         
         menu.addSeparator()
-        menu.addAction(Action(self, lambda: self.parent_.options.rename(self.mapToSource(index)), self.tr("Rename")))
-        menu.addAction(Action(self, lambda: self.parent_.options.delete(self.mapToSource(index)), self.tr("Delete")))
+        menu.addAction(Action(self, lambda: self.parent_.options.rename(index), self.tr("Rename")))
+        menu.addAction(Action(self, lambda: self.parent_.options.delete(index), self.tr("Delete")))
         if index.data(Qt.ItemDataRole.UserRole + 2) == "notebook":
-            menu.addAction(Action(self, lambda: self.parent_.options.reset(self.mapToSource(index)), self.tr("Reset")))
+            menu.addAction(Action(self, lambda: self.parent_.options.reset(index), self.tr("Reset")))
             
         menu.addSeparator()
-        menu.addAction(Action(self, lambda: self.parent_.options.changeAppearance(self.mapToSource(index)), self.tr("Change Appearance")))
-        menu.addAction(Action(self, lambda: self.parent_.options.changeSettings(self.mapToSource(index)), self.tr("Change Settings")))
+        menu.addAction(Action(self, lambda: self.parent_.options.changeAppearance(index), self.tr("Change Appearance")))
+        menu.addAction(Action(self, lambda: self.parent_.options.changeSettings(index), self.tr("Change Settings")))
         
-        if index.data(Qt.ItemDataRole.UserRole + 2) == "document" and index.data(Qt.ItemDataRole.UserRole + 4) is not None:
+        pages = [page for page in self.parent_.parent_.area.pages if page.document is not None and page.document.index == index]
+        if index.data(Qt.ItemDataRole.UserRole + 2) == "document" and pages != []:
             menu.addSeparator()
-            menu.addAction(Action(self, lambda: self.parent_.options.close(self.mapToSource(index)), self.tr("Close")))
+            for page in pages:
+                menu.addAction(Action(self, lambda: page.removeDocument(), self.tr("Close")))
                 
         menu.exec(global_pos)
         

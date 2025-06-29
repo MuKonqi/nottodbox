@@ -24,7 +24,7 @@ from .consts import APP_VERSION
 from .widgets.controls import HSeperator, Label, PushButton
 
 
-class About(QWidget):
+class AboutPage(QWidget):
     def __init__(self, parent: QWidget) -> None:
         super().__init__(parent)
         
