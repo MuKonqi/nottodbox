@@ -33,7 +33,7 @@ class AboutPage(QWidget):
         self.icon = Label(self.icon_and_nottodbox)
         self.icon.setPixmap(self.windowIcon().pixmap(192, 192))
         
-        self.nottodbox = Label(self.icon_and_nottodbox, self.tr("Nottodbox"))
+        self.nottodbox = Label(self.icon_and_nottodbox, "Nottodbox")
         font = self.nottodbox.font()
         font.setBold(True)
         font.setPointSize(64)

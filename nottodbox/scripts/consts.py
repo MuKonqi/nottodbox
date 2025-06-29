@@ -44,20 +44,6 @@ else:
     
     LOCALE_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "locale")
 
-    
-if APP_MODE == "appimage":
-    DESKTOP_FILE = os.path.join(os.path.dirname(os.path.dirname(DATA_DIR)), f"{APP_ID}.desktop")
-    
-else:
-    DESKTOP_FILE = os.path.join(DATA_DIR, "applications", f"{APP_ID}.desktop")
-    
-DESKTOP_FILE_FOUND = os.path.isfile(DESKTOP_FILE)
-
-if not DESKTOP_FILE_FOUND and APP_MODE == "@MODE@":
-    DESKTOP_FILE += ".in.in"
-    
-    DESKTOP_FILE_FOUND = os.path.isfile(DESKTOP_FILE)
-
 
 ICON_DIR = os.path.join(DATA_DIR, "icons", "hicolor", "scalable")
 
@@ -73,17 +59,9 @@ SETTINGS_KEYS = ["completed", "locked", "autosave", "format", "sync", "folder", 
 SETTINGS_VALUES = [["completed", "uncompleted", None], ["enabled", "disabled"], ["enabled", "disabled"], ["markdown", "html", "plain-text"], ["pdf", "odt", "markdown", "html", "plain-text"], ["documents", "desktop"], ["yes", "no"]]
 
 
-SYSTEM_DESKTOP_FILE_FOUND = os.path.isfile(f"/usr/share/applications/{APP_ID}.desktop") or os.path.isfile(f"/usr/local/share/applications/{APP_ID}.desktop")
-
-
 USER_NAME = getpass.getuser()
 
 USER_DIRS = {"desktop": QStandardPaths.standardLocations(QStandardPaths.StandardLocation.DesktopLocation)[0], "documents": QStandardPaths.standardLocations(QStandardPaths.StandardLocation.DocumentsLocation)[0]}
-
-USER_DESKTOP_FILE = f"/home/{USER_NAME}/.local/share/applications/{APP_ID}.desktop"
-
-USER_DESKTOP_FILE_FOUND = os.path.isfile(USER_DESKTOP_FILE)
-
 
 with open("/etc/passwd") as f:
     passwd = f.readlines()
@@ -94,5 +72,5 @@ with open("/etc/passwd") as f:
             
             break
 
-USER_DATABASES_DIR = f"/home/{USER_NAME}/.local/share/nottodbox/databases"
+USER_DATABASES_DIR = os.path.join(QStandardPaths.standardLocations(QStandardPaths.StandardLocation.GenericDataLocation)[0], "nottodbox", "databases")
 os.makedirs(USER_DATABASES_DIR, exist_ok=True)

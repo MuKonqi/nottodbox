@@ -29,7 +29,7 @@ from PySide6.QtWidgets import QApplication
 
 sys.path.insert(1, "@APP_DIR@" if os.path.isdir("@APP_DIR@") else os.path.dirname(__file__))
 
-from scripts.consts import APP_ID, APP_VERSION, DESKTOP_FILE, ICON_FILE, USER_DESKTOP_FILE, USER_DESKTOP_FILE_FOUND
+from scripts.consts import APP_ID, APP_VERSION, ICON_FILE
 from scripts.mainwindow import MainWindow
 
 class Application(QApplication):
@@ -39,7 +39,7 @@ class Application(QApplication):
         self.setApplicationVersion(APP_VERSION)
         self.setApplicationName("nottodbox")
         self.setApplicationDisplayName("Nottodbox")
-        self.setDesktopFileName(USER_DESKTOP_FILE if USER_DESKTOP_FILE_FOUND else DESKTOP_FILE)
+        self.setDesktopFileName(APP_ID)
         self.setWindowIcon(QIcon.fromTheme(APP_ID, QIcon(ICON_FILE)))
         
         self.mainwindow = MainWindow()
