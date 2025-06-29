@@ -94,7 +94,7 @@ class SettingsPage(QWidget):
                 do_not_asked_before = False
                 
                 question = QMessageBox.question(
-                    self, self.tr("Question"), self.tr("If you have documents with the format setting set to global, this change may corrupt them.\nDo you really want to apply the format setting(s)?"))
+                    self, self.tr("Question"), self.tr("If you have documents with the format setting set to global, this change may corrupt them.\nDo you really want to apply the format setting?"))
                 
                 if question != QMessageBox.StandardButton.Yes:
                     format_change_acceptted = False
@@ -118,10 +118,10 @@ class SettingsPage(QWidget):
                 QMessageBox.information(self, self.tr("Successful"), self.tr("All settings applied."))
             
             else:
-                QMessageBox.information(self, self.tr("Successful"), self.tr("All settings applied EXCEPT format settings."))
+                QMessageBox.information(self, self.tr("Successful"), self.tr("All settings applied EXCEPT format setting."))
             
         else:
-            QMessageBox.critical(self, self.tr("Error"), self.tr("Failed to apply setting(s)."))
+            QMessageBox.critical(self, self.tr("Error"), self.tr("Failed to apply settings."))
     
     @Slot()
     def cancel(self) -> None:
@@ -156,10 +156,10 @@ class SettingsPage(QWidget):
                 QMessageBox.information(self, self.tr("Successful"), self.tr("All setting reset."))
             
             else:
-                QMessageBox.information(self, self.tr("Successful"), self.tr("All settings reset EXCEPT format settings."))
+                QMessageBox.information(self, self.tr("Successful"), self.tr("All settings reset EXCEPT format setting."))
             
         else:
-            QMessageBox.critical(self, self.tr("Error"), self.tr("Failed to reset setting(s)."))
+            QMessageBox.critical(self, self.tr("Error"), self.tr("Failed to reset settings."))
         
         
 class ListView(QListView):
@@ -598,9 +598,7 @@ class Appearance(QWidget):
         name = self.current_color_scheme
         path = self.color_schemes[name]
         
-        newname, topwindow = QInputDialog.getText(self,
-                                                  self.tr("Rename {the_item}").format(the_item = self.tr("the '{name}' color scheme").format(name = name)).title(), 
-                                                  self.tr("Please enter a new name for {the_item}.").format(the_item = self.tr("'{name}' color scheme").format(name = name)))
+        newname, topwindow = QInputDialog.getText(self, self.tr("Rename"), self.tr("Please enter a new name."))
         
         if topwindow and newname != "":            
             if (not os.path.exists(os.path.join(NOTTODBOX_COLOR_SCHEMES_DIRS[1], f"{newname}.json")) and
@@ -633,7 +631,7 @@ class Appearance(QWidget):
                 self.custom_color_schemes.createList()
                 
             else:
-                QMessageBox.critical(self, self.tr("Error"), self.tr("{the_item} color scheme can not be renamed.")
+                QMessageBox.critical(self, self.tr("Error"), self.tr("{the_item} can not be renamed.")
                                      .format(the_item = self.tr("'{name}' color scheme").format(name = name)))
         
     @Slot(bool)

@@ -1,5 +1,4 @@
 # Nottodbox
-## Warning! This branch is not recommended for daily use.
 
 <p align="center">
     <img src="./share/icons/hicolor/96x96/apps/io.github.mukonqi.nottodbox.png" alt="Icon of Nottodbox"></img><br>
@@ -30,8 +29,8 @@
 - git
 
 ### Clone and run
-1. ```git clone https://github.com/mukonqi/nottodbox.git ; cd nottodbox```
-2. ```python3 -m nottodbox```
+1. ```git clone https://github.com/mukonqi/nottodbox.git```
+2. ```python3 nottodbox/nottodbox/__init__.py```
 
 
 ## Disclaimer

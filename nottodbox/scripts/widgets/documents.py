@@ -527,8 +527,6 @@ class DocumentHelper(QToolBar):
                 self.text_color.setEnabled(False)
                 self.background_color.setEnabled(False)
                 
-                self.setStatusTip(self.tr("To close an open formatting, type a word and then click on it."))
-                
             elif format == "html":
                 for action in self.actions():
                     action.setEnabled(True)
@@ -537,8 +535,6 @@ class DocumentHelper(QToolBar):
                 self.alignment_button.setEnabled(True)
                 self.text_color.setEnabled(True)
                 self.background_color.setEnabled(True)
-                
-                self.setStatusTip(self.tr("To close an open formatting, type a word and then click on it."))
                 
         elif self.parent_.mode == "backup":
             actions = self.actions()

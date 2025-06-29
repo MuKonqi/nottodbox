@@ -5,9 +5,8 @@ CHANGELOG.md
 # Editor
 .vscode/
 
-# Gettext
-*.pot
-*.mo
+# Localization
+*.qm
 
 # Meson
 builddir/

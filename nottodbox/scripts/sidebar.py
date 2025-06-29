@@ -21,7 +21,7 @@ from PySide6.QtCore import QEvent, QMargins, QModelIndex, QRect, QSize, Slot
 from PySide6.QtGui import QColor, QFont, QFontMetrics, QIcon, QPalette, QPixmap, QStandardItem, QStandardItemModel, QPainter, QPainterPath, QPen, Qt
 from PySide6.QtWidgets import *
 from .widgets.controls import HSeperator, Label, ToolButton
-from .consts import ICON_DIR
+from .resources import icons # noqa: F401
 
 
 class Sidebar(QWidget):
@@ -85,7 +85,8 @@ class Sidebar(QWidget):
         self.parent_.setCurrentIndex(checked, index)
     
     def makeIcon(self, name: str) -> QIcon:
-        return QIcon(QPixmap(os.path.join(ICON_DIR, "actions", f"io.github.mukonqi.nottodbox_{name}_{"dark" if QApplication.palette().color(QPalette.ColorRole.WindowText).lightness() > QApplication.palette().color(QPalette.ColorRole.Window).lightness() else "light"}.svg")))
+        return QIcon(QPixmap(f":/icons/{name}-{"dark" if QApplication.palette().color(QPalette.ColorRole.WindowText).lightness() > QApplication.palette().color(QPalette.ColorRole.Window).lightness() else "light"}"))
+
     
     def refresh(self) -> None:
         for i in range(4):

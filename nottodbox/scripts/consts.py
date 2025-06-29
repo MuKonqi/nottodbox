@@ -45,11 +45,6 @@ else:
     LOCALE_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "locale")
 
 
-ICON_DIR = os.path.join(DATA_DIR, "icons", "hicolor", "scalable")
-
-ICON_FILE = os.path.join(ICON_DIR, "apps", f"{APP_ID}.svg")
-
-
 SETTINGS_DEFAULTS = [None, "disabled", "enabled", "markdown", None, "documents", "no", None, None, None, None, None, None, None, None, None]
 
 SETTINGS_OPTIONS = ["default", "global"]

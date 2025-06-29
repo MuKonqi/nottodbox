@@ -1,5 +1,3 @@
-# Credit: While making this file's script section <https://github.com/DavidoTek/ProtonUp-Qt/blob/main/AppImageBuilder.yml> helped me as a reference.
-
 version: 1
 script:
   - rm -rf AppDir | true

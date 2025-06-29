@@ -21,16 +21,12 @@
 
 
 import sys
-import os
-from PySide6.QtGui import QIcon
-from PySide6.QtCore import QLibraryInfo, QLocale, QTranslator
+from PySide6.QtGui import QIcon, QPixmap
+from PySide6.QtCore import QLocale, QTranslator
 from PySide6.QtWidgets import QApplication
-
-
-sys.path.insert(1, "@APP_DIR@" if os.path.isdir("@APP_DIR@") else os.path.dirname(__file__))
-
-from scripts.consts import APP_ID, APP_VERSION, ICON_FILE
+from scripts.consts import APP_ID, APP_VERSION
 from scripts.mainwindow import MainWindow
+from scripts.resources import icons, locale # noqa: F401
 
 class Application(QApplication):
     def __init__(self, argv: list) -> None:
@@ -40,7 +36,11 @@ class Application(QApplication):
         self.setApplicationName("nottodbox")
         self.setApplicationDisplayName("Nottodbox")
         self.setDesktopFileName(APP_ID)
-        self.setWindowIcon(QIcon.fromTheme(APP_ID, QIcon(ICON_FILE)))
+        self.setWindowIcon(QIcon.fromTheme(APP_ID, QIcon(QPixmap(":/icons/window"))))
+        
+        translator = QTranslator(self)
+        if translator.load(QLocale().system(), "", "", ":/locale"):
+            self.installTranslator(translator)
         
         self.mainwindow = MainWindow()
                

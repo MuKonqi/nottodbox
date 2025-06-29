@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="locale">
+        <file>tr_TR.qm</file>
+    </qresource>
+</RCC>

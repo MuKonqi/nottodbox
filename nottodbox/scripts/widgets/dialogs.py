@@ -163,9 +163,9 @@ class GetName(Dialog):
             self.selector_layout.addWidget(Label(self.selector, self.tr("Settings will follow:")))
             
             self.combobox = QComboBox(self.selector)
-            self.combobox.addItems([self.tr("Defaults"), self.tr("Globals")])
+            self.combobox.addItems([self.tr("Default"), self.tr("Global")])
             if item == "document":
-                self.combobox.addItem(self.tr("Notebooks'"))
+                self.combobox.addItem(self.tr("Notebook"))
                 
             self.selector_layout.addWidget(self.combobox)
 

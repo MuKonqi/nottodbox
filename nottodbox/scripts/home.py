@@ -421,7 +421,8 @@ class Options:
             if page.document.mode == "normal":
                 page.document.changeAutosaveConnections("disconnect")
                 
-            self.parent_.parent_.parent_.sidebar.list_view.items[index].setData(False, Qt.ItemDataRole.UserRole + 1)
+            if index in self.parent_.parent_.parent_.sidebar.list_view.items.keys():
+                self.parent_.parent_.parent_.sidebar.list_view.items[index].setData(False, Qt.ItemDataRole.UserRole + 1)
         
     @Slot(QModelIndex)
     def createDocument(self, index: QModelIndex) -> None:
@@ -463,7 +464,7 @@ class Options:
                 
             else:
                 QMessageBox.critical(self.parent_, self.parent_.tr("Error"), 
-                                     self.parent_.tr("{the_item} is already exists.").format(the_item = self.parent_.tr("the {name} document").format(name = document)).capitalize())
+                                     self.parent_.tr("{the_item} is already exists.").format(the_item = self.parent_.tr("the '{name}' document").format(name = document)).capitalize())
     
     @Slot(str or None, str or None)
     def createNotebook(self, name: str | None = None, description: str | None = None) -> bool | None:
@@ -505,7 +506,7 @@ class Options:
             
             else:
                 QMessageBox.critical(self.parent_, self.parent_.tr("Error"), 
-                                     self.parent_.tr("{the_item} is already exists.").format(the_item = self.parent_.tr("the {name} notebook").format(name = name)).capitalize())
+                                     self.parent_.tr("{the_item} is already exists.").format(the_item = self.parent_.tr("the '{name}' notebook").format(name = name)).capitalize())
                 return False
     
     @Slot(QModelIndex)
@@ -751,7 +752,7 @@ class Options:
             self.parent_.maindb.items[(name, table)].removeRows(0, self.parent_.maindb.items[(name, table)].rowCount())
             
         else:
-            QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.parent_.tr("Failed to reset."))
+            QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.tr("Failed to reset {the_item}.", index))
     
     @Slot(QModelIndex)
     def restoreContent(self, index: QModelIndex) -> None:
