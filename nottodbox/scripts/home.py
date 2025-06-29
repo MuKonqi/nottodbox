@@ -60,7 +60,7 @@ class Area(QWidget):
         pages = [page for page in self.pages if page.document is not None]
         
         for page in pages:
-            self.parent_.selector.options.close(page.document.index)
+            page.removeDocument()
         
     @Slot(int, int)
     def setArea(self, row: int, column: int) -> None:
@@ -78,6 +78,7 @@ class Area(QWidget):
                 
         self.target = self.pages[0]
         self.target.setAsTarget()
+
 
 class Page(QWidget):
     document = None
@@ -419,6 +420,8 @@ class Options:
             
             if page.document.mode == "normal":
                 page.document.changeAutosaveConnections("disconnect")
+                
+            self.parent_.parent_.parent_.sidebar.list_view.items[index].setData(False, Qt.ItemDataRole.UserRole + 1)
         
     @Slot(QModelIndex)
     def createDocument(self, index: QModelIndex) -> None:
