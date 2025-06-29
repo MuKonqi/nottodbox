@@ -1,14 +1,12 @@
 version: 1
 script:
   - rm -rf AppDir | true
-  - mkdir -p AppDir/usr/lib/python3.13/site-packages
-  - mkdir -p AppDir/usr/share/icons
-  - sed -i 's/APP_MODE = "@MODE@"/APP_MODE = "appimage"/' nottodbox/consts.py
-  - cp -r nottodbox AppDir/usr/lib/python3.13/site-packages
-  - cp -r share/icons AppDir/usr/share
-  - cp LICENSE.txt README.md AppDir/usr/lib/python3.13/site-packages/nottodbox
-  - rm AppDir/usr/lib/python3.13/site-packages/nottodbox/meson.build
-  - python3 .github/scripts/translations.py --appimage
+  - mkdir -p AppDir/usr/local/share
+  - mkdir -p AppDir/usr/share/icons/hicolor/scalable/apps
+  - sed -i 's/APP_MODE = "@MODE@"/APP_MODE = "appimage"/' nottodbox/scripts/consts.py
+  - cp -r nottodbox AppDir/usr/local/share
+  - cp share/icons/hicolor/scalable/apps/io.github.mukonqi.nottodbox.svg AppDir/usr/share/icons/hicolor/scalable/apps
+  - cp LICENSE.txt README.md AppDir/usr/local/share/nottodbox
   - pip install --ignore-installed --prefix=/usr --no-cache-dir --root=AppDir PySide6-Essentials
   
 
@@ -21,7 +19,7 @@ AppDir:
     icon: io.github.mukonqi.nottodbox
     version: v0.0.90
     exec: usr/bin/python3
-    exec_args: "-m nottodbox $@"
+    exec_args: "/usr/local/share/nottodbox/__init__.py"
 
   pacman:
     Architecture: x86_64
