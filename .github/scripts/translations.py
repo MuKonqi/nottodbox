@@ -3,8 +3,8 @@ import subprocess
 import sys
 
 if "--appimage" in sys.argv:
-    LOCALE_DIR = "AppDir/usr/lib/python3.13/site-packages/nottodbox/locale"
     DESKTOP_FILE = "AppDir/usr/share/applications/io.github.mukonqi.nottodbox.desktop"
+    METADATA_FILE = "AppDir/usr/share/metainfo/io.github.mukonqi.nottodbox.appdata.xml"
     
     os.makedirs("AppDir/usr/share/applications", exist_ok=True)
     os.makedirs("AppDir/usr/share/metainfo", exist_ok=True)
