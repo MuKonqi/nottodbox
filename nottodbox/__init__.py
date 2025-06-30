@@ -25,7 +25,7 @@ from PySide6.QtCore import QLocale, QTranslator, Qt
 from PySide6.QtGui import QIcon, QImage, QPainter, QPixmap
 from PySide6.QtSvg import QSvgRenderer
 from PySide6.QtWidgets import QApplication
-from scripts.consts import APP_VERSION
+from scripts.version import APP_VERSION
 from scripts.mainwindow import MainWindow
 from scripts.resources import icons, locale # noqa: F401
 

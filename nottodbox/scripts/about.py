@@ -20,7 +20,7 @@ import os
 from PySide6.QtCore import Qt, qVersion
 from PySide6.QtGui import QFontDatabase
 from PySide6.QtWidgets import *
-from .consts import APP_VERSION
+from .version import APP_VERSION
 from .widgets.controls import HSeperator, Label, PushButton
 
 
