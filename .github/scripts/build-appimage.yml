@@ -4,8 +4,8 @@ script:
   - mkdir -p AppDir/usr/bin
   - mkdir -p AppDir/usr/share
   - mkdir -p AppDir/usr/share/icons/hicolor/scalable/apps
-  - cp -r nottodbox AppDir/usr/share
-  - cp LICENSE.txt README.md AppDir/usr/share/nottodbox
+  - cp -r nottodbox AppDir/usr/lib/python3.13/site-packages
+  - cp LICENSE.txt README.md AppDir/usr/lib/python3.13/site-packages
   - cp share/icons/hicolor/scalable/apps/io.github.mukonqi.nottodbox.svg AppDir/usr/share/icons/hicolor/scalable/apps
   - python3 .github/scripts/translations.py --appimage
   - pip install --ignore-installed --prefix=/usr --no-cache-dir --root=AppDir PySide6-Essentials
@@ -20,7 +20,7 @@ AppDir:
     icon: io.github.mukonqi.nottodbox
     version: v0.1.0
     exec: usr/bin/python3
-    exec_args: ${APPDIR}/usr/share/nottodbox/__init__.py
+    exec_args: "-m nottodbox"
 
   pacman:
     Architecture: x86_64
