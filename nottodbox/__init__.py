@@ -1,4 +1,4 @@
-#!@PYTHON3@
+#!/usr/bin/python3
 
 # SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -25,7 +25,7 @@ from PySide6.QtCore import QLocale, QTranslator, Qt
 from PySide6.QtGui import QIcon, QImage, QPainter, QPixmap
 from PySide6.QtSvg import QSvgRenderer
 from PySide6.QtWidgets import QApplication
-from scripts.consts import APP_ID, APP_VERSION
+from scripts.consts import APP_VERSION
 from scripts.mainwindow import MainWindow
 from scripts.resources import icons, locale # noqa: F401
 
@@ -43,8 +43,8 @@ class Application(QApplication):
         self.setApplicationVersion(APP_VERSION)
         self.setApplicationName("nottodbox")
         self.setApplicationDisplayName("Nottodbox")
-        self.setDesktopFileName(APP_ID)
-        self.setWindowIcon(QIcon.fromTheme(APP_ID, QIcon(QPixmap.fromImage(image))))
+        self.setDesktopFileName("io.github.mukonqi.nottodbox")
+        self.setWindowIcon(QIcon.fromTheme("io.github.mukonqi.nottodbox", QIcon(QPixmap.fromImage(image))))
         
         translator = QTranslator(self)
         if translator.load(QLocale().system(), "", "", ":/locale"):

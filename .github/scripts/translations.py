@@ -14,7 +14,7 @@ else:
     METADATA_FILE = "share/metainfo/io.github.mukonqi.nottodbox.appdata.xml"
 
 
-subprocess.run(["msgfmt", "--desktop", "-o", DESKTOP_FILE, "--template", "share/applications/io.github.mukonqi.nottodbox.desktop.in.in", "-d", "po"])
+subprocess.run(["msgfmt", "--desktop", "-o", DESKTOP_FILE, "--template", "share/applications/io.github.mukonqi.nottodbox.desktop.in", "-d", "po"])
 os.chmod(DESKTOP_FILE, 0o777)
 
 subprocess.run(["msgfmt", "--xml", "-o", METADATA_FILE, "--template", "share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in", "-d", "po"])

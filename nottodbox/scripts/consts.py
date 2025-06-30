@@ -21,28 +21,7 @@ import os
 from PySide6.QtCore import QStandardPaths
 
 
-APP_ID = "io.github.mukonqi.nottodbox"
-
-APP_MODE = "@MODE@"
-
 APP_VERSION = "v0.0.90"
-
-
-if APP_MODE == "meson":
-    DATA_DIR = "@DATA_DIR@"
-    
-    
-    LOCALE_DIR = "@LOCALE_DIR@"
-
-else:
-    if APP_MODE == "appimage":
-        DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))))), "share")
-    
-    else:
-        DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "share")
-    
-    
-    LOCALE_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "locale")
 
 
 SETTINGS_DEFAULTS = [None, "disabled", "enabled", "markdown", None, "documents", "no", None, None, None, None, None, None, None, None, None]

@@ -8,14 +8,8 @@ CHANGELOG.md
 # Localization
 *.qm
 *.pot
-
-# Meson
-builddir/
+share/applications/*.desktop
+share/metainfo/*.appdata.xml
 
 # Python
 *__pycache__
-
-# Run from source
-nottodbox/locale/
-share/applications/*.desktop
-share/metainfo/*.appdata.xml
