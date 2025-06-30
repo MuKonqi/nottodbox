@@ -21,7 +21,7 @@ import os
 from PySide6.QtCore import QStandardPaths
 
 
-APP_VERSION = "v0.0.90"
+APP_VERSION = "v0.1.0"
 
 
 SETTINGS_DEFAULTS = [None, "disabled", "enabled", "markdown", None, "documents", "no", None, None, None, None, None, None, None, None, None]

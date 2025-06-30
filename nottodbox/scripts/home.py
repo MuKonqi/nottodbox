@@ -569,13 +569,13 @@ class Options:
         
         if ok:
             if index.data(Qt.ItemDataRole.UserRole + 2) == "notebook":
-                os.makedirs(os.path.join(USER_DIRS[index.data(Qt.ItemDataRole.UserRole + 25)[1]], "Nottodbox", name), exist_ok=True)
-                
                 for name_, table_ in self.parent_.maindb.items.keys():
                     if table_ == name:
                         self.export(self.parent_.tree_view.mapFromSource(self.parent_.maindb.items[(name_, table_)].index()), export)
                 
             elif index.data(Qt.ItemDataRole.UserRole + 2) == "document":
+                os.makedirs(os.path.join(USER_DIRS[index.data(Qt.ItemDataRole.UserRole + 25)[1]], "Nottodbox", table), exist_ok=True)
+                
                 input = QTextEdit(index.data(Qt.ItemDataRole.UserRole + 104))
                 
                 if index.data(Qt.ItemDataRole.UserRole + 23)[1] == "markdown":

@@ -7,7 +7,27 @@
     <icon type="stock">io.github.mukonqi.nottodbox</icon>
   
     <description>
-        <p>Organize your notes, to-dos and diaries with highly customizable WYSIWYG-like editor.</p>
+        <p>Nottodbox allows you to create and organize notes, to-dos, and diaries with rich text support in popular formats.</p>
+        <ul>
+        <li><p>In today&#39;s fast-paced world, we often have multiple tasks to handle simultaneously. That&#39;s why you can open multiple documents at once in the desired row x column layout. </p>
+        </li>
+        <li><p>You can change the style and color scheme of the app to make it feel more like home.</p>
+        </li>
+        <li><p>All customization options for documents/notebooks:</p>
+        <ul>
+        <li>You can mark a to-do as completed once it&#39;s finished.</li>
+        <li>You can add a content lock to a document to turn it into a diary. This prevents the backup from being modified after that point.</li>
+        <li>Documents are automatically saved unless you are editing a outdated diary and have disabled this feature. Additionally, a backup of the old content is always retained. Furthermore, auto-saves do not overwrite backups, meaning your manual changes remain intact.</li>
+        <li>Documents can be in three formats: Markdown, HTML, and plain text.</li>
+        <li>Documents can be exported in multiple formats to your Documents or Desktop folder by default if you enable this feature. This allows you to edit them in other applications as well.</li>
+        <li><p>You can pin your favorite documents/notebooks to the sidebar for easy access.</p>
+        </li>
+        <li><p>You can change the background, text, and border colors of the document/notebook in three different states (normal, hover, and click) at the location of your choice.</p>
+        <p>And here&#39;s the most important part! All documents are associated with a notebook, and all options can follow it. All documents/notebooks can use the default settings or follow the global settings. With them, you can to customize so many things with ease.</p>
+        </li>
+        </ul>
+        </li>
+        </ul>
     </description>
 
     <categories>
