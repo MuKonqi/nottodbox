@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-24.04
     container: 
       image: archlinux:latest
-      options: --cap-add SYS_ADMIN --device /dev/fuse
+      options: --cap-add SYS_ADMIN --device /dev/fuse --security-opt apparmor:unconfined
 
     steps:
     - uses: actions/checkout@v4
