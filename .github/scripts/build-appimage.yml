@@ -2,7 +2,7 @@ version: 1
 script:
   - rm -rf AppDir | true
   - mkdir -p AppDir/usr/bin
-  - mkdir -p AppDir/usr/share
+  - mkdir -p AppDir/usr/lib/python3.13/site-packages
   - mkdir -p AppDir/usr/share/icons/hicolor/scalable/apps
   - cp -r nottodbox AppDir/usr/lib/python3.13/site-packages
   - cp LICENSE.txt README.md AppDir/usr/lib/python3.13/site-packages
