@@ -25,15 +25,15 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-
-    - name: Install dependencies
-      run: pacman -Sy --noconfirm appstream binutils desktop-file-utils fakeroot gdk-pixbuf2 gettext gtk-update-icon-cache patchelf python python-pip python-pipx python-setuptools squashfs-tools strace wget zsync
     
     - name: Download appimage-builder
-      run: pipx install appimage-builder
+      run: wget -O appimage-builder-x86_64.AppImage https://github.com/AppImageCrafters/appimage-builder/releases/download/v1.1.0/appimage-builder-1.1.0-x86_64.AppImage
+
+    - name: Make executable appimage-builder
+      run: chmod +x appimage-builder-x86_64.AppImage
     
     - name: Build AppImage package
-      run: /github/home/.local/bin/appimage-builder --recipe .github/scripts/build-appimage.yml
+      run: appimage-builder-x86_64.AppImage --recipe .github/scripts/build-appimage.yml
 
     - name: Create changelog file
       run: python3 .github/scripts/changelog.py
