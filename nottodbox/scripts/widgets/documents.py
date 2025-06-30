@@ -24,7 +24,7 @@ from PySide6.QtCore import QDate, QModelIndex, QObject, Qt, QThread, Signal, Slo
 from PySide6.QtGui import QDesktopServices, QMouseEvent, QPalette, QPdfWriter, QTextCursor, QTextBlockFormat, QTextCharFormat, QTextDocument, QTextDocumentWriter, QTextFormat, QTextListFormat, QTextLength, QTextTable, QTextTableFormat
 from PySide6.QtWidgets import *
 from .dialogs import GetColor, GetTwoNumber
-from .controls import Action
+from .controls import Action, HSeperator, Label
 from ..consts import USER_DIRS
             
             
@@ -44,6 +44,8 @@ class Document(QWidget):
         
         self.today = QDate.currentDate()
         
+        self.label = Label(self)
+        
         self.input = TextEdit(self)
         self.input.setAcceptRichText(True)
         
@@ -51,6 +53,8 @@ class Document(QWidget):
         self.input.cursorPositionChanged.connect(self.helper.updateButtons)
         
         self.layout_ = QVBoxLayout(self)
+        self.layout_.addWidget(self.label)
+        self.layout_.addWidget(HSeperator(self))
         self.layout_.addWidget(self.helper)
         self.layout_.addWidget(self.input)
 
@@ -100,6 +104,7 @@ class Document(QWidget):
         self.document = self.index.data(Qt.ItemDataRole.UserRole + 101)
         self.notebook = self.index.data(Qt.ItemDataRole.UserRole + 100)
         
+        self.label.setText(self.document)
         self.input.setDocumentTitle(self.document)
         
 
@@ -203,7 +208,7 @@ class DocumentHelper(QToolBar):
         
         self.parent_ = parent
         
-        self.button = self.addAction(self.tr("Save"))
+        self.button = self.addAction(self.tr("Save") if self.parent_.mode == "normal" else self.tr("Restore Content"))
         self.button.setStatusTip(self.tr("Auto-saves do not change backups and disabled for outdated diaries."))
         
         self.bold_action = Action(self, self.setBold, self.tr("Bold"))
