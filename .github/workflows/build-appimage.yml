@@ -21,7 +21,9 @@ jobs:
 
   build-appimage:
     runs-on: ubuntu-24.04
-    container: archlinux:latest
+    container: 
+      image: archlinux:latest
+      options: --cap-add SYS_ADMIN --device /dev/fuse
 
     steps:
     - uses: actions/checkout@v4
