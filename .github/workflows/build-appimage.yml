@@ -27,7 +27,7 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Download dependencies
-      run: pacman -Sy --noconfirm wget python
+      run: pacman -Sy --noconfirm wget fuse2 python
     
     - name: Download appimage-builder
       run: wget -O appimage-builder-x86_64.AppImage https://github.com/AppImageCrafters/appimage-builder/releases/download/v1.1.0/appimage-builder-1.1.0-x86_64.AppImage
