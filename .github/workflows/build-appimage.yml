@@ -44,11 +44,12 @@ jobs:
       run: ./appimage-builder-x86_64.AppImage --recipe .github/scripts/build-appimage.yml
 
     - name: Create changelog file
+      if: startsWith(github.ref, 'refs/tags/')
       run: python3 .github/scripts/changelog.py
 
     - name: Upload to stable release
-      uses: softprops/action-gh-release@v2.2.1
       if: startsWith(github.ref, 'refs/tags/')
+      uses: softprops/action-gh-release@v2.2.1
       with:
         body_path: "CHANGELOG.md"
         files: ./nottodbox*.AppImage*
