@@ -124,11 +124,11 @@
     <screenshots>
         <screenshot type="default">
             <caption>Appearance when using 'Nottodbox Light' color scheme</caption>
-            <image type="source">https://raw.githubusercontent.com/mukonqi/nottodbox/main/.github/images/light.png</image>
+            <image type="source">https://raw.githubusercontent.com/mukonqi/nottodbox/main/screenshots/light.png</image>
         </screenshot>
         <screenshot>
             <caption>Appearance when using 'Nottodbox Dark' color scheme</caption>
-            <image type="source">https://raw.githubusercontent.com/mukonqi/nottodbox/main/.github/images/dark.png</image>
+            <image type="source">https://raw.githubusercontent.com/mukonqi/nottodbox/main/screenshots/images/dark.png</image>
         </screenshot>
     </screenshots>
 </component>

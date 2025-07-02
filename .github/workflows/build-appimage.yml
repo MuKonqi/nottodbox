@@ -21,31 +21,24 @@ jobs:
 
   build-appimage:
     runs-on: ubuntu-24.04
-    container: 
-      image: archlinux:latest
-      options: --cap-add SYS_ADMIN --device /dev/fuse --security-opt apparmor:unconfined
+    container: archlinux:latest
 
     steps:
     - uses: actions/checkout@v4
 
     - name: Download dependencies
-      run: pacman -Sy --noconfirm appstream binutils desktop-file-utils fakeroot fuse2 gdk-pixbuf2 gettext gtk-update-icon-cache patchelf python python-pip squashfs-tools strace wget zsync
+      run: pacman -Sy --noconfirm gettext python python-pip
     
-    - name: Download appimage-builder
-      run: wget -O appimage-builder-x86_64.AppImage https://github.com/AppImageCrafters/appimage-builder/releases/download/v1.1.0/appimage-builder-1.1.0-x86_64.AppImage
-
-    - name: Make executable appimage-builder
-      run: chmod +x appimage-builder-x86_64.AppImage
-
-    - name: Prepare the container for appimage-builder
-      run: ln -s /usr/lib/libfakeroot/libfakeroot-0.so /usr/lib/libfakeroot/libfakeroot-sysv.so ; ln -s /usr/bin/faked /usr/bin/faked-sysv ; ln -s /usr/bin/fakeroot /usr/bin/fakeroot-sysv
-    
-    - name: Build AppImage package
-      run: ./appimage-builder-x86_64.AppImage --recipe .github/scripts/build-appimage.yml
+    - name: Build AppImage
+      uses: AppImageCrafters/build-appimage-action@master
+      env:
+        UPDATE_INFO: gh-releases-zsync|MuKonqi|nottodbox|latest|nottodbox-*x86_64.AppImage.zsync
+      with:
+        recipe: AppImageBuilder.yml
 
     - name: Create changelog file
       if: startsWith(github.ref, 'refs/tags/')
-      run: python3 .github/scripts/changelog.py
+      run: python3 scripts/changelog.py
 
     - name: Upload to stable release
       if: startsWith(github.ref, 'refs/tags/')

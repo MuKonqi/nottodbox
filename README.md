@@ -30,8 +30,8 @@ Nottodbox allows you to create and organize notes, to-dos, and diaries with rich
 <details>
 <summary>Show / Hide</summary>
 
-![Appearance when using 'Nottodbox Light' color scheme](.github/images/light.png)
-![Appearance when using 'Nottodbox Dark' color scheme](.github/images/dark.png)
+![Appearance when using 'Nottodbox Light' color scheme](screenshots/light.png)
+![Appearance when using 'Nottodbox Dark' color scheme](screenshots/dark.png)
 </details>
 
 
