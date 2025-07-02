@@ -29,7 +29,7 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Download dependencies
-      run: pacman -Sy --noconfirm fakeroot fuse2 gtk-update-icon-cache python python-pip wget
+      run:  pacman -Sy --noconfirm appstream binutils desktop-file-utils fakeroot gdk-pixbuf2 gettext gtk-update-icon-cache patchelf python squashfs-tools strace wget zsync
     
     - name: Download appimage-builder
       run: wget -O appimage-builder-x86_64.AppImage https://github.com/AppImageCrafters/appimage-builder/releases/download/v1.1.0/appimage-builder-1.1.0-x86_64.AppImage
