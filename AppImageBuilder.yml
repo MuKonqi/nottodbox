@@ -22,11 +22,9 @@ AppDir:
   pacman:
     Architecture: x86_64
     include:
-      - glib2
-      - python
+      - glib2.0
+      - python3
       - xcb-util-cursor
-    exclude:
-      - gcc-libs
     options:
       SigLevel: "Optional TrustAll"
 

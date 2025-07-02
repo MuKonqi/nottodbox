@@ -21,13 +21,12 @@ jobs:
 
   build-appimage:
     runs-on: ubuntu-24.04
-    container: archlinux:latest
 
     steps:
     - uses: actions/checkout@v4
 
     - name: Download dependencies
-      run: pacman -Sy --noconfirm binutils desktop-file-utils fakeroot gdk-pixbuf2 gettext patchelf python-pip python-pipx python-setuptools squashfs-tools strace wget zsync
+      run: apt install -y binutils coreutils desktop-file-utils fakeroot fuse gettext libgdk-pixbuf2.0-dev patchelf pipx python3-pip python3-setuptools squashfs-tools strace util-linux zsync
     
     - name: Download appimage-builder
       run: pipx install appimage-builder
