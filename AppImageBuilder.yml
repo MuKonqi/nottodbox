@@ -20,13 +20,17 @@ AppDir:
     exec_args: "$APPDIR/usr/lib/python3.13/site-packages/nottodbox/__init__.py $@"
 
   apt:
-    Architecture: x86_64
+    arch: amd64
+    sources:
+      - sourceline: 'deb [arch=amd64] http://archive.ubuntu.com/ubuntu/ noble main restricted universe multiverse'
+        key_url: 'http://keyserver.ubuntu.com/pks/lookup?op=get&search=0x871920d1991bc93c'
+
     include:
-      - glib2.0
       - python3
-      - xcb-util-cursor
-    options:
-      SigLevel: "Optional TrustAll"
+      - python3-pkg-resources
+      - libopengl0
+      - libxcb-cursor0
+    exclude: []
 
   files:
     exclude:
