@@ -26,10 +26,10 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Download dependencies
-      run: apt install -y binutils coreutils desktop-file-utils fakeroot fuse gettext libgdk-pixbuf2.0-dev patchelf pipx python3-pip python3-setuptools squashfs-tools strace util-linux zsync
+      run: sudo apt install -y binutils coreutils desktop-file-utils fakeroot fuse gettext libgdk-pixbuf2.0-dev patchelf python3-pip python3-setuptools squashfs-tools strace util-linux zsync
     
     - name: Download appimage-builder
-      run: pipx install appimage-builder
+      run: pip3 install appimage-builder
 
     - name: Run appimage-builder
       run: appimage-builder
