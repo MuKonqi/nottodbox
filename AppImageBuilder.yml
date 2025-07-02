@@ -1,10 +1,10 @@
 version: 1
 script:
-  - mkdir -p AppDir/usr/lib/python3.13/site-packages
+  - mkdir -p AppDir/usr/lib/python3.12/site-packages
   - mkdir -p AppDir/usr/share/icons
-  - cp -r nottodbox AppDir/usr/lib/python3.13/site-packages
+  - cp -r nottodbox AppDir/usr/lib/python3.12/site-packages
   - cp -r share/icons AppDir/usr/share
-  - cp LICENSE.txt README.md AppDir/usr/lib/python3.13/site-packages/nottodbox
+  - cp LICENSE.txt README.md AppDir/usr/lib/python3.12/site-packages/nottodbox
   - python3 scripts/translations.py --appimage
   - pip install --ignore-installed --prefix=/usr --no-cache-dir --root=AppDir PySide6-Essentials
 
@@ -17,7 +17,7 @@ AppDir:
     icon: io.github.mukonqi.nottodbox
     version: 0.1.0
     exec: usr/bin/python3
-    exec_args: "$APPDIR/usr/lib/python3.13/site-packages/nottodbox/__init__.py $@"
+    exec_args: "$APPDIR/usr/lib/python3.12/site-packages/nottodbox/__init__.py $@"
 
   apt:
     arch: amd64
@@ -43,7 +43,7 @@ AppDir:
   runtime:
     env:
       PYTHONHOME: '${APPDIR}/usr'
-      PYTHONPATH: '${APPDIR}/usr/lib/python3.13/site-packages'
+      PYTHONPATH: '${APPDIR}/usr/lib/python3.12/site-packages'
 
 AppImage:
   update-information: 'gh-releases-zsync|MuKonqi|nottodbox|latest|nottodbox-*x86_64.AppImage.zsync'
