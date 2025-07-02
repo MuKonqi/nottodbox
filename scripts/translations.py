@@ -6,6 +6,7 @@ if "--appimage" in sys.argv:
     DESKTOP_FILE = "AppDir/usr/share/applications/io.github.mukonqi.nottodbox.desktop"
     METADATA_FILE = "AppDir/usr/share/metainfo/io.github.mukonqi.nottodbox.appdata.xml"
     
+    os.removedirs("AppDir")
     os.makedirs("AppDir/usr/share/applications", exist_ok=True)
     os.makedirs("AppDir/usr/share/metainfo", exist_ok=True)
     

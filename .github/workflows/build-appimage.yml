@@ -28,6 +28,9 @@ jobs:
 
     - name: Download dependencies
       run: pacman -Sy --noconfirm gettext python python-pip
+
+    - name: Set translations
+      run: python3 scripts/translations.py --appimage
     
     - name: Build AppImage
       uses: AppImageCrafters/build-appimage-action@master
