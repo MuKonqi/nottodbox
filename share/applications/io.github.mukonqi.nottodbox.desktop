@@ -1,0 +1,14 @@
+[Desktop Entry]
+Name[tr_TR]=Nottodbox
+Name=Nottodbox
+Comment[tr_TR]=Notları, yapılacakları ve günlükleri düzenleyin
+Comment=Organize notes, to-dos and diaries
+
+Type=Application
+Exec=nottodbox
+Terminal=false
+Icon=io.github.mukonqi.nottodbox
+StartupWMClass=nottodbox
+
+Categories=Utility;TextEditor;Qt;
+Actions=Home;Notes;Todos;Diaries;Settings;

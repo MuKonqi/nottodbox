@@ -1,15 +1,9 @@
-# AppImage
-AppDir/
-CHANGELOG.md
-
 # Editor
 .vscode/
 
 # Localization
 *.qm
 *.pot
-share/applications/*.desktop
-share/metainfo/*.appdata.xml
 
 # Python
 *__pycache__

@@ -1,44 +1,132 @@
-# Turkish (Türkçe) language translation for Nottodbox's desktop and appdata files..
-# Copyright (C) 2024-2025 Nottodbox's copyright holder
+# tr_TR translation of Nottodbox's .desktop and .appdata.xml files.
+# Copyright (C) 2025 Nottodbox's copyright holder
 # This file is distributed under the same license as the Nottodbox package.
-# Muhammed S. <mukonqi@gmail.com>, 2024-2025.
+# Muhammed S. <mukonqi@gmail.com>, 2025.
 #
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-29 21:33+0300\n"
-"PO-Revision-Date: \n"
+"POT-Creation-Date: 2025-07-03 02:18+0300\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Muhammed S. <mukonqi@gmail.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
-"Language: tr\n"
+"Language: tr_TR \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: share/applications/io.github.mukonqi.nottodbox.desktop.in.in:3
+#: share/applications/io.github.mukonqi.nottodbox.desktop.in:3
 #: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:5
 msgid "Nottodbox"
 msgstr "Nottodbox"
 
-#: share/applications/io.github.mukonqi.nottodbox.desktop.in.in:4
+#: share/applications/io.github.mukonqi.nottodbox.desktop.in:4
 #: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:6
 msgid "Organize notes, to-dos and diaries"
 msgstr "Notları, yapılacakları ve günlükleri düzenleyin"
 
 #: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:10
 msgid ""
-"Organize your notes, to-dos and diaries with highly customizable WYSIWYG-"
-"like editor."
+"Nottodbox allows you to create and organize notes, to-dos, and diaries with "
+"rich text support in popular formats."
 msgstr ""
-"Notlarınızı, yapılacaklarınızı ve günlüklerinizi yüksek derece "
-"özelleştirilebilir WYSIWYG-benzeri bir editörde düzenleyin."
+"Nottodbox pöpüler biçimlerde notları, yapılacakları ve günlüklerı "
+"oluşturmanızı ve organize etmenizi zengin metin desteğiyle sağlar."
 
-#: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:106
+#: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:12
+msgid ""
+"In today's fast-paced world, we often have multiple tasks to handle "
+"simultaneously. That's why you can open multiple documents at once in the "
+"desired row x column layout."
+msgstr ""
+"Günümüzün hızlı tempolu dünyasında, genellikle aynı anda birden fazla görevi "
+"yerine getirmemiz gerekir. Bu nedenle, istediğiniz satır x sütun düzeninde "
+"birden fazla belgeyi aynı anda açabilirsiniz."
+
+#: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:14
+msgid ""
+"You can change the style and color scheme of the application to make it feel "
+"more like home."
+msgstr ""
+"Uygulamanın stilini ve renk düzenini değiştirerek daha rahat "
+"hissedebilirsiniz."
+
+#: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:16
+msgid "All customization options for documents/notebooks:"
+msgstr "İşte belgeler/not defterleri için tüm özelleştirme seçenekleri:"
+
+#: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:18
+msgid "You can mark a to-do as completed or uncompleted."
+msgstr "Bir yapılacağı tamamlanmış/tamamlanmamış olarak işaretleyebilirsiniz."
+
+#: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:19
+msgid ""
+"You can add a content lock to a document to turn it into a diary. This "
+"prevents the backup from being changed."
+msgstr ""
+"Bir belgeyi günlüğe dönüştürmek için içerik kilidi ekleyebilirsiniz. Bu "
+"yedeğin değiştirilmesini artık engeller."
+
+#: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:20
+msgid ""
+"Documents are automatically saved unless you are editing a outdated diary "
+"and have disabled this feature. Additionally, a backup of the old content is "
+"always retained. Furthermore, auto-saves do not overwrite backups, meaning "
+"your manual changes remain intact."
+msgstr ""
+"Eski bir günlüğü düzenlemiyorsanız ve bu özelliği devre dışı "
+"bırakmadıysanız, belgeler otomatik olarak kaydedilir.Ayrıca, eski içeriğin "
+"yedeği her zaman saklanır.Dahası, otomatik kaydetme işlemi yedeklerin "
+"üzerine yazmaz, yani manuel değişiklikleriniz bozulmaz."
+
+#: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:21
+msgid "Documents can be in three formats: Markdown, HTML, and plain-text."
+msgstr "Belgeler üç biçimde olabilir: Markdown, HTML ve düz metin"
+
+#: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:22
+msgid ""
+"Documents can be exported in multiple formats to your 'Documents' or "
+"'Desktop' folder if you enable this feature. This allows you to edit them in "
+"other applications as well."
+msgstr ""
+"Bu özelliği etkinleştirirseniz, belgeler  'Belgeler' veya 'Masaüstü' "
+"klasörünüze birden fazla formatta dışa aktarılabilir. Bu, diğer "
+"uygulamalarda da düzenlemenizi sağlar."
+
+#: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:23
+msgid ""
+"You can pin your favorite documents/notebooks to the sidebar for easy access."
+msgstr ""
+"En sevdiğiniz belgeleri/not defterlerini kolay erişim için kenar çubuğuna "
+"sabitleyebilirsiniz."
+
+#: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:25
+msgid ""
+"You can change the background, text, and border colors of the document/"
+"notebook in three different states: normal, hover, and click"
+msgstr ""
+"Belgenin/not defterinin arka plan, metin ve kenar renklerini üç farklı durum "
+"için değiştirebilirsiniz: normal, fareyle üzerine gelindiğinde ve "
+"tıklandığında"
+
+#: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:26
+msgid ""
+"And here's the most important part! All documents are associated with a "
+"notebook, and all options can follow it. All documents/notebooks can use the "
+"default settings or follow the global settings. With them, you can to "
+"customize so many things with ease."
+msgstr ""
+"Ve işte en önemli kısım! Tüm belgeler bir not defteri ile ilişkilidir ve tüm "
+"seçenekler bunu takip edebilir. Tüm belgeler/not defterleri varsayılan "
+"ayarları kullanabilir veya genel ayarları takip edebilir. Bunlarla, çok "
+"sayıda şeyi kolaylıkla özelleştirebilirsiniz."
+
+#: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:126
 msgid "Appearance when using 'Nottodbox Light' color scheme"
 msgstr "'Nottodbox Light' renk şeması kullanıldığında görünüm"
 
-#: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:110
+#: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:130
 msgid "Appearance when using 'Nottodbox Dark' color scheme"
 msgstr "'Nottodbox Dark' renk şeması kullanıldığında görünüm"

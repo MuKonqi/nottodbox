@@ -38,7 +38,7 @@
     <name>Appearance</name>
     <message>
         <location filename="../nottodbox/scripts/settings.py" line="297"/>
-        <location filename="../nottodbox/scripts/settings.py" line="601"/>
+        <location filename="../nottodbox/scripts/settings.py" line="599"/>
         <source>Rename</source>
         <translation>Yeniden Adlandır</translation>
     </message>
@@ -62,104 +62,94 @@
         <location filename="../nottodbox/scripts/settings.py" line="318"/>
         <location filename="../nottodbox/scripts/settings.py" line="319"/>
         <location filename="../nottodbox/scripts/settings.py" line="320"/>
-        <location filename="../nottodbox/scripts/settings.py" line="571"/>
+        <location filename="../nottodbox/scripts/settings.py" line="569"/>
         <source>Color scheme</source>
         <translation>Renk şeması</translation>
     </message>
     <message>
         <location filename="../nottodbox/scripts/settings.py" line="320"/>
-        <location filename="../nottodbox/scripts/settings.py" line="383"/>
-        <location filename="../nottodbox/scripts/settings.py" line="516"/>
+        <location filename="../nottodbox/scripts/settings.py" line="381"/>
+        <location filename="../nottodbox/scripts/settings.py" line="514"/>
         <source>Custom</source>
         <translation>Özelleştir</translation>
     </message>
     <message>
         <location filename="../nottodbox/scripts/settings.py" line="323"/>
-        <source>Some styles may not be detected in two cases:</source>
-        <translation>Bazı stiller 2 durumda algılanmayabilir:</translation>
-    </message>
-    <message>
-        <location filename="../nottodbox/scripts/settings.py" line="324"/>
-        <source>If PySide6 is installed with Pip</source>
-        <translation>Eğer PySide6 Pip ile kurulduysa</translation>
+        <source>Warning: Some styles may not be detected if you installed PySide6 via Pip</source>
+        <translation>Uyarı: Bazı stiller eğer PySide6&apos;yı Pip ile kurduysanız algılanmayabilir</translation>
     </message>
     <message>
         <location filename="../nottodbox/scripts/settings.py" line="325"/>
-        <source>If you are using the AppImage version of Nottodbox</source>
-        <translation>Eğer Nottodbox&apos;un AppImage versiyonunu kullanıyorsanız</translation>
-    </message>
-    <message>
-        <location filename="../nottodbox/scripts/settings.py" line="327"/>
         <source>From the system directory for KDE-format color schemes</source>
         <translation>KDE-biçimi renk şemaları için sistem klasöründen</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="329"/>
+        <location filename="../nottodbox/scripts/settings.py" line="327"/>
         <source>From the user directory for KDE-format color schemes</source>
         <translation>KDE-biçimi renk şemaları için kullanıcı klasöründen</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="331"/>
+        <location filename="../nottodbox/scripts/settings.py" line="329"/>
         <source>From the system directory for Nottodbox-format color schemes</source>
         <translation>Nottodbox-biçimi renk şemaları için sistem klasöründen</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="333"/>
+        <location filename="../nottodbox/scripts/settings.py" line="331"/>
         <source>From the user directory for Nottodbox-format color schemes</source>
         <translation>Nottodbox-biçimi renk şemaları için kullanıcı klasöründen</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="378"/>
-        <location filename="../nottodbox/scripts/settings.py" line="515"/>
-        <location filename="../nottodbox/scripts/settings.py" line="546"/>
+        <location filename="../nottodbox/scripts/settings.py" line="376"/>
+        <location filename="../nottodbox/scripts/settings.py" line="513"/>
+        <location filename="../nottodbox/scripts/settings.py" line="544"/>
         <source>Style default</source>
         <translation>Stil varsayılanı</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="456"/>
+        <location filename="../nottodbox/scripts/settings.py" line="454"/>
         <source>Question</source>
         <translation>Soru</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="458"/>
+        <location filename="../nottodbox/scripts/settings.py" line="456"/>
         <source>A color scheme with the name &apos;{name}&apos; already exists.
 Do you want to overwrite it?</source>
         <translation>&apos;{name}&apos; isimli bir renk şeması zaten mevcut.
 Üzerine yazmak istiyor musunuz?</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="485"/>
-        <location filename="../nottodbox/scripts/settings.py" line="661"/>
+        <location filename="../nottodbox/scripts/settings.py" line="483"/>
+        <location filename="../nottodbox/scripts/settings.py" line="659"/>
         <source>System default</source>
         <translation>Sistem varsayılanı</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="571"/>
+        <location filename="../nottodbox/scripts/settings.py" line="569"/>
         <source>Import a {the_item}</source>
         <translation>{the_item} İçe Aktar</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="573"/>
+        <location filename="../nottodbox/scripts/settings.py" line="571"/>
         <source>Color schemes (*.colors *.json)</source>
         <translation>Renk şemaları (*colors *json)</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="635"/>
+        <location filename="../nottodbox/scripts/settings.py" line="633"/>
         <source>&apos;{name}&apos; color scheme</source>
         <translation>&apos;{name}&apos; renk şeması</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="635"/>
+        <location filename="../nottodbox/scripts/settings.py" line="633"/>
         <source>{the_item} can not be renamed.</source>
         <translation>{the_item} yeniden adlandırılamadı.</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="634"/>
+        <location filename="../nottodbox/scripts/settings.py" line="632"/>
         <source>Error</source>
         <translation>Hata</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="601"/>
+        <location filename="../nottodbox/scripts/settings.py" line="599"/>
         <source>Please enter a new name.</source>
         <translation>Lütfen yeni bir ad girin.</translation>
     </message>
@@ -435,160 +425,160 @@ Gerçekten içeriği değiştirmek istiyor musunuz?</translation>
 <context>
     <name>CustomColorSchemes</name>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="727"/>
+        <location filename="../nottodbox/scripts/settings.py" line="725"/>
         <source>Window</source>
         <translation>Pencere</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="728"/>
+        <location filename="../nottodbox/scripts/settings.py" line="726"/>
         <source>Window text</source>
         <translation>Pencere metni</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="729"/>
+        <location filename="../nottodbox/scripts/settings.py" line="727"/>
         <source>Base</source>
         <translation>Temel</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="730"/>
+        <location filename="../nottodbox/scripts/settings.py" line="728"/>
         <source>Alternate base</source>
         <translation>Alternatif temel</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="731"/>
+        <location filename="../nottodbox/scripts/settings.py" line="729"/>
         <source>Tooltip base</source>
         <translation>Araç ipucu temeli</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="732"/>
+        <location filename="../nottodbox/scripts/settings.py" line="730"/>
         <source>Tooltip text</source>
         <translation>Araç ipucu metni</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="733"/>
+        <location filename="../nottodbox/scripts/settings.py" line="731"/>
         <source>Placeholder text</source>
         <translation>Yer tututucu metni</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="734"/>
+        <location filename="../nottodbox/scripts/settings.py" line="732"/>
         <source>Text</source>
         <translation>Metin</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="735"/>
+        <location filename="../nottodbox/scripts/settings.py" line="733"/>
         <source>Button</source>
         <translation>Buton</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="736"/>
+        <location filename="../nottodbox/scripts/settings.py" line="734"/>
         <source>Button text</source>
         <translation>Buton metni</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="737"/>
+        <location filename="../nottodbox/scripts/settings.py" line="735"/>
         <source>Bright text</source>
         <translation>Parlak metin</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="738"/>
+        <location filename="../nottodbox/scripts/settings.py" line="736"/>
         <source>Light</source>
         <translation>Açık</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="739"/>
+        <location filename="../nottodbox/scripts/settings.py" line="737"/>
         <source>Mid light</source>
         <translation>Orta açık</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="740"/>
+        <location filename="../nottodbox/scripts/settings.py" line="738"/>
         <source>Dark</source>
         <translation>Koyu</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="741"/>
+        <location filename="../nottodbox/scripts/settings.py" line="739"/>
         <source>Mid</source>
         <translation>Orta</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="742"/>
+        <location filename="../nottodbox/scripts/settings.py" line="740"/>
         <source>Shadow</source>
         <translation>Gölge</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="743"/>
+        <location filename="../nottodbox/scripts/settings.py" line="741"/>
         <source>Highlight</source>
         <translation>Vurgu</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="744"/>
+        <location filename="../nottodbox/scripts/settings.py" line="742"/>
         <source>Accent</source>
         <translation>Aksan</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="745"/>
+        <location filename="../nottodbox/scripts/settings.py" line="743"/>
         <source>Highlighted text</source>
         <translation>Vurgulanmış metin</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="746"/>
+        <location filename="../nottodbox/scripts/settings.py" line="744"/>
         <source>Link</source>
         <translation>Bağlantı</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="750"/>
+        <location filename="../nottodbox/scripts/settings.py" line="748"/>
         <source>Visited link</source>
         <translation>Ziyaret edilmiş bağlantı</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="755"/>
+        <location filename="../nottodbox/scripts/settings.py" line="753"/>
         <source>Color scheme to be edited</source>
         <translation>Düzenlenecek renk şeması</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="763"/>
+        <location filename="../nottodbox/scripts/settings.py" line="761"/>
         <source>General</source>
         <translation>Genel</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="766"/>
+        <location filename="../nottodbox/scripts/settings.py" line="764"/>
         <source>3D Bevel and Shadow Effects</source>
         <translation>3D Eğim ve Gölge Efektleri</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="769"/>
+        <location filename="../nottodbox/scripts/settings.py" line="767"/>
         <source>Selected (Marked) Items</source>
         <translation>Seçilmiş (İşaretlenmiş) Ögeler</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="772"/>
+        <location filename="../nottodbox/scripts/settings.py" line="770"/>
         <source>Links</source>
         <translation>Bağlantılar</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="780"/>
+        <location filename="../nottodbox/scripts/settings.py" line="778"/>
         <source>Custom</source>
         <translation>Özel</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="791"/>
+        <location filename="../nottodbox/scripts/settings.py" line="789"/>
         <source>Question</source>
         <translation>Soru</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="793"/>
+        <location filename="../nottodbox/scripts/settings.py" line="791"/>
         <source>A color scheme with the name &apos;{name}&apos; already exists.
 Do you want to overwrite it?</source>
         <translation>&apos;{name}&apos; isimli bir renk şeması zaten mevcut.
 Üzerine yazmak istiyor musunuz?</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="839"/>
+        <location filename="../nottodbox/scripts/settings.py" line="837"/>
         <source>Style default</source>
         <translation>Stil varsayılanı</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="845"/>
-        <location filename="../nottodbox/scripts/settings.py" line="856"/>
+        <location filename="../nottodbox/scripts/settings.py" line="843"/>
+        <location filename="../nottodbox/scripts/settings.py" line="854"/>
         <source>None</source>
         <translation>Hiçbiri</translation>
     </message>
@@ -852,116 +842,116 @@ Gerçekten içeriği değiştirmek istiyor musunuz?</translation>
 <context>
     <name>DocumentSettings</name>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="896"/>
-        <location filename="../nottodbox/scripts/settings.py" line="900"/>
-        <location filename="../nottodbox/scripts/settings.py" line="916"/>
+        <location filename="../nottodbox/scripts/settings.py" line="894"/>
+        <location filename="../nottodbox/scripts/settings.py" line="898"/>
+        <location filename="../nottodbox/scripts/settings.py" line="914"/>
         <source>None</source>
         <translation>Hiçbiri</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="897"/>
-        <location filename="../nottodbox/scripts/settings.py" line="917"/>
-        <location filename="../nottodbox/scripts/settings.py" line="918"/>
+        <location filename="../nottodbox/scripts/settings.py" line="895"/>
+        <location filename="../nottodbox/scripts/settings.py" line="915"/>
+        <location filename="../nottodbox/scripts/settings.py" line="916"/>
         <source>Disabled</source>
         <translation>Devre dışı</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="898"/>
-        <location filename="../nottodbox/scripts/settings.py" line="917"/>
-        <location filename="../nottodbox/scripts/settings.py" line="918"/>
+        <location filename="../nottodbox/scripts/settings.py" line="896"/>
+        <location filename="../nottodbox/scripts/settings.py" line="915"/>
+        <location filename="../nottodbox/scripts/settings.py" line="916"/>
         <source>Enabled</source>
         <translation>Atkif</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="901"/>
-        <location filename="../nottodbox/scripts/settings.py" line="921"/>
+        <location filename="../nottodbox/scripts/settings.py" line="899"/>
+        <location filename="../nottodbox/scripts/settings.py" line="919"/>
         <source>Documents</source>
         <translation>Belgeler</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="902"/>
-        <location filename="../nottodbox/scripts/settings.py" line="925"/>
+        <location filename="../nottodbox/scripts/settings.py" line="900"/>
+        <location filename="../nottodbox/scripts/settings.py" line="923"/>
         <source>No</source>
         <translation>Hayır</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="906"/>
+        <location filename="../nottodbox/scripts/settings.py" line="904"/>
         <source>Completion status*</source>
         <translation>Tamamlanma durumu*</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="907"/>
+        <location filename="../nottodbox/scripts/settings.py" line="905"/>
         <source>Content lock**</source>
         <translation>İçerik kilidi**</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="908"/>
+        <location filename="../nottodbox/scripts/settings.py" line="906"/>
         <source>Auto-save</source>
         <translation>Oto. kayıt</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="909"/>
+        <location filename="../nottodbox/scripts/settings.py" line="907"/>
         <source>Document format</source>
         <translation>Belge biçimi</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="910"/>
+        <location filename="../nottodbox/scripts/settings.py" line="908"/>
         <source>External synchronization</source>
         <translation>Dış senkronizasyon</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="911"/>
+        <location filename="../nottodbox/scripts/settings.py" line="909"/>
         <source>Export folder</source>
         <translation>Dışa aktarma klasörü</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="915"/>
+        <location filename="../nottodbox/scripts/settings.py" line="913"/>
         <source>Pinned to sidebar</source>
         <translation>Yan çubuğa sabitlenmiş mi</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="916"/>
+        <location filename="../nottodbox/scripts/settings.py" line="914"/>
         <source>Completed</source>
         <translation>Tamamlanmış</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="916"/>
+        <location filename="../nottodbox/scripts/settings.py" line="914"/>
         <source>Uncompleted</source>
         <translation>Tamamlanmamış</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="919"/>
-        <location filename="../nottodbox/scripts/settings.py" line="920"/>
+        <location filename="../nottodbox/scripts/settings.py" line="917"/>
+        <location filename="../nottodbox/scripts/settings.py" line="918"/>
         <source>Plain-text</source>
         <translation>Düz metin</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="920"/>
+        <location filename="../nottodbox/scripts/settings.py" line="918"/>
         <source>Follow format</source>
         <translation>Biçimi takip et</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="921"/>
+        <location filename="../nottodbox/scripts/settings.py" line="919"/>
         <source>Desktop</source>
         <translation>Masaüstü</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="922"/>
+        <location filename="../nottodbox/scripts/settings.py" line="920"/>
         <source>Yes</source>
         <translation>Evet</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="934"/>
+        <location filename="../nottodbox/scripts/settings.py" line="932"/>
         <source>Follow default ({})</source>
         <translation>Varsayılanı takip et ({})</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="946"/>
+        <location filename="../nottodbox/scripts/settings.py" line="944"/>
         <source>*Setting this to &apos;Completed&apos; or &apos;Uncompleted&apos; converts to a to-do.</source>
         <translation>*Bunu &apos;Tamamlanmış&apos; veya &apos;Tamamlanmamış&apos; olarak ayarlamak bir yapılacağa dönüştürür.</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="947"/>
+        <location filename="../nottodbox/scripts/settings.py" line="945"/>
         <source>**Setting this to &apos;Enabled&apos; converts to a diary.</source>
         <translation>**Bunu &apos;Tamamlanmış&apos; ayarlamak bir günlüğe dönüştürür.</translation>
     </message>
@@ -1041,47 +1031,47 @@ Gerçekten içeriği değiştirmek istiyor musunuz?</translation>
 <context>
     <name>ListSettings</name>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="989"/>
+        <location filename="../nottodbox/scripts/settings.py" line="987"/>
         <source>Background color</source>
         <translation>Arka plan rengi</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="990"/>
+        <location filename="../nottodbox/scripts/settings.py" line="988"/>
         <source>Background color when mouse is over</source>
         <translation>Fare üzerinde olduğunda arka plan rengi</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="991"/>
+        <location filename="../nottodbox/scripts/settings.py" line="989"/>
         <source>Background color when clicked</source>
         <translation>Tıklandığında arka plan rengi</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="992"/>
+        <location filename="../nottodbox/scripts/settings.py" line="990"/>
         <source>Foreground color</source>
         <translation>Metin rengi</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="993"/>
+        <location filename="../nottodbox/scripts/settings.py" line="991"/>
         <source>Foreground color when mouse is over</source>
         <translation>Fare üzerinde olduğunda yazı rengi</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="994"/>
+        <location filename="../nottodbox/scripts/settings.py" line="992"/>
         <source>Foreground color when clicked</source>
         <translation>Tıklandığında yazı rengi</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="995"/>
+        <location filename="../nottodbox/scripts/settings.py" line="993"/>
         <source>Border color</source>
         <translation>Kenar rengi</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="996"/>
+        <location filename="../nottodbox/scripts/settings.py" line="994"/>
         <source>Border color when mouse is over</source>
         <translation>Fare üzerinde olduğunda kenar rengi</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="1000"/>
+        <location filename="../nottodbox/scripts/settings.py" line="998"/>
         <source>Border color when clicked</source>
         <translation>Tıklandığında kenar rengi</translation>
     </message>
