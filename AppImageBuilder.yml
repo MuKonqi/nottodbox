@@ -41,15 +41,6 @@ AppDir:
       PYTHONHOME: '${APPDIR}/usr'
       PYTHONPATH: '${APPDIR}/usr/lib/python3.13/site-packages'
 
-    after_bundle: |
-    export PYTHONHOME=${APPDIR}/usr
-    export PYTHONPATH=${APPDIR}/usr/lib/python3.13/site-packages:$APPDIR/usr/lib/python3.13
-    export PATH=${APPDIR}/usr/bin:$PATH
-    ln -fs python3.13 $APPDIR/usr/bin/python3
-    curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
-    python3.13 get-pip.py
-    python3.13 -m pip install --ignore-installed --prefix=/usr --no-cache-dir --root=AppDir PySide6-Essentials
-
 AppImage:
   update-information: 'gh-releases-zsync|MuKonqi|nottodbox|latest|nottodbox-*x86_64.AppImage.zsync'
   sign-key: None

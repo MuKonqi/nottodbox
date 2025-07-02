@@ -31,6 +31,9 @@ jobs:
 
     - name: Set translations
       run: python3 scripts/translations.py --appimage
+
+    - name: Install PySide6
+      run: pip install --ignore-installed --prefix=/usr --no-cache-dir --root=AppDir PySide6-Essentials
     
     - name: Build AppImage
       uses: AppImageCrafters/build-appimage-action@master
