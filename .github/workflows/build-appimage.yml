@@ -27,20 +27,13 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Download dependencies
-      run: pacman -Sy --noconfirm gettext python python-pip
-
-    - name: Set translations
-      run: python3 scripts/translations.py --appimage
-
-    - name: Install PySide6
-      run: pip install --ignore-installed --prefix=/usr --no-cache-dir --root=AppDir PySide6-Essentials
+      run: pacman -Sy --noconfirm binutils desktop-file-utils fakeroot gdk-pixbuf2 gettext patchelf python-pip python-setuptools squashfs-tools strace wget zsync
     
-    - name: Build AppImage
-      uses: AppImageCrafters/build-appimage-action@master
-      env:
-        UPDATE_INFO: gh-releases-zsync|MuKonqi|nottodbox|latest|nottodbox-*x86_64.AppImage.zsync
-      with:
-        recipe: AppImageBuilder.yml
+    - name: Download appimage-builder
+      run: pip install appimage-builder
+
+    - name: Run appimage-builder
+      run: appimage-builder
 
     - name: Create changelog file
       if: startsWith(github.ref, 'refs/tags/')
