@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-03 02:18+0300\n"
+"POT-Creation-Date: 2025-07-03 20:02+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Muhammed S. <mukonqi@gmail.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -35,7 +35,7 @@ msgstr ""
 "Nottodbox pöpüler biçimlerde notları, yapılacakları ve günlüklerı "
 "oluşturmanızı ve organize etmenizi zengin metin desteğiyle sağlar."
 
-#: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:12
+#: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:11
 msgid ""
 "In today's fast-paced world, we often have multiple tasks to handle "
 "simultaneously. That's why you can open multiple documents at once in the "
@@ -45,7 +45,7 @@ msgstr ""
 "yerine getirmemiz gerekir. Bu nedenle, istediğiniz satır x sütun düzeninde "
 "birden fazla belgeyi aynı anda açabilirsiniz."
 
-#: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:14
+#: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:12
 msgid ""
 "You can change the style and color scheme of the application to make it feel "
 "more like home."
@@ -53,15 +53,15 @@ msgstr ""
 "Uygulamanın stilini ve renk düzenini değiştirerek daha rahat "
 "hissedebilirsiniz."
 
-#: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:16
+#: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:13
 msgid "All customization options for documents/notebooks:"
 msgstr "İşte belgeler/not defterleri için tüm özelleştirme seçenekleri:"
 
-#: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:18
+#: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:15
 msgid "You can mark a to-do as completed or uncompleted."
 msgstr "Bir yapılacağı tamamlanmış/tamamlanmamış olarak işaretleyebilirsiniz."
 
-#: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:19
+#: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:16
 msgid ""
 "You can add a content lock to a document to turn it into a diary. This "
 "prevents the backup from being changed."
@@ -69,7 +69,7 @@ msgstr ""
 "Bir belgeyi günlüğe dönüştürmek için içerik kilidi ekleyebilirsiniz. Bu "
 "yedeğin değiştirilmesini artık engeller."
 
-#: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:20
+#: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:17
 msgid ""
 "Documents are automatically saved unless you are editing a outdated diary "
 "and have disabled this feature. Additionally, a backup of the old content is "
@@ -81,11 +81,11 @@ msgstr ""
 "yedeği her zaman saklanır.Dahası, otomatik kaydetme işlemi yedeklerin "
 "üzerine yazmaz, yani manuel değişiklikleriniz bozulmaz."
 
-#: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:21
+#: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:18
 msgid "Documents can be in three formats: Markdown, HTML, and plain-text."
 msgstr "Belgeler üç biçimde olabilir: Markdown, HTML ve düz metin"
 
-#: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:22
+#: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:19
 msgid ""
 "Documents can be exported in multiple formats to your 'Documents' or "
 "'Desktop' folder if you enable this feature. This allows you to edit them in "
@@ -95,14 +95,14 @@ msgstr ""
 "klasörünüze birden fazla formatta dışa aktarılabilir. Bu, diğer "
 "uygulamalarda da düzenlemenizi sağlar."
 
-#: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:23
+#: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:20
 msgid ""
 "You can pin your favorite documents/notebooks to the sidebar for easy access."
 msgstr ""
 "En sevdiğiniz belgeleri/not defterlerini kolay erişim için kenar çubuğuna "
 "sabitleyebilirsiniz."
 
-#: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:25
+#: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:21
 msgid ""
 "You can change the background, text, and border colors of the document/"
 "notebook in three different states: normal, hover, and click"
@@ -111,7 +111,7 @@ msgstr ""
 "için değiştirebilirsiniz: normal, fareyle üzerine gelindiğinde ve "
 "tıklandığında"
 
-#: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:26
+#: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:23
 msgid ""
 "And here's the most important part! All documents are associated with a "
 "notebook, and all options can follow it. All documents/notebooks can use the "
@@ -123,10 +123,10 @@ msgstr ""
 "ayarları kullanabilir veya genel ayarları takip edebilir. Bunlarla, çok "
 "sayıda şeyi kolaylıkla özelleştirebilirsiniz."
 
-#: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:126
+#: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:119
 msgid "Appearance when using 'Nottodbox Light' color scheme"
 msgstr "'Nottodbox Light' renk şeması kullanıldığında görünüm"
 
-#: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:130
+#: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:123
 msgid "Appearance when using 'Nottodbox Dark' color scheme"
 msgstr "'Nottodbox Dark' renk şeması kullanıldığında görünüm"

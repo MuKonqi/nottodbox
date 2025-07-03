@@ -19,17 +19,17 @@
         <translation>Geliştirici</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/about.py" line="77"/>
+        <location filename="../nottodbox/scripts/about.py" line="76"/>
         <source>Copyright (C)</source>
         <translation>Telif Hakkı (C)</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/about.py" line="78"/>
+        <location filename="../nottodbox/scripts/about.py" line="77"/>
         <source>License: GNU General Public License, Version 3 or later</source>
         <translation>Lisans: GNU Genel Kamu Lisansı, Sürüm 3 veya sonrası</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/about.py" line="83"/>
+        <location filename="../nottodbox/scripts/about.py" line="82"/>
         <source>Qt version:</source>
         <translation>Qt sürümü:</translation>
     </message>

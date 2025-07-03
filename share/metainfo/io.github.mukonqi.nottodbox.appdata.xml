@@ -9,42 +9,30 @@
   <description>
     <p>Nottodbox allows you to create and organize notes, to-dos, and diaries with rich text support in popular formats.</p>
     <p xml:lang="tr_TR">Nottodbox pöpüler biçimlerde notları, yapılacakları ve günlüklerı oluşturmanızı ve organize etmenizi zengin metin desteğiyle sağlar.</p>
+    <p>In today's fast-paced world, we often have multiple tasks to handle simultaneously. That's why you can open multiple documents at once in the desired row x column layout.</p>
+    <p xml:lang="tr_TR">Günümüzün hızlı tempolu dünyasında, genellikle aynı anda birden fazla görevi yerine getirmemiz gerekir. Bu nedenle, istediğiniz satır x sütun düzeninde birden fazla belgeyi aynı anda açabilirsiniz.</p>
+    <p>You can change the style and color scheme of the application to make it feel more like home.</p>
+    <p xml:lang="tr_TR">Uygulamanın stilini ve renk düzenini değiştirerek daha rahat hissedebilirsiniz.</p>
+    <p>All customization options for documents/notebooks:</p>
+    <p xml:lang="tr_TR">İşte belgeler/not defterleri için tüm özelleştirme seçenekleri:</p>
     <ul>
-      <li>
-        <p>In today's fast-paced world, we often have multiple tasks to handle simultaneously. That's why you can open multiple documents at once in the desired row x column layout. </p>
-        <p xml:lang="tr_TR">Günümüzün hızlı tempolu dünyasında, genellikle aynı anda birden fazla görevi yerine getirmemiz gerekir. Bu nedenle, istediğiniz satır x sütun düzeninde birden fazla belgeyi aynı anda açabilirsiniz.</p>
-      </li>
-      <li>
-        <p>You can change the style and color scheme of the application to make it feel more like home.</p>
-        <p xml:lang="tr_TR">Uygulamanın stilini ve renk düzenini değiştirerek daha rahat hissedebilirsiniz.</p>
-      </li>
-      <li>
-        <p>All customization options for documents/notebooks:</p>
-        <p xml:lang="tr_TR">İşte belgeler/not defterleri için tüm özelleştirme seçenekleri:</p>
-        <ul>
-          <li>You can mark a to-do as completed or uncompleted.</li>
-          <li xml:lang="tr_TR">Bir yapılacağı tamamlanmış/tamamlanmamış olarak işaretleyebilirsiniz.</li>
-          <li>You can add a content lock to a document to turn it into a diary. This prevents the backup from being changed.</li>
-          <li xml:lang="tr_TR">Bir belgeyi günlüğe dönüştürmek için içerik kilidi ekleyebilirsiniz. Bu yedeğin değiştirilmesini artık engeller.</li>
-          <li>Documents are automatically saved unless you are editing a outdated diary and have disabled this feature. Additionally, a backup of the old content is always retained. Furthermore, auto-saves do not overwrite backups, meaning your manual changes remain intact.</li>
-          <li xml:lang="tr_TR">Eski bir günlüğü düzenlemiyorsanız ve bu özelliği devre dışı bırakmadıysanız, belgeler otomatik olarak kaydedilir.Ayrıca, eski içeriğin yedeği her zaman saklanır.Dahası, otomatik kaydetme işlemi yedeklerin üzerine yazmaz, yani manuel değişiklikleriniz bozulmaz.</li>
-          <li>Documents can be in three formats: Markdown, HTML, and plain-text.</li>
-          <li xml:lang="tr_TR">Belgeler üç biçimde olabilir: Markdown, HTML ve düz metin</li>
-          <li>Documents can be exported in multiple formats to your 'Documents' or 'Desktop' folder if you enable this feature. This allows you to edit them in other applications as well.</li>
-          <li xml:lang="tr_TR">Bu özelliği etkinleştirirseniz, belgeler  'Belgeler' veya 'Masaüstü' klasörünüze birden fazla formatta dışa aktarılabilir. Bu, diğer uygulamalarda da düzenlemenizi sağlar.</li>
-          <li>
-            <p>You can pin your favorite documents/notebooks to the sidebar for easy access.</p>
-            <p xml:lang="tr_TR">En sevdiğiniz belgeleri/not defterlerini kolay erişim için kenar çubuğuna sabitleyebilirsiniz.</p>
-          </li>
-          <li>
-            <p>You can change the background, text, and border colors of the document/notebook in three different states: normal, hover, and click</p>
-            <p xml:lang="tr_TR">Belgenin/not defterinin arka plan, metin ve kenar renklerini üç farklı durum için değiştirebilirsiniz: normal, fareyle üzerine gelindiğinde ve tıklandığında</p>
-            <p>And here's the most important part! All documents are associated with a notebook, and all options can follow it. All documents/notebooks can use the default settings or follow the global settings. With them, you can to customize so many things with ease.</p>
-            <p xml:lang="tr_TR">Ve işte en önemli kısım! Tüm belgeler bir not defteri ile ilişkilidir ve tüm seçenekler bunu takip edebilir. Tüm belgeler/not defterleri varsayılan ayarları kullanabilir veya genel ayarları takip edebilir. Bunlarla, çok sayıda şeyi kolaylıkla özelleştirebilirsiniz.</p>
-          </li>
-        </ul>
-      </li>
+      <li>You can mark a to-do as completed or uncompleted.</li>
+      <li xml:lang="tr_TR">Bir yapılacağı tamamlanmış/tamamlanmamış olarak işaretleyebilirsiniz.</li>
+      <li>You can add a content lock to a document to turn it into a diary. This prevents the backup from being changed.</li>
+      <li xml:lang="tr_TR">Bir belgeyi günlüğe dönüştürmek için içerik kilidi ekleyebilirsiniz. Bu yedeğin değiştirilmesini artık engeller.</li>
+      <li>Documents are automatically saved unless you are editing a outdated diary and have disabled this feature. Additionally, a backup of the old content is always retained. Furthermore, auto-saves do not overwrite backups, meaning your manual changes remain intact.</li>
+      <li xml:lang="tr_TR">Eski bir günlüğü düzenlemiyorsanız ve bu özelliği devre dışı bırakmadıysanız, belgeler otomatik olarak kaydedilir.Ayrıca, eski içeriğin yedeği her zaman saklanır.Dahası, otomatik kaydetme işlemi yedeklerin üzerine yazmaz, yani manuel değişiklikleriniz bozulmaz.</li>
+      <li>Documents can be in three formats: Markdown, HTML, and plain-text.</li>
+      <li xml:lang="tr_TR">Belgeler üç biçimde olabilir: Markdown, HTML ve düz metin</li>
+      <li>Documents can be exported in multiple formats to your 'Documents' or 'Desktop' folder if you enable this feature. This allows you to edit them in other applications as well.</li>
+      <li xml:lang="tr_TR">Bu özelliği etkinleştirirseniz, belgeler  'Belgeler' veya 'Masaüstü' klasörünüze birden fazla formatta dışa aktarılabilir. Bu, diğer uygulamalarda da düzenlemenizi sağlar.</li>
+      <li>You can pin your favorite documents/notebooks to the sidebar for easy access.</li>
+      <li xml:lang="tr_TR">En sevdiğiniz belgeleri/not defterlerini kolay erişim için kenar çubuğuna sabitleyebilirsiniz.</li>
+      <li>You can change the background, text, and border colors of the document/notebook in three different states: normal, hover, and click</li>
+      <li xml:lang="tr_TR">Belgenin/not defterinin arka plan, metin ve kenar renklerini üç farklı durum için değiştirebilirsiniz: normal, fareyle üzerine gelindiğinde ve tıklandığında</li>
     </ul>
+    <p>And here's the most important part! All documents are associated with a notebook, and all options can follow it. All documents/notebooks can use the default settings or follow the global settings. With them, you can to customize so many things with ease.</p>
+    <p xml:lang="tr_TR">Ve işte en önemli kısım! Tüm belgeler bir not defteri ile ilişkilidir ve tüm seçenekler bunu takip edebilir. Tüm belgeler/not defterleri varsayılan ayarları kullanabilir veya genel ayarları takip edebilir. Bunlarla, çok sayıda şeyi kolaylıkla özelleştirebilirsiniz.</p>
   </description>
   <categories>
     <category>Office</category>

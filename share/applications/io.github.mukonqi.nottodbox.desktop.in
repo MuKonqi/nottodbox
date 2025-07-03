@@ -9,4 +9,3 @@ Icon=io.github.mukonqi.nottodbox
 StartupWMClass=nottodbox
 
 Categories=Utility;TextEditor;Qt;
-Actions=Home;Notes;Todos;Diaries;Settings;

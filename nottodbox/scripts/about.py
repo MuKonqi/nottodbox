@@ -48,8 +48,7 @@ class AboutPage(QWidget):
         self.developer_label = Label(self, self.tr("Developer") + ': <a href="https://mukonqi.github.io">MuKonqi (Muhammed S.)</a>')
         self.developer_label.setOpenExternalLinks(True)
         
-        with open(f"{os.path.dirname(os.path.dirname(__file__))}/LICENSE.txt" if os.path.isfile(f"{os.path.dirname(os.path.dirname(__file__))}/LICENSE.txt") else
-                  f"{os.path.dirname(os.path.dirname(os.path.dirname(__file__)))}/LICENSE.txt") as license_file:
+        with open(f"{os.path.dirname(os.path.dirname(__file__))}/LICENSE.txt") as license_file:
             license_text = license_file.read()
             
         self.license_textedit = QTextEdit(self)

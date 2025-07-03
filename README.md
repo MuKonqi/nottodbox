@@ -9,11 +9,11 @@
 
 Nottodbox allows you to create and organize notes, to-dos, and diaries with rich text support in popular formats.
 
-- In today's fast-paced world, we often have multiple tasks to handle simultaneously. That's why you can open multiple documents at once in the desired row x column layout. 
+In today's fast-paced world, we often have multiple tasks to handle simultaneously. That's why you can open multiple documents at once in the desired row x column layout. 
 
-- You can change the style and color scheme of the app to make it feel more like home.
+You can change the style and color scheme of the app to make it feel more like home.
 
-- All customization options for documents/notebooks:
+All customization options for documents/notebooks:
     - You can mark a to-do as completed once it's finished.
     - You can add a content lock to a document to turn it into a diary. This prevents the backup from being modified after that point.
 	- Documents are automatically saved unless you are editing a outdated diary and have disabled this feature. Additionally, a backup of the old content is always retained. Furthermore, auto-saves do not overwrite backups, meaning your manual changes remain intact.
@@ -23,7 +23,7 @@ Nottodbox allows you to create and organize notes, to-dos, and diaries with rich
     
 	- You can change the background, text, and border colors of the document/notebook in three different states (normal, hover, and click) at the location of your choice.
 
-	And here's the most important part! All documents are associated with a notebook, and all options can follow it. All documents/notebooks can use the default settings or follow the global settings. With them, you can to customize so many things with ease.
+And here's the most important part! All documents are associated with a notebook, and all options can follow it. All documents/notebooks can use the default settings or follow the global settings. With them, you can to customize so many things with ease.
 
 ## Images
 <details>
