@@ -85,7 +85,7 @@ class Sidebar(QWidget):
         self.parent_.setCurrentIndex(checked, index)
     
     def makeIcon(self, name: str) -> QIcon:
-        return QIcon(QPixmap(f":/icons/{name}-{"dark" if QApplication.palette().color(QPalette.ColorRole.WindowText).lightness() > QApplication.palette().color(QPalette.ColorRole.Window).lightness() else "light"}"))
+        return QIcon(QPixmap(f":/icons/{name}-{'dark' if QApplication.palette().color(QPalette.ColorRole.WindowText).lightness() > QApplication.palette().color(QPalette.ColorRole.Window).lightness() else 'light'}"))
 
     
     def refresh(self) -> None:
