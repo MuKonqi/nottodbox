@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "nottodbox"
 version = "0.1.0"
-authors = [{name="MuKonqi (Muhammed S."}]
+authors = [{name="MuKonqi (Muhammed S.)"}]
 description = "Organize notes, to-dos and diaries"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -16,8 +16,15 @@ classifiers = [
 ]
 dependencies = ["PySide6"]
 
+[project.urls]
+Repository = "https://github.com/mukonqi/nottodbox"
+Issues = "https://github.com/mukonqi/nottodbox/issues"
+
 [project.scripts]
 nottodbox = "nottodbox.scripts.application:main"
 
 [tool.setuptools]
 packages = ["nottodbox", "nottodbox.scripts", "nottodbox.scripts.resources", "nottodbox.scripts.widgets"]
+
+[tool.setuptools.package-data]
+nottodbox = ["LICENSE.txt", "color-schemes/*"]
