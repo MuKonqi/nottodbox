@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=61.0"]
+requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -9,9 +9,13 @@ authors = [{name="MuKonqi (Muhammed S.)"}]
 description = "Organize notes, to-dos and diaries"
 readme = "README.md"
 requires-python = ">=3.10"
-license = "GPL-3.0-or-later"
 classifiers = [
-  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+  "Intended Audience :: End Users/Desktop",
+  "Topic :: Text Editors",
+  "Topic :: Text Processing",
+  "Topic :: Utilities",
+  "Programming Language :: Python",
   "Operating System :: OS Independent",
 ]
 dependencies = ["PySide6"]

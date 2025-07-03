@@ -1,9 +1,17 @@
+# Flatpak
+.flatpak-builder/
+builddir/
+
 # Editor
 .vscode/
 
 # Localization
 *.qm
 *.pot
+
+# Pipx
+build/
+nottodbox.egg-info
 
 # Python
 *__pycache__
