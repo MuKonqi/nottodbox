@@ -74,7 +74,7 @@
 > [!CAUTION] 
 > Build command tested on bash.
 
-- Build: `git clone https://github.com/mukonqi/nottodbox.git ; cd nottodbox ; pyinstaller --add-data 'nottodbox/color-schemes/:nottodbox/color-schemes' --add-data 'nottodbox/LICENSE.txt:nottodbox' -F -n nottodbox nottodbox/__main__.py`
+- Build: `git clone https://github.com/mukonqi/nottodbox.git ; cd nottodbox ; pyinstaller --add-data 'nottodbox/color-schemes/:nottodbox/color-schemes' --add-data 'nottodbox/LICENSE.txt:nottodbox' -F -w -i share/pyinstaller/io.github.mukonqi.nottodbox.ico -i share/pyinstaller/io.github.mukonqi.nottodbox.icns -n nottodbox nottodbox/__main__.py`
 - Now you can find the executable in dist/nottodbox(.exe).
 
 ## Running from source

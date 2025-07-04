@@ -34,14 +34,5 @@ USER_NAME = getpass.getuser()
 
 USER_DIRS = {"desktop": QStandardPaths.standardLocations(QStandardPaths.StandardLocation.DesktopLocation)[0], "documents": QStandardPaths.standardLocations(QStandardPaths.StandardLocation.DocumentsLocation)[0]}
 
-with open("/etc/passwd") as f:
-    passwd = f.readlines()
-    
-    for row in passwd:
-        if row.startswith(USER_NAME):
-            USER_NAME_PRETTY = row.split(":")[4]
-            
-            break
-
 USER_DATABASES_DIR = os.path.join(QStandardPaths.standardLocations(QStandardPaths.StandardLocation.GenericDataLocation)[0], "nottodbox", "databases")
 os.makedirs(USER_DATABASES_DIR, exist_ok=True)
