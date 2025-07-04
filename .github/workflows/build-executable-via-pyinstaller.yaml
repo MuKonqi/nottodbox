@@ -19,7 +19,7 @@ jobs:
     - name: Delete old nightly release
       run: gh release delete nightly --cleanup-tag --yes | true
 
-  build-appimage:
+  build-executable-via-pyinstaller:
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
