@@ -31,9 +31,10 @@
 </details>
 
 ## Using
-<!-- ### Installing from Flatpak / Flathub (recommended for Linux users)
-> [!WARNING]
+### Installing from Flatpak / Flathub (recommended for Linux users)
+<!-- > [!WARNING]
 > [Set up Flatpak](https://flatpak.org/setup/)
+
 - `flatpak install io.github.mukonqi.nottodbox`
 
 ### Installing from GitHub releases (recommended for Windows and macOS users)
@@ -43,12 +44,14 @@
 
 ### Installing from PyPI
 > [!WARNING] 
-> Dependencies: Python (3.10 and higher), pip
+> Dependencies: Python (3.10 and higher) and pip
+
 - `pip install nottodbox` -->
 
 ### Building a Flatpak
 > [!WARNING]
 > [Set up Flatpak](https://flatpak.org/setup/)
+
 - Build: `git clone https://github.com/mukonqi/nottodbox.git ; cd nottodbox ; flatpak-builder --user --force-clean --install-deps-from flathub --install --sandbox .flatpak-builder/app io.github.mukonqi.nottodbox.yaml`
 - Run: `flatpak run --branch=master --arch=x86_64 --command=nottodbox io.github.mukonqi.nottodbox`
 
@@ -57,22 +60,27 @@
 > Dependencies: Python (3.10 and higher), pip and git
 > [!CAUTION] 
 > Build command tested on bash.
+
 - Build: `git clone https://github.com/mukonqi/nottodbox.git ; cd nottodbox ; pip install .`
 - Run: `nottodbox`
 
 ### Building via PyInstaller
 > [!WARNING] 
 > Dependencies: Python (3.10 and higher), PySide6, PyInstaller and git
+
 > [!CAUTION] 
 > Build command tested on bash.
+
 - Build: `git clone https://github.com/mukonqi/nottodbox.git ; cd nottodbox ; pyinstaller --add-data 'nottodbox/color-schemes/:nottodbox/color-schemes' --add-data 'nottodbox/LICENSE.txt:nottodbox' -F -n nottodbox nottodbox/__main__.py`
 - Now you can find the executable in dist/nottodbox(.exe).
 
 ## Running from source
 > [!WARNING] 
 > Dependencies: Python (3.10 and higher), PySide6 and git
+
 > [!CAUTION] 
 > Run command tested on bash.
+
 - `git clone https://github.com/mukonqi/nottodbox.git ; cd nottodbox ; python3 -m nottodbox`
 
 ## Disclaimer
