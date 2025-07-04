@@ -3,11 +3,11 @@ runtime: org.kde.Platform
 runtime-version: "6.9"
 sdk: org.kde.Sdk
 command: nottodbox
-base: "io.qt.PySide.BaseApp"
+base: io.qt.PySide.BaseApp
 base-version: "6.9"
 finish-args:
   - --share=ipc
-  - --socket=x11
+  - --socket=fallback-x11
   - --socket=wayland
   - --device=dri
   - --filesystem=xdg-desktop/Nottodbox:create
@@ -22,7 +22,13 @@ modules:
   - name: nottodbox
     buildsystem: simple
     build-commands: 
-      - pip3 install --no-build-isolation --no-deps --no-index --prefix=/app --verbose .
+      - mkdir -p /app/share/applications
+      - mkdir -p /app/share/icons/hicolor/scalable/apps
+      - mkdir -p /app/share/metainfo
+      - cp share/applications/io.github.mukonqi.nottodbox.desktop /app/share/applications
+      - cp share/icons/hicolor/scalable/apps/io.github.mukonqi.nottodbox.svg /app/share/icons/hicolor/scalable/apps
+      - cp share/metainfo/io.github.mukonqi.nottodbox.appdata.xml /app/share/metainfo
+      - pip3 install --no-build-isolation --no-deps --no-index --prefix=${FLATPAK_DEST} --verbose .
     sources: 
       - type: git
         url: https://github.com/mukonqi/nottodbox
