@@ -39,10 +39,10 @@ jobs:
         python-version: "3.13"
 
     - name: Install dependencies
-      run: pip install PySide6-Essentials pyinstaller
+      run: pip install Pillow PySide6-Essentials pyinstaller
 
     - name: Build executable
-      run: pyinstaller --add-data 'nottodbox/color-schemes/:nottodbox/color-schemes' --add-data 'nottodbox/LICENSE.txt:nottodbox' -F -w -i share/pyinstaller/io.github.mukonqi.nottodbox.ico -i share/pyinstaller/io.github.mukonqi.nottodbox.icns -n nottodbox nottodbox/__main__.py
+      run: pyinstaller --add-data 'nottodbox/color-schemes/:nottodbox/color-schemes' --add-data 'nottodbox/LICENSE.txt:nottodbox' -F -w -i share/icons/hicolor/96x96/apps/io.github.mukonqi.nottodbox.png -n nottodbox nottodbox/__main__.py
 
     - name: Rename executable file for macOS
       if: runner.os == 'macOS'
