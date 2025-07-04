@@ -1,7 +1,7 @@
 # Nottodbox
 
 <p align="center">
-    <img src="./share/icons/hicolor/96x96/apps/io.github.mukonqi.nottodbox.png" alt="Icon of Nottodbox"></img><br>
+    <img src="./io.github.mukonqi.nottodbox.png" alt="Icon of Nottodbox"></img><br>
     <img src="https://img.shields.io/badge/Organize_notes,_to--dos_and_diaries-376296" alt="Organize notes, to-dos and diaries"></img><br>
     <img src="https://img.shields.io/github/downloads/mukonqi/nottodbox/total?label=Downloads" alt="Downloads"></img>
     <img src="https://img.shields.io/github/v/release/mukonqi/nottodbox?label=Release" alt="Release"><br>
@@ -74,7 +74,7 @@
 > [!CAUTION] 
 > Build command tested on bash.
 
-- Build: `pyinstaller --add-data 'nottodbox/color-schemes/:nottodbox/color-schemes' --add-data 'nottodbox/LICENSE.txt:nottodbox' -F -w -i share/icons/hicolor/96x96/apps/io.github.mukonqi.nottodbox.png -n nottodbox nottodbox/__main__.py`
+- Build: `pyinstaller --add-data 'nottodbox/color-schemes/:nottodbox/color-schemes' --add-data 'nottodbox/LICENSE.txt:nottodbox' -F -w -i io.github.mukonqi.nottodbox.png -n nottodbox nottodbox/__main__.py`
 - Now you can find the executable in dist/nottodbox(.exe).
 
 ## Running from source
