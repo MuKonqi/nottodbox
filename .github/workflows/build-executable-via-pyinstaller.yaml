@@ -52,7 +52,6 @@ jobs:
     - name: Upload to nightly release
       uses: softprops/action-gh-release@v2.2.1
       with:
-        body_path: "CHANGELOG.md"
         files: dist/*
         tag_name: nightly
         prerelease: true
