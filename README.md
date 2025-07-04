@@ -31,18 +31,18 @@
 </details>
 
 ## Using
-### Installing from Flatpak / Flathub (recommended for Linux users)
-<!-- > [!WARNING]
+<!-- ### Installing from Flatpak / Flathub (recommended for Linux users)
+> [!WARNING]
 > [Set up Flatpak](https://flatpak.org/setup/)
 
-- `flatpak install io.github.mukonqi.nottodbox`
+- `flatpak install io.github.mukonqi.nottodbox` -->
 
 ### Installing from GitHub releases (recommended for Windows and macOS users)
 - [Download for Linux](https://github.com/MuKonqi/nottodbox/releases/download/latest/nottodbox)
-- [Download for macOS](https://github.com/MuKonqi/nottodbox/releases/download/latest/nottodbox.app)
+- [Download for macOS](https://github.com/MuKonqi/nottodbox/releases/download/latest/nottodbox-mac)
 - [Download for Windows](https://github.com/MuKonqi/nottodbox/releases/download/latest/nottodbox.exe)
 
-### Installing from PyPI
+<!-- ### Installing from PyPI
 > [!WARNING] 
 > Dependencies: Python (3.10 and higher) and pip
 

@@ -38,14 +38,9 @@ jobs:
     - name: Build executable
       run: pyinstaller --add-data 'nottodbox/color-schemes/:nottodbox/color-schemes' --add-data 'nottodbox/LICENSE.txt:nottodbox' -F -n nottodbox nottodbox/__main__.py
 
-    - name: Rename executable file
-      run: |
-        if [ "$RUNNER_OS" == "Linux" ]; then
-          mv dist/nottodbox dist/nottodbox-linux
-        elif [ "$RUNNER_OS" == "macOS" ]; then
-          mv dist/nottodbox dist/nottodbox-mac
-        fi
-      shell: bash
+    - name: Rename executable file for macOS
+      if: runner.os == 'macOS'
+      run: mv dist/nottodbox dist/nottodbox-mac
 
     - name: Create changelog file
       if: startsWith(github.ref, 'refs/tags/')
