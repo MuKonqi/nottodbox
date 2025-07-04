@@ -32,19 +32,19 @@
 
 
 ## Installing via pip
-- TBA
 
 ## Installing via Flatpak / Flathub
-- TBA
 
 ## Building via pip
 > [!WARNING] 
 > Dependencies: Python (3.10 and higher), pip and git
+
 ```git clone https://github.com/mukonqi/nottodbox.git ; cd nottodbox ; pip install .```
 
 ## Running from source
 > [!WARNING] 
 > Dependencies: Python (3.10 and higher), PySide6 and git
+
 ```git clone https://github.com/mukonqi/nottodbox.git ; python3 nottodbox/nottodbox/__init__.py```
 
 
