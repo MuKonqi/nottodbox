@@ -79,11 +79,6 @@
         <translation>Özelleştir</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/settings.py" line="323"/>
-        <source>Warning: Some styles may not be detected if you installed PySide6 via Pip</source>
-        <translation>Uyarı: Bazı stiller eğer PySide6&apos;yı Pip ile kurduysanız algılanmayabilir</translation>
-    </message>
-    <message>
         <location filename="../nottodbox/scripts/settings.py" line="325"/>
         <source>From the system directory for KDE-format color schemes</source>
         <translation>KDE-biçimi renk şemaları için sistem klasöründen</translation>
@@ -152,6 +147,11 @@ Do you want to overwrite it?</source>
         <location filename="../nottodbox/scripts/settings.py" line="632"/>
         <source>Error</source>
         <translation>Hata</translation>
+    </message>
+    <message>
+        <location filename="../nottodbox/scripts/settings.py" line="323"/>
+        <source>Warning: Some styles may not be detected</source>
+        <translation>Uyarı: Bazı stiller algılanmayabilir</translation>
     </message>
     <message>
         <location filename="../nottodbox/scripts/settings.py" line="599"/>

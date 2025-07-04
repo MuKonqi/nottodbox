@@ -320,7 +320,7 @@ class Appearance(QWidget):
         self.layout_.addRow("{} {}:".format(self.tr("Custom"), self.tr("Color scheme").lower()), self.custom_color_schemes.name)
         self.layout_.addWidget(self.custom_color_schemes)
         self.layout_.addRow(HSeperator(self))
-        self.layout_.addRow(Label(self, self.tr("Warning: Some styles may not be detected if you installed PySide6 via Pip"), 0x0001))
+        self.layout_.addRow(Label(self, self.tr("Warning: Some styles may not be detected"), 0x0001))
         self.layout_.addRow(Label(self, 
                                "<br>{}{}".format(self.superscriptDirNumber(1), self.tr("From the system directory for KDE-format color schemes")), 0x0001))
         self.layout_.addRow(Label(self, 

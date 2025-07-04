@@ -38,6 +38,9 @@
 - `flatpak install io.github.mukonqi.nottodbox` -->
 
 ### Installing from GitHub releases (recommended for Windows and macOS users)
+> [!CAUTION]
+> If you can not run the file, check whether it is executable. If not, please make the file executable.
+
 - [Download for Linux](https://github.com/MuKonqi/nottodbox/releases/download/latest/nottodbox)
 - [Download for macOS](https://github.com/MuKonqi/nottodbox/releases/download/latest/nottodbox-mac)
 - [Download for Windows](https://github.com/MuKonqi/nottodbox/releases/download/latest/nottodbox.exe)
