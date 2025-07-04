@@ -7,7 +7,7 @@ base: "io.qt.PySide.BaseApp"
 base-version: "6.9"
 finish-args:
   - --share=ipc
-  - --socket=fallback-x11
+  - --socket=x11
   - --socket=wayland
   - --device=dri
   - --filesystem=xdg-desktop/Nottodbox:create
@@ -22,7 +22,7 @@ modules:
   - name: nottodbox
     buildsystem: simple
     build-commands: 
-      - pip3 install --no-build-isolation --prefix=/app .
+      - pip3 install --no-build-isolation --no-deps --no-index --prefix=/app --verbose .
     sources: 
       - type: git
         url: https://github.com/mukonqi/nottodbox

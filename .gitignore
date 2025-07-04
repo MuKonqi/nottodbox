@@ -1,6 +1,5 @@
 # Flatpak
 .flatpak-builder/
-builddir/
 
 # Editor
 .vscode/

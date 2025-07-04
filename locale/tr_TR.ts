@@ -33,6 +33,11 @@
         <source>Qt version:</source>
         <translation>Qt sürümü:</translation>
     </message>
+    <message>
+        <location filename="../nottodbox/scripts/about.py" line="83"/>
+        <source>Platform: {}</source>
+        <translation>Platform: {}</translation>
+    </message>
 </context>
 <context>
     <name>Appearance</name>

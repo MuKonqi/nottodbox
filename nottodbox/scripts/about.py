@@ -80,4 +80,5 @@ class AboutPage(QWidget):
         self.layout_.addWidget(HSeperator(self))
         self.layout_.addWidget(HSeperator(self))
         self.layout_.addWidget(PushButton(self, QApplication.aboutQt, self.tr("Qt version:") + f" v{qVersion()}", False, True))
+        self.layout_.addWidget(Label(self, self.tr("Platform: {}").format(QApplication.platformName())))
         self.layout_.setStretchFactor(self.icon_and_nottodbox, 2)
