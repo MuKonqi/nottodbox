@@ -30,23 +30,50 @@
 ![Appearance when using 'Nottodbox Dark' color scheme](.github/images/dark.png)
 </details>
 
+## Using
+<!-- ### Installing from Flatpak / Flathub (recommended for Linux users)
+> [!WARNING]
+> [Set up Flatpak](https://flatpak.org/setup/)
+- `flatpak install io.github.mukonqi.nottodbox`
 
-## Installing via pip
+### Installing from GitHub releases (recommended for Windows and macOS users)
+- [Download for Linux](https://github.com/MuKonqi/nottodbox/releases/download/latest/nottodbox)
+- [Download for macOS](https://github.com/MuKonqi/nottodbox/releases/download/latest/nottodbox.app)
+- [Download for Windows](https://github.com/MuKonqi/nottodbox/releases/download/latest/nottodbox.exe)
 
-## Installing via Flatpak / Flathub
+### Installing from PyPI
+> [!WARNING] 
+> Dependencies: Python (3.10 and higher), pip
+- `pip install nottodbox` -->
 
-## Building via pip
+### Building a Flatpak
+> [!WARNING]
+> [Set up Flatpak](https://flatpak.org/setup/)
+- Build: `git clone https://github.com/mukonqi/nottodbox.git ; cd nottodbox ; flatpak-builder --user --force-clean --install-deps-from flathub --install --sandbox .flatpak-builder/app io.github.mukonqi.nottodbox.yaml`
+- Run: `flatpak run --branch=master --arch=x86_64 --command=nottodbox io.github.mukonqi.nottodbox`
+
+### Building via pip
 > [!WARNING] 
 > Dependencies: Python (3.10 and higher), pip and git
+> [!CAUTION] 
+> Build command tested on bash.
+- Build: `git clone https://github.com/mukonqi/nottodbox.git ; cd nottodbox ; pip install .`
+- Run: `nottodbox`
 
-```git clone https://github.com/mukonqi/nottodbox.git ; cd nottodbox ; pip install .```
+### Building via PyInstaller
+> [!WARNING] 
+> Dependencies: Python (3.10 and higher), PySide6, PyInstaller and git
+> [!CAUTION] 
+> Build command tested on bash.
+- Build: `git clone https://github.com/mukonqi/nottodbox.git ; cd nottodbox ; pyinstaller --add-data 'nottodbox/color-schemes/:nottodbox/color-schemes' --add-data 'nottodbox/LICENSE.txt:nottodbox' -F -n nottodbox nottodbox/__main__.py`
+- Now you can find the executable in dist/nottodbox(.exe).
 
 ## Running from source
 > [!WARNING] 
 > Dependencies: Python (3.10 and higher), PySide6 and git
-
-```git clone https://github.com/mukonqi/nottodbox.git ; python3 nottodbox/nottodbox/__init__.py```
-
+> [!CAUTION] 
+> Run command tested on bash.
+- `git clone https://github.com/mukonqi/nottodbox.git ; cd nottodbox ; python3 -m nottodbox`
 
 ## Disclaimer
 > [!CAUTION] 
@@ -54,7 +81,6 @@
 
 > [!TIP]
 > You can see the license for more details.
-
 
 ## Credit
 - While making [nottodbox/scripts/widgets/documents.py](./nottodbox/scripts/widgets/documents.py)'s DocumentHelper class, [KDE - Marknote: master/src/documenthandler.cpp](https://invent.kde.org/office/marknote/-/blob/master/src/documenthandler.cpp) helped me as a referance.

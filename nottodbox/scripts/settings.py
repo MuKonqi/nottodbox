@@ -49,8 +49,8 @@ elif len(KDE_COLOR_SCHEMES_DIRS) == 1:
     elif KDE_COLOR_SCHEMES_DIRS[0] == os.path.join(QStandardPaths.standardLocations(QStandardPaths.StandardLocation.GenericDataLocation)[0], "color-schemes"):
         KDE_SYSTEM_COLOR_SCHEMES_FOUND = False
 
-NOTTODBOX_COLOR_SCHEMES_DIRS = ["@COLOR-SCHEMES_DIR@" if os.path.isdir("@COLOR-SCHEMES_DIR@") else f"{os.path.dirname(os.path.dirname(__file__))}/color-schemes", 
-                                os.path.join(QStandardPaths.standardLocations(QStandardPaths.StandardLocation.GenericDataLocation)[0], "nottodbox", "color-schemes")]
+
+NOTTODBOX_COLOR_SCHEMES_DIRS = [os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(__file__)), "color-schemes")), os.path.join(QStandardPaths.standardLocations(QStandardPaths.StandardLocation.GenericDataLocation)[0], "nottodbox", "color-schemes")]
 os.makedirs(NOTTODBOX_COLOR_SCHEMES_DIRS[1], exist_ok=True)
 
 COLOR_SCHEMES_DIRS.extend(KDE_COLOR_SCHEMES_DIRS)

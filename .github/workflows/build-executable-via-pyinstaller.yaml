@@ -24,7 +24,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ['windows-2025', 'ubuntu-24.04', 'macos-15']
+        os: ['ubuntu-24.04', 'macos-15', 'windows-2025']
 
     steps:
     - uses: actions/checkout@v4
@@ -36,7 +36,12 @@ jobs:
       run: pip install PySide6-Essentials pyinstaller
 
     - name: Build executable
-      run: pyinstaller --add-data 'nottodbox/color-schemes:nottodbox' --add-data 'nottodbox/LICENSE.txt:nottodbox' -F -n nottodbox nottodbox/__main__.py 
+      run: pyinstaller --add-data 'nottodbox/color-schemes/:nottodbox/color-schemes' --add-data 'nottodbox/LICENSE.txt:nottodbox' -F -n nottodbox nottodbox/__main__.py
+
+    - name: Rename executable file for macOS
+      if: runner.os == 'macOS'
+      run: |
+        mv dist/nottodbox dist/nottodbox.app
 
     - name: Create changelog file
       if: startsWith(github.ref, 'refs/tags/')

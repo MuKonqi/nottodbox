@@ -8,9 +8,14 @@
 *.qm
 *.pot
 
-# Pipx
+# pipx
 build/
 nottodbox.egg-info
+
+# PyInstaller
+build/
+dist/
+nottodbox.spec
 
 # Python
 *__pycache__

@@ -20,10 +20,5 @@
 # along with Nottodbox.  If not, see <https://www.gnu.org/licenses/>.
 
 
-try:
-    from scripts.application import main
-    
-except:
-    from .scripts.application import main
-    
+from nottodbox.scripts.application import main
 main()
