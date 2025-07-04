@@ -41,11 +41,9 @@ jobs:
     - name: Rename executable file
       run: |
         if [ "$RUNNER_OS" == "Linux" ]; then
-          mv dist/nottodbox dist/nottodbox-linux-x86_64
-        elif [ "$RUNNER_OS" == "Windows" ]; then
-          mv dist/nottodbox.exe dist/nottodbox-x86_64.exe
+          mv dist/nottodbox dist/nottodbox-linux
         elif [ "$RUNNER_OS" == "macOS" ]; then
-          mv dist/nottodbox dist/nottodbox-mac-x86_64
+          mv dist/nottodbox dist/nottodbox-mac
         fi
       shell: bash
 
