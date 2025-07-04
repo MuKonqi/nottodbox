@@ -1,0 +1,58 @@
+name: Build Executable via PyInstaller
+
+on:
+  pull_request:
+  push: 
+    tags: "*"
+  workflow_dispatch:
+
+jobs:
+  delete-old-nightly-release:
+    env:
+      GH_TOKEN: ${{ github.token }}
+    
+    runs-on: ubuntu-24.04
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Delete old nightly release
+      run: gh release delete nightly --cleanup-tag --yes | true
+
+  build-appimage:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ['windows-2025', 'ubuntu-24.04', 'macos-15']
+
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with:
+        python-version: "3.13"
+
+    - name: Install dependencies
+      run: pip install PySide6-Essentials pyinstaller
+
+    - name: Build executable
+      run: pyinstaller --add-data 'nottodbox/color-schemes:nottodbox' --add-data 'nottodbox/LICENSE.txt:nottodbox' -F -n nottodbox nottodbox/__main__.py 
+
+    - name: Create changelog file
+      if: startsWith(github.ref, 'refs/tags/')
+      run: python3 .github/scripts/changelog.py
+
+    - name: Upload to stable release
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: softprops/action-gh-release@v2.2.1
+      with:
+        body_path: "CHANGELOG.md"
+        files: dist/*
+
+    - name: Upload to nightly release
+      uses: softprops/action-gh-release@v2.2.1
+      with:
+        body_path: "CHANGELOG.md"
+        files: dist/*
+        tag_name: nightly
+        prerelease: true
