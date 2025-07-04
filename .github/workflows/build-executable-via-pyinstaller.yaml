@@ -28,6 +28,12 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+
+    - uses: samypr100/setup-dev-drive@v3
+      if: runner.os == 'Windows'
+      with:
+        workspace-copy: true
+
     - uses: actions/setup-python@v5
       with:
         python-version: "3.13"
