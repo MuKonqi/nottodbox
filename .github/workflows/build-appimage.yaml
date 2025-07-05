@@ -1,0 +1,75 @@
+name: Build Executable via PyInstaller
+
+on:
+  pull_request:
+  push: 
+    tags: "*"
+  workflow_dispatch:
+
+jobs:
+  build-appimage:
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install system dependencies
+      run: |
+        sudo apt install -y libglib2.0-0 libopengl0 libxcb-cursor0 patchelf wget
+        pip install pyinstaller PySide6-Essentials
+
+    - name: Build executable
+      run: bash .github/scripts/pyinstaller.sh
+
+    - name: Prepare AppDir
+      run: |
+        mkdir -p AppDir/usr/bin
+        mkdir -p AppDir/usr/lib
+        mkdir -p AppDir/usr/share/applications/
+        mkdir -p AppDir/usr/share/icons/hicolor/scalable/apps
+        mkdir -p AppDir/usr/share/metainfo
+
+        cp dist/nottodbox AppDir/usr/bin/
+
+        cp share/applications/io.github.mukonqi.nottodbox.desktop AppDir/usr/share/applications/io.github.mukonqi.nottodbox.desktop
+        cp share/applications/io.github.mukonqi.nottodbox.desktop io.github.mukonqi.nottodbox.desktop
+
+        cp share/icons/hicolor/scalable/apps/io.github.mukonqi.nottodbox.svg AppDir/usr/share/icons/hicolor/scalable/apps/io.github.mukonqi.nottodbox.svg
+        cp share/icons/hicolor/scalable/apps/io.github.mukonqi.nottodbox.svg io.github.mukonqi.nottodbox.svg
+        cp share/icons/hicolor/scalable/apps/io.github.mukonqi.nottodbox.svg .DirIcon
+
+        cp share/metainfo/io.github.mukonqi.nottodbox.appdata.xml AppDir/usr/share/metainfo/io.github.mukonqi.nottodbox.appdata.xml
+
+    - name: Copy required system libs
+      run: ldd AppDir/usr/bin/nottodbox | grep "=> /" | awk '{print $3}' | xargs -I '{}' cp -v '{}' AppDir/usr/lib/ || true
+
+    - name: Create AppRun
+      run: |
+        cat > AppDir/AppRun << 'EOF'
+        #!/bin/bash
+        HERE="$(dirname "$(readlink -f "${0}")")"
+        export LD_LIBRARY_PATH="${HERE}/usr/lib:${LD_LIBRARY_PATH}"
+        exec "${HERE}/usr/bin/nottodbox" "$@"
+        EOF
+        chmod +x AppDir/AppRun
+
+    - name: Download appimagetool
+      run: |
+        wget -q https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
+        chmod +x appimagetool-x86_64.AppImage
+
+    - name: Build AppImage
+      run: ./appimagetool-x86_64.AppImage AppDir
+
+    - name: Upload to stable release
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: softprops/action-gh-release@v2.2.1
+      with:
+        body_path: "CHANGELOG.md"
+        files: '*.AppImage'
+
+    - name: Upload to nightly release
+      uses: softprops/action-gh-release@v2.2.1
+      with:
+        files: '*.AppImage'
+        tag_name: nightly
+        prerelease: true

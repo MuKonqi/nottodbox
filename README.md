@@ -1,10 +1,11 @@
 # Nottodbox
 
 <p align="center">
-    <img src="./io.github.mukonqi.nottodbox.png" alt="Icon of Nottodbox"></img><br>
+    <img src="share/icons/hicolor/96x96/apps/io.github.mukonqi.nottodbox.png" alt="Icon of Nottodbox"></img><br>
     <img src="https://img.shields.io/badge/Organize_notes,_to--dos_and_diaries-376296" alt="Organize notes, to-dos and diaries"></img><br>
     <img src="https://img.shields.io/github/downloads/mukonqi/nottodbox/total?label=Downloads" alt="Downloads"></img>
     <img src="https://img.shields.io/github/v/release/mukonqi/nottodbox?label=Release" alt="Release"><br>
+    <a href="https://github.com/MuKonqi/nottodbox/releases/download/latest/nottodbox.AppImage"><img src="https://docs.appimage.org/_images/download-appimage-banner.svg" alt="Download as an AppImage" /></a>
 </p>
 
 <p>Nottodbox allows you to create and organize notes, to-dos, and diaries with rich text support in popular formats.</p>
@@ -37,11 +38,11 @@
 
 - `flatpak install io.github.mukonqi.nottodbox` -->
 
-### Installing from GitHub releases (recommended for Windows and macOS users)
+### Downloading from GitHub releases (recommended for Windows and macOS users)
 > [!CAUTION]
 > If you can not run the file, check whether it is executable. If not, please make the file executable.
 
-- [Download for Linux](https://github.com/MuKonqi/nottodbox/releases/download/latest/nottodbox)
+- [Download for Linux](https://github.com/MuKonqi/nottodbox/releases/download/latest/nottodbox.AppImage)
 - [Download for macOS](https://github.com/MuKonqi/nottodbox/releases/download/latest/nottodbox-mac)
 - [Download for Windows](https://github.com/MuKonqi/nottodbox/releases/download/latest/nottodbox.exe)
 
@@ -74,7 +75,9 @@
 > [!CAUTION] 
 > Build command tested on bash.
 
-- Build: `pyinstaller --add-data 'nottodbox/color-schemes/:nottodbox/color-schemes' --add-data 'nottodbox/LICENSE.txt:nottodbox' -F -w -i io.github.mukonqi.nottodbox.png -n nottodbox nottodbox/__main__.py`
+- Build for Linux: `export RUNNER_OS="Linux" ; bash .github/scripts/pyinstaller.sh`
+- Build for macOS: `export RUNNER_OS="macOS" ; bash .github/scripts/pyinstaller.sh`
+- Build for Windows: `export RUNNER_OS="Windows" ; bash .github/scripts/pyinstaller.sh`
 - Now you can find the executable in dist/nottodbox(.exe).
 
 ## Running from source

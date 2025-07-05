@@ -7,18 +7,6 @@ on:
   workflow_dispatch:
 
 jobs:
-  delete-old-nightly-release:
-    env:
-      GH_TOKEN: ${{ github.token }}
-    
-    runs-on: ubuntu-24.04
-
-    steps:
-    - uses: actions/checkout@v4
-
-    - name: Delete old nightly release
-      run: gh release delete nightly --cleanup-tag --yes | true
-
   build-executable-via-pyinstaller:
     runs-on: ${{ matrix.os }}
     strategy:
@@ -42,15 +30,11 @@ jobs:
       run: pip install Pillow PySide6-Essentials pyinstaller
 
     - name: Build executable
-      run: pyinstaller --add-data 'nottodbox/color-schemes/:nottodbox/color-schemes' --add-data 'nottodbox/LICENSE.txt:nottodbox' -F -w -i io.github.mukonqi.nottodbox.png -n nottodbox nottodbox/__main__.py
+      run: bash .github/scripts/pyinstaller.sh
 
     - name: Rename executable file for macOS
       if: runner.os == 'macOS'
       run: mv dist/nottodbox dist/nottodbox-mac
-
-    - name: Create changelog file
-      if: startsWith(github.ref, 'refs/tags/')
-      run: python3 .github/scripts/changelog.py
 
     - name: Upload to stable release
       if: startsWith(github.ref, 'refs/tags/')
