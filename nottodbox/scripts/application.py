@@ -40,7 +40,7 @@ class Application(QApplication):
         self.setApplicationName("nottodbox")
         self.setApplicationDisplayName("Nottodbox")
         self.setDesktopFileName("io.github.mukonqi.nottodbox")
-        self.setWindowIcon(QIcon.fromTheme("io.github.mukonqi.nottodbox", QIcon(QPixmap.fromImage(image))))
+        self.setWindowIcon(QIcon(QPixmap.fromImage(image)))
         
         translator = QTranslator(self)
         if translator.load(QLocale().system(), "", "", ":/locale"):

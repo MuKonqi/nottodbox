@@ -43,7 +43,7 @@ class MainWindow(QMainWindow):
         svg_renderer.render(QPainter(image))
         
         self.show()
-        self.setWindowIcon(QIcon.fromTheme("io.github.mukonqi.nottodbox", QIcon(QPixmap.fromImage(image))))
+        self.setWindowIcon(QIcon(QPixmap.fromImage(image)))
         self.restoreGeometry(QByteArray(self.qsettings.value("mainwindow/geometry")))
         self.restoreState(QByteArray(self.qsettings.value("mainwindow/state")))
         self.setMinimumWidth(1000)

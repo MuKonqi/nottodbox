@@ -120,16 +120,14 @@
   <developer id="io.github.mukonqi">
     <name>Muhammed S.</name>
   </developer>
-  <screenshots>
-    <screenshot type="default">
-      <caption>Appearance when using 'Nottodbox Light' color scheme</caption>
-      <caption xml:lang="tr_TR">'Nottodbox Light' renk şeması kullanıldığında görünüm</caption>
-      <image type="source">https://raw.githubusercontent.com/mukonqi/nottodbox/main/screenshots/light.png</image>
-    </screenshot>
-    <screenshot>
-      <caption>Appearance when using 'Nottodbox Dark' color scheme</caption>
-      <caption xml:lang="tr_TR">'Nottodbox Dark' renk şeması kullanıldığında görünüm</caption>
-      <image type="source">https://raw.githubusercontent.com/mukonqi/nottodbox/main/screenshots/images/dark.png</image>
-    </screenshot>
-  </screenshots>
+  <!-- <screenshots>
+        <screenshot type="default">
+            <caption>Appearance when using 'Nottodbox Light' color scheme</caption>
+            <image type="source">https://raw.githubusercontent.com/mukonqi/nottodbox/main/screenshots/light.png</image>
+        </screenshot>
+        <screenshot>
+            <caption>Appearance when using 'Nottodbox Dark' color scheme</caption>
+            <image type="source">https://raw.githubusercontent.com/mukonqi/nottodbox/main/screenshots/images/dark.png</image>
+        </screenshot>
+    </screenshots> -->
 </component>
