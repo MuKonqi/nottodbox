@@ -1,4 +1,4 @@
-name: Build Executable via PyInstaller
+name: Build AppImage
 
 on:
   pull_request:
