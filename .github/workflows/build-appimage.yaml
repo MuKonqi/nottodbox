@@ -14,7 +14,7 @@ jobs:
 
     - name: Install system dependencies
       run: |
-        sudo apt install -y libglib2.0-0 libopengl0 libxcb-cursor0 patchelf wget
+        sudo apt install -y libfuse2 libglib2.0-0 libopengl0 libxcb-cursor0 patchelf wget
         pip install pyinstaller PySide6-Essentials
 
     - name: Build executable
