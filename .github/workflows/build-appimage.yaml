@@ -31,11 +31,10 @@ jobs:
         cp dist/nottodbox AppDir/usr/bin/
 
         cp share/applications/io.github.mukonqi.nottodbox.desktop AppDir/usr/share/applications/io.github.mukonqi.nottodbox.desktop
-        cp share/applications/io.github.mukonqi.nottodbox.desktop io.github.mukonqi.nottodbox.desktop
+        cp share/applications/io.github.mukonqi.nottodbox.desktop AppDir/io.github.mukonqi.nottodbox.desktop
 
         cp share/icons/hicolor/scalable/apps/io.github.mukonqi.nottodbox.svg AppDir/usr/share/icons/hicolor/scalable/apps/io.github.mukonqi.nottodbox.svg
-        cp share/icons/hicolor/scalable/apps/io.github.mukonqi.nottodbox.svg io.github.mukonqi.nottodbox.svg
-        cp share/icons/hicolor/scalable/apps/io.github.mukonqi.nottodbox.svg .DirIcon
+        cp share/icons/hicolor/scalable/apps/io.github.mukonqi.nottodbox.svg AppDir/io.github.mukonqi.nottodbox.svg
 
         cp share/metainfo/io.github.mukonqi.nottodbox.appdata.xml AppDir/usr/share/metainfo/io.github.mukonqi.nottodbox.appdata.xml
 
