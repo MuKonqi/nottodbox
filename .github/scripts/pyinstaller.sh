@@ -1,3 +1,5 @@
+sed -i "s/APP_BUILD = .*/APP_BUILD = 'PyInstaller'/" nottodbox/scripts/consts.py
+
 if [ "$RUNNER_OS" == "Linux" ]; then
     pyinstaller --add-data 'nottodbox/color-schemes/:nottodbox/color-schemes' --add-data 'nottodbox/LICENSE.txt:nottodbox' -F -w -n nottodbox nottodbox/__main__.py
 elif [ "$RUNNER_OS" == "macOS" ]; then

@@ -30,13 +30,8 @@
     </message>
     <message>
         <location filename="../nottodbox/scripts/about.py" line="82"/>
-        <source>Qt version:</source>
-        <translation>Qt sürümü:</translation>
-    </message>
-    <message>
-        <location filename="../nottodbox/scripts/about.py" line="83"/>
-        <source>Platform: {}</source>
-        <translation>Platform: {}</translation>
+        <source>About Qt</source>
+        <translation>Qt Hakında</translation>
     </message>
 </context>
 <context>

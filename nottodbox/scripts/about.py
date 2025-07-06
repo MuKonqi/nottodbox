@@ -17,10 +17,10 @@
 
 
 import os
-from PySide6.QtCore import Qt, qVersion
+from PySide6.QtCore import Qt
 from PySide6.QtGui import QFontDatabase
 from PySide6.QtWidgets import *
-from .version import APP_VERSION
+from .consts import APP_VERSION
 from .widgets.controls import HSeperator, Label, PushButton
 
 
@@ -79,6 +79,5 @@ class AboutPage(QWidget):
         self.layout_.addWidget(HSeperator(self))
         self.layout_.addWidget(HSeperator(self))
         self.layout_.addWidget(HSeperator(self))
-        self.layout_.addWidget(PushButton(self, QApplication.aboutQt, self.tr("Qt version:") + f" v{qVersion()}", False, True))
-        self.layout_.addWidget(Label(self, self.tr("Platform: {}").format(QApplication.platformName())))
+        self.layout_.addWidget(PushButton(self, QApplication.aboutQt, self.tr("About Qt"), False, True))
         self.layout_.setStretchFactor(self.icon_and_nottodbox, 2)

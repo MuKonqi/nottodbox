@@ -21,6 +21,11 @@ import os
 from PySide6.QtCore import QStandardPaths
 
 
+APP_BUILD = 'None'
+
+APP_VERSION = "0.1.0"
+
+
 SETTINGS_DEFAULTS = [None, "disabled", "enabled", "markdown", None, "documents", "no", None, None, None, None, None, None, None, None, None]
 
 SETTINGS_OPTIONS = ["default", "global"]
@@ -36,3 +41,6 @@ USER_DIRS = {"desktop": QStandardPaths.standardLocations(QStandardPaths.Standard
 
 USER_DATABASES_DIR = os.path.join(QStandardPaths.standardLocations(QStandardPaths.StandardLocation.GenericDataLocation)[0], "nottodbox", "databases")
 os.makedirs(USER_DATABASES_DIR, exist_ok=True)
+
+USER_LOGS_DIR = os.path.join(QStandardPaths.standardLocations(QStandardPaths.StandardLocation.GenericDataLocation)[0], "nottodbox", "logs")
+os.makedirs(USER_LOGS_DIR, exist_ok=True)

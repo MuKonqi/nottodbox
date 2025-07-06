@@ -16,33 +16,75 @@
 # along with Nottodbox.  If not, see <https://www.gnu.org/licenses/>.
 
 
+import logging
+import os
+import platform
 import sys
-from PySide6.QtCore import QLocale, QTranslator, Qt
+from datetime import datetime
+from PySide6.QtCore import QLocale, QTranslator, qVersion
 from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import QApplication
+from .consts import APP_BUILD, APP_VERSION, USER_LOGS_DIR
 from .mainwindow import MainWindow
-from .resources import icons, locale # noqa: F401
-from .version import APP_VERSION
+from .resources import icons, locale  # noqa: F401
 
 
 class Application(QApplication):
     def __init__(self, argv: list) -> None:
         super().__init__(argv)
+        
+        logging.info(f"Nottodbox v{APP_VERSION} (build: {APP_BUILD}) (pid: {os.getpid()})")
+        logging.info(f"Operating system: {platform.system()} {platform.release()} ({platform.platform()})")
+        logging.info(f"Platform: {QApplication.platformName()}")
+        logging.info(f"Python: {platform.python_version()}")
+        logging.info(f"Qt: {qVersion()}")
+        logging.info(f"Language: {QLocale.system().name()}")
 
         self.setApplicationVersion(APP_VERSION)
         self.setApplicationName("nottodbox")
         self.setApplicationDisplayName("Nottodbox")
         self.setDesktopFileName("io.github.mukonqi.nottodbox")
         self.setWindowIcon(QPixmap(":icons/window"))
-        
+
         translator = QTranslator(self)
         if translator.load(QLocale.system().language(), "", "", ":/locale"):
             self.installTranslator(translator)
-        
+        else:
+            logging.warning("Failed to load locale.")
+
         self.mainwindow = MainWindow()
         
         
-def main() -> None:    
-    application = Application(sys.argv)
+class StreamToLogger:
+    def __init__(self, logger, log_level=logging.INFO) -> None:
+        self.logger = logger
+        self.log_level = log_level
 
+    def write(self, message) -> None:
+        message = message.strip()
+        if message:
+            self.logger.log(self.log_level, message)
+
+    def flush(self):
+        pass
+
+
+def main() -> None:
+    logger = logging.getLogger()
+    logger.setLevel(logging.DEBUG)
+
+    formatter = logging.Formatter('%(asctime)s [%(levelname)s] %(message)s', "%Y-%m-%d %H-%M-%S")
+
+    file_handler = logging.FileHandler(os.path.join(USER_LOGS_DIR, f"{datetime.now().strftime("%Y-%m-%d %H-%M-%S")}.log"), encoding="utf-8")
+    file_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
+
+    console_handler = logging.StreamHandler()
+    console_handler.setFormatter(formatter)
+    logger.addHandler(console_handler)
+
+    sys.stdout = StreamToLogger(logger, logging.INFO)
+    sys.stderr = StreamToLogger(logger, logging.ERROR)
+    
+    application = Application(sys.argv)
     sys.exit(application.exec())
