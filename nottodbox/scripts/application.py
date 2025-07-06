@@ -19,6 +19,7 @@
 import logging
 import os
 import platform
+import subprocess
 import sys
 from datetime import datetime
 from PySide6.QtCore import QLocale, QTranslator, qVersion
@@ -52,18 +53,20 @@ class Application(QApplication):
         else:
             logging.warning(f"Failed to load locale for {QLocale.system().name()}.")
             
+            translator = QTranslator(self)
             if translator.load(f":locale/{QLocale.system().name().split("_")[0]}"):
                 self.installTranslator(translator)
             else:
                 logging.warning(f"Failed to load locale for {QLocale.system().name().split("_")[0]}.")
             
-        for dir in USER_DIRS.values():
-            dir = os.path.join(dir, "Nottodbox")
-            
-            if os.path.isdir(dir):
-                with os.scandir(dir) as entry:
-                    if not any(entry):
-                        os.rmdir(dir)
+        if APP_BUILD == "Flatpak":
+            for dir in USER_DIRS.values():
+                dir = os.path.join(dir, "Nottodbox")
+                
+                if os.path.isdir(dir):
+                    with os.scandir(dir) as entry:
+                        if not any(entry):
+                            subprocess.run(['flatpak-spawn', '--host', 'rm', '-r', dir])
 
         self.mainwindow = MainWindow()
         
