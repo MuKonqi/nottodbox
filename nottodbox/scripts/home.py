@@ -209,7 +209,7 @@ class Selector(QWidget):
         
         self.tree_view.appendAll()
         
-        self.setFixedWidth(345)
+        self.setFixedWidth(330)
         self.enableCalendar(Qt.CheckState.Unchecked if self.settings.value("selector/calendar") == "hidden" else Qt.CheckState.Checked)
         self.setPage()
         self.setVisible(False if self.settings.value("selector/self") == "hidden" else True)

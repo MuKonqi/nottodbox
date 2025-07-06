@@ -35,10 +35,10 @@ class Sidebar(QWidget):
         self.icons = ["home", "settings", "about", "focus"]
         
         self.buttons = [
-            ToolButton(self, lambda checked: self.setCurrentIndex(checked, 0), self.tr("Home"), True, None, 40),
-            ToolButton(self, lambda checked: self.setCurrentIndex(checked, 1), self.tr("Settings"), True, None, 40),
-            ToolButton(self, lambda checked: self.setCurrentIndex(checked, 2), self.tr("About"), True, None, 40),
-            ToolButton(self, lambda: self.parent_.home.selector.setVisible(False if self.parent_.home.selector.isVisible() else True), self.tr("Focus"), True, None, 40)
+            ToolButton(self, lambda checked: self.setCurrentIndex(checked, 0), self.tr("Home"), True, None, 60),
+            ToolButton(self, lambda checked: self.setCurrentIndex(checked, 1), self.tr("Settings"), True, None, 60),
+            ToolButton(self, lambda checked: self.setCurrentIndex(checked, 2), self.tr("About"), True, None, 60),
+            ToolButton(self, lambda: self.parent_.home.selector.setVisible(False if self.parent_.home.selector.isVisible() else True), self.tr("Focus"), True, None, 60)
         ]
         
         self.list_view = ListView(self)
@@ -67,7 +67,7 @@ class Sidebar(QWidget):
         self.layout_.addWidget(self.column_spinbox)
         self.layout_.setContentsMargins(5, 5, 5, 5)
         
-        self.setFixedWidth(50)
+        self.setFixedWidth(70)
         self.buttons[0].setChecked(True)
        
     @Slot(bool, int) 
@@ -135,18 +135,20 @@ class ButtonDelegate(QStyledItemDelegate):
         self.parent_ = parent
         
     def paint(self, painter: QPainter, option: QStyleOptionViewItem, index: QModelIndex) -> None:
-        painter.save()
+        painter.save()  
+                
+        name = index.data(Qt.ItemDataRole.UserRole + 2).data(Qt.ItemDataRole.UserRole + 101)
         
-        name = index.data(Qt.ItemDataRole.UserRole + 2).data(Qt.ItemDataRole.UserRole + 101)[0]
-                          
         name_font = QFont(option.font)
         name_font.setWeight(QFont.Weight.Bold)
+        name_fontmetrics = QFontMetrics(name_font)
+        name_padding = name_fontmetrics.lineSpacing()
         
         name_rect = QRect(option.rect)
-        name_rect.setTop(name_rect.top() + (option.rect.height() - QFontMetrics(name_font).height()) / 2)
-        name_rect.setLeft(name_rect.left() + (option.rect.width() - QFontMetrics(name_font).horizontalAdvance(name)) / 2)
-        name_rect.setRight(name_rect.left() + QFontMetrics(name_font).horizontalAdvance(name))
-        name_rect.setBottom(name_rect.top() + QFontMetrics(name_font).height())
+        name_rect.setLeft(option.rect.left() + name_padding)
+        name_rect.setTop(option.rect.top() + name_padding)
+        name_rect.setRight(option.rect.width() - name_padding)
+        name_rect.setHeight(name_fontmetrics.lineSpacing())
         
         border_rect = QRect(option.rect.marginsRemoved(QMargins(5, 5, 5, 5)))
 
@@ -184,7 +186,6 @@ class ButtonDelegate(QStyledItemDelegate):
         
         border_pen = QPen(colors[2], 5)
         painter.setPen(border_pen)
-
         painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
         painter.drawPath(border_path)
         painter.fillPath(border_path, colors[0])
@@ -193,8 +194,7 @@ class ButtonDelegate(QStyledItemDelegate):
 
         painter.setPen(colors[1])
         painter.setFont(name_font)
-        
-        painter.drawText(name_rect, name)
+        painter.drawText(name_rect, QFontMetrics(name_font).elidedText(name, Qt.TextElideMode.ElideRight, name_rect.width()))
         
     def editorEvent(self, event: QEvent, model: QStandardItemModel, option: QStyleOptionViewItem, index: QModelIndex) -> bool:
         if event.type() == QEvent.Type.MouseButtonPress:

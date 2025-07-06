@@ -184,7 +184,7 @@ class ListView(QListView):
         
         self.delegate = ButtonDelegate(self)
         
-        self.setFixedWidth(108)
+        self.setFixedWidth(140)
         self.setMouseTracking(True)
         self.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
