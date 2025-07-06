@@ -58,9 +58,12 @@ class Application(QApplication):
                 logging.warning(f"Failed to load locale for {QLocale.system().name().split("_")[0]}.")
             
         for dir in USER_DIRS.values():
-            with os.scandir(dir) as entry:
-                if not any(entry):
-                    os.rmdir(dir)
+            dir = os.path.join(dir, "Nottodbox")
+            
+            if os.path.isdir(dir):
+                with os.scandir(dir) as entry:
+                    if not any(entry):
+                        os.rmdir(dir)
 
         self.mainwindow = MainWindow()
         
