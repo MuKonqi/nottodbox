@@ -15,7 +15,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          sudo apt install -y libfuse2 libglib2.0-0 libopengl0 libxcb-cursor0 libxcb-keysyms1 libxcb-icccm4 libxcb-shape0-dev libxkbcommon-x11-0 libxcb-xkb-dev patchelf wget
+          sudo apt install -y binutils coreutils desktop-file-utils fakeroot fuse libfuse2 libgdk-pixbuf2.0-dev libglib2.0-0 libopengl0 libxcb-cursor0 libxcb-icccm4 libxcb-keysyms1 libxcb-shape0-dev libxcb-xkb-dev libxkbcommon-x11-0 patchelf python3-pip python3-setuptools squashfs-tools strace util-linux wget zsync
           pip install pyinstaller PySide6-essentials appimage-builder
 
       - name: Build executable
