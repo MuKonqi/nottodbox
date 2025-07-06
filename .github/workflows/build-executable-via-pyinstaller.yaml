@@ -27,7 +27,7 @@ jobs:
         python-version: "3.13"
 
     - name: Install dependencies
-      run: pip install Pillow PySide6-Essentials pyinstaller
+      run: pip install PySide6-Essentials pyinstaller
 
     - name: Set-up translations
       run: python3 .github/scripts/translations.py
