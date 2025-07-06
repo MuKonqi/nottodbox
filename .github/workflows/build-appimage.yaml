@@ -29,11 +29,11 @@ jobs:
         uses: softprops/action-gh-release@v2.2.1
         with:
           body_path: "CHANGELOG.md"
-          files: '*.AppImage'
+          files: '*.AppImage*'
 
       - name: Upload to nightly release
         uses: softprops/action-gh-release@v2.2.1
         with:
-          files: '*.AppImage'
+          files: '*.AppImage*'
           tag_name: nightly
           prerelease: true
