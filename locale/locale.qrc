@@ -1,6 +1,6 @@
 <RCC>
     <qresource prefix="locale">
-        <file alias="tr_TR">tr_TR.qm</file>
-        <file alias="tr">tr_TR.qm</file>
+        <file alias="tr_TR.qm">tr_TR.qm</file>
+        <file alias="tr.qm">tr_TR.qm</file>
     </qresource>
 </RCC>

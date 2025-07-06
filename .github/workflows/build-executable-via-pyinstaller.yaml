@@ -27,7 +27,7 @@ jobs:
         python-version: "3.13"
 
     - name: Install dependencies
-      run: pip install Pillow PySide6-Essentials pyinstaller
+      run: pip install PySide6-Essentials pyinstaller
 
     - name: Build executable
       run: bash .github/scripts/pyinstaller.sh
