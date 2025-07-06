@@ -24,7 +24,7 @@ from datetime import datetime
 from PySide6.QtCore import QLocale, QTranslator, qVersion
 from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import QApplication
-from .consts import APP_BUILD, APP_VERSION, USER_LOGS_DIR
+from .consts import APP_BUILD, APP_VERSION, USER_DIRS, USER_LOGS_DIR
 from .mainwindow import MainWindow
 from .resources import icons, locale  # noqa: F401
 
@@ -38,7 +38,7 @@ class Application(QApplication):
         logging.info(f"Platform: {QApplication.platformName()}")
         logging.info(f"Python: {platform.python_version()}")
         logging.info(f"Qt: {qVersion()}")
-        logging.info(f"Language: {QLocale.system().name()}")
+        logging.info(f"Language: {QLocale.system().name()} / {QLocale.system().name().split("_")[0]}")
 
         self.setApplicationVersion(APP_VERSION)
         self.setApplicationName("nottodbox")
@@ -47,10 +47,20 @@ class Application(QApplication):
         self.setWindowIcon(QPixmap(":icons/window"))
 
         translator = QTranslator(self)
-        if translator.load(QLocale.system().language(), "", "", ":/locale"):
+        if translator.load(f":locale/{QLocale.system().name()}"):
             self.installTranslator(translator)
         else:
-            logging.warning("Failed to load locale.")
+            logging.warning(f"Failed to load locale for {QLocale.system().name()}.")
+            
+            if translator.load(f":locale/{QLocale.system().name().split("_")[0]}"):
+                self.installTranslator(translator)
+            else:
+                logging.warning(f"Failed to load locale for {QLocale.system().name().split("_")[0]}.")
+            
+        for dir in USER_DIRS.values():
+            with os.scandir(dir) as entry:
+                if not any(entry):
+                    os.rmdir(dir)
 
         self.mainwindow = MainWindow()
         
