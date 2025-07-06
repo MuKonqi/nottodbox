@@ -1,0 +1,42 @@
+version: 1
+script:
+  - cp dist/nottodbox AppDir/usr/bin/nottodbox
+  - mkdir -p AppDir/usr/bin
+  - mkdir -p AppDir/usr/share/applications/
+  - mkdir -p AppDir/usr/share/icons/hicolor/scalable/apps
+  - mkdir -p AppDir/usr/share/metainfo
+  - cp dist/nottodbox AppDir/usr/bin/
+  - cp share/applications/io.github.mukonqi.nottodbox.desktop AppDir/usr/share/applications/io.github.mukonqi.nottodbox.desktop
+  - cp share/applications/io.github.mukonqi.nottodbox.desktop AppDir/io.github.mukonqi.nottodbox.desktop
+  - cp share/icons/hicolor/scalable/apps/io.github.mukonqi.nottodbox.svg AppDir/usr/share/icons/hicolor/scalable/apps/io.github.mukonqi.nottodbox.svg
+  - cp share/icons/hicolor/scalable/apps/io.github.mukonqi.nottodbox.svg AppDir/io.github.mukonqi.nottodbox.svg
+  - cp share/metainfo/io.github.mukonqi.nottodbox.appdata.xml AppDir/usr/share/metainfo/io.github.mukonqi.nottodbox.appdata.xml
+
+AppDir:
+  path: ./AppDir
+  app_info:
+    id: io.github.mukonqi.nottodbox
+    name: Nottodbox
+    icon: io.github.mukonqi.nottodbox
+    version: "0.1.0"
+    exec: usr/bin/nottodbox
+    exec_args: ""
+
+  files:
+    include:
+      - ./AppDir
+
+  apt:
+    include:
+      - libxcb-cursor0
+      - libxcb-keysyms1
+      - libxcb-icccm4
+      - libxkbcommon-x11-0
+      - libxcb-xkb1
+      - libglib2.0-0
+      - libfuse2
+      - libopengl0
+
+  runtime:
+    env:
+      LD_LIBRARY_PATH: '${APPDIR}/usr/lib:${LD_LIBRARY_PATH}'

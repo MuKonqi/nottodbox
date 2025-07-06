@@ -1,82 +1,40 @@
 name: Build AppImage
 
 on:
-  pull_request:
-  push: 
-    tags: "*"
   workflow_dispatch:
+  push:
+    tags: "*"
 
 jobs:
-  build-appimage:
+  build:
     runs-on: ubuntu-24.04
+
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Install system dependencies
-      run: |
-        sudo apt install -y libfuse2 libglib2.0-0 libopengl0 libxcb-cursor0 libxcb-keysyms1 libxcb-icccm4 libxcb-shape0-dev libxkbcommon-x11-0 libxcb-xkb-dev patchelf wget
-        pip install pyinstaller PySide6-Essentials
+      - name: Install dependencies
+        run: |
+          sudo apt install -y libfuse2 libglib2.0-0 libopengl0 libxcb-cursor0 libxcb-keysyms1 libxcb-icccm4 libxcb-shape0-dev libxkbcommon-x11-0 libxcb-xkb-dev patchelf wget
+          pip install pyinstaller PySide6-essentials appimage-builder
 
-    - name: Build executable
-      run: bash .github/scripts/pyinstaller.sh
+      - name: Build executable
+        run: bash .github/scripts/pyinstaller.sh
 
-    - name: Prepare AppDir
-      run: |
-        mkdir -p AppDir/usr/bin
-        mkdir -p AppDir/usr/lib
-        mkdir -p AppDir/usr/share/applications/
-        mkdir -p AppDir/usr/share/icons/hicolor/scalable/apps
-        mkdir -p AppDir/usr/share/metainfo
+      - name: Build AppImage
+        run: |
+          appimage-builder --skip-test
+          mv Nottodbox-x86_64.AppImage nottodbox.AppImage
 
-        cp dist/nottodbox AppDir/usr/bin/
+      - name: Upload to stable release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2.2.1
+        with:
+          body_path: "CHANGELOG.md"
+          files: 'nottodbox.AppImage'
 
-        cp share/applications/io.github.mukonqi.nottodbox.desktop AppDir/usr/share/applications/io.github.mukonqi.nottodbox.desktop
-        cp share/applications/io.github.mukonqi.nottodbox.desktop AppDir/io.github.mukonqi.nottodbox.desktop
-
-        cp share/icons/hicolor/scalable/apps/io.github.mukonqi.nottodbox.svg AppDir/usr/share/icons/hicolor/scalable/apps/io.github.mukonqi.nottodbox.svg
-        cp share/icons/hicolor/scalable/apps/io.github.mukonqi.nottodbox.svg AppDir/io.github.mukonqi.nottodbox.svg
-
-        cp share/metainfo/io.github.mukonqi.nottodbox.appdata.xml AppDir/usr/share/metainfo/io.github.mukonqi.nottodbox.appdata.xml
-
-    - name: Copy required system libs
-      run: |
-        mkdir -p AppDir/usr/lib
-        ldd AppDir/usr/bin/nottodbox \
-          | grep "=> /" \
-          | awk '{print $3}' \
-          | grep -vE '/libc\.so|/libpthread\.so|/ld-linux|/libm\.so|/librt\.so|/libdl\.so|/libstdc\+\+\.so' \
-          | xargs -I '{}' cp -v '{}' AppDir/usr/lib/ || true
-
-    - name: Create AppRun
-      run: |
-        cat > AppDir/AppRun << 'EOF'
-        #!/bin/bash
-        HERE="$(dirname "$(readlink -f "${0}")")"
-        export LD_LIBRARY_PATH="${HERE}/usr/lib:${LD_LIBRARY_PATH}"
-        exec "${HERE}/usr/bin/nottodbox" "$@"
-        EOF
-        chmod +x AppDir/AppRun
-
-    - name: Download appimagetool
-      run: |
-        wget -q https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
-        chmod +x appimagetool-x86_64.AppImage
-
-    - name: Build AppImage
-      run: |
-        ./appimagetool-x86_64.AppImage AppDir
-        mv Nottodbox-x86_64.AppImage nottodbox.AppImage
-
-    - name: Upload to stable release
-      if: startsWith(github.ref, 'refs/tags/')
-      uses: softprops/action-gh-release@v2.2.1
-      with:
-        body_path: "CHANGELOG.md"
-        files: 'nottodbox.AppImage'
-
-    - name: Upload to nightly release
-      uses: softprops/action-gh-release@v2.2.1
-      with:
-        files: 'nottodbox.AppImage'
-        tag_name: nightly
-        prerelease: true
+      - name: Upload to nightly release
+        uses: softprops/action-gh-release@v2.2.1
+        with:
+          files: 'nottodbox.AppImage'
+          tag_name: nightly
+          prerelease: true
