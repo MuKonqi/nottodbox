@@ -17,8 +17,7 @@
     
 
 from PySide6.QtCore import QByteArray, QSettings, Qt, Slot
-from PySide6.QtGui import QCloseEvent, QIcon, QImage, QPainter, QPixmap
-from PySide6.QtSvg import QSvgRenderer
+from PySide6.QtGui import QCloseEvent, QPixmap
 from PySide6.QtWidgets import *
 from .widgets.controls import VSeperator
 from .about import AboutPage
@@ -36,14 +35,8 @@ class MainWindow(QMainWindow):
         
         self.qsettings = QSettings("io.github.mukonqi", "nottodbox")
         
-        image = QImage(192, 192, QImage.Format.Format_ARGB32_Premultiplied)
-        image.fill(Qt.GlobalColor.transparent)
-        
-        svg_renderer = QSvgRenderer(":icons/window")
-        svg_renderer.render(QPainter(image))
-        
         self.show()
-        self.setWindowIcon(QIcon(QPixmap.fromImage(image)))
+        self.setWindowIcon(QPixmap(":icons/window"))
         self.restoreGeometry(QByteArray(self.qsettings.value("mainwindow/geometry")))
         self.restoreState(QByteArray(self.qsettings.value("mainwindow/state")))
         self.setMinimumWidth(1000)

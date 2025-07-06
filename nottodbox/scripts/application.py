@@ -18,8 +18,7 @@
 
 import sys
 from PySide6.QtCore import QLocale, QTranslator, Qt
-from PySide6.QtGui import QIcon, QImage, QPainter, QPixmap
-from PySide6.QtSvg import QSvgRenderer
+from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import QApplication
 from .mainwindow import MainWindow
 from .resources import icons, locale # noqa: F401
@@ -29,18 +28,12 @@ from .version import APP_VERSION
 class Application(QApplication):
     def __init__(self, argv: list) -> None:
         super().__init__(argv)
-        
-        image = QImage(192, 192, QImage.Format.Format_ARGB32_Premultiplied)
-        image.fill(Qt.GlobalColor.transparent)
-        
-        svg_renderer = QSvgRenderer(":icons/window")
-        svg_renderer.render(QPainter(image))
 
         self.setApplicationVersion(APP_VERSION)
         self.setApplicationName("nottodbox")
         self.setApplicationDisplayName("Nottodbox")
         self.setDesktopFileName("io.github.mukonqi.nottodbox")
-        self.setWindowIcon(QIcon(QPixmap.fromImage(image)))
+        self.setWindowIcon(QPixmap(":icons/window"))
         
         translator = QTranslator(self)
         if translator.load(QLocale().system(), "", "", ":/locale"):

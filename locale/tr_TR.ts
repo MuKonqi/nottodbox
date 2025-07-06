@@ -1102,7 +1102,7 @@ Gerçekten içeriği değiştirmek istiyor musunuz?</translation>
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="../nottodbox/scripts/mainwindow.py" line="53"/>
+        <location filename="../nottodbox/scripts/mainwindow.py" line="46"/>
         <source>There may be important information and tips here. Don&apos;t forget to look here!</source>
         <translation>Burada bazı önemli bilgiler ve ipuçları olabilir. Buraya bakmayı unutmayın.</translation>
     </message>
