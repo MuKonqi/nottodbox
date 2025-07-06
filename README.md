@@ -45,12 +45,6 @@
 - [Download for macOS](https://github.com/MuKonqi/nottodbox/releases/download/latest/nottodbox-mac)
 - [Download for Windows](https://github.com/MuKonqi/nottodbox/releases/download/latest/nottodbox.exe)
 
-<!-- ### Installing from PyPI
-> [!WARNING] 
-> Dependencies: Python (3.10 and higher) and pip
-
-- `pip install nottodbox` -->
-
 ### Building a Flatpak
 > [!WARNING]
 > [Set up Flatpak](https://flatpak.org/setup/)
@@ -64,7 +58,7 @@
 > [!CAUTION] 
 > Build command tested on bash.
 
-- Build: `git clone https://github.com/mukonqi/nottodbox.git ; cd nottodbox ; pip install .`
+- Build: `git clone https://github.com/mukonqi/nottodbox.git ; cd nottodbox ; python3 .github/scripts/translations.py ; pip install .`
 - Run: `nottodbox`
 
 ### Building via PyInstaller
@@ -78,15 +72,6 @@
 - Build for macOS: `export RUNNER_OS="macOS" ; bash .github/scripts/pyinstaller.sh`
 - Build for Windows: `export RUNNER_OS="Windows" ; bash .github/scripts/pyinstaller.sh`
 - Now you can find the executable in dist/nottodbox(.exe).
-
-## Running from source
-> [!WARNING] 
-> Dependencies: Python (3.10 and higher), PySide6 and git
-
-> [!CAUTION] 
-> Run command tested on bash.
-
-- `git clone https://github.com/mukonqi/nottodbox.git ; cd nottodbox ; python3 -m nottodbox`
 
 ## Disclaimer
 > [!CAUTION] 

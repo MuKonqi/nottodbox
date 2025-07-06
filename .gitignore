@@ -5,6 +5,7 @@
 .vscode/
 
 # Localization
+nottodbox/scripts/resources/locale.py
 *.qm
 *.pot
 

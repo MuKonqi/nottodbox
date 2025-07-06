@@ -30,6 +30,7 @@ modules:
       - cp share/icons/hicolor/scalable/apps/io.github.mukonqi.nottodbox.svg /app/share/icons/hicolor/scalable/apps
       - cp share/metainfo/io.github.mukonqi.nottodbox.appdata.xml /app/share/metainfo
       - sed -i "s/APP_BUILD = .*/APP_BUILD = 'Flatpak'/" nottodbox/scripts/consts.py
+      - python3 .github/scripts/translations.py
       - pip3 install --no-build-isolation --no-deps --no-index --prefix=${FLATPAK_DEST} --verbose .
     sources: 
       - type: git
