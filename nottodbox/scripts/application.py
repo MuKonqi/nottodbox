@@ -46,15 +46,17 @@ class Application(QApplication):
         self.setApplicationDisplayName("Nottodbox")
         self.setDesktopFileName("io.github.mukonqi.nottodbox")
         self.setWindowIcon(QPixmap(":/icons/window"))
+        
+        print(QFile.exists(f":/locale/{QLocale.system().name()}.qm"), QFile.exists(f":/locale/{QLocale.system().name().split("_")[0]}.qm"))
 
         translator = QTranslator(self)
-        if translator.load(f":/locale/{QLocale.system().name()}"):
+        if translator.load(f":/locale/{QLocale.system().name()}.qm"):
             self.installTranslator(translator)
         else:
             logging.warning(f"Failed to load locale for {QLocale.system().name()}.")
             
             translator = QTranslator(self)
-            if translator.load(f":/locale/{QLocale.system().name().split("_")[0]}"):
+            if translator.load(f":/locale/{QLocale.system().name().split("_")[0]}.qm"):
                 self.installTranslator(translator)
             else:
                 logging.warning(f"Failed to load locale for {QLocale.system().name().split("_")[0]}.")
