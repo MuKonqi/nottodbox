@@ -22,7 +22,7 @@ import platform
 import subprocess
 import sys
 from datetime import datetime
-from PySide6.QtCore import QLocale, QTranslator, qVersion
+from PySide6.QtCore import QFile, QLocale, QTranslator, qVersion
 from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import QApplication
 from .consts import APP_BUILD, APP_VERSION, USER_DIRS, USER_LOGS_DIR
@@ -40,6 +40,8 @@ class Application(QApplication):
         logging.info(f"Python: {platform.python_version()}")
         logging.info(f"Qt: {qVersion()}")
         logging.info(f"Language: {QLocale.system().name()} / {QLocale.system().name().split("_")[0]}")
+        logging.info(f"Is {QLocale.system().name()} exists: {QFile.exists(f":locale/{QLocale.system().name()}")}")
+        logging.info(f"Is {QLocale.system().name().split("_")[0]} exists: {QFile.exists(f":locale/{QLocale.system().name().split("_")[0]}")}")
 
         self.setApplicationVersion(APP_VERSION)
         self.setApplicationName("nottodbox")
