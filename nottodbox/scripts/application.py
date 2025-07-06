@@ -46,8 +46,6 @@ class Application(QApplication):
         self.setApplicationDisplayName("Nottodbox")
         self.setDesktopFileName("io.github.mukonqi.nottodbox")
         self.setWindowIcon(QPixmap(":/icons/window"))
-        
-        print(QFile.exists(f":/locale/{QLocale.system().name()}.qm"), QFile.exists(f":/locale/{QLocale.system().name().split("_")[0]}.qm"))
 
         translator = QTranslator(self)
         if translator.load(f":/locale/{QLocale.system().name()}.qm"):
