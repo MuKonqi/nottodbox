@@ -1,6 +1,5 @@
 version: 1
 script:
-  - cp dist/nottodbox AppDir/usr/bin/nottodbox
   - mkdir -p AppDir/usr/bin
   - mkdir -p AppDir/usr/share/applications/
   - mkdir -p AppDir/usr/share/icons/hicolor/scalable/apps
