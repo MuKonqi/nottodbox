@@ -40,23 +40,21 @@ class Application(QApplication):
         logging.info(f"Python: {platform.python_version()}")
         logging.info(f"Qt: {qVersion()}")
         logging.info(f"Language: {QLocale.system().name()} / {QLocale.system().name().split("_")[0]}")
-        logging.info(f"Is {QLocale.system().name()} exists: {QFile.exists(f":locale/{QLocale.system().name()}")}")
-        logging.info(f"Is {QLocale.system().name().split("_")[0]} exists: {QFile.exists(f":locale/{QLocale.system().name().split("_")[0]}")}")
 
         self.setApplicationVersion(APP_VERSION)
         self.setApplicationName("nottodbox")
         self.setApplicationDisplayName("Nottodbox")
         self.setDesktopFileName("io.github.mukonqi.nottodbox")
-        self.setWindowIcon(QPixmap(":icons/window"))
+        self.setWindowIcon(QPixmap(":/icons/window"))
 
         translator = QTranslator(self)
-        if translator.load(f":locale/{QLocale.system().name()}"):
+        if translator.load(f":/locale/{QLocale.system().name()}"):
             self.installTranslator(translator)
         else:
             logging.warning(f"Failed to load locale for {QLocale.system().name()}.")
             
             translator = QTranslator(self)
-            if translator.load(f":locale/{QLocale.system().name().split("_")[0]}"):
+            if translator.load(f":/locale/{QLocale.system().name().split("_")[0]}"):
                 self.installTranslator(translator)
             else:
                 logging.warning(f"Failed to load locale for {QLocale.system().name().split("_")[0]}.")

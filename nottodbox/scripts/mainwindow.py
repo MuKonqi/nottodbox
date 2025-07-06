@@ -36,7 +36,7 @@ class MainWindow(QMainWindow):
         self.qsettings = QSettings("io.github.mukonqi", "nottodbox")
         
         self.show()
-        self.setWindowIcon(QPixmap(":icons/window"))
+        self.setWindowIcon(QPixmap(":/icons/window"))
         self.restoreGeometry(QByteArray(self.qsettings.value("mainwindow/geometry")))
         self.restoreState(QByteArray(self.qsettings.value("mainwindow/state")))
         self.setMinimumWidth(1000)
