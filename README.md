@@ -31,13 +31,13 @@
 </details>
 
 ## Using
-<!-- ### Installing from Flatpak / Flathub (recommended for Linux users)
+<!-- ### Installing from Flatpak / Flathub (only for Linux users) (recommended)
 > [!WARNING]
 > [Set up Flatpak](https://flatpak.org/setup/)
 
 - `flatpak install io.github.mukonqi.nottodbox` -->
 
-### Downloading from GitHub releases (recommended for Windows and macOS users)
+### Downloading executable from GitHub releases (recommended)
 > [!CAUTION]
 > If you can not run the file, check whether it is executable. If not, please make the file executable.
 
@@ -49,14 +49,14 @@
 > [!WARNING]
 > [Set up Flatpak](https://flatpak.org/setup/)
 
-- Build: `git clone https://github.com/mukonqi/nottodbox.git ; cd nottodbox ; flatpak-builder --user --force-clean --install-deps-from flathub --install --sandbox .flatpak-builder/app io.github.mukonqi.nottodbox.yaml`
+- Build: `git clone https://github.com/mukonqi/nottodbox.git ; cd nottodbox ; flatpak-builder --user --force-clean --install-deps-from flathub --install --sandbox .flatpak-builder/app .github/flatpak/io.github.mukonqi.nottodbox.yaml`
 - Run: `flatpak run --branch=master --arch=x86_64 --command=nottodbox io.github.mukonqi.nottodbox`
 
 ### Building via pip
 > [!WARNING] 
 > Dependencies: Python (3.10 and higher), pip and git
 > [!CAUTION] 
-> Build command tested on bash.
+> Build command tested on bash and Python's executable's name may be different on your system.
 
 - Build: `git clone https://github.com/mukonqi/nottodbox.git ; cd nottodbox ; python3 .github/scripts/translations.py ; pip install .`
 - Run: `nottodbox`
@@ -71,7 +71,16 @@
 - Build for Linux: `export RUNNER_OS="Linux" ; bash .github/scripts/pyinstaller.sh`
 - Build for macOS: `export RUNNER_OS="macOS" ; bash .github/scripts/pyinstaller.sh`
 - Build for Windows: `export RUNNER_OS="Windows" ; bash .github/scripts/pyinstaller.sh`
-- Now you can find the executable in dist/nottodbox(.exe).
+- Now you can find the executable in dist folder.
+
+## Running from source
+> [!WARNING] 
+> Dependencies: Python (3.10 and higher), PySide6 and git
+
+> [!CAUTION] 
+> Run command tested on bash and Python's executable's name may be different on your system.
+
+- `git clone https://github.com/mukonqi/nottodbox.git ; cd nottodbox ; python3 .github/scripts/translations.py ; python3 -m nottodbox`
 
 ## Disclaimer
 > [!CAUTION] 

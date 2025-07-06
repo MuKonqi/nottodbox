@@ -1,4 +1,4 @@
-name: Set up release
+name: Set-up release
 
 on:
   pull_request:

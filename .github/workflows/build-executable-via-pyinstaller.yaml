@@ -29,6 +29,9 @@ jobs:
     - name: Install dependencies
       run: pip install Pillow PySide6-Essentials pyinstaller
 
+    - name: Set-up translations
+      run: python3 .github/scripts/translations.py
+
     - name: Build executable
       run: bash .github/scripts/pyinstaller.sh
 
