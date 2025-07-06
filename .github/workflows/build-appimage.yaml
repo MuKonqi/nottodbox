@@ -39,7 +39,13 @@ jobs:
         cp share/metainfo/io.github.mukonqi.nottodbox.appdata.xml AppDir/usr/share/metainfo/io.github.mukonqi.nottodbox.appdata.xml
 
     - name: Copy required system libs
-      run: ldd AppDir/usr/bin/nottodbox | grep "=> /" | awk '{print $3}' | xargs -I '{}' cp -v '{}' AppDir/usr/lib/ || true
+      run: |
+        mkdir -p AppDir/usr/lib
+        ldd AppDir/usr/bin/nottodbox \
+          | grep "=> /" \
+          | awk '{print $3}' \
+          | grep -vE '/libc\.so|/libpthread\.so|/ld-linux|/libm\.so|/librt\.so|/libdl\.so|/libstdc\+\+\.so' \
+          | xargs -I '{}' cp -v '{}' AppDir/usr/lib/ || true
 
     - name: Create AppRun
       run: |
