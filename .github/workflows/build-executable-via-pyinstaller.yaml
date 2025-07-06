@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-executable-via-pyinstaller:
+  build:
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
