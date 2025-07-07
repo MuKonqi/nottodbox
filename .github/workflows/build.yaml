@@ -49,7 +49,7 @@ jobs:
 
         mv dist/nottodbox AppDir/usr/bin/nottodbox
         mv share/applications/io.github.mukonqi.nottodbox.desktop AppDir/usr/share/applications/nottodbox.desktop
-        mv share/icons/hicolor/256x256/appsio.github.mukonqi.nottodbox.png AppDir/usr/share/icons/hicolor/256x256/apps/nottodbox.png
+        mv share/icons/hicolor/256x256/apps/io.github.mukonqi.nottodbox.png AppDir/usr/share/icons/hicolor/256x256/apps/nottodbox.png
 
         sed -i 's/^Icon=.*/Icon=nottodbox/' AppDir/usr/share/applications/nottodbox.desktop
         ./linuxdeployqt-continuous-x86_64.AppImage AppDir/usr/share/applications/nottodbox.desktop -appimage
