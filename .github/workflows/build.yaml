@@ -1,0 +1,72 @@
+name: Build
+
+on:
+  pull_request:
+  push: 
+    tags: "*"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: ['ubuntu-22.04', 'macos-14', 'windows-2022']
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - uses: samypr100/setup-dev-drive@v3
+      if: runner.os == 'Windows'
+      with:
+        workspace-copy: true
+
+    - uses: actions/setup-python@v5
+      with:
+        python-version: "3.13"
+
+    - name: Install dependencies
+      run: pip install PySide6-Essentials pyinstaller
+
+    - name: Set-up translations
+      run: python3 .github/scripts/translations.py
+
+    - name: Build executable
+      run: bash .github/scripts/pyinstaller.sh
+
+    - name: Build AppImage (Linux)
+      if: runner.os == 'Linux'
+      run: |
+        wget -q https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
+        chmod +x linuxdeployqt-continuous-x86_64.AppImage
+
+        mkdir -p AppDir/usr/bin
+        mkdir -p AppDir/usr/lib
+        mkdir -p AppDir/usr/share/applications
+        mkdir -p AppDir/usr/share/icons/hicolor/256x256/apps
+
+        mv dist/nottodbox AppDir/usr/bin/nottodbox
+        mv share/applications/io.github.mukonqi.nottodbox.desktop AppDir/usr/share/applications/nottodbox.desktop
+        mv share/icons/hicolor/256x256/io.github.mukonqi.nottodbox.png AppDir/usr/share/icons/hicolor/256x256/nottodbox.png
+
+        sed -i 's/^Icon=.*/Icon=nottodbox/' AppDir/usr/share/applications/nottodbox.desktop
+        ./linuxdeployqt-continuous-x86_64.AppImage AppDir/usr/share/applications/nottodbox.desktop -appimage
+        mv nottodbox-x86_64.AppImage dist/nottodbox.AppImage
+
+    - name: Rename executable file (macOS)
+      if: runner.os == 'macOS'
+      run: mv dist/nottodbox dist/nottodbox-mac
+
+    - name: Upload to stable release
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: softprops/action-gh-release@v2.2.1
+      with:
+        body_path: "CHANGELOG.md"
+        files: dist/*
+
+    - name: Upload to nightly release
+      uses: softprops/action-gh-release@v2.2.1
+      with:
+        files: dist/*
+        tag_name: nightly
+        prerelease: true
