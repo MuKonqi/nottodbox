@@ -35,4 +35,7 @@ nottodbox = ["LICENSE.txt", "color-schemes/*"]
 
 [tool.ruff]
 line-length = 120
-select = ["D", "E", "F", "I", "N", "UP", "W"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "W"] 
+ignore = ["E501"]

@@ -21,7 +21,7 @@ import json
 import configparser
 from PySide6.QtCore import QEvent, QMargins, QModelIndex, QRect, QSettings, QStandardPaths, QSize, Qt, Slot
 from PySide6.QtGui import QColor, QFont, QFontMetrics, QPainter, QPainterPath, QPalette, QPen, QStandardItem, QStandardItemModel
-from PySide6.QtWidgets import *
+from PySide6.QtWidgets import QWidget, QStackedWidget, QDialogButtonBox, QGridLayout, QMessageBox, QScrollArea, QListView, QStyledItemDelegate, QStyleOptionViewItem, QAbstractItemView, QStyle, QApplication, QHBoxLayout, QVBoxLayout, QComboBox, QFormLayout, QStyleFactory, QFileDialog, QSizePolicy, QInputDialog
 from .widgets.controls import ComboBox, HSeperator, Label, LineEdit, PushButton, VSeperator
 from .widgets.dialogs import ColorSelector
 from .consts import SETTINGS_KEYS, SETTINGS_VALUES, USER_NAME
@@ -66,7 +66,7 @@ class SettingsPage(QWidget):
         self.settings = QSettings("io.github.mukonqi", "nottodbox")
         
         for setting in SETTINGS_KEYS:
-            if self.settings.value(f"globals/{setting}") == None:
+            if self.settings.value(f"globals/{setting}") is None:
                 self.settings.setValue(f"globals/{setting}", "default")
         
         self.pages = [self.makeScrollable(Appearance(self)), self.makeScrollable(DocumentSettings(self)), self.makeScrollable(ListSettings(self))]
@@ -667,7 +667,7 @@ class Appearance(QWidget):
         self.loadOnlySomeTexts()
 
     def superscriptDirNumber(self, value: str | int) -> str:
-        if type(value) == int:
+        if isinstance(value, int):
             number = value
             
         else:

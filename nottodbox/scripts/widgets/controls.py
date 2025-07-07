@@ -19,7 +19,7 @@
 import datetime
 from PySide6.QtCore import QDate, QRect, Qt, Slot
 from PySide6.QtGui import QPainter, QAction, QIcon
-from PySide6.QtWidgets import *
+from PySide6.QtWidgets import QWidget, QCalendarWidget, QComboBox, QFrame, QLabel, QLineEdit, QPushButton, QToolButton
 
 
 class Action(QAction):
@@ -63,7 +63,7 @@ class Label(QLabel):
     def __init__(self, parent: QWidget, text: str = "", alignment: Qt.AlignmentFlag | int = Qt.AlignmentFlag.AlignCenter) -> None:
         super().__init__(text, parent)
         
-        if type(alignment) == int:
+        if isinstance(alignment, int):
             alignment = Qt.AlignmentFlag(alignment)
         
         self.setAlignment(alignment)

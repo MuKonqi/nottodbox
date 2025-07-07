@@ -18,7 +18,7 @@
 
 from PySide6.QtCore import QModelIndex, QDate, QSettings, Qt, Slot
 from PySide6.QtGui import QColor, QPixmap
-from PySide6.QtWidgets import *
+from PySide6.QtWidgets import QColorDialog, QWidget, QDialogButtonBox, QHBoxLayout, QVBoxLayout, QComboBox, QSizePolicy, QSpinBox, QFormLayout, QScrollArea, QDialog
 from .controls import CalendarWidget, Label, LineEdit, PushButton
 from ..consts import SETTINGS_KEYS, SETTINGS_OPTIONS, SETTINGS_VALUES
 
@@ -231,8 +231,7 @@ class GetDate(Dialog):
     def __init__(self, parent: QWidget, title: str, label: str, name: str) -> None:
         super().__init__(parent, title)
         
-        self.calendar = QCalendarWidget(self.input)
-        self.calendar.setMaximumDate(QDate.currentDate())
+        self.calendar = CalendarWidget(self.input)
         self.calendar.setSelectedDate(QDate.fromString(name, "dd/MM/yyyy"))
         
         self.layout_ = QVBoxLayout(self.input)

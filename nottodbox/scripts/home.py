@@ -20,7 +20,7 @@ import datetime
 import os
 from PySide6.QtCore import QEvent, QMargins, QModelIndex, QPoint, QRect, QSettings, QSize, QSortFilterProxyModel, Qt, Signal, Slot
 from PySide6.QtGui import QColor, QFont, QFontMetrics, QPainter, QPainterPath, QPdfWriter, QPen, QStandardItem, QStandardItemModel, QTextDocument, QTextDocumentWriter
-from PySide6.QtWidgets import *
+from PySide6.QtWidgets import QWidget, QMenu, QStyledItemDelegate, QStyle, QAbstractItemView, QStyleOptionViewItem, QMessageBox, QTreeView, QVBoxLayout, QStackedWidget, QDialogButtonBox, QGridLayout, QTextEdit, QHBoxLayout, QComboBox, QCheckBox
 from .widgets.controls import Action, CalendarWidget, HSeperator, Label, LineEdit, PushButton, VSeperator
 from .widgets.dialogs import ChangeAppearance, ChangeSettings, Export, GetName, GetNameAndDescription, GetDescription
 from .widgets.documents import BackupView, NormalView
@@ -176,7 +176,7 @@ class Selector(QWidget):
         self.calendar_checkbox.setText(self.tr("Calendar"))
         try:
             self.calendar_checkbox.checkStateChanged.connect(self.enableCalendar)
-        except:
+        except AttributeError:
             self.calendar_checkbox.stateChanged.connect(self.enableCalendar)
         self.calendar_checkbox.setCheckState(Qt.CheckState.Unchecked if self.settings.value("selector/calendar") == "hidden" else Qt.CheckState.Checked)
             
@@ -642,7 +642,7 @@ class Options:
     
     @Slot(QModelIndex, str)
     def open(self, index: QModelIndex, mode: str, make: bool = False) -> None:
-        if not index in [page.document.index for page in self.parent_.parent_.area.pages if page.document is not None and page.document.index == index]:
+        if index not in [page.document.index for page in self.parent_.parent_.area.pages if page.document is not None and page.document.index == index]:
             if make:
                 index.model().setData(index, True, Qt.ItemDataRole.UserRole + 1)
             
@@ -1182,7 +1182,7 @@ class ButtonDelegate(QStyledItemDelegate):
         for status in situations:
             if status:
                 for j in range(3):
-                    if index.data(Qt.ItemDataRole.UserRole + 27 + j * 3 + i)[1] == None:
+                    if index.data(Qt.ItemDataRole.UserRole + 27 + j * 3 + i)[1] is None:
                         colors.append(defaults[i][j])
                         
                     else:

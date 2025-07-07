@@ -19,7 +19,7 @@
 import os
 from PySide6.QtCore import QEvent, QMargins, QModelIndex, QRect, QSize, Slot
 from PySide6.QtGui import QColor, QFont, QFontMetrics, QIcon, QPalette, QPixmap, QStandardItem, QStandardItemModel, QPainter, QPainterPath, QPen, Qt
-from PySide6.QtWidgets import *
+from PySide6.QtWidgets import QWidget, QSpinBox, QSizePolicy, QVBoxLayout, QApplication, QListView, QAbstractItemView, QStyledItemDelegate, QStyleOptionViewItem, QStyle
 from .widgets.controls import HSeperator, Label, ToolButton
 from .resources import icons # noqa: F401
 
@@ -174,7 +174,7 @@ class ButtonDelegate(QStyledItemDelegate):
         for status in situations:
             if status:
                 for j in range(3):
-                    if index.data(Qt.ItemDataRole.UserRole + 2).data(Qt.ItemDataRole.UserRole + 27 + j * 3 + i)[1] == None:
+                    if index.data(Qt.ItemDataRole.UserRole + 2).data(Qt.ItemDataRole.UserRole + 27 + j * 3 + i)[1] is None:
                         colors.append(defaults[i][j])
                         
                     else:

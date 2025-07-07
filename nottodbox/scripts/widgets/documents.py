@@ -22,7 +22,7 @@ import datetime
 import os
 from PySide6.QtCore import QDate, QModelIndex, QObject, Qt, QThread, Signal, Slot
 from PySide6.QtGui import QDesktopServices, QMouseEvent, QPalette, QPdfWriter, QTextCursor, QTextBlockFormat, QTextCharFormat, QTextDocument, QTextDocumentWriter, QTextFormat, QTextListFormat, QTextLength, QTextTable, QTextTableFormat
-from PySide6.QtWidgets import *
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QMessageBox, QToolBar, QToolButton, QMenu, QApplication, QTextEdit
 from .dialogs import GetColor, GetTwoNumber
 from .controls import Action, HSeperator, Label
 from ..consts import USER_DIRS
@@ -294,12 +294,12 @@ class DocumentHelper(QToolBar):
         self.fixTable()
         
     def fixTable(self, element: QTextTable = None) -> None:
-        if type(element) == QTextTable:
+        if isinstance(element, QTextTable):
             self.fixTableBase(element)
         
         else:
             for frame in self.parent_.input.document().rootFrame().childFrames():
-                if type(frame) == QTextTable:
+                if isinstance(frame, QTextTable):
                     self.fixTableBase(frame)
         
     def fixTableBase(self, table: QTextTable) -> None:
@@ -411,7 +411,7 @@ class DocumentHelper(QToolBar):
         status, text, url = GetTwoNumber(self, self.tr("Add Link"), "text", self.tr("Link text:"), self.tr("Link URL:"), self.tr("Not required"), self.tr("Required")).getResult()
         
         if status == "ok":
-            if url != "" and url != None:
+            if url != "" and url is not None:
                 cur = self.parent_.input.textCursor()
                 cur.beginEditBlock()
                 
@@ -420,7 +420,7 @@ class DocumentHelper(QToolBar):
                 chrfmt.setAnchorHref(url)
                 chrfmt.setForeground(QApplication.palette().color(QPalette.ColorRole.Link))
 
-                if text == "" or text == None:
+                if text == "" or text is None:
                     text = url
                     
                 cur.insertText(text, chrfmt)
@@ -449,7 +449,7 @@ class DocumentHelper(QToolBar):
         status, rows, columns = GetTwoNumber(self, self.tr("Add Table"), "number", self.tr("Row number:"), self.tr("Column number:"), 1, 1).getResult()
         
         if status == "ok":
-            if rows != None and columns != None:
+            if rows is not None and columns is not None:
                 cur = self.parent_.input.textCursor()
                 
                 self.fixTable(cur.insertTable(rows, columns))

@@ -39,7 +39,7 @@ class Application(QApplication):
         logging.info(f"Platform: {QApplication.platformName()}")
         logging.info(f"Python: {platform.python_version()}")
         logging.info(f"Qt: {qVersion()}")
-        logging.info(f"Language: {QLocale.system().name()} / {QLocale.system().name().split("_")[0]}")
+        logging.info(f"Language: {QLocale.system().name()} / {QLocale.system().name().split('_')[0]}")
 
         self.setApplicationVersion(APP_VERSION)
         self.setApplicationName("nottodbox")
@@ -54,10 +54,10 @@ class Application(QApplication):
             logging.warning(f"Failed to load locale for {QLocale.system().name()}.")
             
             translator = QTranslator(self)
-            if translator.load(f":/locale/{QLocale.system().name().split("_")[0]}.qm"):
+            if translator.load(f":/locale/{QLocale.system().name().split('_')[0]}.qm"):
                 self.installTranslator(translator)
             else:
-                logging.warning(f"Failed to load locale for {QLocale.system().name().split("_")[0]}.")
+                logging.warning(f"Failed to load locale for {QLocale.system().name().split('_')[0]}.")
             
         if APP_BUILD == "Flatpak":
             for dir in USER_DIRS.values():
@@ -91,7 +91,7 @@ def main() -> None:
 
     formatter = logging.Formatter('%(asctime)s [%(levelname)s] %(message)s', "%Y-%m-%d %H-%M-%S")
 
-    file_handler = logging.FileHandler(os.path.join(USER_LOGS_DIR, f"{datetime.now().strftime("%Y-%m-%d %H-%M-%S")}.log"), encoding="utf-8")
+    file_handler = logging.FileHandler(os.path.join(USER_LOGS_DIR, f"{datetime.now().strftime('%Y-%m-%d %H-%M-%S')}.log"), encoding="utf-8")
     file_handler.setFormatter(formatter)
     logger.addHandler(file_handler)
 
