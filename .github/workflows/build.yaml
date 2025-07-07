@@ -53,11 +53,10 @@ jobs:
 
         sed -i 's/^Icon=.*/Icon=nottodbox/' AppDir/usr/share/applications/nottodbox.desktop
         ./linuxdeployqt-continuous-x86_64.AppImage AppDir/usr/share/applications/nottodbox.desktop -appimage
-        mv nottodbox-x86_64.AppImage dist/nottodbox.AppImage
 
-    - name: Rename executable file (macOS)
-      if: runner.os == 'macOS'
-      run: mv dist/nottodbox dist/nottodbox-mac
+    - name: Rename the file
+      if: runner.os != 'Windows'
+      run: python3 .github/scripts/rename.py
 
     - name: Upload to stable release
       if: startsWith(github.ref, 'refs/tags/')
