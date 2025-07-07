@@ -10,5 +10,6 @@ if os.environ.get("RUNNER_OS") == "Linux":
             shutil.move(name, "dist/nottodbox.AppImage")
 
 elif os.environ.get("RUNNER_OS") == "macOS":
-    subprocess.run(["zip", "-r", "dist/nottodbox.app.zip", "dist/nottodbox.app"])
-    shutil.rmtree("dist/nottodbox.app")
+    os.chdir("dist")
+    subprocess.run(["zip", "-r", "nottodbox.app.zip", "nottodbox.app"])
+    shutil.rmtree("nottodbox.app")
