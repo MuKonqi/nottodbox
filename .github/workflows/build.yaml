@@ -37,22 +37,14 @@ jobs:
     - name: Build AppImage (Linux)
       if: runner.os == 'Linux'
       run: |
-        sudo apt install -y libfuse2 libglib2.0-0 libopengl0 libxcb-cursor0
+        sudo apt install -y libfuse2 libgdk-pixbuf2.0-dev libglib2.0-0 libopengl0 libxcb-cursor0 libxcb-icccm4 libxcb-keysyms1 libxcb-shape0-dev libxcb-xkb-dev libxkbcommon-x11-0
 
-        wget -q https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
-        chmod +x linuxdeployqt-continuous-x86_64.AppImage
+        wget -q https://github.com/linuxdeploy/linuxdeploy/releases/download/1-alpha-20250213-2/linuxdeploy-x86_64.AppImage
+        chmod +x linuxdeploy-x86_64.AppImage
 
         mkdir -p AppDir/usr/bin
-        mkdir -p AppDir/usr/lib
-        mkdir -p AppDir/usr/share/applications
-        mkdir -p AppDir/usr/share/icons/hicolor/256x256/apps
-
-        mv dist/nottodbox AppDir/usr/bin/nottodbox
-        mv share/applications/io.github.mukonqi.nottodbox.desktop AppDir/usr/share/applications/nottodbox.desktop
-        mv share/icons/hicolor/256x256/apps/io.github.mukonqi.nottodbox.png AppDir/usr/share/icons/hicolor/256x256/apps/nottodbox.png
-
-        sed -i 's/^Icon=.*/Icon=nottodbox/' AppDir/usr/share/applications/nottodbox.desktop
-        ./linuxdeployqt-continuous-x86_64.AppImage AppDir/usr/share/applications/nottodbox.desktop -appimage
+        mv dist/nottodbox AppDir/usr/bin
+        ./linuxdeploy-x86_64.AppImage --appdir AppDir -d share/applications/io.github.mukonqi.nottodbox.desktop -i share/icons/hicolor/256x256/apps/io.github.mukonqi.nottodbox.png -l libglib-2.0.so.0 libOpenGL.so.0 libxcb-cursor.so.0 --output appimage
 
     - name: Rename the file
       if: runner.os != 'Windows'
