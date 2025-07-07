@@ -18,8 +18,8 @@
 
 import getpass
 import os
-from PySide6.QtCore import QStandardPaths
 
+from PySide6.QtCore import QStandardPaths
 
 APP_BUILD = 'None'
 

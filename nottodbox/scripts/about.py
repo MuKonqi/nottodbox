@@ -17,9 +17,11 @@
 
 
 import os
+
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QFontDatabase
-from PySide6.QtWidgets import QHBoxLayout, QVBoxLayout, QApplication, QStyle, QWidget, QTextEdit
+from PySide6.QtWidgets import QApplication, QHBoxLayout, QStyle, QTextEdit, QVBoxLayout, QWidget
+
 from .consts import APP_VERSION
 from .widgets.controls import HSeperator, Label, PushButton
 
@@ -73,7 +75,7 @@ class AboutPage(QWidget):
         self.layout_.addWidget(HSeperator(self))
         self.layout_.addWidget(self.developer_label)
         self.layout_.addWidget(HSeperator(self))
-        self.layout_.addWidget(Label(self, self.tr("Copyright (C)") + f': 2024-2025 MuKonqi (Muhammed S.)'))
+        self.layout_.addWidget(Label(self, self.tr("Copyright (C)") + ': 2024-2025 MuKonqi (Muhammed S.)'))
         self.layout_.addWidget(Label(self, self.tr("License: GNU General Public License, Version 3 or later")))
         self.layout_.addWidget(self.license_textedit, 0, Qt.AlignmentFlag.AlignCenter)
         self.layout_.addWidget(HSeperator(self))

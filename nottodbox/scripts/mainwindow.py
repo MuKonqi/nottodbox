@@ -16,15 +16,16 @@
 # along with Nottodbox.  If not, see <https://www.gnu.org/licenses/>.
     
 
-from PySide6.QtCore import QByteArray, QSettings, Qt, Slot
+from PySide6.QtCore import QByteArray, QSettings, Slot
 from PySide6.QtGui import QCloseEvent, QPixmap
-from PySide6.QtWidgets import QMainWindow, QStatusBar, QWidget, QStackedWidget, QHBoxLayout
-from .widgets.controls import VSeperator
+from PySide6.QtWidgets import QHBoxLayout, QMainWindow, QStackedWidget, QStatusBar, QWidget
+
 from .about import AboutPage
 from .home import HomePage
-from .resources import icons # noqa: F401
+from .resources import icons  # noqa: F401
 from .settings import SettingsPage
 from .sidebar import Sidebar
+from .widgets.controls import VSeperator
 
 
 class MainWindow(QMainWindow):

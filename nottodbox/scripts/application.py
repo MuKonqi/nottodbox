@@ -22,9 +22,11 @@ import platform
 import subprocess
 import sys
 from datetime import datetime
+
 from PySide6.QtCore import QLocale, QTranslator, qVersion
 from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import QApplication
+
 from .consts import APP_BUILD, APP_VERSION, USER_DIRS, USER_LOGS_DIR
 from .mainwindow import MainWindow
 from .resources import icons, locale  # noqa: F401

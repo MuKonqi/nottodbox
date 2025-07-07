@@ -16,12 +16,36 @@
 # along with Nottodbox.  If not, see <https://www.gnu.org/licenses/>.
     
 
-import os
 from PySide6.QtCore import QEvent, QMargins, QModelIndex, QRect, QSize, Slot
-from PySide6.QtGui import QColor, QFont, QFontMetrics, QIcon, QPalette, QPixmap, QStandardItem, QStandardItemModel, QPainter, QPainterPath, QPen, Qt
-from PySide6.QtWidgets import QWidget, QSpinBox, QSizePolicy, QVBoxLayout, QApplication, QListView, QAbstractItemView, QStyledItemDelegate, QStyleOptionViewItem, QStyle
+from PySide6.QtGui import (
+    QColor,
+    QFont,
+    QFontMetrics,
+    QIcon,
+    QPainter,
+    QPainterPath,
+    QPalette,
+    QPen,
+    QPixmap,
+    QStandardItem,
+    QStandardItemModel,
+    Qt,
+)
+from PySide6.QtWidgets import (
+    QAbstractItemView,
+    QApplication,
+    QListView,
+    QSizePolicy,
+    QSpinBox,
+    QStyle,
+    QStyledItemDelegate,
+    QStyleOptionViewItem,
+    QVBoxLayout,
+    QWidget,
+)
+
+from .resources import icons  # noqa: F401
 from .widgets.controls import HSeperator, Label, ToolButton
-from .resources import icons # noqa: F401
 
 
 class Sidebar(QWidget):
@@ -158,7 +182,7 @@ class ButtonDelegate(QStyledItemDelegate):
         situations = [
             bool(index.data(Qt.ItemDataRole.UserRole + 1) and index.data(Qt.ItemDataRole.UserRole + 2).data(Qt.ItemDataRole.UserRole + 2) == "document"), 
             bool(option.state & QStyle.StateFlag.State_MouseOver), 
-            bool(True)
+            True
             ]
         
         defaults = [

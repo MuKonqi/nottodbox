@@ -20,14 +20,31 @@
 
 import datetime
 import os
+
 from PySide6.QtCore import QDate, QModelIndex, QObject, Qt, QThread, Signal, Slot
-from PySide6.QtGui import QDesktopServices, QMouseEvent, QPalette, QPdfWriter, QTextCursor, QTextBlockFormat, QTextCharFormat, QTextDocument, QTextDocumentWriter, QTextFormat, QTextListFormat, QTextLength, QTextTable, QTextTableFormat
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QMessageBox, QToolBar, QToolButton, QMenu, QApplication, QTextEdit
-from .dialogs import GetColor, GetTwoNumber
-from .controls import Action, HSeperator, Label
+from PySide6.QtGui import (
+    QDesktopServices,
+    QMouseEvent,
+    QPalette,
+    QPdfWriter,
+    QTextBlockFormat,
+    QTextCharFormat,
+    QTextCursor,
+    QTextDocument,
+    QTextDocumentWriter,
+    QTextFormat,
+    QTextLength,
+    QTextListFormat,
+    QTextTable,
+    QTextTableFormat,
+)
+from PySide6.QtWidgets import QApplication, QMenu, QMessageBox, QTextEdit, QToolBar, QToolButton, QVBoxLayout, QWidget
+
 from ..consts import USER_DIRS
-            
-            
+from .controls import Action, HSeperator, Label
+from .dialogs import GetColor, GetTwoNumber
+
+
 class Document(QWidget):
     def __init__(self, parent: QWidget, db, index: QModelIndex, mode: str) -> None:
         super().__init__(parent)
@@ -597,7 +614,7 @@ class DocumentSaver(QObject):
                             
                             document = QTextDocument(self.parent_.getText())
                             
-                            writer = QTextDocumentWriter(os.path.join(USER_DIRS[self.parent_.settings["folder"]], "Nottodbox", self.parent_.notebook, f"{self.parent_.document}.{export}"), export.encode("utf-8") if export != "odt" else "odf".encode("utf-8"))
+                            writer = QTextDocumentWriter(os.path.join(USER_DIRS[self.parent_.settings["folder"]], "Nottodbox", self.parent_.notebook, f"{self.parent_.document}.{export}"), export.encode("utf-8") if export != "odt" else b"odf")
                             writer.write(document)    
                     
                 self.parent_.index.model().setData(self.parent_.index, self.parent_.getText(), Qt.ItemDataRole.UserRole + 104)

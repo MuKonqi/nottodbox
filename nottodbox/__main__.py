@@ -21,4 +21,5 @@
 
 
 from nottodbox.scripts.application import main
+
 main()

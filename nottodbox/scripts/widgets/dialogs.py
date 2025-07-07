@@ -16,11 +16,24 @@
 # along with Nottodbox.  If not, see <https://www.gnu.org/licenses/>.
 
 
-from PySide6.QtCore import QModelIndex, QDate, QSettings, Qt, Slot
+from PySide6.QtCore import QDate, QModelIndex, QSettings, Qt, Slot
 from PySide6.QtGui import QColor, QPixmap
-from PySide6.QtWidgets import QColorDialog, QWidget, QDialogButtonBox, QHBoxLayout, QVBoxLayout, QComboBox, QSizePolicy, QSpinBox, QFormLayout, QScrollArea, QDialog
-from .controls import CalendarWidget, Label, LineEdit, PushButton
+from PySide6.QtWidgets import (
+    QColorDialog,
+    QComboBox,
+    QDialog,
+    QDialogButtonBox,
+    QFormLayout,
+    QHBoxLayout,
+    QScrollArea,
+    QSizePolicy,
+    QSpinBox,
+    QVBoxLayout,
+    QWidget,
+)
+
 from ..consts import SETTINGS_KEYS, SETTINGS_OPTIONS, SETTINGS_VALUES
+from .controls import CalendarWidget, Label, LineEdit, PushButton
 
 
 class GetColor(QColorDialog):

@@ -18,14 +18,57 @@
 
 import datetime
 import os
-from PySide6.QtCore import QEvent, QMargins, QModelIndex, QPoint, QRect, QSettings, QSize, QSortFilterProxyModel, Qt, Signal, Slot
-from PySide6.QtGui import QColor, QFont, QFontMetrics, QPainter, QPainterPath, QPdfWriter, QPen, QStandardItem, QStandardItemModel, QTextDocument, QTextDocumentWriter
-from PySide6.QtWidgets import QWidget, QMenu, QStyledItemDelegate, QStyle, QAbstractItemView, QStyleOptionViewItem, QMessageBox, QTreeView, QVBoxLayout, QStackedWidget, QDialogButtonBox, QGridLayout, QTextEdit, QHBoxLayout, QComboBox, QCheckBox
-from .widgets.controls import Action, CalendarWidget, HSeperator, Label, LineEdit, PushButton, VSeperator
-from .widgets.dialogs import ChangeAppearance, ChangeSettings, Export, GetName, GetNameAndDescription, GetDescription
-from .widgets.documents import BackupView, NormalView
-from .consts import SETTINGS_DEFAULTS, SETTINGS_OPTIONS, SETTINGS_KEYS, SETTINGS_VALUES, USER_DIRS
+
+from PySide6.QtCore import (
+    QEvent,
+    QMargins,
+    QModelIndex,
+    QPoint,
+    QRect,
+    QSettings,
+    QSize,
+    QSortFilterProxyModel,
+    Qt,
+    Signal,
+    Slot,
+)
+from PySide6.QtGui import (
+    QColor,
+    QFont,
+    QFontMetrics,
+    QPainter,
+    QPainterPath,
+    QPdfWriter,
+    QPen,
+    QStandardItem,
+    QStandardItemModel,
+    QTextDocument,
+    QTextDocumentWriter,
+)
+from PySide6.QtWidgets import (
+    QAbstractItemView,
+    QCheckBox,
+    QComboBox,
+    QDialogButtonBox,
+    QGridLayout,
+    QHBoxLayout,
+    QMenu,
+    QMessageBox,
+    QStackedWidget,
+    QStyle,
+    QStyledItemDelegate,
+    QStyleOptionViewItem,
+    QTextEdit,
+    QTreeView,
+    QVBoxLayout,
+    QWidget,
+)
+
+from .consts import SETTINGS_DEFAULTS, SETTINGS_KEYS, SETTINGS_OPTIONS, SETTINGS_VALUES, USER_DIRS
 from .database import MainDB
+from .widgets.controls import Action, CalendarWidget, HSeperator, Label, LineEdit, PushButton, VSeperator
+from .widgets.dialogs import ChangeAppearance, ChangeSettings, Export, GetDescription, GetName, GetNameAndDescription
+from .widgets.documents import BackupView, NormalView
 
 
 class HomePage(QWidget):
@@ -605,7 +648,7 @@ class Options:
                     
                     document = QTextDocument(content)
                     
-                    writer = QTextDocumentWriter(os.path.join(USER_DIRS[index.data(Qt.ItemDataRole.UserRole + 25)[1]], "Nottodbox", table, f"{name}.{export}"), export.encode("utf-8") if export != "odt" else "odf".encode("utf-8"))
+                    writer = QTextDocumentWriter(os.path.join(USER_DIRS[index.data(Qt.ItemDataRole.UserRole + 25)[1]], "Nottodbox", table, f"{name}.{export}"), export.encode("utf-8") if export != "odt" else b"odf")
                     writer.write(document)
                         
             if export_ is None:
@@ -1166,7 +1209,7 @@ class ButtonDelegate(QStyledItemDelegate):
         situations = [
             bool(index.data(Qt.ItemDataRole.UserRole + 1) and index.data(Qt.ItemDataRole.UserRole + 2) == "document"), 
             bool(option.state & QStyle.StateFlag.State_MouseOver), 
-            bool(True)
+            True
             ]
         
         defaults = [

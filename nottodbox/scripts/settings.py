@@ -16,16 +16,48 @@
 # along with Nottodbox.  If not, see <https://www.gnu.org/licenses/>.
 
 
-import os
-import json
 import configparser
-from PySide6.QtCore import QEvent, QMargins, QModelIndex, QRect, QSettings, QStandardPaths, QSize, Qt, Slot
-from PySide6.QtGui import QColor, QFont, QFontMetrics, QPainter, QPainterPath, QPalette, QPen, QStandardItem, QStandardItemModel
-from PySide6.QtWidgets import QWidget, QStackedWidget, QDialogButtonBox, QGridLayout, QMessageBox, QScrollArea, QListView, QStyledItemDelegate, QStyleOptionViewItem, QAbstractItemView, QStyle, QApplication, QHBoxLayout, QVBoxLayout, QComboBox, QFormLayout, QStyleFactory, QFileDialog, QSizePolicy, QInputDialog
+import json
+import os
+
+from PySide6.QtCore import QEvent, QMargins, QModelIndex, QRect, QSettings, QSize, QStandardPaths, Qt, Slot
+from PySide6.QtGui import (
+    QColor,
+    QFont,
+    QFontMetrics,
+    QPainter,
+    QPainterPath,
+    QPalette,
+    QPen,
+    QStandardItem,
+    QStandardItemModel,
+)
+from PySide6.QtWidgets import (
+    QAbstractItemView,
+    QApplication,
+    QComboBox,
+    QDialogButtonBox,
+    QFileDialog,
+    QFormLayout,
+    QGridLayout,
+    QHBoxLayout,
+    QInputDialog,
+    QListView,
+    QMessageBox,
+    QScrollArea,
+    QSizePolicy,
+    QStackedWidget,
+    QStyle,
+    QStyledItemDelegate,
+    QStyleFactory,
+    QStyleOptionViewItem,
+    QVBoxLayout,
+    QWidget,
+)
+
+from .consts import SETTINGS_KEYS, SETTINGS_VALUES, USER_NAME
 from .widgets.controls import ComboBox, HSeperator, Label, LineEdit, PushButton, VSeperator
 from .widgets.dialogs import ColorSelector
-from .consts import SETTINGS_KEYS, SETTINGS_VALUES, USER_NAME
-
 
 COLOR_SCHEMES_DIRS = []
 
@@ -223,7 +255,7 @@ class ButtonDelegate(QStyledItemDelegate):
         situations = [
             bool(index.data(Qt.ItemDataRole.UserRole + 1)), 
             bool(option.state & QStyle.StateFlag.State_MouseOver), 
-            bool(True)
+            True
             ]
         
         defaults = [

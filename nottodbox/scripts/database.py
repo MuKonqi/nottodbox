@@ -18,9 +18,11 @@
 # along with Nottodbox.  If not, see <https://www.gnu.org/licenses/>.
 
 
-import sqlite3
 import datetime
+import sqlite3
+
 from PySide6.QtCore import Qt
+
 from .consts import USER_DATABASES_DIR
 
 
@@ -123,7 +125,7 @@ class MainDB:
         self.db.commit()
         
         if name == "__main__" and not self.checkIfTheTableExists(name):
-            print(f"[2] Failed to create main table for main.db")
+            print("[2] Failed to create main table for main.db")
             exit(2)
             
         return True

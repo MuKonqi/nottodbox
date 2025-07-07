@@ -17,9 +17,10 @@
 
 
 import datetime
+
 from PySide6.QtCore import QDate, QRect, Qt, Slot
-from PySide6.QtGui import QPainter, QAction, QIcon
-from PySide6.QtWidgets import QWidget, QCalendarWidget, QComboBox, QFrame, QLabel, QLineEdit, QPushButton, QToolButton
+from PySide6.QtGui import QAction, QIcon, QPainter
+from PySide6.QtWidgets import QCalendarWidget, QComboBox, QFrame, QLabel, QLineEdit, QPushButton, QToolButton, QWidget
 
 
 class Action(QAction):
