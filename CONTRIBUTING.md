@@ -38,7 +38,7 @@ Nottodbox uses two different systems for localization depending on the type of c
   - Submit updated `.po` file with your pull request.
 
 ## Code Style
-- This project currently uses Ruff.
+- Nottodbox uses Ruff for linting but does not uses any formatting tool for now.
 
 ## License
 By contributing to Nottodbox, you agree that your contributions will be licensed under the project's [GPL-3.0 License](https://github.com/MuKonqi/nottodbox/blob/main/LICENSE.txt).
