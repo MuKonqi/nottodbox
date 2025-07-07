@@ -22,7 +22,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QFontDatabase
 from PySide6.QtWidgets import QApplication, QHBoxLayout, QStyle, QTextEdit, QVBoxLayout, QWidget
 
-from .consts import APP_VERSION
+from .version import APP_VERSION
 from .widgets.controls import HSeperator, Label, PushButton
 
 

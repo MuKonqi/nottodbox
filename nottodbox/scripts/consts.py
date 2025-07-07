@@ -21,11 +21,6 @@ import os
 
 from PySide6.QtCore import QStandardPaths
 
-APP_BUILD = 'None'
-
-APP_VERSION = "v0.1.0"
-
-
 SETTINGS_DEFAULTS = [None, "disabled", "enabled", "markdown", None, "documents", "no", None, None, None, None, None, None, None, None, None]
 
 SETTINGS_OPTIONS = ["default", "global"]
@@ -33,7 +28,6 @@ SETTINGS_OPTIONS = ["default", "global"]
 SETTINGS_KEYS = ["completed", "locked", "autosave", "format", "sync", "folder", "pinned", "bg_normal", "bg_hover", "bg_clicked", "fg_normal", "fg_hover", "fg_clicked", "bd_normal", "bd_hover", "bd_clicked"]
 
 SETTINGS_VALUES = [["completed", "uncompleted", None], ["enabled", "disabled"], ["enabled", "disabled"], ["markdown", "html", "plain-text"], ["format", "pdf", "odt", "markdown", "html", "plain-text"], ["documents", "desktop"], ["yes", "no"]]
-
 
 USER_NAME = getpass.getuser()
 
