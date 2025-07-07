@@ -22,7 +22,7 @@ import platform
 import subprocess
 import sys
 from datetime import datetime
-from PySide6.QtCore import QFile, QLocale, QTranslator, qVersion
+from PySide6.QtCore import QLocale, QTranslator, qVersion
 from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import QApplication
 from .consts import APP_BUILD, APP_VERSION, USER_DIRS, USER_LOGS_DIR
@@ -34,7 +34,8 @@ class Application(QApplication):
     def __init__(self, argv: list) -> None:
         super().__init__(argv)
         
-        logging.info(f"Nottodbox v{APP_VERSION} (build: {APP_BUILD}) (pid: {os.getpid()})")
+        logging.info(f"Nottodbox, version: {APP_VERSION}, build {APP_BUILD}")
+        logging.info(f"PID (process identifier): {os.getpid()}")
         logging.info(f"Operating system: {platform.system()} {platform.release()} ({platform.platform()})")
         logging.info(f"Platform: {QApplication.platformName()}")
         logging.info(f"Python: {platform.python_version()}")

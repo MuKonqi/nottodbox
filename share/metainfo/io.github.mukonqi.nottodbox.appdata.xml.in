@@ -114,7 +114,7 @@
 
     <developer id="io.github.mukonqi"><name>Muhammed S.</name></developer>
 
-    <!-- <screenshots>
+    <screenshots>
         <screenshot type="default">
             <caption>Appearance when using 'Nottodbox Light' color scheme</caption>
             <image type="source">https://raw.githubusercontent.com/mukonqi/nottodbox/main/screenshots/light.png</image>
@@ -123,5 +123,5 @@
             <caption>Appearance when using 'Nottodbox Dark' color scheme</caption>
             <image type="source">https://raw.githubusercontent.com/mukonqi/nottodbox/main/screenshots/images/dark.png</image>
         </screenshot>
-    </screenshots> -->
+    </screenshots>
 </component>
