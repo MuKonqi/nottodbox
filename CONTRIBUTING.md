@@ -38,7 +38,9 @@ Nottodbox uses two different systems for localization depending on the type of c
   - Submit updated `.po` file with your pull request.
 
 ## Code Style
-- Nottodbox uses Ruff for linting but does not uses any formatting tool for now.
+- Linter: Ruff
+- Formatter: None
+- Naming: MyClass, myFunction, my_variable, MY_CONST and `self` for the first argument to class and instance methods.
 
 ## License
 By contributing to Nottodbox, you agree that your contributions will be licensed under the project's [GPL-3.0 License](https://github.com/MuKonqi/nottodbox/blob/main/LICENSE.txt).

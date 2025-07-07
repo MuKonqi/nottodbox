@@ -20,3 +20,6 @@ nottodbox.spec
 
 # Python
 *__pycache__
+
+# ruff
+fix.txt

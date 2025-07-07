@@ -37,5 +37,8 @@ nottodbox = ["LICENSE.txt", "color-schemes/*"]
 line-length = 120
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "UP", "W"] 
+select = ["A", "B", "E", "F", "I", "SIM", "UP", "W"]
 ignore = ["E501"]
+
+[tool.ruff.lint.isort]
+split-on-trailing-comma = false

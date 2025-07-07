@@ -1,0 +1,47 @@
+name: Lint and Fix (via Ruff)
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+jobs:
+  lint-and-fix:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0 
+
+      - name: Set-up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install Ruff
+        run: pip install ruff
+
+      - name: Run Ruff
+        id: ruff_check
+        run: |
+          echo "Running ruff check --fix..."
+          ruff check . --fix
+
+          if git diff --exit-code; then
+            echo "No changes detected."
+            echo "::set-output name=has_changes::false"
+          else
+            echo "Changes detected."
+            echo "::set-output name=has_changes::true"
+          fi
+          
+      - name: Fix
+        if: steps.ruff_check.outputs.has_changes == 'true' && github.event.pull_request.draft == false
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "style: Fix linting issues (via Ruff)"
+          git push
