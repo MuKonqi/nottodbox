@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="48"
+   height="48"
+   viewBox="0 0 48 48"
+   version="1.1"
+   id="svg1"
+   inkscape:version="1.4 (e7c3feb, 2024-10-09)"
+   sodipodi:docname="io.github.mukonqi.nottodbox_focus_dark.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#505050"
+     bordercolor="#eeeeee"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#505050"
+     inkscape:document-units="px"
+     inkscape:zoom="16.5625"
+     inkscape:cx="24.030189"
+     inkscape:cy="24"
+     inkscape:window-width="1920"
+     inkscape:window-height="1006"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs1" />
+  <g
+     inkscape:label="Katman 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <path
+       id="rect1"
+       style="fill:#ffffff;stroke-width:0"
+       d="m 3,3 v 6 9 H 9 V 9 h 9 V 3 H 9 Z" />
+    <path
+       id="path3"
+       style="fill:#ffffff;stroke-width:0"
+       d="m 45,3 h -6 -9 v 6 h 9 v 9 h 6 V 9 Z" />
+    <path
+       id="path4"
+       style="fill:#ffffff;stroke-width:0"
+       d="m 45,45 v -6 -9 h -6 v 9 h -9 v 6 h 9 z" />
+    <path
+       id="path5"
+       style="fill:#ffffff;stroke-width:0"
+       d="m 3,45 h 6 9 V 39 H 9 V 30 H 3 v 9 z" />
+  </g>
+</svg>

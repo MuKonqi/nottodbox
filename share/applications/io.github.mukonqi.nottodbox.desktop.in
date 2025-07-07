@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=Nottodbox
+Comment=Organize notes, to-dos and diaries
+
+Type=Application
+Exec=nottodbox
+Terminal=false
+Icon=io.github.mukonqi.nottodbox
+StartupWMClass=nottodbox
+
+Categories=Utility;TextEditor;Qt;

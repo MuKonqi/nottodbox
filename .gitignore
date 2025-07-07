@@ -1,21 +1,22 @@
-# AppImage
-AppDir/
-CHANGELOG.md
+# Flatpak
+.flatpak-builder/
 
 # Editor
 .vscode/
 
-# Gettext
+# Localization
+nottodbox/scripts/resources/locale.py
+*.qm
 *.pot
-*.mo
 
-# Meson
-builddir/
+# pipx
+build/
+nottodbox.egg-info
+
+# PyInstaller
+build/
+dist/
+nottodbox.spec
 
 # Python
 *__pycache__
-
-# Run from source
-nottodbox/locale/
-share/applications/*.desktop
-share/metainfo/*.appdata.xml

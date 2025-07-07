@@ -2,9 +2,9 @@ import xml.etree.ElementTree as ET
 import sys
 import os
 
-sys.path.insert(1, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "nottodbox"))
+sys.path.insert(1, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "nottodbox", "scripts"))
 
-from consts import APP_VERSION # type: ignore
+from version import APP_VERSION # type: ignore
 
 with open("share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in") as f:
     xml = ET.fromstring(f.read())

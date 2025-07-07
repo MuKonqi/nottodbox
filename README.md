@@ -1,207 +1,87 @@
 # Nottodbox
 
 <p align="center">
-    <img src="./share/icons/hicolor/96x96/apps/io.github.mukonqi.nottodbox.png" alt="Icon of Nottodbox"></img><br>
+    <img src="share/icons/hicolor/96x96/apps/io.github.mukonqi.nottodbox.png" alt="Icon of Nottodbox"></img><br>
     <img src="https://img.shields.io/badge/Organize_notes,_to--dos_and_diaries-376296" alt="Organize notes, to-dos and diaries"></img><br>
     <img src="https://img.shields.io/github/downloads/mukonqi/nottodbox/total?label=Downloads" alt="Downloads"></img>
     <img src="https://img.shields.io/github/v/release/mukonqi/nottodbox?label=Release" alt="Release"><br>
-    <a href="https://github.com/mukonqi/nottodbox/releases/latest"><img src="https://docs.appimage.org/_images/download-appimage-banner.svg" alt="Download as an AppImage" /></a>
+    <a href="https://github.com/MuKonqi/nottodbox/releases/download/latest/nottodbox.AppImage"><img src="https://docs.appimage.org/_images/download-appimage-banner.svg" alt="Download as an AppImage" /></a>
 </p>
+
+<p>Nottodbox allows you to create and organize notes, to-dos, and diaries with rich text support in popular formats.</p>
+<p>In today&#39;s fast-paced world, we often have multiple tasks to handle simultaneously. That&#39;s why you can open multiple documents at once in the desired row x column layout.</p>
+<p>You can change the style and color scheme of the application to make it feel more like home.</p>
+<p>All customization options for documents/notebooks:</p>
+<ul>
+    <li>You can mark a to-do as completed or uncompleted.</li>
+    <li>You can add a content lock to a document to turn it into a diary. This prevents the backup from being changed.</li>
+    <li>Documents are automatically saved unless you are editing a outdated diary and have disabled this feature. Additionally, a backup of the old content is always retained. Furthermore, auto-saves do not overwrite backups, meaning your manual changes remain intact.</li>
+    <li>Documents can be in three formats: Markdown, HTML, and plain-text.</li>
+    <li>Documents can be exported in multiple formats to your 'Documents' or 'Desktop' folder if you enable this feature. This allows you to edit them in other applications as well.</li>
+    <li>You can pin your favorite documents/notebooks to the sidebar for easy access.</li>
+    <li>You can change the background, text, and border colors of the document/notebook in three different states: normal, hover, and click</li>
+</ul>
+<p>And here&#39;s the most important part! All documents are associated with a notebook, and all options can follow it. All documents/notebooks can use the default settings or follow the global settings. With them, you can to customize so many things with ease.</p>
 
 ## Images
 <details>
 <summary>Show / Hide</summary>
 
-![Home](/.github/images/home.png)<br>
-![Notes](/.github/images/notes.png)<br>
-![Todos](/.github/images/todos.png)<br>
-![Diaries](/.github/images/diaries.png)<br>
-![Settings](/.github/images/settings.png)
-
+![Appearance when using 'Nottodbox Light' color scheme](.github/images/light.png)
+![Appearance when using 'Nottodbox Dark' color scheme](.github/images/dark.png)
 </details>
 
+## Using
+<!-- ### Installing from Flatpak / Flathub (only for Linux users) (recommended)
+> [!WARNING]
+> [Set up Flatpak](https://flatpak.org/setup/)
 
-## Features
-<details>
-<summary>Show / Hide</summary>
+- `flatpak install io.github.mukonqi.nottodbox` -->
 
-### Sidebar
-> Quickly navigate document pages.
-- A entry for searching in lists
-- A list for open pages (when double-clicked it opens or focuses selected)
-- A list for history (when double-clicked it opens or focuses selected)
-- Deleting a item from history
-- Clearing history
-- Remember's it's status (visible / invisible), area in window (left / right), mode (fixed / floating)
+### Downloading executable from GitHub releases (recommended)
+> [!CAUTION]
+> If you can not run the file, check whether it is executable. If not, please make the file executable.
 
-### Home
-> See some important things in startup.
-- A welcome text
-- A shortcut for keeping today's diary and focusing to it (optional)
-- Listing to-dos
-- Listing notes
+- [Download for Linux](https://github.com/MuKonqi/nottodbox/releases/download/latest/nottodbox.AppImage)
+- [Download for macOS](https://github.com/MuKonqi/nottodbox/releases/download/latest/nottodbox-mac)
+- [Download for Windows](https://github.com/MuKonqi/nottodbox/releases/download/latest/nottodbox.exe)
 
-### Notes
-> Take notes.
-- Two labels for showing selected notebook and note
-- A entry for searching in list
-- Listing notes
-- When a notebook selected:
-    - Creating note
-    - Creating notebook
-    - Resetting
-    - Renaming
-    - Resetting 
-    - Deleting
-    - Deleting all
-    - Setting background color
-    - Setting text color
-- When a note selected:
-    - Creating note
-    - Creating notebook
-    - Opening
-    - Showing backup (manuel saves updates backups but auto-saves not)
-    - Restoring content via backup (old content will be new backup)
-    - Clearing content (old content will be new backup)
-    - Renaming
-    - Deleting
-    - Deleting all
-    - Setting background color
-    - Setting text color
+### Building a Flatpak
+> [!WARNING]
+> [Set up Flatpak](https://flatpak.org/setup/)
 
-### To-dos
-> Make to-do lists.
-- A entry for searcing in list
-- Two labels for showing selected notebook and note
-- Listing to-dos
-- When a to-do list selected:
-    - Creating to-do
-    - Creating to-do list
-    - Resetting
-    - Renaming
-    - Resetting 
-    - Deleting
-    - Deleting all
-    - Setting background color
-    - Setting text color
-- When a to-do selected:
-    - Creating to-do
-    - Creating to-do list
-    - Changing status
-    - Renaming
-    - Resetting 
-    - Deleting
-    - Deleting all
-    - Setting background color
-    - Setting text color
+- Build: `git clone https://github.com/mukonqi/nottodbox.git ; cd nottodbox ; flatpak-builder --user --force-clean --install-deps-from flathub --install --sandbox .flatpak-builder/app .github/recipes/io.github.mukonqi.nottodbox.yaml`
+- Run: `flatpak run --branch=master --arch=x86_64 --command=nottodbox io.github.mukonqi.nottodbox`
 
-### Diaries
-> Keep diaries.
-- A label for showing modification information
-- A calendar for selecting a diary and highlighting it
-- A shortcut for coming back to today
-- When a diary selected:
-    - Opening, if does not created yet create it
-    - Showing backup (manuel saves updates backups but auto-saves not)
-    - Restoring content via backup (old content will be new backup)
-    - Clearing content (old content will be new backup)
-    - Renaming
-    - Deleting
-    - Deleting all
-    - Setting highlight color
+### Building via pip
+> [!WARNING] 
+> Dependencies: Python (3.10 and higher), pip and git
+> [!CAUTION] 
+> Build command tested on bash and Python's executable's name may be different on your system.
 
-### Documents
-> Easily edit documents in a style.
-- Saving:
-    - Auto-saving support (threaded)
-    - For triggering, click the "Save" button or accept the warning question when closing a document.
-    - This can change backups except outdated diaries.
-- Settings:
-    - Auto-save:
-        - This triggered when the document content's changes.
-        - This is disabled and can't be enabled for old diaries.
-        - This can't change backups.
-    - Format:
-        - Plain-text
-        - Markdown
-        - HTML
-- Formatting:
-    - Formatting selected section via cursor or word uncer cursor
-    - Options:
-        - Bold
-        - Italic
-        - Underline
-        - Strike through
-        - Heading (6 levels)
-        - List (4 options)
-        - Alignment (3 options) (only for HTML format)
-        - Table
-        - Link
-        - Text color (only for HTML format)
-        - Background color (only for HTML format)
-- Standart Qt's text edit box with opening links support
+- Build: `git clone https://github.com/mukonqi/nottodbox.git ; cd nottodbox ; python3 .github/scripts/translations.py ; pip install .`
+- Run: `nottodbox`
 
-### Settings
-> Customize Nottodbox.
-- Appearance:
-    - Setting style
-    - Setting color scheme
-    - Creating custom color schemes
-- Shortcuts:
-    - Option for auto adding start menu shortcut at every startup
-    - Adding start menu shortcut
-    - Deleting start menu shortcut     
-- Sidebar:
-    - Setting alternate row color for lists
-- Notes:
-    - Setting alternate row color for lists
-    - Setting default background color for items
-    - Setting default foreground color for item
-    - Setting auto-save for documents
-    - Setting format for documents
-- To-dos:
-    - Setting default background color for items
-    - Setting default foreground color for items
-- Diaries:
-    - Setting default highlight color for items
-    - Setting auto-save for documents
-    - Setting format for documents
-- About:
-    - The icon and application name
-    - Version
-    - Link source codes
-    - Developer
-    - Copyright notification
-    - License
-    - License text
-</details>
+### Building via PyInstaller
+> [!WARNING] 
+> Dependencies: Python (3.10 and higher), PySide6, PyInstaller and git
 
+> [!CAUTION] 
+> Build command tested on bash.
 
-## Install with Meson
-### Dependencies
-- Python3
-- PySide6
-- git
-- meson
+- Build for Linux: `export RUNNER_OS="Linux" ; bash .github/scripts/pyinstaller.sh`
+- Build for macOS: `export RUNNER_OS="macOS" ; bash .github/scripts/pyinstaller.sh`
+- Build for Windows: `export RUNNER_OS="Windows" ; bash .github/scripts/pyinstaller.sh`
+- Now you can find the executable in dist folder.
 
-### Clone, setup, install
-1. ```git clone https://github.com/mukonqi/nottodbox.git```
-2. ```meson setup nottodbox/builddir nottodbox```
-3. ```meson install -C nottodbox/builddir```
+## Running from source
+> [!WARNING] 
+> Dependencies: Python (3.10 and higher), PySide6 and git
 
+> [!CAUTION] 
+> Run command tested on bash and Python's executable's name may be different on your system.
 
-## Run from source
-### Dependencies:
-- Python3
-- PySide6
-- git
-- msgfmt (generally distributed with gettext or gettext-tools package)
-
-### Clone, set-up translations (OPTIONAL), run
-1. ```git clone https://github.com/mukonqi/nottodbox.git ; cd nottodbox```
-2. ```python3 .github/scripts/translations.py``` (OPTIONAL)
-3. ```python3 -m nottodbox```
-
+- `git clone https://github.com/mukonqi/nottodbox.git ; cd nottodbox ; python3 .github/scripts/translations.py ; python3 -m nottodbox`
 
 ## Disclaimer
 > [!CAUTION] 
@@ -210,8 +90,5 @@
 > [!TIP]
 > You can see the license for more details.
 
-
 ## Credit
-- While making [nottodbox/widgets/pages.py](./nottodbox/widgets/pages.py)'s PageHelper class, [KDE - Marknote: master/src/documenthandler.cpp](https://invent.kde.org/office/marknote/-/blob/master/src/documenthandler.cpp) helped me as a referance.
-
-- While making [.github/scripts/build-appimage.yml](.github/scripts/build-appimage.yml)'s script section, [DavidoTek - ProtonUp-Qt: AppImageBuilder.yml](https://github.com/DavidoTek/ProtonUp-Qt/blob/main/AppImageBuilder.yml) helped me as a reference.
+- While making [nottodbox/scripts/widgets/documents.py](./nottodbox/scripts/widgets/documents.py)'s DocumentHelper class, [KDE - Marknote: master/src/documenthandler.cpp](https://invent.kde.org/office/marknote/-/blob/master/src/documenthandler.cpp) helped me as a referance.

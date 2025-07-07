@@ -1,0 +1,13 @@
+<RCC>
+    <qresource prefix="icons">
+        <file alias="window">hicolor/256x256/apps/io.github.mukonqi.nottodbox.png</file>
+        <file alias="about-dark">hicolor/scalable/actions/io.github.mukonqi.nottodbox_about_dark.svg</file>
+        <file alias="about-light">hicolor/scalable/actions/io.github.mukonqi.nottodbox_about_light.svg</file>
+        <file alias="focus-dark">hicolor/scalable/actions/io.github.mukonqi.nottodbox_focus_dark.svg</file>
+        <file alias="focus-light">hicolor/scalable/actions/io.github.mukonqi.nottodbox_focus_light.svg</file>
+        <file alias="home-dark">hicolor/scalable/actions/io.github.mukonqi.nottodbox_home_dark.svg</file>
+        <file alias="home-light">hicolor/scalable/actions/io.github.mukonqi.nottodbox_home_light.svg</file>
+        <file alias="settings-dark">hicolor/scalable/actions/io.github.mukonqi.nottodbox_settings_dark.svg</file>
+        <file alias="settings-light">hicolor/scalable/actions/io.github.mukonqi.nottodbox_settings_light.svg</file>
+    </qresource>
+</RCC>
