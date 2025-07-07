@@ -28,6 +28,10 @@ jobs:
     - name: Install dependencies
       run: pip install PySide6-Essentials pyinstaller
 
+    - name: Install libraries (Linux)
+      if: runner.os == 'Linux'
+      run: sudo apt install -y libfuse2 libgdk-pixbuf2.0-dev libglib2.0-0 libopengl0 libxcb-cursor0 libxcb-icccm4 libxcb-keysyms1 libxcb-shape0-dev libxcb-xkb-dev libxkbcommon-x11-0
+
     - name: Set-up translations
       run: python3 .github/scripts/translations.py
 
@@ -37,8 +41,6 @@ jobs:
     - name: Build AppImage (Linux)
       if: runner.os == 'Linux'
       run: |
-        sudo apt install -y libfuse2 libgdk-pixbuf2.0-dev libglib2.0-0 libopengl0 libxcb-cursor0 libxcb-icccm4 libxcb-keysyms1 libxcb-shape0-dev libxcb-xkb-dev libxkbcommon-x11-0
-
         wget -q https://github.com/linuxdeploy/linuxdeploy/releases/download/1-alpha-20250213-2/linuxdeploy-x86_64.AppImage
         chmod +x linuxdeploy-x86_64.AppImage
 
