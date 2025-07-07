@@ -37,7 +37,7 @@ jobs:
     - name: Build AppImage (Linux)
       if: runner.os == 'Linux'
       run: |
-        sudo apt install -y libopengl0 libxcb-cursors0 libglib2.0-0
+        sudo apt install -y libopengl0 libxcb-cursor0 libglib2.0-0
 
         wget -q https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
         chmod +x linuxdeployqt-continuous-x86_64.AppImage
