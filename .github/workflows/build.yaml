@@ -3,7 +3,7 @@ name: Build
 on:
   pull_request:
   push: 
-    tags: "*"
+    tags: "v*.*.*"
   workflow_dispatch:
 
 jobs:
