@@ -64,9 +64,8 @@ class MainDB:
         self.cur.execute(f"update '{notebook}' set content = '' where name = ?", (document,))
         self.db.commit()
 
-        if self.getContent(document, notebook) == "":
-            if self.updateModification(document, notebook):
-                return self.setBackup(content, document, notebook)
+        if self.getContent(document, notebook) == "" and self.updateModification(document, notebook):
+            return self.setBackup(content, document, notebook)
 
         return False
 
@@ -237,13 +236,12 @@ class MainDB:
         self.cur.execute(f"update '{notebook}' set content = ? where name = ?", (content, document))
         self.db.commit()
 
-        if self.getContent(document, notebook) == content:
-            if self.updateModification(document, notebook):
-                if autosave:
-                    return True
+        if self.getContent(document, notebook) == content and self.updateModification(document, notebook):
+            if autosave:
+                return True
 
-                else:
-                    return self.setBackup(backup, document, notebook)
+            else:
+                return self.setBackup(backup, document, notebook)
 
         return False
 

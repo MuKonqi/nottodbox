@@ -62,7 +62,7 @@ class Sidebar(QWidget):
             ToolButton(self, lambda checked: self.setCurrentIndex(checked, 0), self.tr("Home"), True, None, 60),
             ToolButton(self, lambda checked: self.setCurrentIndex(checked, 1), self.tr("Settings"), True, None, 60),
             ToolButton(self, lambda checked: self.setCurrentIndex(checked, 2), self.tr("About"), True, None, 60),
-            ToolButton(self, lambda: self.parent_.home.selector.setVisible(False if self.parent_.home.selector.isVisible() else True), self.tr("Focus"), True, None, 60)
+            ToolButton(self, lambda: self.parent_.home.selector.setVisible(not self.parent_.home.selector.isVisible()), self.tr("Focus"), True, None, 60)
         ]
 
         self.list_view = ListView(self)
@@ -102,7 +102,7 @@ class Sidebar(QWidget):
         else:
             self.buttons[-1].setVisible(True)
 
-        self.buttons[self.old_index].setChecked(False if checked else True)
+        self.buttons[self.old_index].setChecked(not checked)
 
         self.old_index = index
 

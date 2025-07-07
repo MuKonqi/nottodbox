@@ -325,7 +325,7 @@ class DocumentHelper(QToolBar):
 
         constraints = []
 
-        for i in range(0, table.columns()):
+        for i in range(0, table.columns()): # noqa: B007
             constraints.append(QTextLength(QTextLength.Type.PercentageLength, 100 / table.columns()))
 
         table_format.setColumnWidthConstraints(constraints)
@@ -342,11 +342,11 @@ class DocumentHelper(QToolBar):
 
         table.setFormat(table_format)
 
-    def mergeFormat(self, cur: QTextCursor, format: QTextCharFormat) -> None:
+    def mergeFormat(self, cur: QTextCursor, format_: QTextCharFormat) -> None:
         if not cur.hasSelection():
             cur.select(QTextCursor.SelectionType.WordUnderCursor)
 
-        cur.mergeCharFormat(format)
+        cur.mergeCharFormat(format_)
 
     def setBackgroundColor(self) -> None:
         ok, status, qcolor = GetColor(self, True, False, False, Qt.GlobalColor.white, self.tr("Select {} Color").format(self.tr("Background"))).getColor()
@@ -529,9 +529,9 @@ class DocumentHelper(QToolBar):
         else:
             self.strikethrough_action.setChecked(False)
 
-    def updateStatus(self, format: str) -> None:
+    def updateStatus(self, format_: str) -> None:
         if self.parent_.mode == "normal":
-            if format == "plain-text":
+            if format_ == "plain-text":
                 actions = self.actions()
                 actions.pop(actions.index(self.button))
 
@@ -540,7 +540,7 @@ class DocumentHelper(QToolBar):
 
                 self.setStatusTip(self.tr("Text formatter is only available in Markdown and HTML formats.")),
 
-            elif format == "markdown":
+            elif format_ == "markdown":
                 for action in self.actions():
                     action.setEnabled(True)
 
@@ -549,7 +549,7 @@ class DocumentHelper(QToolBar):
                 self.text_color.setEnabled(False)
                 self.background_color.setEnabled(False)
 
-            elif format == "html":
+            elif format_ == "html":
                 for action in self.actions():
                     action.setEnabled(True)
 

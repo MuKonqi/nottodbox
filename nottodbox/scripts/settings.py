@@ -88,6 +88,13 @@ os.makedirs(NOTTODBOX_COLOR_SCHEMES_DIRS[1], exist_ok=True)
 COLOR_SCHEMES_DIRS.extend(KDE_COLOR_SCHEMES_DIRS)
 COLOR_SCHEMES_DIRS.extend(NOTTODBOX_COLOR_SCHEMES_DIRS)
 
+NUMBERS = {
+    "1": "\u00b9",
+    "2": "\u00b2",
+    "3": "\u00b3",
+    "4": "\u2074"
+}
+
 
 class SettingsPage(QWidget):
     def __init__(self, parent: QWidget) -> None:
@@ -536,8 +543,8 @@ class Appearance(QWidget):
 
         self.color_schemes = {}
 
-        for dir in COLOR_SCHEMES_DIRS:
-            for entry in os.scandir(dir):
+        for dir_ in COLOR_SCHEMES_DIRS:
+            for entry in os.scandir(dir_):
                 if entry.is_file():
                     self.getColorSchemeName(entry.path)
 
@@ -549,7 +556,7 @@ class Appearance(QWidget):
 
         self.current_color_scheme = self.parent_.settings.value("appearance/color_scheme")
 
-        if self.current_color_scheme in self.color_schemes.keys():
+        if self.current_color_scheme in self.color_schemes:
             self.use_default_color_scheme = False
 
             self.color_schemes_combobox.setCurrentText(self.current_color_scheme)
@@ -712,10 +719,10 @@ class Appearance(QWidget):
             else:
                 dir_number = 0
 
-            for dir in COLOR_SCHEMES_DIRS:
+            for dir_ in COLOR_SCHEMES_DIRS:
                 dir_number += 1
 
-                if os.path.dirname(value) == dir or dir_number == 4:
+                if os.path.dirname(value) == dir_ or dir_number == 4:
                     number = dir_number
 
                     break
@@ -723,20 +730,7 @@ class Appearance(QWidget):
                 if dir_number == 1 and not KDE_USER_COLOR_SCHEMES_FOUND:
                     dir_number += 1
 
-        if number == 1:
-            return "\u00b9"
-
-        elif number == 2:
-            return "\u00b2"
-
-        elif number == 3:
-            return "\u00b3"
-
-        elif number == 4:
-            return "\u2074"
-
-        else:
-            return number
+        return NUMBERS.get(number, number)
 
 
 class CustomColorSchemes(QWidget):
@@ -784,9 +778,7 @@ class CustomColorSchemes(QWidget):
         self.form = QFormLayout(self)
         self.form.addRow("{}:".format(self.tr("Color scheme to be edited")), self.combobox)
 
-        for color_role in self.labels.keys():
-            number += 1
-
+        for number, color_role in enumerate(self.labels):
             self.buttons[color_role] = ColorSelector(self, True, False, False)
 
             if number == 1:
@@ -832,7 +824,7 @@ class CustomColorSchemes(QWidget):
 
             color_scheme = {}
 
-            for color_role in self.labels.keys():
+            for color_role in self.labels:
                 if self.buttons[color_role].selected != "default":
                     color_scheme[color_role] = self.buttons[color_role].selected
 
@@ -868,18 +860,18 @@ class CustomColorSchemes(QWidget):
         if name == self.tr("Style default"):
             palette = QApplication.style().standardPalette()
 
-            for color_role in self.labels.keys():
+            for color_role in self.labels:
                 self.buttons[color_role].setColor(palette.color(QPalette.ColorRole[color_role]).name())
 
         elif name == self.tr("None"):
-            for color_role in self.labels.keys():
+            for color_role in self.labels:
                 self.buttons[color_role].setColor("")
 
         elif name in self.color_schemes_list:
             data = self.parent_.getColorSchemeData(self.parent_.color_schemes[name])
 
-            for color_role in self.labels.keys():
-                self.buttons[color_role].setColor(data[color_role] if color_role in data else "")
+            for color_role in self.labels:
+                self.buttons[color_role].setColor(data.get(color_role, ""))
 
     def createList(self) -> None:
         self.color_schemes_list = self.parent_.color_schemes_list.copy()

@@ -255,15 +255,15 @@ class Selector(QWidget):
         self.setFixedWidth(330)
         self.enableCalendar(Qt.CheckState.Unchecked if self.settings.value("selector/calendar") == "hidden" else Qt.CheckState.Checked)
         self.setPage()
-        self.setVisible(False if self.settings.value("selector/self") == "hidden" else True)
-        self.parent_.parent_.sidebar.buttons[-1].setChecked(True if self.settings.value("selector/self") == "hidden" else False)
+        self.setVisible(self.settings.value("selector/self") != "hidden")
+        self.parent_.parent_.sidebar.buttons[-1].setChecked(self.settings.value("selector/self") == "hidden")
 
     @Slot(int or Qt.CheckState)
     def enableCalendar(self, signal: int | Qt.CheckState) -> None:
         if not self.do_not_write:
             self.settings.setValue("selector/calendar", "hidden" if signal == Qt.CheckState.Unchecked or signal == 0 else "visible")
 
-        self.calendar_widget.setVisible(False if signal == Qt.CheckState.Unchecked or signal == 0 else True)
+        self.calendar_widget.setVisible(not (signal == Qt.CheckState.Unchecked or signal == 0))
 
     def setPage(self) -> None:
         if self.tree_view.model_.rowCount() == 0:
@@ -369,7 +369,7 @@ class Options:
                     index.model().setData(index, self.parent_.tree_view.handleSetting(self.parent_.maindb.items[(name, table)], 7 + i, values[i]), Qt.ItemDataRole.UserRole + 27 + i)
 
                     if index.data(Qt.ItemDataRole.UserRole + 2) == "notebook":
-                        for name_, table_ in self.parent_.maindb.items.keys():
+                        for name_, table_ in self.parent_.maindb.items:
                             if table_ == name and "notebook" in self.parent_.maindb.items[(name_, table_)].data(Qt.ItemDataRole.UserRole + 27 + i)[0]:
                                 self.parent_.maindb.items[(name_, table_)].setData(self.parent_.tree_view.handleSetting(self.parent_.maindb.items[(name_, table_)], 7 + i, "notebook"), Qt.ItemDataRole.UserRole + 27 + i)
 
@@ -404,7 +404,7 @@ class Options:
                         page.document.refreshSettings()
 
                     if index.data(Qt.ItemDataRole.UserRole + 2) == "notebook":
-                        for name_, table_ in self.parent_.maindb.items.keys():
+                        for name_, table_ in self.parent_.maindb.items:
                             if table_ == name and "notebook" in self.parent_.maindb.items[(name_, table_)].data(Qt.ItemDataRole.UserRole + 20 + i)[0]:
                                 self.parent_.maindb.items[(name_, table_)].setData(self.parent_.tree_view.handleSetting(self.parent_.maindb.items[(name_, table_)], i, "notebook"), Qt.ItemDataRole.UserRole + 20 + i)
 
@@ -447,7 +447,7 @@ class Options:
     @Slot(QModelIndex)
     def close(self, index: QModelIndex) -> None:
         for page in [page for page in self.parent_.parent_.area.pages if page.document is not None and page.document.index == index]:
-            if page.document.mode == "normal" and not page.document.last_content == page.document.getText():
+            if page.document.mode == "normal" and page.document.last_content != page.document.getText():
                 self.question = QMessageBox.question(
                     self.parent_, self.parent_.tr("Question"), self.tr("{the_item} not saved.\nWhat would you like to do?", index),
                     QMessageBox.StandardButton.Save | QMessageBox.StandardButton.Discard | QMessageBox.StandardButton.Cancel, QMessageBox.StandardButton.Save)
@@ -464,7 +464,7 @@ class Options:
             if page.document.mode == "normal":
                 page.document.changeAutosaveConnections("disconnect")
 
-            if index in self.parent_.parent_.parent_.sidebar.list_view.items.keys():
+            if index in self.parent_.parent_.parent_.sidebar.list_view.items:
                 self.parent_.parent_.parent_.sidebar.list_view.items[index].setData(False, Qt.ItemDataRole.UserRole + 1)
 
     @Slot(QModelIndex)
@@ -560,7 +560,7 @@ class Options:
             self.unpin(index, False, False)
 
             if index.data(Qt.ItemDataRole.UserRole + 2) == "notebook":
-                for name_, table_ in self.parent_.maindb.items.copy().keys():
+                for name_, table_ in self.parent_.maindb.items.copy():
                     if table_ == name:
                         for page in [page for page in self.parent_.parent_.area.pages if page.document is not None and page.document.index == self.parent_.maindb.items[(name_, table_)].index()]:
                             page.removeDocument()
@@ -612,25 +612,25 @@ class Options:
 
         if ok:
             if index.data(Qt.ItemDataRole.UserRole + 2) == "notebook":
-                for name_, table_ in self.parent_.maindb.items.keys():
+                for name_, table_ in self.parent_.maindb.items:
                     if table_ == name:
                         self.export(self.parent_.tree_view.mapFromSource(self.parent_.maindb.items[(name_, table_)].index()), export)
 
             elif index.data(Qt.ItemDataRole.UserRole + 2) == "document":
                 os.makedirs(os.path.join(USER_DIRS[index.data(Qt.ItemDataRole.UserRole + 25)[1]], "Nottodbox", table), exist_ok=True)
 
-                input = QTextEdit(index.data(Qt.ItemDataRole.UserRole + 104))
+                input_ = QTextEdit(index.data(Qt.ItemDataRole.UserRole + 104))
 
                 if index.data(Qt.ItemDataRole.UserRole + 23)[1] == "markdown":
-                    content = input.toMarkdown()
+                    content = input_.toMarkdown()
 
                 elif index.data(Qt.ItemDataRole.UserRole + 23)[1] == "html":
-                    content = input.toHtml()
+                    content = input_.toHtml()
 
                 elif index.data(Qt.ItemDataRole.UserRole + 23)[1] == "plain-text":
-                    content = input.toPlainText()
+                    content = input_.toPlainText()
 
-                input.deleteLater()
+                input_.deleteLater()
 
                 if export == "pdf":
                     writer = QPdfWriter(os.path.join(USER_DIRS[index.data(Qt.ItemDataRole.UserRole + 25)[1]], "Nottodbox", table, f"{name}.pdf"))
@@ -693,7 +693,7 @@ class Options:
 
     @Slot(QModelIndex)
     def pin(self, index: QModelIndex, write: bool = True, update: bool = True) -> None:
-        if index not in self.parent_.parent_.parent_.sidebar.list_view.items.keys():
+        if index not in self.parent_.parent_.parent_.sidebar.list_view.items:
             name, table = self.get(index)
 
             if write and not self.parent_.maindb.set("yes", "pinned", name, table):
@@ -706,7 +706,7 @@ class Options:
             self.parent_.parent_.parent_.sidebar.list_view.addItem(index)
 
             if index.data(Qt.ItemDataRole.UserRole + 2) == "notebook":
-                for name_, table_ in self.parent_.maindb.items.copy().keys():
+                for name_, table_ in self.parent_.maindb.items.copy():
                     if table_ == name and "notebook" in self.parent_.maindb.items[(name_, table_)].data(Qt.ItemDataRole.UserRole + 26)[0]:
                         self.parent_.parent_.parent_.sidebar.list_view.addItem(self.parent_.maindb.items[(name_, table_)].index())
 
@@ -753,7 +753,7 @@ class Options:
                     index.model().setData(index, new_name, Qt.ItemDataRole.UserRole + 101)
 
                     if index.data(Qt.ItemDataRole.UserRole + 2) == "notebook":
-                        for name_, table_ in self.parent_.maindb.items.copy().keys():
+                        for name_, table_ in self.parent_.maindb.items.copy():
                             if table_ == name:
                                 self.parent_.maindb.items[(name_, table_)].setData(new_name, Qt.ItemDataRole.UserRole + 100)
 
@@ -785,7 +785,7 @@ class Options:
         name, table = self.get(index)
 
         if self.parent_.maindb.reset(name):
-            for name_, table_ in self.parent_.maindb.items.copy().keys():
+            for name_, table_ in self.parent_.maindb.items.copy():
                 if table_ == name:
                     for page in [page for page in self.parent_.parent_.area.pages if page.document is not None and page.document.index == self.parent_.maindb.items[(name_, table_)].index()]:
                         page.removeDocument()
@@ -857,7 +857,7 @@ class Options:
 
     @Slot(QModelIndex)
     def unpin(self, index: QModelIndex, write: bool = True, update: bool = True) -> None:
-        if index in self.parent_.parent_.parent_.sidebar.list_view.items.keys():
+        if index in self.parent_.parent_.parent_.sidebar.list_view.items:
             name, table = self.get(index)
 
             if write and not self.parent_.maindb.set("no", "pinned", name, table):
@@ -870,7 +870,7 @@ class Options:
             self.parent_.parent_.parent_.sidebar.list_view.removeItem(index)
 
             if index.data(Qt.ItemDataRole.UserRole + 2) == "notebook":
-                for name_, table_ in self.parent_.maindb.items.copy().keys():
+                for name_, table_ in self.parent_.maindb.items.copy():
                     if table_ == name and "notebook" in self.parent_.maindb.items[(name_, table_)].data(Qt.ItemDataRole.UserRole + 26)[0]:
                         self.parent_.parent_.parent_.sidebar.list_view.removeItem(self.parent_.maindb.items[(name_, table_)].index())
 
@@ -1112,7 +1112,7 @@ class TreeView(QTreeView):
         if index.data(Qt.ItemDataRole.UserRole + 2) == "document" and pages != []:
             menu.addSeparator()
             for page in pages:
-                menu.addAction(Action(self, lambda: page.removeDocument(), self.tr("Close")))
+                menu.addAction(Action(self, lambda page = page: page.removeDocument(), self.tr("Close")))
 
         menu.exec(global_pos)
 

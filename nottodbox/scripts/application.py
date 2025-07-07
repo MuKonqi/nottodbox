@@ -62,13 +62,13 @@ class Application(QApplication):
                 logging.warning(f"Failed to load locale for {QLocale.system().name().split('_')[0]}.")
 
         if APP_BUILD == "Flatpak":
-            for dir in USER_DIRS.values():
-                dir = os.path.join(dir, "Nottodbox")
+            for dir_ in USER_DIRS.values():
+                dir_ = os.path.join(dir_, "Nottodbox")
 
-                if os.path.isdir(dir):
-                    with os.scandir(dir) as entry:
+                if os.path.isdir(dir_):
+                    with os.scandir(dir_) as entry:
                         if not any(entry):
-                            subprocess.run(['flatpak-spawn', '--host', 'rm', '-r', dir])
+                            subprocess.run(['flatpak-spawn', '--host', 'rm', '-r', dir_])
 
         self.mainwindow = MainWindow()
 
