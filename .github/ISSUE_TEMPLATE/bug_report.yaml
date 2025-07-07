@@ -2,7 +2,7 @@ name: Bug Report
 description: Found a bug? Please help us improve by reporting it here.
 title: "[BUG] "
 labels: bug
-assignees: ''
+assignees: ""
 
 body:
   - type: markdown
@@ -10,18 +10,17 @@ body:
       value: |
         Thanks for taking the time to fill out this bug report!
 
-  - type: file
-    id: log_file
+  - type: markdown
+    id: log
     attributes:
-      label: Log File
+      label: Log
       description: |
-        Please upload a relevant log file.
+        Please copy-paste the content of a relevant log file.
         You can find logs in:
         
         - Linux: `~/.local/share/nottodbox/logs`
         - macOS: `~/Library/Application Support/nottodbox/logs`
         - Windows: `C:/Users/<USER>/AppData/Local/nottodbox/logs`
-      multiple: true
     validations:
       required: true
 
