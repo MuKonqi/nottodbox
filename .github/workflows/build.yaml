@@ -55,9 +55,9 @@ jobs:
           -l $(ldconfig -p | grep libxcb-cursor.so.0 | awk '{print $NF}' | head -n1) \
           --output appimage
 
-    - name: Rename the file
+    - name: Set-up the file (non-Windows)
       if: runner.os != 'Windows'
-      run: python3 .github/scripts/rename.py
+      run: python3 .github/scripts/setup.py
 
     - name: Upload to stable release
       if: startsWith(github.ref, 'refs/tags/')

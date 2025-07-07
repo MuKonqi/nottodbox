@@ -1,5 +1,6 @@
 import os
 import shutil
+import subprocess
 
 if os.environ.get("RUNNER_OS") == "Linux":
     directory = os.listdir()
@@ -9,4 +10,5 @@ if os.environ.get("RUNNER_OS") == "Linux":
             shutil.move(name, "dist/nottodbox.AppImage")
 
 elif os.environ.get("RUNNER_OS") == "macOS":
-    shutil.move("dist/nottodbox", "dist/nottodbox-mac")
+    subprocess.run("zip", "-r", "dist/nottodbox.app.zip", "dist/nottodbox.app")
+    os.remove("dist/nottodbox.app")

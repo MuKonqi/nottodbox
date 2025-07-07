@@ -43,7 +43,7 @@
 > If you can not run the file, check whether it is executable. If not, please make the file executable.
 
 - [Download for Linux](https://github.com/MuKonqi/nottodbox/releases/download/latest/nottodbox.AppImage)
-- [Download for macOS](https://github.com/MuKonqi/nottodbox/releases/download/latest/nottodbox-mac)
+- [Download for macOS](https://github.com/MuKonqi/nottodbox/releases/download/latest/nottodbox.app.zip)
 - [Download for Windows](https://github.com/MuKonqi/nottodbox/releases/download/latest/nottodbox.exe)
 
 ### Building a Flatpak
