@@ -43,7 +43,7 @@
     <launchable type="desktop-id">io.github.mukonqi.nottodbox.desktop</launchable>
 
     <releases>
-        <release version="v0.1.0" date="2025-07-07">
+        <release version="v0.1.0" date="2025-07-08">
             <description>
                 <ul>
                     <li>Initial remake release</li>
