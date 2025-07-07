@@ -50,9 +50,9 @@ jobs:
           --appdir AppDir \
           -d share/applications/io.github.mukonqi.nottodbox.desktop \
           -i share/icons/hicolor/256x256/apps/io.github.mukonqi.nottodbox.png \
-          -l libglib-2.0.so.0 \
-          -l libOpenGL.so.0 \
-          -l libxcb-cursor.so.0 \
+          -l $(ldconfig -p | grep libglib-2.0.so.0 | awk '{print $NF}' | head -n1) \
+          -l $(ldconfig -p | grep libOpenGL.so.0 | awk '{print $NF}' | head -n1) \
+          -l $(ldconfig -p | grep libxcb-cursor.so.0 | awk '{print $NF}' | head -n1) \
           --output appimage
 
     - name: Rename the file
