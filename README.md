@@ -5,6 +5,7 @@
     <img src="https://img.shields.io/badge/Organize_notes,_to--dos_and_diaries-376296" alt="Organize notes, to-dos and diaries"></img><br>
     <img src="https://img.shields.io/github/downloads/mukonqi/nottodbox/total?label=Downloads" alt="Downloads"></img>
     <img src="https://img.shields.io/github/v/release/mukonqi/nottodbox?label=Release" alt="Release"><br>
+    <a href="https://github.com/MuKonqi/nottodbox/releases/download/latest/nottodbox.AppImage"><img src="https://docs.appimage.org/_images/download-appimage-banner.svg" alt="Download as an AppImage" /></a>
 </p>
 
 <p>Nottodbox allows you to create and organize notes, to-dos, and diaries with rich text support in popular formats.</p>
@@ -41,7 +42,7 @@
 > [!CAUTION]
 > If you can not run the file, check whether it is executable. If not, please make the file executable.
 
-- [Download for Linux](https://github.com/MuKonqi/nottodbox/releases/download/latest/nottodbox)
+- [Download for Linux](https://github.com/MuKonqi/nottodbox/releases/download/latest/nottodbox.AppImage)
 - [Download for macOS](https://github.com/MuKonqi/nottodbox/releases/download/latest/nottodbox-mac)
 - [Download for Windows](https://github.com/MuKonqi/nottodbox/releases/download/latest/nottodbox.exe)
 
