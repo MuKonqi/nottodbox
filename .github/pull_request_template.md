@@ -2,7 +2,7 @@
 
 Please describe the changes made in this pull request.
 
-- What was added/changed?
+- What was added or changed?
 - Why is this change necessary?
 
 Fixes: #[issue-number] (if applicable)
@@ -27,17 +27,17 @@ Please check the relevant option(s):
 ## Checklist
 
 - [ ] I have tested the changes locally
-- [ ] I have linked relevant issues
-- [ ] My code follows the project’s code style
+- [ ] I have linked relevant issues (if any)
+- [ ] My code follows the project’s code style etc.
 
 ---
 
 ## Screenshots (if applicable)
 
-_Add screenshots or recordings to help reviewers understand the visual or behavioral change._
+_Add screenshots to help reviewers understand the visual or behavioral changes._
 
 ---
 
 ## Additional Notes
 
-_Optional: Add anything else the reviewer should know before reviewing._
+_Optional: Include any other context, implementation details, or things to watch out for._

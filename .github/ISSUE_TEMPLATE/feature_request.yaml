@@ -8,22 +8,23 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thank you for suggesting a new feature! Please fill out the details below.
+        Thank you for suggesting a new feature! Please fill out the details below to help us understand your idea.
 
   - type: input
     id: summary
     attributes:
       label: Feature Summary
-      description: What would this feature do?
-      placeholder: Brief description of the feature
+      description: Provide a brief summary of the feature.
+      placeholder: A concise description of the feature
     validations:
       required: true
 
   - type: textarea
     id: motivation
     attributes:
-      label: Why is this needed?
-      description: What problem does this feature solve or improve?
+      label: Motivation
+      description: Explain why this feature is needed. What problem does it solve or improve?
+      placeholder: Describe the problem or use case
     validations:
       required: true
 
@@ -31,4 +32,25 @@ body:
     id: details
     attributes:
       label: Feature Details
-      description: How should it work? Include examples if possible.
+      description: Describe how this feature should work. Include examples or possible implementation details.
+      placeholder: Detailed explanation, usage examples, etc.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Have you considered any alternative solutions? If yes, please describe them.
+      placeholder: Alternative approaches or workarounds
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional_info
+    attributes:
+      label: Additional Information
+      description: Add any other context, screenshots, or links that might help.
+      placeholder: Any other relevant info
+    validations:
+      required: false

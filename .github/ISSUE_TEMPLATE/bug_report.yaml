@@ -15,10 +15,12 @@ body:
     attributes:
       label: Log File
       description: |
-        Upload relevant log file. 
-        You can find log files in your ~/.local/share/nottodbox/logs folder in Linux, 
-        ~/Library/Application Support/nottodbox/logs folder in macOS and
-        C:/Users/<USER>/AppData/Local/nottodbox/logs folder in Windows.
+        Please upload a relevant log file.
+        You can find logs in:
+        
+        - Linux: `~/.local/share/nottodbox/logs`
+        - macOS: `~/Library/Application Support/nottodbox/logs`
+        - Windows: `C:/Users/<USER>/AppData/Local/nottodbox/logs`
       multiple: true
     validations:
       required: true
@@ -55,5 +57,5 @@ body:
   - type: textarea
     id: extra
     attributes:
-      label: Additional Information (like Screenshots)
-      description: Include any other details like screenshots.
+      label: Additional Context like Screenshots
+      description: Add any other information that might help us understand or reproduce the issue.
