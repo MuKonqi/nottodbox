@@ -34,8 +34,7 @@ class Application(QApplication):
     def __init__(self, argv: list) -> None:
         super().__init__(argv)
         
-        logging.info(f"Nottodbox, version: {APP_VERSION}, build {APP_BUILD}")
-        logging.info(f"PID (process identifier): {os.getpid()}")
+        logging.info(f"Nottodbox, version: {APP_VERSION}, build: {APP_BUILD}")
         logging.info(f"Operating system: {platform.system()} {platform.release()} ({platform.platform()})")
         logging.info(f"Platform: {QApplication.platformName()}")
         logging.info(f"Python: {platform.python_version()}")

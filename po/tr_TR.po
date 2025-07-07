@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-07 17:33+0300\n"
+"POT-Creation-Date: 2025-07-07 20:14+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Muhammed S. <mukonqi@gmail.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -123,10 +123,10 @@ msgstr ""
 "ayarları kullanabilir veya genel ayarları takip edebilir. Bunlarla, çok "
 "sayıda şeyi kolaylıkla özelleştirebilirsiniz."
 
-#: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:119
+#: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:132
 msgid "Appearance when using 'Nottodbox Light' color scheme"
 msgstr "'Nottodbox Light' renk şeması kullanıldığında görünüm"
 
-#: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:123
+#: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:136
 msgid "Appearance when using 'Nottodbox Dark' color scheme"
 msgstr "'Nottodbox Dark' renk şeması kullanıldığında görünüm"

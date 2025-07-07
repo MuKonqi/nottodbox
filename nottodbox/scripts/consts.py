@@ -23,7 +23,7 @@ from PySide6.QtCore import QStandardPaths
 
 APP_BUILD = 'None'
 
-APP_VERSION = "0.1.0"
+APP_VERSION = "v0.1.0"
 
 
 SETTINGS_DEFAULTS = [None, "disabled", "enabled", "markdown", None, "documents", "no", None, None, None, None, None, None, None, None, None]

@@ -32,3 +32,7 @@ packages = ["nottodbox", "nottodbox.scripts", "nottodbox.scripts.resources", "no
 
 [tool.setuptools.package-data]
 nottodbox = ["LICENSE.txt", "color-schemes/*"]
+
+[tool.ruff]
+line-length = 120
+select = ["D", "E", "F", "I", "N", "UP", "W"]
