@@ -2,9 +2,9 @@
 Thank you for your interest in contributing to Nottodbox!
 
 ## How to Contribute
-### Bugs reporting
+### Report bugs
 
-### Feature request
+### Request features
 
 ### Submit code changes
 
@@ -25,7 +25,7 @@ Nottodbox uses two different systems for localization depending on the type of c
   - Submit both updated `.ts` file in your pull request.
 
 #### 2. Translating `.desktop` and `.metainfo` Files (gettext)
-> ![CAUTION]
+> [!CAUTION]
 > If you a non-Linux user, you can skip this section. It may be hard. Because Nottodbox `.desktop` and `.metainfo` are only related with Linux.
 
 - The `.desktop` and `.metainfo` files use GNU gettext for localization.
