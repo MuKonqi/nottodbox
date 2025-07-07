@@ -11,4 +11,4 @@ if os.environ.get("RUNNER_OS") == "Linux":
 
 elif os.environ.get("RUNNER_OS") == "macOS":
     subprocess.run(["zip", "-r", "dist/nottodbox.app.zip", "dist/nottodbox.app"])
-    os.remove("dist/nottodbox.app")
+    shutil.rmtree("dist/nottodbox.app")
