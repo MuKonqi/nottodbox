@@ -26,27 +26,27 @@ from PySide6.QtWidgets import QCalendarWidget, QComboBox, QFrame, QLabel, QLineE
 class Action(QAction):
     def __init__(self, parent: QWidget, clicked: object, text: str = "", icon: QIcon | None = None) -> None:
         super().__init__(text, parent)
-        
+
         self.triggered.connect(clicked)
-        
+
         if icon is not None:
             self.setIcon(icon)
-            
-            
+
+
 class CalendarWidget(QCalendarWidget):
     def __init__(self, parent: QWidget) -> None:
         super().__init__(parent)
-        
+
         self.setMaximumDate(QDate.currentDate())
-    
+
     @Slot(QPainter, QRect, QDate or datetime.date)
     def paintCell(self, painter: QPainter | None, rect: QRect, date: QDate | datetime.date) -> None:
         super().paintCell(painter, rect, date)
-        
+
         if date >= self.maximumDate():
             painter.setOpacity(0)
-        
-        
+
+
 class ComboBox(QComboBox):
     def addItems(self, texts: list[str] | tuple[str]) -> None:
         self.clear()
@@ -56,64 +56,64 @@ class ComboBox(QComboBox):
 class HSeperator(QFrame):
     def __init__(self, parent: QWidget) -> None:
         super().__init__(parent)
-        
+
         self.setFrameShape(QFrame.Shape.HLine)
-        
-        
+
+
 class Label(QLabel):
     def __init__(self, parent: QWidget, text: str = "", alignment: Qt.AlignmentFlag | int = Qt.AlignmentFlag.AlignCenter) -> None:
         super().__init__(text, parent)
-        
+
         if isinstance(alignment, int):
             alignment = Qt.AlignmentFlag(alignment)
-        
+
         self.setAlignment(alignment)
-        
-        
+
+
 class LineEdit(QLineEdit):
     def __init__(self, parent: QWidget, text: str | None = None, clearer: bool = True) -> None:
         super().__init__(parent)
-        
+
         if text is not None:
             self.setPlaceholderText(text)
-            
+
         self.setClearButtonEnabled(clearer)
-        
+
 
 class VSeperator(QFrame):
     def __init__(self, parent: QWidget) -> None:
         super().__init__(parent)
-        
+
         self.setFrameShape(QFrame.Shape.VLine)
-  
+
 
 class PushButton(QPushButton):
     def __init__(self, parent: QWidget, clicked: object, text: str = "", checkable: bool = False, flat: bool = False, icon: QIcon | None = None, size: int | None = None) -> None:
         super().__init__(text, parent)
-        
+
         self.setCheckable(checkable)
         self.setFlat(flat)
         self.setFixedHeight(size if size is not None else 30)
         self.clicked.connect(clicked)
-        
+
         if icon is not None:
             self.setIcon(icon)
-            
+
         if size is not None:
             self.setFixedWidth(size)
-            
+
 
 class ToolButton(QToolButton):
     def __init__(self, parent: QWidget, clicked: object, text: str = "", checkable: bool = False, icon: QIcon | None = None, size: int | None = None) -> None:
         super().__init__(parent)
-        
+
         self.setText(text)
         self.setCheckable(checkable)
         self.setFixedHeight(size if size is not None else 30)
         self.clicked.connect(clicked)
-        
+
         if icon is not None:
             self.setIcon(icon)
-            
+
         if size is not None:
             self.setFixedWidth(size)

@@ -35,7 +35,7 @@ from .resources import icons, locale  # noqa: F401
 class Application(QApplication):
     def __init__(self, argv: list) -> None:
         super().__init__(argv)
-        
+
         logging.info(f"Nottodbox, version: {APP_VERSION}, build: {APP_BUILD}")
         logging.info(f"Operating system: {platform.system()} {platform.release()} ({platform.platform()})")
         logging.info(f"Platform: {QApplication.platformName()}")
@@ -54,25 +54,25 @@ class Application(QApplication):
             self.installTranslator(translator)
         else:
             logging.warning(f"Failed to load locale for {QLocale.system().name()}.")
-            
+
             translator = QTranslator(self)
             if translator.load(f":/locale/{QLocale.system().name().split('_')[0]}.qm"):
                 self.installTranslator(translator)
             else:
                 logging.warning(f"Failed to load locale for {QLocale.system().name().split('_')[0]}.")
-            
+
         if APP_BUILD == "Flatpak":
             for dir in USER_DIRS.values():
                 dir = os.path.join(dir, "Nottodbox")
-                
+
                 if os.path.isdir(dir):
                     with os.scandir(dir) as entry:
                         if not any(entry):
                             subprocess.run(['flatpak-spawn', '--host', 'rm', '-r', dir])
 
         self.mainwindow = MainWindow()
-        
-        
+
+
 class StreamToLogger:
     def __init__(self, logger, log_level=logging.INFO) -> None:
         self.logger = logger
@@ -103,6 +103,6 @@ def main() -> None:
 
     sys.stdout = StreamToLogger(logger, logging.INFO)
     sys.stderr = StreamToLogger(logger, logging.ERROR)
-    
+
     application = Application(sys.argv)
     sys.exit(application.exec())

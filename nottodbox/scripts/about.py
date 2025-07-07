@@ -29,44 +29,44 @@ from .widgets.controls import HSeperator, Label, PushButton
 class AboutPage(QWidget):
     def __init__(self, parent: QWidget) -> None:
         super().__init__(parent)
-        
+
         self.icon_and_nottodbox = QWidget(self)
-        
+
         self.icon = Label(self.icon_and_nottodbox)
         self.icon.setPixmap(self.windowIcon().pixmap(192, 192))
-        
+
         self.nottodbox = Label(self.icon_and_nottodbox, "Nottodbox")
         font = self.nottodbox.font()
         font.setBold(True)
         font.setPointSize(64)
         self.nottodbox.setFont(font)
-        
+
         self.version_label = Label(self, self.tr("Version") + f': <a href="https://github.com/mukonqi/nottodbox/releases/tag/{APP_VERSION}">{APP_VERSION}</a>')
         self.version_label.setOpenExternalLinks(True)
-        
+
         self.source_label = Label(self, self.tr("Source codes") + ': <a href="https://github.com/mukonqi/nottodbox">GitHub</a>')
         self.source_label.setOpenExternalLinks(True)
 
         self.developer_label = Label(self, self.tr("Developer") + ': <a href="https://mukonqi.github.io">MuKonqi (Muhammed S.)</a>')
         self.developer_label.setOpenExternalLinks(True)
-        
+
         with open(os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(__file__)), "LICENSE.txt")), ) as license_file:
             license_text = license_file.read()
-            
+
         self.license_textedit = QTextEdit(self)
-        self.license_textedit.setFixedWidth(79 * 8 * QFontDatabase.systemFont(QFontDatabase.SystemFont.FixedFont).pointSize() / 10 + 
+        self.license_textedit.setFixedWidth(79 * 8 * QFontDatabase.systemFont(QFontDatabase.SystemFont.FixedFont).pointSize() / 10 +
                                             QApplication.style().pixelMetric(QStyle.PixelMetric.PM_ScrollBarSliderMin) + 10)
         self.license_textedit.setCurrentFont(QFontDatabase.systemFont(QFontDatabase.SystemFont.FixedFont))
         self.license_textedit.setText(license_text)
         self.license_textedit.setReadOnly(True)
-        
+
         self.icon_and_nottodbox_layout = QHBoxLayout(self.icon_and_nottodbox)
         self.icon_and_nottodbox_layout.setSpacing(16)
         self.icon_and_nottodbox_layout.addStretch()
         self.icon_and_nottodbox_layout.addWidget(self.icon)
         self.icon_and_nottodbox_layout.addWidget(self.nottodbox)
         self.icon_and_nottodbox_layout.addStretch()
-        
+
         self.layout_ = QVBoxLayout(self)
         self.layout_.addWidget(self.icon_and_nottodbox)
         self.layout_.addWidget(HSeperator(self))
