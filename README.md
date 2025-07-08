@@ -1,6 +1,6 @@
 # Nottodbox
-> [!WARNING] 
-> This version is not released yet.
+> [!TIP] 
+> You can check [wiki](wiki).
 
 <p align="center">
     <img src="share/icons/hicolor/96x96/apps/io.github.mukonqi.nottodbox.png" alt="Icon of Nottodbox"></img><br>
@@ -34,13 +34,15 @@
 </details>
 
 ## Using
-<!-- ### Installing from Flatpak / Flathub (only for Linux users) (recommended)
+
+### Installing from Flatpak / Flathub (only for Linux users) (recommended)
 > [!WARNING]
 > [Set up Flatpak](https://flatpak.org/setup/)
 
-- `flatpak install io.github.mukonqi.nottodbox` -->
+- `flatpak install io.github.mukonqi.nottodbox`
 
 ### Downloading executable from GitHub releases (recommended)
+
 > [!CAUTION]
 > If you can not run the file, check whether it is executable. If not, please make the file executable.
 
@@ -49,6 +51,7 @@
 - [Download for Windows](https://github.com/MuKonqi/nottodbox/releases/download/latest/nottodbox.exe)
 
 ### Building a Flatpak
+
 > [!WARNING]
 > [Set up Flatpak](https://flatpak.org/setup/)
 
@@ -56,6 +59,7 @@
 - Run: `flatpak run --branch=master --arch=x86_64 --command=nottodbox io.github.mukonqi.nottodbox`
 
 ### Building via pip
+
 > [!WARNING] 
 > Dependencies: Python (3.10 and higher), pip and git
 > [!CAUTION] 
@@ -65,6 +69,7 @@
 - Run: `nottodbox`
 
 ### Building via PyInstaller
+
 > [!WARNING] 
 > Dependencies: Python (3.10 and higher), PySide6, PyInstaller and git
 
@@ -77,6 +82,7 @@
 - Now you can find the executable in dist folder.
 
 ## Running from source
+
 > [!WARNING] 
 > Dependencies: Python (3.10 and higher), PySide6 and git
 
@@ -86,6 +92,7 @@
 - `git clone https://github.com/mukonqi/nottodbox.git ; cd nottodbox ; python3 .github/scripts/translations.py ; python3 -m nottodbox`
 
 ## Disclaimer
+
 > [!CAUTION] 
 > Nottodbox is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
@@ -93,4 +100,5 @@
 > You can see the license for more details.
 
 ## Credit
+
 - While making [nottodbox/scripts/widgets/documents.py](./nottodbox/scripts/widgets/documents.py)'s DocumentHelper class, [KDE - Marknote: master/src/documenthandler.cpp](https://invent.kde.org/office/marknote/-/blob/master/src/documenthandler.cpp) helped me as a referance.

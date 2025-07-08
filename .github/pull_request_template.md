@@ -20,6 +20,7 @@ Please check the relevant option(s):
 - [ ] Tests
 - [ ] Workflows
 - [ ] Translations
+- [ ] Color schemes
 - [ ] Other (please describe):
 
 ---

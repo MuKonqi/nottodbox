@@ -20,7 +20,7 @@ body:
 
         - Linux: `~/.local/share/nottodbox/logs`
         - macOS: `~/Library/Application Support/nottodbox/logs`
-        - Windows: `C:/Users/<USER>/AppData/Local/nottodbox/logs`
+        - Windows: `C:/Users/<USER>/AppData/Local/nottodbox/logs` (replace <USER> with your username)
     validations:
       required: true
 
