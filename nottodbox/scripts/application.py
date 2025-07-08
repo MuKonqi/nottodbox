@@ -19,7 +19,6 @@
 import logging
 import os
 import platform
-import subprocess
 import sys
 from datetime import datetime
 
@@ -27,7 +26,7 @@ from PySide6.QtCore import QLocale, QTranslator, qVersion
 from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import QApplication
 
-from .consts import USER_DIRS, USER_LOGS_DIR
+from .consts import USER_LOGS_DIR
 from .mainwindow import MainWindow
 from .resources import icons, locale  # noqa: F401
 from .version import APP_BUILD, APP_VERSION
@@ -61,15 +60,6 @@ class Application(QApplication):
                 self.installTranslator(translator)
             else:
                 logging.warning(f"Failed to load locale for {QLocale.system().name().split('_')[0]}.")
-
-        if APP_BUILD == "Flatpak":
-            for dir_ in USER_DIRS.values():
-                dir_ = os.path.join(dir_, "Nottodbox")
-
-                if os.path.isdir(dir_):
-                    with os.scandir(dir_) as entry:
-                        if not any(entry):
-                            subprocess.run(["flatpak-spawn", "--host", "rm", "-r", dir_])
 
         self.mainwindow = MainWindow()
 
