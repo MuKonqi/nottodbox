@@ -1406,7 +1406,7 @@ Gerçekten de format ayarını uygulamak istiyor musunuz?</translation>
     <message>
         <location filename="../nottodbox/scripts/home.py" line="1110"/>
         <source>To-dos</source>
-        <translation>Yapılcaklar</translation>
+        <translation>Yapılacaklar</translation>
     </message>
     <message>
         <location filename="../nottodbox/scripts/home.py" line="1111"/>
