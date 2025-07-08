@@ -7,7 +7,9 @@
     <img src="https://img.shields.io/badge/Organize_notes,_to--dos_and_diaries-376296" alt="Organize notes, to-dos and diaries"></img><br>
     <img src="https://img.shields.io/github/downloads/mukonqi/nottodbox/total?label=Downloads" alt="Downloads"></img>
     <img src="https://img.shields.io/github/v/release/mukonqi/nottodbox?label=Release" alt="Release"><br>
-    <a href="https://github.com/MuKonqi/nottodbox/releases/download/latest/nottodbox.AppImage"><img src="https://docs.appimage.org/_images/download-appimage-banner.svg" alt="Download as an AppImage" /></a>
+    <a href='https://flathub.org/apps/io.github.mukonqi.nottodbox'><img width='240' alt='Get it on Flathub' src='https://flathub.org/api/badge?locale=en' /></a>
+    <a href="https://github.com/MuKonqi/nottodbox/releases/download/latest/nottodbox.AppImage"><img width="260" alt="Download as an AppImage" src="https://docs.appimage.org/_images/download-appimage-banner.svg" /></a>
+
 </p>
 
 <p>Nottodbox allows you to create and organize notes, to-dos, and diaries with rich text support in popular formats.</p>
