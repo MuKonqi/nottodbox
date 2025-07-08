@@ -106,7 +106,11 @@ class Document(QWidget):
         self.helper.updateStatus(self.settings["format"])
 
     def refreshContent(self) -> None:
-        self.content = self.index.data(Qt.ItemDataRole.UserRole + 104) if self.mode == "normal" else self.index.data(Qt.ItemDataRole.UserRole + 105)
+        self.content = (
+            self.index.data(Qt.ItemDataRole.UserRole + 104)
+            if self.mode == "normal"
+            else self.index.data(Qt.ItemDataRole.UserRole + 105)
+        )
 
         if self.settings["format"] == "plain-text":
             self.input.setPlainText(self.content)
@@ -135,16 +139,26 @@ class BackupView(Document):
 
     @Slot()
     def restoreContent(self) -> None:
-        if self.settings["locked"] == "enabled" and datetime.datetime.strptime(self.creation, "%d/%m/%Y %H:%M").date() != datetime.datetime.today().date():
+        if (
+            self.settings["locked"] == "enabled"
+            and datetime.datetime.strptime(self.creation, "%d/%m/%Y %H:%M").date() != datetime.datetime.today().date()
+        ):
             question = QMessageBox.question(
-                self, self.tr("Question"), self.tr("Diaries are unique to the day they are written.\nDo you really want to change the content?"))
+                self,
+                self.tr("Question"),
+                self.tr("Diaries are unique to the day they are written.\nDo you really want to change the content?"),
+            )
 
             if question != QMessageBox.StandardButton.Yes:
                 return
 
         if self.db.restoreContent(self.document, self.notebook):
-            self.index.model().setData(self.index, self.db.getContent(self.document, self.notebook), Qt.ItemDataRole.UserRole + 104)
-            self.index.model().setData(self.index, self.db.getBackup(self.document, self.notebook), Qt.ItemDataRole.UserRole + 105)
+            self.index.model().setData(
+                self.index, self.db.getContent(self.document, self.notebook), Qt.ItemDataRole.UserRole + 104
+            )
+            self.index.model().setData(
+                self.index, self.db.getBackup(self.document, self.notebook), Qt.ItemDataRole.UserRole + 105
+            )
 
             QMessageBox.information(self, self.tr("Successful"), self.tr("Content restored."))
 
@@ -181,12 +195,23 @@ class NormalView(Document):
         self.changeAutosaveConnections()
 
     def changeAutosaveConnections(self, event: str | None = None) -> None:
-        if (self.settings["locked"] == "disabled" or datetime.datetime.strptime(self.creation, "%d/%m/%Y %H:%M").date() == datetime.datetime.today().date()) and ((self.settings["autosave"] == "enabled" and not self.connected) or event == "connect"):
+        if (
+            self.settings["locked"] == "disabled"
+            or datetime.datetime.strptime(self.creation, "%d/%m/%Y %H:%M").date() == datetime.datetime.today().date()
+        ) and ((self.settings["autosave"] == "enabled" and not self.connected) or event == "connect"):
             self.input.textChanged.connect(self.save)
             self.saver_thread.start()
             self.connected = True
 
-        elif self.settings["autosave"] == "disabled" or event == "disconnect" or (self.settings["locked"] == "enabled" and datetime.datetime.strptime(self.creation, "%d/%m/%Y %H:%M").date() != datetime.datetime.today().date()):
+        elif (
+            self.settings["autosave"] == "disabled"
+            or event == "disconnect"
+            or (
+                self.settings["locked"] == "enabled"
+                and datetime.datetime.strptime(self.creation, "%d/%m/%Y %H:%M").date()
+                != datetime.datetime.today().date()
+            )
+        ):
             if self.connected:
                 self.input.textChanged.disconnect(self.save)
             self.saver_thread.quit()
@@ -251,20 +276,13 @@ class DocumentHelper(QToolBar):
         self.header_button.setText(self.tr("Heading"))
         self.header_button.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
         self.header_button.setMenu(self.header_menu)
-        self.header_menu.addAction(
-            self.tr("Basic text"), lambda: self.setHeadingLevel(0))
-        self.header_menu.addAction(
-            self.tr("Title"), lambda: self.setHeadingLevel(1))
-        self.header_menu.addAction(
-            self.tr("Subtitle"), lambda: self.setHeadingLevel(2))
-        self.header_menu.addAction(
-            self.tr("Section"), lambda: self.setHeadingLevel(3))
-        self.header_menu.addAction(
-            self.tr("Subsection"), lambda: self.setHeadingLevel(4))
-        self.header_menu.addAction(
-            self.tr("Paragraph"), lambda: self.setHeadingLevel(5))
-        self.header_menu.addAction(
-            self.tr("Subparagraph"), lambda: self.setHeadingLevel(6))
+        self.header_menu.addAction(self.tr("Basic text"), lambda: self.setHeadingLevel(0))
+        self.header_menu.addAction(self.tr("Title"), lambda: self.setHeadingLevel(1))
+        self.header_menu.addAction(self.tr("Subtitle"), lambda: self.setHeadingLevel(2))
+        self.header_menu.addAction(self.tr("Section"), lambda: self.setHeadingLevel(3))
+        self.header_menu.addAction(self.tr("Subsection"), lambda: self.setHeadingLevel(4))
+        self.header_menu.addAction(self.tr("Paragraph"), lambda: self.setHeadingLevel(5))
+        self.header_menu.addAction(self.tr("Subparagraph"), lambda: self.setHeadingLevel(6))
         self.addWidget(self.header_button)
 
         self.list_menu = QMenu(self)
@@ -273,14 +291,16 @@ class DocumentHelper(QToolBar):
         self.list_button.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
         self.list_button.setMenu(self.list_menu)
 
+        self.list_menu.addAction(self.tr("Unordered"), lambda: self.setList(QTextListFormat.Style.ListDisc))
         self.list_menu.addAction(
-            self.tr("Unordered"), lambda: self.setList(QTextListFormat.Style.ListDisc))
+            self.tr("Ordered with decimal numbers"), lambda: self.setList(QTextListFormat.Style.ListDecimal)
+        )
         self.list_menu.addAction(
-            self.tr("Ordered with decimal numbers"), lambda: self.setList(QTextListFormat.Style.ListDecimal))
+            self.tr("Ordered with lowercase letters"), lambda: self.setList(QTextListFormat.Style.ListLowerAlpha)
+        )
         self.list_menu.addAction(
-            self.tr("Ordered with lowercase letters"), lambda: self.setList(QTextListFormat.Style.ListLowerAlpha))
-        self.list_menu.addAction(
-            self.tr("Ordered with uppercase letters"), lambda: self.setList(QTextListFormat.Style.ListUpperAlpha))
+            self.tr("Ordered with uppercase letters"), lambda: self.setList(QTextListFormat.Style.ListUpperAlpha)
+        )
 
         self.alignment_menu = QMenu(self)
         self.alignment_button = QToolButton(self)
@@ -325,7 +345,7 @@ class DocumentHelper(QToolBar):
 
         constraints = []
 
-        for i in range(0, table.columns()): # noqa: B007
+        for i in range(0, table.columns()):  # noqa: B007
             constraints.append(QTextLength(QTextLength.Type.PercentageLength, 100 / table.columns()))
 
         table_format.setColumnWidthConstraints(constraints)
@@ -349,7 +369,9 @@ class DocumentHelper(QToolBar):
         cur.mergeCharFormat(format_)
 
     def setBackgroundColor(self) -> None:
-        ok, status, qcolor = GetColor(self, True, False, False, Qt.GlobalColor.white, self.tr("Select {} Color").format(self.tr("Background"))).getColor()
+        ok, status, qcolor = GetColor(
+            self, True, False, False, Qt.GlobalColor.white, self.tr("Select {} Color").format(self.tr("Background"))
+        ).getColor()
 
         if ok:
             if status == "new":
@@ -425,7 +447,15 @@ class DocumentHelper(QToolBar):
         self.mergeFormat(cur, chrfmt)
 
     def setLink(self) -> None:
-        status, text, url = GetTwoNumber(self, self.tr("Add Link"), "text", self.tr("Link text:"), self.tr("Link URL:"), self.tr("Not required"), self.tr("Required")).getResult()
+        status, text, url = GetTwoNumber(
+            self,
+            self.tr("Add Link"),
+            "text",
+            self.tr("Link text:"),
+            self.tr("Link URL:"),
+            self.tr("Not required"),
+            self.tr("Required"),
+        ).getResult()
 
         if status == "ok":
             if url != "" and url is not None:
@@ -463,7 +493,9 @@ class DocumentHelper(QToolBar):
         self.mergeFormat(cur, chrfmt)
 
     def setTable(self) -> None:
-        status, rows, columns = GetTwoNumber(self, self.tr("Add Table"), "number", self.tr("Row number:"), self.tr("Column number:"), 1, 1).getResult()
+        status, rows, columns = GetTwoNumber(
+            self, self.tr("Add Table"), "number", self.tr("Row number:"), self.tr("Column number:"), 1, 1
+        ).getResult()
 
         if status == "ok":
             if rows is not None and columns is not None:
@@ -472,10 +504,14 @@ class DocumentHelper(QToolBar):
                 self.fixTable(cur.insertTable(rows, columns))
 
             else:
-                QMessageBox.critical(self, self.tr("Error"), self.tr("The row and column numbers are required, they can not be blank."))
+                QMessageBox.critical(
+                    self, self.tr("Error"), self.tr("The row and column numbers are required, they can not be blank.")
+                )
 
     def setTextColor(self) -> None:
-        ok, status, qcolor = GetColor(self, True, False, False, Qt.GlobalColor.white, self.tr("Select {} Color").format(self.tr("Text"))).getColor()
+        ok, status, qcolor = GetColor(
+            self, True, False, False, Qt.GlobalColor.white, self.tr("Select {} Color").format(self.tr("Text"))
+        ).getColor()
 
         if ok:
             if status == "new":
@@ -538,7 +574,7 @@ class DocumentHelper(QToolBar):
                 for action in actions:
                     action.setEnabled(False)
 
-                self.setStatusTip(self.tr("Text formatter is only available in Markdown and HTML formats.")),
+                (self.setStatusTip(self.tr("Text formatter is only available in Markdown and HTML formats.")),)
 
             elif format_ == "markdown":
                 for action in self.actions():
@@ -579,48 +615,98 @@ class DocumentSaver(QObject):
     @Slot(bool)
     def saveDocument(self, autosave: bool = False) -> bool:
         if not autosave or (autosave and self.parent_.settings["autosave"] == "enabled"):
-            if self.parent_.settings["locked"] == "enabled" and datetime.datetime.strptime(self.parent_.creation, "%d/%m/%Y %H:%M").date() != datetime.datetime.today().date():
+            if (
+                self.parent_.settings["locked"] == "enabled"
+                and datetime.datetime.strptime(self.parent_.creation, "%d/%m/%Y %H:%M").date()
+                != datetime.datetime.today().date()
+            ):
                 if autosave:
                     self.parent_.show_messages.emit(False)
 
                     return False
 
                 question = QMessageBox.question(
-                    self.parent_, self.tr("Question"), self.tr("Diaries are unique to the day they are written.\nDo you really want to change the content?"))
+                    self.parent_,
+                    self.tr("Question"),
+                    self.tr(
+                        "Diaries are unique to the day they are written.\nDo you really want to change the content?"
+                    ),
+                )
 
                 if question != QMessageBox.StandardButton.Yes:
                     return
 
-            if self.parent_.db.saveDocument(self.parent_.getText(), self.parent_.content, autosave, self.parent_.document, self.parent_.notebook):
+            if self.parent_.db.saveDocument(
+                self.parent_.getText(), self.parent_.content, autosave, self.parent_.document, self.parent_.notebook
+            ):
                 self.parent_.last_content = self.parent_.getText()
 
                 if self.parent_.settings["sync"] is not None:
-                    os.makedirs(os.path.join(USER_DIRS[self.parent_.settings["folder"]], "Nottodbox", self.parent_.notebook), exist_ok=True)
+                    os.makedirs(
+                        os.path.join(USER_DIRS[self.parent_.settings["folder"]], "Nottodbox", self.parent_.notebook),
+                        exist_ok=True,
+                    )
 
                     if self.parent_.settings["sync"] is not None:
                         if self.parent_.settings["sync"] == "pdf":
-                            writer = QPdfWriter(os.path.join(USER_DIRS[self.parent_.settings["folder"]], "Nottodbox", self.parent_.notebook, f"{self.parent_.document}.pdf"))
+                            writer = QPdfWriter(
+                                os.path.join(
+                                    USER_DIRS[self.parent_.settings["folder"]],
+                                    "Nottodbox",
+                                    self.parent_.notebook,
+                                    f"{self.parent_.document}.pdf",
+                                )
+                            )
                             writer.setTitle(self.parent_.document)
 
                             document = QTextDocument(self.parent_.getText())
                             document.print_(writer)
 
-                        elif self.parent_.settings["sync"] == "plain-text" or (self.parent_.settings["sync"] == "format" and self.parent_.settings["format"] == "plain-text"):
-                            with open(os.path.join(USER_DIRS[self.parent_.settings["folder"]], "Nottodbox", self.parent_.notebook, f"{self.parent_.document}.txt"), "w+") as f:
+                        elif self.parent_.settings["sync"] == "plain-text" or (
+                            self.parent_.settings["sync"] == "format"
+                            and self.parent_.settings["format"] == "plain-text"
+                        ):
+                            with open(
+                                os.path.join(
+                                    USER_DIRS[self.parent_.settings["folder"]],
+                                    "Nottodbox",
+                                    self.parent_.notebook,
+                                    f"{self.parent_.document}.txt",
+                                ),
+                                "w+",
+                            ) as f:
                                 f.write(self.parent_.input.toPlainText())
 
                         else:
-                            export = self.parent_.settings["format"] if self.parent_.settings["sync"] == "format" else self.parent_.settings["sync"]
+                            export = (
+                                self.parent_.settings["format"]
+                                if self.parent_.settings["sync"] == "format"
+                                else self.parent_.settings["sync"]
+                            )
 
                             document = QTextDocument(self.parent_.getText())
 
-                            writer = QTextDocumentWriter(os.path.join(USER_DIRS[self.parent_.settings["folder"]], "Nottodbox", self.parent_.notebook, f"{self.parent_.document}.{export}"), export.encode("utf-8") if export != "odt" else b"odf")
+                            writer = QTextDocumentWriter(
+                                os.path.join(
+                                    USER_DIRS[self.parent_.settings["folder"]],
+                                    "Nottodbox",
+                                    self.parent_.notebook,
+                                    f"{self.parent_.document}.{export}",
+                                ),
+                                export.encode("utf-8") if export != "odt" else b"odf",
+                            )
                             writer.write(document)
 
-                self.parent_.index.model().setData(self.parent_.index, self.parent_.getText(), Qt.ItemDataRole.UserRole + 104)
+                self.parent_.index.model().setData(
+                    self.parent_.index, self.parent_.getText(), Qt.ItemDataRole.UserRole + 104
+                )
 
                 if not autosave:
-                    self.parent_.index.model().setData(self.parent_.index, self.parent_.db.getBackup(self.parent_.document, self.parent_.notebook), Qt.ItemDataRole.UserRole + 105)
+                    self.parent_.index.model().setData(
+                        self.parent_.index,
+                        self.parent_.db.getBackup(self.parent_.document, self.parent_.notebook),
+                        Qt.ItemDataRole.UserRole + 105,
+                    )
 
                     self.parent_.show_messages.emit(True)
 

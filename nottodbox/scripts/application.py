@@ -69,7 +69,7 @@ class Application(QApplication):
                 if os.path.isdir(dir_):
                     with os.scandir(dir_) as entry:
                         if not any(entry):
-                            subprocess.run(['flatpak-spawn', '--host', 'rm', '-r', dir_])
+                            subprocess.run(["flatpak-spawn", "--host", "rm", "-r", dir_])
 
         self.mainwindow = MainWindow()
 
@@ -92,9 +92,11 @@ def main() -> None:
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)
 
-    formatter = logging.Formatter('%(asctime)s [%(levelname)s] %(message)s', "%Y-%m-%d %H-%M-%S")
+    formatter = logging.Formatter("%(asctime)s [%(levelname)s] %(message)s", "%Y-%m-%d %H-%M-%S")
 
-    file_handler = logging.FileHandler(os.path.join(USER_LOGS_DIR, f"{datetime.now().strftime('%Y-%m-%d %H-%M-%S')}.log"), encoding="utf-8")
+    file_handler = logging.FileHandler(
+        os.path.join(USER_LOGS_DIR, f"{datetime.now().strftime('%Y-%m-%d %H-%M-%S')}.log"), encoding="utf-8"
+    )
     file_handler.setFormatter(formatter)
     logger.addHandler(file_handler)
 

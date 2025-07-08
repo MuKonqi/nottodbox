@@ -37,7 +37,15 @@ from .controls import CalendarWidget, Label, LineEdit, PushButton
 
 
 class GetColor(QColorDialog):
-    def __init__(self, parent: QWidget, show_default: bool, show_global: bool, show_notebook: bool, color: QColor | Qt.GlobalColor, title: str) -> None:
+    def __init__(
+        self,
+        parent: QWidget,
+        show_default: bool,
+        show_global: bool,
+        show_notebook: bool,
+        color: QColor | Qt.GlobalColor,
+        title: str,
+    ) -> None:
         super().__init__(color, parent)
 
         self.setOption(QColorDialog.ColorDialogOption.DontUseNativeDialog, True)
@@ -80,7 +88,9 @@ class GetColor(QColorDialog):
 
 
 class ColorSelector(QWidget):
-    def __init__(self, parent: QWidget, show_default: bool, show_global: bool, show_notebook: bool, color: str = "default") -> None:
+    def __init__(
+        self, parent: QWidget, show_default: bool, show_global: bool, show_notebook: bool, color: str = "default"
+    ) -> None:
         super().__init__(parent)
 
         self.selected = color
@@ -90,7 +100,11 @@ class ColorSelector(QWidget):
         self.show_notebook = show_notebook
         self.color = color
 
-        self.selector = PushButton(self, self.selectColor, self.tr("Select color ({})").format(self.tr("default") if self.color == "default" else color))
+        self.selector = PushButton(
+            self,
+            self.selectColor,
+            self.tr("Select color ({})").format(self.tr("default") if self.color == "default" else color),
+        )
 
         self.label = Label(self)
 
@@ -105,7 +119,9 @@ class ColorSelector(QWidget):
 
     @Slot()
     def selectColor(self) -> None:
-        ok, status, color = GetColor(self, self.show_default, self.show_global, self.show_notebook, self.color, self.tr("Select a Color")).getColor()
+        ok, status, color = GetColor(
+            self, self.show_default, self.show_global, self.show_notebook, self.color, self.tr("Select a Color")
+        ).getColor()
 
         if ok:
             self.setColor(color.name() if status == "new" else status)
@@ -183,7 +199,9 @@ class GetName(Dialog):
             self.selector_layout.addWidget(self.combobox)
 
         self.calendar = CalendarWidget(self.input)
-        self.calendar.selectionChanged.connect(lambda: self.name.setText(self.calendar.selectedDate().toString("dd/MM/yyyy")))
+        self.calendar.selectionChanged.connect(
+            lambda: self.name.setText(self.calendar.selectedDate().toString("dd/MM/yyyy"))
+        )
 
         self.name = LineEdit(self.input, self.tr("Name (required)"))
         self.name.setText(self.calendar.selectedDate().toString("dd/MM/yyyy"))
@@ -262,8 +280,16 @@ class GetDate(Dialog):
 
 
 class GetTwoNumber(Dialog):
-    def __init__(self, parent: QWidget, window_title: str, mode: str,
-                 top_text: str, bottom_text: str, top_extra: int | str, bottom_extra: int | str) -> None:
+    def __init__(
+        self,
+        parent: QWidget,
+        window_title: str,
+        mode: str,
+        top_text: str,
+        bottom_text: str,
+        top_extra: int | str,
+        bottom_extra: int | str,
+    ) -> None:
         super().__init__(parent, window_title)
 
         self.mode = mode
@@ -326,16 +352,16 @@ class ChangeAppearance(Settings):
         super().__init__(parent, db, index, self.tr("Change Appearance"))
 
         self.localized_labels = [
-                self.tr("Background color"),
-                self.tr("Background color when mouse is over"),
-                self.tr("Background color when clicked"),
-                self.tr("Foreground color"),
-                self.tr("Foreground color when mouse is over"),
-                self.tr("Foreground color when clicked"),
-                self.tr("Border color"),
-                self.tr("Border color when mouse is over"),
-                self.tr("Border color when clicked")
-                ]
+            self.tr("Background color"),
+            self.tr("Background color when mouse is over"),
+            self.tr("Background color when clicked"),
+            self.tr("Foreground color"),
+            self.tr("Foreground color when mouse is over"),
+            self.tr("Foreground color when clicked"),
+            self.tr("Border color"),
+            self.tr("Border color when mouse is over"),
+            self.tr("Border color when clicked"),
+        ]
 
         for i in range(9):
             widget = QWidget(self.input)
@@ -345,7 +371,17 @@ class ChangeAppearance(Settings):
             label = Label(widget, f"{self.localized_labels[i]}:", Qt.AlignmentFlag.AlignRight)
             label.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Ignored)
 
-            self.selectors.append(ColorSelector(widget, True, True, index.data(Qt.ItemDataRole.UserRole + 2) == "document", index.data(Qt.ItemDataRole.UserRole + 27 + i)[1] if index.data(Qt.ItemDataRole.UserRole + 27 + i)[0][0] == "self" else index.data(Qt.ItemDataRole.UserRole + 27 + i)[0][0]))
+            self.selectors.append(
+                ColorSelector(
+                    widget,
+                    True,
+                    True,
+                    index.data(Qt.ItemDataRole.UserRole + 2) == "document",
+                    index.data(Qt.ItemDataRole.UserRole + 27 + i)[1]
+                    if index.data(Qt.ItemDataRole.UserRole + 27 + i)[0][0] == "self"
+                    else index.data(Qt.ItemDataRole.UserRole + 27 + i)[0][0],
+                )
+            )
 
             layout.addWidget(label)
             layout.addWidget(self.selectors[-1])
@@ -380,7 +416,7 @@ class ChangeSettings(Settings):
             "Markdown",
             self.tr("None").lower(),
             self.tr("Documents").lower(),
-            self.tr("No").lower()
+            self.tr("No").lower(),
         ]
 
         self.localized_labels = [
@@ -390,8 +426,8 @@ class ChangeSettings(Settings):
             self.tr("Document format"),
             self.tr("External synchronization"),
             self.tr("Export folder"),
-            self.tr("Pinned to sidebar")
-            ]
+            self.tr("Pinned to sidebar"),
+        ]
 
         self.localized_options = [
             [self.tr("Completed"), self.tr("Uncompleted"), self.tr("None")],
@@ -400,7 +436,7 @@ class ChangeSettings(Settings):
             ["Markdown", "HTML", self.tr("Plain-text")],
             [self.tr("Follow format"), "PDF", "ODT", "Markdown", "HTML", self.tr("Plain-text")],
             [self.tr("Documents"), self.tr("Desktop")],
-            [self.tr("Yes"), self.tr("No")]
+            [self.tr("Yes"), self.tr("No")],
         ]
 
         for i in range(7):
@@ -411,11 +447,19 @@ class ChangeSettings(Settings):
             self.selectors.append(QComboBox(widget))
 
             self.selectors[-1].addItem(self.tr("Follow default ({})").format(self.localized_defaults[i]))
-            self.selectors[-1].addItem(self.tr("Follow global ({})").format(self.settings.value(f"globals/{SETTINGS_KEYS[i]}")))
+            self.selectors[-1].addItem(
+                self.tr("Follow global ({})").format(self.settings.value(f"globals/{SETTINGS_KEYS[i]}"))
+            )
 
             if index.data(Qt.ItemDataRole.UserRole + 2) == "document":
-                self.selectors[-1].insertItem(2 if True else 1, self.tr("Follow notebook ({})").
-                                        format(self.db.items[(index.data(Qt.ItemDataRole.UserRole + 100), "__main__")].data(Qt.ItemDataRole.UserRole + 20 + i)[1]))
+                self.selectors[-1].insertItem(
+                    2 if True else 1,
+                    self.tr("Follow notebook ({})").format(
+                        self.db.items[(index.data(Qt.ItemDataRole.UserRole + 100), "__main__")].data(
+                            Qt.ItemDataRole.UserRole + 20 + i
+                        )[1]
+                    ),
+                )
 
             self.selectors[-1].addItems(self.localized_options[i])
 
@@ -428,13 +472,25 @@ class ChangeSettings(Settings):
             self.layout_.addWidget(widget)
 
             try:
-                self.selectors[-1].setCurrentIndex(self.options.index(index.data(Qt.ItemDataRole.UserRole + 20 + i)[0][0]))
+                self.selectors[-1].setCurrentIndex(
+                    self.options.index(index.data(Qt.ItemDataRole.UserRole + 20 + i)[0][0])
+                )
 
             except ValueError:
-                self.selectors[-1].setCurrentIndex(len(self.options) + SETTINGS_VALUES[i].index(index.data(Qt.ItemDataRole.UserRole + 20 + i)[1]))
+                self.selectors[-1].setCurrentIndex(
+                    len(self.options) + SETTINGS_VALUES[i].index(index.data(Qt.ItemDataRole.UserRole + 20 + i)[1])
+                )
 
-        self.layout_.addWidget(Label(self.input, self.tr("*Setting this to 'Completed' or 'Uncompleted' converts to a to-do."), Qt.AlignmentFlag.AlignLeft))
-        self.layout_.addWidget(Label(self.input, self.tr("**Setting this to 'Enabled' converts to a diary."), Qt.AlignmentFlag.AlignLeft))
+        self.layout_.addWidget(
+            Label(
+                self.input,
+                self.tr("*Setting this to 'Completed' or 'Uncompleted' converts to a to-do."),
+                Qt.AlignmentFlag.AlignLeft,
+            )
+        )
+        self.layout_.addWidget(
+            Label(self.input, self.tr("**Setting this to 'Enabled' converts to a diary."), Qt.AlignmentFlag.AlignLeft)
+        )
 
         self.exec()
 

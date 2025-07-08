@@ -62,9 +62,8 @@ from .widgets.dialogs import ColorSelector
 COLOR_SCHEMES_DIRS = []
 
 KDE_COLOR_SCHEMES_DIRS = QStandardPaths.locateAll(
-    QStandardPaths.StandardLocation.GenericDataLocation,
-    "color-schemes",
-    QStandardPaths.LocateOption.LocateDirectory)
+    QStandardPaths.StandardLocation.GenericDataLocation, "color-schemes", QStandardPaths.LocateOption.LocateDirectory
+)
 KDE_COLOR_SCHEMES_DIRS.reverse()
 
 KDE_COLOR_SCHEMES_FOUND = True
@@ -78,22 +77,26 @@ elif len(KDE_COLOR_SCHEMES_DIRS) == 1:
     if KDE_COLOR_SCHEMES_DIRS[0] == "/usr/share/color-schemes":
         KDE_USER_COLOR_SCHEMES_FOUND = False
 
-    elif KDE_COLOR_SCHEMES_DIRS[0] == os.path.join(QStandardPaths.standardLocations(QStandardPaths.StandardLocation.GenericDataLocation)[0], "color-schemes"):
+    elif KDE_COLOR_SCHEMES_DIRS[0] == os.path.join(
+        QStandardPaths.standardLocations(QStandardPaths.StandardLocation.GenericDataLocation)[0], "color-schemes"
+    ):
         KDE_SYSTEM_COLOR_SCHEMES_FOUND = False
 
 
-NOTTODBOX_COLOR_SCHEMES_DIRS = [os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(__file__)), "color-schemes")), os.path.join(QStandardPaths.standardLocations(QStandardPaths.StandardLocation.GenericDataLocation)[0], "nottodbox", "color-schemes")]
+NOTTODBOX_COLOR_SCHEMES_DIRS = [
+    os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(__file__)), "color-schemes")),
+    os.path.join(
+        QStandardPaths.standardLocations(QStandardPaths.StandardLocation.GenericDataLocation)[0],
+        "nottodbox",
+        "color-schemes",
+    ),
+]
 os.makedirs(NOTTODBOX_COLOR_SCHEMES_DIRS[1], exist_ok=True)
 
 COLOR_SCHEMES_DIRS.extend(KDE_COLOR_SCHEMES_DIRS)
 COLOR_SCHEMES_DIRS.extend(NOTTODBOX_COLOR_SCHEMES_DIRS)
 
-NUMBERS = {
-    "1": "\u00b9",
-    "2": "\u00b2",
-    "3": "\u00b3",
-    "4": "\u2074"
-}
+NUMBERS = {"1": "\u00b9", "2": "\u00b2", "3": "\u00b3", "4": "\u2074"}
 
 
 class SettingsPage(QWidget):
@@ -108,7 +111,11 @@ class SettingsPage(QWidget):
             if self.settings.value(f"globals/{setting}") is None:
                 self.settings.setValue(f"globals/{setting}", "default")
 
-        self.pages = [self.makeScrollable(Appearance(self)), self.makeScrollable(DocumentSettings(self)), self.makeScrollable(ListSettings(self))]
+        self.pages = [
+            self.makeScrollable(Appearance(self)),
+            self.makeScrollable(DocumentSettings(self)),
+            self.makeScrollable(ListSettings(self)),
+        ]
 
         self.widget = QStackedWidget(self)
 
@@ -117,9 +124,15 @@ class SettingsPage(QWidget):
 
         self.buttons = QDialogButtonBox(self)
 
-        self.buttons.addButton(PushButton(self.buttons, self.reset, self.tr("Reset")), QDialogButtonBox.ButtonRole.ResetRole)
-        self.buttons.addButton(PushButton(self.buttons, self.apply, self.tr("Apply")), QDialogButtonBox.ButtonRole.ApplyRole)
-        self.buttons.addButton(PushButton(self.buttons, self.cancel, self.tr("Cancel")), QDialogButtonBox.ButtonRole.RejectRole)
+        self.buttons.addButton(
+            PushButton(self.buttons, self.reset, self.tr("Reset")), QDialogButtonBox.ButtonRole.ResetRole
+        )
+        self.buttons.addButton(
+            PushButton(self.buttons, self.apply, self.tr("Apply")), QDialogButtonBox.ButtonRole.ApplyRole
+        )
+        self.buttons.addButton(
+            PushButton(self.buttons, self.cancel, self.tr("Cancel")), QDialogButtonBox.ButtonRole.RejectRole
+        )
 
         self.layout_ = QGridLayout(self)
         self.layout_.addWidget(ListView(self), 0, 0, 3, 1)
@@ -129,14 +142,24 @@ class SettingsPage(QWidget):
         self.layout_.addWidget(self.buttons, 2, 2, 1, 1)
 
     def askFormat(self, page: QWidget, do_not_asked_before: bool, format_change_acceptted: bool) -> tuple[bool, bool]:
-        if (type(page.widget()).__name__ == "DocumentSettings" and do_not_asked_before and page.widget().selectors[3].currentIndex() != page.widget().values[3].index(self.settings.value(f"globals/{SETTINGS_KEYS[3]}"))):
-                do_not_asked_before = False
+        if (
+            type(page.widget()).__name__ == "DocumentSettings"
+            and do_not_asked_before
+            and page.widget().selectors[3].currentIndex()
+            != page.widget().values[3].index(self.settings.value(f"globals/{SETTINGS_KEYS[3]}"))
+        ):
+            do_not_asked_before = False
 
-                question = QMessageBox.question(
-                    self, self.tr("Question"), self.tr("If you have documents with the format setting set to global, this change may corrupt them.\nDo you really want to apply the format setting?"))
+            question = QMessageBox.question(
+                self,
+                self.tr("Question"),
+                self.tr(
+                    "If you have documents with the format setting set to global, this change may corrupt them.\nDo you really want to apply the format setting?"
+                ),
+            )
 
-                if question != QMessageBox.StandardButton.Yes:
-                    format_change_acceptted = False
+            if question != QMessageBox.StandardButton.Yes:
+                format_change_acceptted = False
 
         return do_not_asked_before, format_change_acceptted
 
@@ -147,7 +170,9 @@ class SettingsPage(QWidget):
         format_change_acceptted = True
 
         for page in self.pages:
-            do_not_asked_before, format_change_acceptted = self.askFormat(page, do_not_asked_before, format_change_acceptted)
+            do_not_asked_before, format_change_acceptted = self.askFormat(
+                page, do_not_asked_before, format_change_acceptted
+            )
 
             if not page.apply(format_change_acceptted):
                 successful = False
@@ -157,7 +182,9 @@ class SettingsPage(QWidget):
                 QMessageBox.information(self, self.tr("Successful"), self.tr("All settings applied."))
 
             else:
-                QMessageBox.information(self, self.tr("Successful"), self.tr("All settings applied EXCEPT format setting."))
+                QMessageBox.information(
+                    self, self.tr("Successful"), self.tr("All settings applied EXCEPT format setting.")
+                )
 
         else:
             QMessageBox.critical(self, self.tr("Error"), self.tr("Failed to apply settings."))
@@ -185,7 +212,9 @@ class SettingsPage(QWidget):
         format_change_acceptted = True
 
         for page in self.pages:
-            do_not_asked_before, format_change_acceptted = self.askFormat(page, do_not_asked_before, format_change_acceptted)
+            do_not_asked_before, format_change_acceptted = self.askFormat(
+                page, do_not_asked_before, format_change_acceptted
+            )
 
             if not page.reset(format_change_acceptted):
                 successful = False
@@ -195,7 +224,9 @@ class SettingsPage(QWidget):
                 QMessageBox.information(self, self.tr("Successful"), self.tr("All setting reset."))
 
             else:
-                QMessageBox.information(self, self.tr("Successful"), self.tr("All settings reset EXCEPT format setting."))
+                QMessageBox.information(
+                    self, self.tr("Successful"), self.tr("All settings reset EXCEPT format setting.")
+                )
 
         else:
             QMessageBox.critical(self, self.tr("Error"), self.tr("Failed to reset settings."))
@@ -250,7 +281,9 @@ class ButtonDelegate(QStyledItemDelegate):
 
         name_rect = QRect(option.rect)
         name_rect.setTop(name_rect.top() + (option.rect.height() - QFontMetrics(name_font).height()) / 2)
-        name_rect.setLeft(name_rect.left() + (option.rect.width() - QFontMetrics(name_font).horizontalAdvance(name)) / 2)
+        name_rect.setLeft(
+            name_rect.left() + (option.rect.width() - QFontMetrics(name_font).horizontalAdvance(name)) / 2
+        )
         name_rect.setRight(name_rect.left() + QFontMetrics(name_font).horizontalAdvance(name))
         name_rect.setBottom(name_rect.top() + QFontMetrics(name_font).height())
 
@@ -262,14 +295,14 @@ class ButtonDelegate(QStyledItemDelegate):
         situations = [
             bool(index.data(Qt.ItemDataRole.UserRole + 1)),
             bool(option.state & QStyle.StateFlag.State_MouseOver),
-            True
-            ]
+            True,
+        ]
 
         defaults = [
             [option.palette.base().color(), option.palette.text().color(), option.palette.text().color()],
             [option.palette.button().color(), option.palette.text().color(), option.palette.buttonText().color()],
-            [option.palette.link().color(), option.palette.text().color(), option.palette.linkVisited().color()]
-            ]
+            [option.palette.link().color(), option.palette.text().color(), option.palette.linkVisited().color()],
+        ]
 
         colors = []
 
@@ -298,7 +331,9 @@ class ButtonDelegate(QStyledItemDelegate):
 
         painter.drawText(name_rect, name)
 
-    def editorEvent(self, event: QEvent, model: QStandardItemModel, option: QStyleOptionViewItem, index: QModelIndex) -> bool:
+    def editorEvent(
+        self, event: QEvent, model: QStandardItemModel, option: QStyleOptionViewItem, index: QModelIndex
+    ) -> bool:
         if event.type() == QEvent.Type.MouseButtonPress:
             indexes = self.parent_.indexes.copy()
             indexes.remove(index)
@@ -356,18 +391,49 @@ class Appearance(QWidget):
         self.layout_.addRow("{}*:".format(self.tr("Style")), self.styles_combobox)
         self.layout_.addRow(Label(self, self.tr("Color scheme").title()))
         self.layout_.addRow("{}:".format(self.tr("Color scheme")), self.color_schemes_widget)
-        self.layout_.addRow("{} {}:".format(self.tr("Custom"), self.tr("Color scheme").lower()), self.custom_color_schemes.name)
+        self.layout_.addRow(
+            "{} {}:".format(self.tr("Custom"), self.tr("Color scheme").lower()), self.custom_color_schemes.name
+        )
         self.layout_.addWidget(self.custom_color_schemes)
         self.layout_.addRow(HSeperator(self))
         self.layout_.addRow(Label(self, self.tr("Warning: Some styles may not be detected"), 0x0001))
-        self.layout_.addRow(Label(self,
-                               "<br>{}{}".format(self.superscriptDirNumber(1), self.tr("From the system directory for KDE-format color schemes")), 0x0001))
-        self.layout_.addRow(Label(self,
-                               "<br>{}{}".format(self.superscriptDirNumber(2), self.tr("From the user directory for KDE-format color schemes")), 0x0001))
-        self.layout_.addRow(Label(self,
-                               "<br>{}{}".format(self.superscriptDirNumber(3), self.tr("From the system directory for Nottodbox-format color schemes")), 0x0001))
-        self.layout_.addRow(Label(self,
-                               "<br>{}{}".format(self.superscriptDirNumber(4), self.tr("From the user directory for Nottodbox-format color schemes")), 0x0001))
+        self.layout_.addRow(
+            Label(
+                self,
+                "<br>{}{}".format(
+                    self.superscriptDirNumber(1), self.tr("From the system directory for KDE-format color schemes")
+                ),
+                0x0001,
+            )
+        )
+        self.layout_.addRow(
+            Label(
+                self,
+                "<br>{}{}".format(
+                    self.superscriptDirNumber(2), self.tr("From the user directory for KDE-format color schemes")
+                ),
+                0x0001,
+            )
+        )
+        self.layout_.addRow(
+            Label(
+                self,
+                "<br>{}{}".format(
+                    self.superscriptDirNumber(3),
+                    self.tr("From the system directory for Nottodbox-format color schemes"),
+                ),
+                0x0001,
+            )
+        )
+        self.layout_.addRow(
+            Label(
+                self,
+                "<br>{}{}".format(
+                    self.superscriptDirNumber(4), self.tr("From the user directory for Nottodbox-format color schemes")
+                ),
+                0x0001,
+            )
+        )
 
         self.styles_combobox.currentTextChanged.connect(self.styleChanged)
         self.color_schemes_combobox.currentTextChanged.connect(self.colorSchemeChanged)
@@ -445,7 +511,7 @@ class Appearance(QWidget):
         data["Button"] = self.convertToHexColor(config["Colors:Button"]["BackgroundNormal"])
         data["ButtonText"] = self.convertToHexColor(config["Colors:Button"]["ForegroundNormal"])
         data["Highlight"] = self.convertToHexColor(config["Colors:Selection"]["BackgroundNormal"])
-        data["Accent"] =self.convertToHexColor( config["Colors:Selection"]["ForegroundNormal"])
+        data["Accent"] = self.convertToHexColor(config["Colors:Selection"]["ForegroundNormal"])
         data["HighlightedText"] = self.convertToHexColor(config["Colors:Selection"]["ForegroundNormal"])
         data["Link"] = self.convertToHexColor(config["Colors:View"]["ForegroundLink"])
         data["LinkVisited"] = self.convertToHexColor(config["Colors:View"]["ForegroundVisited"])
@@ -456,7 +522,10 @@ class Appearance(QWidget):
     def deleteColorScheme(self) -> None:
         name = self.current_color_scheme
 
-        if os.path.isfile(self.color_schemes[name]) and os.path.dirname(self.color_schemes[name]) == NOTTODBOX_COLOR_SCHEMES_DIRS[1]:
+        if (
+            os.path.isfile(self.color_schemes[name])
+            and os.path.dirname(self.color_schemes[name]) == NOTTODBOX_COLOR_SCHEMES_DIRS[1]
+        ):
             os.remove(self.color_schemes[name])
 
             if self.parent_.settings.value("appearance/color_scheme") == name:
@@ -481,7 +550,6 @@ class Appearance(QWidget):
                 name = config["General"]["Name"]
 
             elif path.endswith(".json"):
-
                 name = json.load(f)["name"]
 
         overwrited = False
@@ -489,10 +557,13 @@ class Appearance(QWidget):
         pretty_name = f"{name}{self.superscriptDirNumber(path if not check else 4)}"
 
         if check and pretty_name in self.color_schemes_list:
-            question = QMessageBox.question(self,
-                                            self.tr("Question"),
-                                            self.tr("A color scheme with the name '{name}' already exists.\nDo you want to overwrite it?")
-                                            .format(name = pretty_name))
+            question = QMessageBox.question(
+                self,
+                self.tr("Question"),
+                self.tr("A color scheme with the name '{name}' already exists.\nDo you want to overwrite it?").format(
+                    name=pretty_name
+                ),
+            )
 
             if question != QMessageBox.StandardButton.Yes:
                 return "", False
@@ -604,10 +675,12 @@ class Appearance(QWidget):
 
     @Slot()
     def importColorScheme(self) -> None:
-        paths = QFileDialog.getOpenFileNames(self,
-                                            self.tr("Import a {the_item}").format(the_item = self.tr("Color scheme")).title(),
-                                            "",
-                                            self.tr("Color schemes (*.colors *.json)"))[0]
+        paths = QFileDialog.getOpenFileNames(
+            self,
+            self.tr("Import a {the_item}").format(the_item=self.tr("Color scheme")).title(),
+            "",
+            self.tr("Color schemes (*.colors *.json)"),
+        )[0]
 
         for path in paths:
             data = {}
@@ -638,10 +711,11 @@ class Appearance(QWidget):
         newname, topwindow = QInputDialog.getText(self, self.tr("Rename"), self.tr("Please enter a new name."))
 
         if topwindow and newname != "":
-            if (not os.path.exists(os.path.join(NOTTODBOX_COLOR_SCHEMES_DIRS[1], f"{newname}.json")) and
-                os.path.dirname(path) == NOTTODBOX_COLOR_SCHEMES_DIRS[1] and
-                os.path.isfile(path)):
-
+            if (
+                not os.path.exists(os.path.join(NOTTODBOX_COLOR_SCHEMES_DIRS[1], f"{newname}.json"))
+                and os.path.dirname(path) == NOTTODBOX_COLOR_SCHEMES_DIRS[1]
+                and os.path.isfile(path)
+            ):
                 with open(path) as f:
                     data = json.load(f)
 
@@ -660,7 +734,9 @@ class Appearance(QWidget):
 
                 self.color_schemes[f"{newname}{self.superscriptDirNumber(4)}"] = path
 
-                self.color_schemes_list[self.color_schemes_list.index(name)] = f"{newname}{self.superscriptDirNumber(4)}"
+                self.color_schemes_list[self.color_schemes_list.index(name)] = (
+                    f"{newname}{self.superscriptDirNumber(4)}"
+                )
 
                 self.color_schemes_combobox.addItems(self.color_schemes_list)
                 self.color_schemes_combobox.setCurrentText(f"{newname}{self.superscriptDirNumber(4)}")
@@ -668,15 +744,23 @@ class Appearance(QWidget):
                 self.custom_color_schemes.createList()
 
             else:
-                QMessageBox.critical(self, self.tr("Error"), self.tr("{the_item} can not be renamed.")
-                                     .format(the_item = self.tr("'{name}' color scheme").format(name = name)))
+                QMessageBox.critical(
+                    self,
+                    self.tr("Error"),
+                    self.tr("{the_item} can not be renamed.").format(
+                        the_item=self.tr("'{name}' color scheme").format(name=name)
+                    ),
+                )
 
     @Slot(bool)
     def reset(self, format_change_acceptted: bool = True) -> bool:
         self.parent_.settings.remove("appearance/style")
         self.parent_.settings.remove("appearance/color_scheme")
 
-        if self.parent_.settings.value("appearance/style") is None and self.parent_.settings.value("appearance/color_scheme") is None:
+        if (
+            self.parent_.settings.value("appearance/style") is None
+            and self.parent_.settings.value("appearance/color_scheme") is None
+        ):
             self.load()
 
             return self.apply()
@@ -685,7 +769,10 @@ class Appearance(QWidget):
             return False
 
     def setColorSchemeButtons(self, value: str) -> None:
-        if self.current_color_scheme != "" and os.path.dirname(self.color_schemes[value]) == NOTTODBOX_COLOR_SCHEMES_DIRS[1]:
+        if (
+            self.current_color_scheme != ""
+            and os.path.dirname(self.color_schemes[value]) == NOTTODBOX_COLOR_SCHEMES_DIRS[1]
+        ):
             self.color_schemes_rename.setEnabled(True)
             self.color_schemes_delete.setEnabled(True)
 
@@ -768,8 +855,8 @@ class CustomColorSchemes(QWidget):
             "Accent": self.tr("Accent"),
             "HighlightedText": self.tr("Highlighted text"),
             "Link": self.tr("Link"),
-            "LinkVisited": self.tr("Visited link")
-            }
+            "LinkVisited": self.tr("Visited link"),
+        }
 
         self.buttons = {}
 
@@ -809,10 +896,13 @@ class CustomColorSchemes(QWidget):
             pretty_name = f"{name}{self.parent_.superscriptDirNumber(4)}"
 
             if pretty_name in self.parent_.color_schemes_list:
-                question = QMessageBox.question(self,
-                                                self.tr("Question"),
-                                                self.tr("A color scheme with the name '{name}' already exists.\nDo you want to overwrite it?")
-                                                .format(name = pretty_name))
+                question = QMessageBox.question(
+                    self,
+                    self.tr("Question"),
+                    self.tr(
+                        "A color scheme with the name '{name}' already exists.\nDo you want to overwrite it?"
+                    ).format(name=pretty_name),
+                )
 
                 if question == QMessageBox.StandardButton.Yes:
                     overwrited = True
@@ -921,7 +1011,7 @@ class DocumentSettings(GlobalSettings):
             "Markdown",
             self.tr("None").lower(),
             self.tr("Documents").lower(),
-            self.tr("No").lower()
+            self.tr("No").lower(),
         ]
 
         self.localized_labels = [
@@ -931,8 +1021,8 @@ class DocumentSettings(GlobalSettings):
             self.tr("Document format"),
             self.tr("External synchronization"),
             self.tr("Export folder"),
-            self.tr("Pinned to sidebar")
-            ]
+            self.tr("Pinned to sidebar"),
+        ]
 
         self.localized_options = [
             [self.tr("Completed"), self.tr("Uncompleted"), self.tr("None")],
@@ -941,7 +1031,7 @@ class DocumentSettings(GlobalSettings):
             ["Markdown", "HTML", self.tr("Plain-text")],
             [self.tr("Follow format"), "PDF", "ODT", "Markdown", "HTML", self.tr("Plain-text")],
             [self.tr("Documents"), self.tr("Desktop")],
-            [self.tr("Yes"), self.tr("No")]
+            [self.tr("Yes"), self.tr("No")],
         ]
 
         self.values = [["default"] + values for values in SETTINGS_VALUES]
@@ -965,33 +1055,56 @@ class DocumentSettings(GlobalSettings):
 
             self.layout_.addWidget(widget)
 
-        self.layout_.addWidget(Label(self, self.tr("*Setting this to 'Completed' or 'Uncompleted' converts to a to-do."), Qt.AlignmentFlag.AlignLeft))
-        self.layout_.addWidget(Label(self, self.tr("**Setting this to 'Enabled' converts to a diary."), Qt.AlignmentFlag.AlignLeft))
+        self.layout_.addWidget(
+            Label(
+                self,
+                self.tr("*Setting this to 'Completed' or 'Uncompleted' converts to a to-do."),
+                Qt.AlignmentFlag.AlignLeft,
+            )
+        )
+        self.layout_.addWidget(
+            Label(self, self.tr("**Setting this to 'Enabled' converts to a diary."), Qt.AlignmentFlag.AlignLeft)
+        )
 
         self.load()
 
     @Slot()
     def load(self) -> None:
         for i in range(7):
-            self.selectors[i].setCurrentIndex(self.values[i].index(self.parent_.settings.value(f"globals/{SETTINGS_KEYS[i]}")))
+            self.selectors[i].setCurrentIndex(
+                self.values[i].index(self.parent_.settings.value(f"globals/{SETTINGS_KEYS[i]}"))
+            )
 
     def save(self, mode: str, format_change_acceptted: bool = True) -> bool:
         if not format_change_acceptted:
-            self.selectors[3].setCurrentIndex(self.values[3].index(self.parent_.settings.value(f"globals/{SETTINGS_KEYS[3]}")))
+            self.selectors[3].setCurrentIndex(
+                self.values[3].index(self.parent_.settings.value(f"globals/{SETTINGS_KEYS[3]}"))
+            )
 
         successful = True
 
         for i in range(7):
-            self.parent_.settings.setValue(f"globals/{SETTINGS_KEYS[i]}", self.values[i][self.selectors[i].currentIndex()] if mode == "apply" else "default")
+            self.parent_.settings.setValue(
+                f"globals/{SETTINGS_KEYS[i]}",
+                self.values[i][self.selectors[i].currentIndex()] if mode == "apply" else "default",
+            )
 
-            check = self.parent_.settings.value(f"globals/{SETTINGS_KEYS[i]}") == (self.values[i][self.selectors[i].currentIndex()] if mode == "apply" else "default")
+            check = self.parent_.settings.value(f"globals/{SETTINGS_KEYS[i]}") == (
+                self.values[i][self.selectors[i].currentIndex()] if mode == "apply" else "default"
+            )
 
             successful &= check
 
             if check:
                 for item in self.parent_.parent_.home.selector.maindb.items.values():
                     if "global" in item.data(Qt.ItemDataRole.UserRole + 20 + i)[0]:
-                        item.setData((item.data(Qt.ItemDataRole.UserRole + 20 + i)[0], self.parent_.parent_.home.selector.tree_view.handleSettingViaGlobal(i)), Qt.ItemDataRole.UserRole + 20 + i)
+                        item.setData(
+                            (
+                                item.data(Qt.ItemDataRole.UserRole + 20 + i)[0],
+                                self.parent_.parent_.home.selector.tree_view.handleSettingViaGlobal(i),
+                            ),
+                            Qt.ItemDataRole.UserRole + 20 + i,
+                        )
 
                         if i == 6:
                             if self.values[i][self.selectors[i].currentIndex()] == "yes":
@@ -1008,16 +1121,16 @@ class ListSettings(GlobalSettings):
         super().__init__(parent)
 
         self.localizeds = [
-                self.tr("Background color"),
-                self.tr("Background color when mouse is over"),
-                self.tr("Background color when clicked"),
-                self.tr("Foreground color"),
-                self.tr("Foreground color when mouse is over"),
-                self.tr("Foreground color when clicked"),
-                self.tr("Border color"),
-                self.tr("Border color when mouse is over"),
-                self.tr("Border color when clicked")
-                ]
+            self.tr("Background color"),
+            self.tr("Background color when mouse is over"),
+            self.tr("Background color when clicked"),
+            self.tr("Foreground color"),
+            self.tr("Foreground color when mouse is over"),
+            self.tr("Foreground color when clicked"),
+            self.tr("Border color"),
+            self.tr("Border color when mouse is over"),
+            self.tr("Border color when clicked"),
+        ]
 
         for i in range(9):
             widget = QWidget(self)
@@ -1045,15 +1158,25 @@ class ListSettings(GlobalSettings):
         successful = True
 
         for i in range(9):
-            self.parent_.settings.setValue(f"globals/{SETTINGS_KEYS[7 + i]}", self.selectors[i].selected if mode == "apply" else "default")
+            self.parent_.settings.setValue(
+                f"globals/{SETTINGS_KEYS[7 + i]}", self.selectors[i].selected if mode == "apply" else "default"
+            )
 
-            check = self.parent_.settings.value(f"globals/{SETTINGS_KEYS[7 + i]}") == (self.selectors[i].selected if mode == "apply" else "default")
+            check = self.parent_.settings.value(f"globals/{SETTINGS_KEYS[7 + i]}") == (
+                self.selectors[i].selected if mode == "apply" else "default"
+            )
 
             successful &= check
 
             if check:
                 for item in self.parent_.parent_.home.selector.maindb.items.values():
                     if "global" in item.data(Qt.ItemDataRole.UserRole + 27 + i)[0]:
-                        item.setData((item.data(Qt.ItemDataRole.UserRole + 27 + i)[0], self.parent_.parent_.home.selector.tree_view.handleSettingViaGlobal(7 + i)), Qt.ItemDataRole.UserRole + 27 + i)
+                        item.setData(
+                            (
+                                item.data(Qt.ItemDataRole.UserRole + 27 + i)[0],
+                                self.parent_.parent_.home.selector.tree_view.handleSettingViaGlobal(7 + i),
+                            ),
+                            Qt.ItemDataRole.UserRole + 27 + i,
+                        )
 
         return successful

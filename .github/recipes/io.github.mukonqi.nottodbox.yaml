@@ -30,10 +30,11 @@ modules:
       - cp share/icons/hicolor/scalable/apps/io.github.mukonqi.nottodbox.svg /app/share/icons/hicolor/scalable/apps
       - cp share/metainfo/io.github.mukonqi.nottodbox.appdata.xml /app/share/metainfo
       - sed -i "s/APP_BUILD = .*/APP_BUILD = 'Flatpak'/" nottodbox/scripts/version.py
-      - cp .github/recipes/locale.py nottodbox/scripts/resources/locale.py # this line should be removed when https://github.com/flathub/io.qt.PySide.BaseApp/pull/25 pull request merged
-      # - python3 .github/scripts/translations.py # this line should be used when https://github.com/flathub/io.qt.PySide.BaseApp/pull/25 pull request merged
+      - cp .github/recipes/locale.py nottodbox/scripts/resources/locale.py # this line should be removed when https://github.com/flathub/io.qt.PySide.BaseApp/pull/25 pull request is merged
+      # - python3 .github/scripts/translations.py # this line should be used when https://github.com/flathub/io.qt.PySide.BaseApp/pull/25 pull request is merged
       - pip3 install --no-build-isolation --no-deps --no-index --prefix=${FLATPAK_DEST} --verbose .
     sources: 
       - type: git
         url: https://github.com/mukonqi/nottodbox
-        branch: remake
+        tag: v0.1.0
+        

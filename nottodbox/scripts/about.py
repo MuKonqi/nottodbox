@@ -41,21 +41,34 @@ class AboutPage(QWidget):
         font.setPointSize(64)
         self.nottodbox.setFont(font)
 
-        self.version_label = Label(self, self.tr("Version") + f': <a href="https://github.com/mukonqi/nottodbox/releases/tag/{APP_VERSION}">{APP_VERSION}</a>')
+        self.version_label = Label(
+            self,
+            self.tr("Version")
+            + f': <a href="https://github.com/mukonqi/nottodbox/releases/tag/{APP_VERSION}">{APP_VERSION}</a>',
+        )
         self.version_label.setOpenExternalLinks(True)
 
-        self.source_label = Label(self, self.tr("Source codes") + ': <a href="https://github.com/mukonqi/nottodbox">GitHub</a>')
+        self.source_label = Label(
+            self, self.tr("Source codes") + ': <a href="https://github.com/mukonqi/nottodbox">GitHub</a>'
+        )
         self.source_label.setOpenExternalLinks(True)
 
-        self.developer_label = Label(self, self.tr("Developer") + ': <a href="https://mukonqi.github.io">MuKonqi (Muhammed S.)</a>')
+        self.developer_label = Label(
+            self, self.tr("Developer") + ': <a href="https://mukonqi.github.io">MuKonqi (Muhammed S.)</a>'
+        )
         self.developer_label.setOpenExternalLinks(True)
 
-        with open(os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(__file__)), "LICENSE.txt")), ) as license_file:
+        with open(
+            os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(__file__)), "LICENSE.txt")),
+        ) as license_file:
             license_text = license_file.read()
 
         self.license_textedit = QTextEdit(self)
-        self.license_textedit.setFixedWidth(79 * 8 * QFontDatabase.systemFont(QFontDatabase.SystemFont.FixedFont).pointSize() / 10 +
-                                            QApplication.style().pixelMetric(QStyle.PixelMetric.PM_ScrollBarSliderMin) + 10)
+        self.license_textedit.setFixedWidth(
+            79 * 8 * QFontDatabase.systemFont(QFontDatabase.SystemFont.FixedFont).pointSize() / 10
+            + QApplication.style().pixelMetric(QStyle.PixelMetric.PM_ScrollBarSliderMin)
+            + 10
+        )
         self.license_textedit.setCurrentFont(QFontDatabase.systemFont(QFontDatabase.SystemFont.FixedFont))
         self.license_textedit.setText(license_text)
         self.license_textedit.setReadOnly(True)
@@ -75,7 +88,7 @@ class AboutPage(QWidget):
         self.layout_.addWidget(HSeperator(self))
         self.layout_.addWidget(self.developer_label)
         self.layout_.addWidget(HSeperator(self))
-        self.layout_.addWidget(Label(self, self.tr("Copyright (C)") + ': 2024-2025 MuKonqi (Muhammed S.)'))
+        self.layout_.addWidget(Label(self, self.tr("Copyright (C)") + ": 2024-2025 MuKonqi (Muhammed S.)"))
         self.layout_.addWidget(Label(self, self.tr("License: GNU General Public License, Version 3 or later")))
         self.layout_.addWidget(self.license_textedit, 0, Qt.AlignmentFlag.AlignCenter)
         self.layout_.addWidget(HSeperator(self))

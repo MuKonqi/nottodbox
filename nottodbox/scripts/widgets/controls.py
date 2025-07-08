@@ -61,7 +61,9 @@ class HSeperator(QFrame):
 
 
 class Label(QLabel):
-    def __init__(self, parent: QWidget, text: str = "", alignment: Qt.AlignmentFlag | int = Qt.AlignmentFlag.AlignCenter) -> None:
+    def __init__(
+        self, parent: QWidget, text: str = "", alignment: Qt.AlignmentFlag | int = Qt.AlignmentFlag.AlignCenter
+    ) -> None:
         super().__init__(text, parent)
 
         if isinstance(alignment, int):
@@ -88,7 +90,16 @@ class VSeperator(QFrame):
 
 
 class PushButton(QPushButton):
-    def __init__(self, parent: QWidget, clicked: object, text: str = "", checkable: bool = False, flat: bool = False, icon: QIcon | None = None, size: int | None = None) -> None:
+    def __init__(
+        self,
+        parent: QWidget,
+        clicked: object,
+        text: str = "",
+        checkable: bool = False,
+        flat: bool = False,
+        icon: QIcon | None = None,
+        size: int | None = None,
+    ) -> None:
         super().__init__(text, parent)
 
         self.setCheckable(checkable)
@@ -104,7 +115,15 @@ class PushButton(QPushButton):
 
 
 class ToolButton(QToolButton):
-    def __init__(self, parent: QWidget, clicked: object, text: str = "", checkable: bool = False, icon: QIcon | None = None, size: int | None = None) -> None:
+    def __init__(
+        self,
+        parent: QWidget,
+        clicked: object,
+        text: str = "",
+        checkable: bool = False,
+        icon: QIcon | None = None,
+        size: int | None = None,
+    ) -> None:
         super().__init__(parent)
 
         self.setText(text)

@@ -90,7 +90,7 @@ class HomePage(QWidget):
 class Area(QWidget):
     pages = []
 
-    def __init__(self, parent: HomePage)-> None:
+    def __init__(self, parent: HomePage) -> None:
         super().__init__(parent)
 
         self.parent_ = parent
@@ -135,7 +135,9 @@ class Page(QWidget):
 
         self.container = QWidget(self.pager)
 
-        self.button = PushButton(self.container, self.setAsTarget, self.tr("Click this button\nto select a document for here"), False, True)
+        self.button = PushButton(
+            self.container, self.setAsTarget, self.tr("Click this button\nto select a document for here"), False, True
+        )
         font = self.button.font()
         font.setBold(True)
         font.setPointSize(16)
@@ -161,7 +163,7 @@ class Page(QWidget):
             self.removeDocument()
 
         self.pager.addWidget(document)
-        self.pager.setCurrentIndex(1),
+        (self.pager.setCurrentIndex(1),)
 
         self.document = document
 
@@ -209,7 +211,14 @@ class Selector(QWidget):
         self.search_entry.textChanged.connect(self.tree_view.filterNormal)
 
         self.filter_combobox = QComboBox(self)
-        self.filter_combobox.addItems([self.tr("By name"), self.tr("By creation date"), self.tr("By modification date"), self.tr("By content / description")])
+        self.filter_combobox.addItems(
+            [
+                self.tr("By name"),
+                self.tr("By creation date"),
+                self.tr("By modification date"),
+                self.tr("By content / description"),
+            ]
+        )
         self.filter_combobox.currentIndexChanged.connect(self.tree_view.filterChanged)
 
         self.calendar_widget = CalendarWidget(self)
@@ -221,7 +230,9 @@ class Selector(QWidget):
             self.calendar_checkbox.checkStateChanged.connect(self.enableCalendar)
         except AttributeError:
             self.calendar_checkbox.stateChanged.connect(self.enableCalendar)
-        self.calendar_checkbox.setCheckState(Qt.CheckState.Unchecked if self.settings.value("selector/calendar") == "hidden" else Qt.CheckState.Checked)
+        self.calendar_checkbox.setCheckState(
+            Qt.CheckState.Unchecked if self.settings.value("selector/calendar") == "hidden" else Qt.CheckState.Checked
+        )
 
         self.create_first_notebook = CreateFirstNotebook(self)
 
@@ -253,7 +264,9 @@ class Selector(QWidget):
         self.tree_view.appendAll()
 
         self.setFixedWidth(330)
-        self.enableCalendar(Qt.CheckState.Unchecked if self.settings.value("selector/calendar") == "hidden" else Qt.CheckState.Checked)
+        self.enableCalendar(
+            Qt.CheckState.Unchecked if self.settings.value("selector/calendar") == "hidden" else Qt.CheckState.Checked
+        )
         self.setPage()
         self.setVisible(self.settings.value("selector/self") != "hidden")
         self.parent_.parent_.sidebar.buttons[-1].setChecked(self.settings.value("selector/self") == "hidden")
@@ -261,7 +274,9 @@ class Selector(QWidget):
     @Slot(int or Qt.CheckState)
     def enableCalendar(self, signal: int | Qt.CheckState) -> None:
         if not self.do_not_write:
-            self.settings.setValue("selector/calendar", "hidden" if signal == Qt.CheckState.Unchecked or signal == 0 else "visible")
+            self.settings.setValue(
+                "selector/calendar", "hidden" if signal == Qt.CheckState.Unchecked or signal == 0 else "visible"
+            )
 
         self.calendar_widget.setVisible(not (signal == Qt.CheckState.Unchecked or signal == 0))
 
@@ -275,7 +290,11 @@ class Selector(QWidget):
 
         else:
             self.do_not_write = True
-            self.calendar_checkbox.setCheckState(Qt.CheckState.Unchecked if self.settings.value("selector/calendar") == "hidden" else Qt.CheckState.Checked)
+            self.calendar_checkbox.setCheckState(
+                Qt.CheckState.Unchecked
+                if self.settings.value("selector/calendar") == "hidden"
+                else Qt.CheckState.Checked
+            )
             self.do_not_write = False
 
             self.pages.setCurrentIndex(1)
@@ -347,13 +366,21 @@ class Options:
             index.model().setData(index, ["self", "enabled"], Qt.ItemDataRole.UserRole + 21)
             self.parent_.tree_view.setType(index)
 
-            for page in [page for page in self.parent_.parent_.area.pages if page.document is not None and page.document.index == index]:
+            for page in [
+                page
+                for page in self.parent_.parent_.area.pages
+                if page.document is not None and page.document.index == index
+            ]:
                 page.document.refreshSettings()
 
-            QMessageBox.information(self.parent_, self.parent_.tr("Successful"), self.tr("Lock added {to_item}.", index))
+            QMessageBox.information(
+                self.parent_, self.parent_.tr("Successful"), self.tr("Lock added {to_item}.", index)
+            )
 
         else:
-            QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.tr("Failed to add lock {to_item}.", index))
+            QMessageBox.critical(
+                self.parent_, self.parent_.tr("Error"), self.tr("Failed to add lock {to_item}.", index)
+            )
 
     @Slot(QModelIndex)
     def changeAppearance(self, index: QModelIndex) -> None:
@@ -366,21 +393,40 @@ class Options:
 
             for i in range(9):
                 if self.parent_.maindb.set(values[i], SETTINGS_KEYS[7 + i], name, table):
-                    index.model().setData(index, self.parent_.tree_view.handleSetting(self.parent_.maindb.items[(name, table)], 7 + i, values[i]), Qt.ItemDataRole.UserRole + 27 + i)
+                    index.model().setData(
+                        index,
+                        self.parent_.tree_view.handleSetting(
+                            self.parent_.maindb.items[(name, table)], 7 + i, values[i]
+                        ),
+                        Qt.ItemDataRole.UserRole + 27 + i,
+                    )
 
                     if index.data(Qt.ItemDataRole.UserRole + 2) == "notebook":
                         for name_, table_ in self.parent_.maindb.items:
-                            if table_ == name and "notebook" in self.parent_.maindb.items[(name_, table_)].data(Qt.ItemDataRole.UserRole + 27 + i)[0]:
-                                self.parent_.maindb.items[(name_, table_)].setData(self.parent_.tree_view.handleSetting(self.parent_.maindb.items[(name_, table_)], 7 + i, "notebook"), Qt.ItemDataRole.UserRole + 27 + i)
+                            if (
+                                table_ == name
+                                and "notebook"
+                                in self.parent_.maindb.items[(name_, table_)].data(Qt.ItemDataRole.UserRole + 27 + i)[0]
+                            ):
+                                self.parent_.maindb.items[(name_, table_)].setData(
+                                    self.parent_.tree_view.handleSetting(
+                                        self.parent_.maindb.items[(name_, table_)], 7 + i, "notebook"
+                                    ),
+                                    Qt.ItemDataRole.UserRole + 27 + i,
+                                )
 
                 else:
                     successful = False
 
             if successful:
-                QMessageBox.information(self.parent_, self.parent_.tr("Successful"), self.tr("New appearance applied {to_item}.", index))
+                QMessageBox.information(
+                    self.parent_, self.parent_.tr("Successful"), self.tr("New appearance applied {to_item}.", index)
+                )
 
             else:
-                QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.tr("Failed to apply new appearance {to_item}.", index))
+                QMessageBox.critical(
+                    self.parent_, self.parent_.tr("Error"), self.tr("Failed to apply new appearance {to_item}.", index)
+                )
 
     @Slot(QModelIndex)
     def changeSettings(self, index: QModelIndex) -> None:
@@ -398,17 +444,41 @@ class Options:
                     options.insert(2, "notebook")
 
                 if self.parent_.maindb.set(options[values[i]], SETTINGS_KEYS[i], name, table):
-                    index.model().setData(index, self.parent_.tree_view.handleSetting(self.parent_.maindb.items[(name, table)], i, options[values[i]]), Qt.ItemDataRole.UserRole + 20 + i)
+                    index.model().setData(
+                        index,
+                        self.parent_.tree_view.handleSetting(
+                            self.parent_.maindb.items[(name, table)], i, options[values[i]]
+                        ),
+                        Qt.ItemDataRole.UserRole + 20 + i,
+                    )
 
-                    for page in [page for page in self.parent_.parent_.area.pages if page.document is not None and page.document.index == index]:
+                    for page in [
+                        page
+                        for page in self.parent_.parent_.area.pages
+                        if page.document is not None and page.document.index == index
+                    ]:
                         page.document.refreshSettings()
 
                     if index.data(Qt.ItemDataRole.UserRole + 2) == "notebook":
                         for name_, table_ in self.parent_.maindb.items:
-                            if table_ == name and "notebook" in self.parent_.maindb.items[(name_, table_)].data(Qt.ItemDataRole.UserRole + 20 + i)[0]:
-                                self.parent_.maindb.items[(name_, table_)].setData(self.parent_.tree_view.handleSetting(self.parent_.maindb.items[(name_, table_)], i, "notebook"), Qt.ItemDataRole.UserRole + 20 + i)
+                            if (
+                                table_ == name
+                                and "notebook"
+                                in self.parent_.maindb.items[(name_, table_)].data(Qt.ItemDataRole.UserRole + 20 + i)[0]
+                            ):
+                                self.parent_.maindb.items[(name_, table_)].setData(
+                                    self.parent_.tree_view.handleSetting(
+                                        self.parent_.maindb.items[(name_, table_)], i, "notebook"
+                                    ),
+                                    Qt.ItemDataRole.UserRole + 20 + i,
+                                )
 
-                                for page in [page for page in self.parent_.parent_.area.pages if page.document is not None and page.document.index == self.parent_.maindb.items[(name_, table_)].index()]:
+                                for page in [
+                                    page
+                                    for page in self.parent_.parent_.area.pages
+                                    if page.document is not None
+                                    and page.document.index == self.parent_.maindb.items[(name_, table_)].index()
+                                ]:
                                     page.document.refreshSettings()
 
                     if i == 6:
@@ -422,10 +492,14 @@ class Options:
                     successful = False
 
             if successful:
-                QMessageBox.information(self.parent_, self.parent_.tr("Successful"), self.tr("New settings applied {to_item}.", index))
+                QMessageBox.information(
+                    self.parent_, self.parent_.tr("Successful"), self.tr("New settings applied {to_item}.", index)
+                )
 
             else:
-                QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.tr("Failed to apply new settings {to_item}.", index))
+                QMessageBox.critical(
+                    self.parent_, self.parent_.tr("Error"), self.tr("Failed to apply new settings {to_item}.", index)
+                )
 
     @Slot(QModelIndex)
     def clearContent(self, index: QModelIndex) -> None:
@@ -434,23 +508,43 @@ class Options:
 
         if self.parent_.maindb.clearContent(document, notebook):
             index.model().setData(index, "", Qt.ItemDataRole.UserRole + 104)
-            index.model().setData(index, self.parent_.maindb.getBackup(document, notebook), Qt.ItemDataRole.UserRole + 105)
+            index.model().setData(
+                index, self.parent_.maindb.getBackup(document, notebook), Qt.ItemDataRole.UserRole + 105
+            )
 
-            for page in [page for page in self.parent_.parent_.area.pages if page.document is not None and page.document.index == index]:
+            for page in [
+                page
+                for page in self.parent_.parent_.area.pages
+                if page.document is not None and page.document.index == index
+            ]:
                 page.document.refreshContent()
 
-            QMessageBox.information(self.parent_, self.parent_.tr("Successful"), self.tr("The content {of_item} cleared.", index))
+            QMessageBox.information(
+                self.parent_, self.parent_.tr("Successful"), self.tr("The content {of_item} cleared.", index)
+            )
 
         else:
-            QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.tr("Failed to clear the content {of_item}.", index))
+            QMessageBox.critical(
+                self.parent_, self.parent_.tr("Error"), self.tr("Failed to clear the content {of_item}.", index)
+            )
 
     @Slot(QModelIndex)
     def close(self, index: QModelIndex) -> None:
-        for page in [page for page in self.parent_.parent_.area.pages if page.document is not None and page.document.index == index]:
+        for page in [
+            page
+            for page in self.parent_.parent_.area.pages
+            if page.document is not None and page.document.index == index
+        ]:
             if page.document.mode == "normal" and page.document.last_content != page.document.getText():
                 self.question = QMessageBox.question(
-                    self.parent_, self.parent_.tr("Question"), self.tr("{the_item} not saved.\nWhat would you like to do?", index),
-                    QMessageBox.StandardButton.Save | QMessageBox.StandardButton.Discard | QMessageBox.StandardButton.Cancel, QMessageBox.StandardButton.Save)
+                    self.parent_,
+                    self.parent_.tr("Question"),
+                    self.tr("{the_item} not saved.\nWhat would you like to do?", index),
+                    QMessageBox.StandardButton.Save
+                    | QMessageBox.StandardButton.Discard
+                    | QMessageBox.StandardButton.Cancel,
+                    QMessageBox.StandardButton.Save,
+                )
 
                 if self.question == QMessageBox.StandardButton.Save:
                     if not page.document.saver.saveDocument():
@@ -497,17 +591,28 @@ class Options:
                     return
 
                 if self.parent_.maindb.createDocument(default, "enabled" if diary else default, document, notebook):
-                    self.parent_.tree_view.appendDocument(self.parent_.maindb.getDocument(document, notebook), self.parent_.maindb.items[(notebook, "__main__")], notebook)
+                    self.parent_.tree_view.appendDocument(
+                        self.parent_.maindb.getDocument(document, notebook),
+                        self.parent_.maindb.items[(notebook, "__main__")],
+                        notebook,
+                    )
 
                     if self.parent_.maindb.items[(document, notebook)].data(Qt.ItemDataRole.UserRole + 26)[1] == "yes":
                         self.pin(self.parent_.maindb.items[(document, notebook)].index(), False, False)
 
                 else:
-                    QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.parent_.tr("Failed to create document."))
+                    QMessageBox.critical(
+                        self.parent_, self.parent_.tr("Error"), self.parent_.tr("Failed to create document.")
+                    )
 
             else:
-                QMessageBox.critical(self.parent_, self.parent_.tr("Error"),
-                                     self.parent_.tr("{the_item} is already exists.").format(the_item = self.parent_.tr("the '{name}' document").format(name = document)).capitalize())
+                QMessageBox.critical(
+                    self.parent_,
+                    self.parent_.tr("Error"),
+                    self.parent_.tr("{the_item} is already exists.")
+                    .format(the_item=self.parent_.tr("the '{name}' document").format(name=document))
+                    .capitalize(),
+                )
 
     @Slot(str or None, str or None)
     def createNotebook(self, name: str | None = None, description: str | None = None) -> bool | None:
@@ -535,21 +640,30 @@ class Options:
                     QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.parent_.tr("A name is required."))
                     return
 
-                successful = self.parent_.maindb.createNotebook(default, "enabled" if diary else default, description, name)
+                successful = self.parent_.maindb.createNotebook(
+                    default, "enabled" if diary else default, description, name
+                )
 
                 if successful:
                     self.parent_.tree_view.appendNotebook(self.parent_.maindb.getNotebook(name))
 
                 else:
-                    QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.parent_.tr("Failed to create notebook."))
+                    QMessageBox.critical(
+                        self.parent_, self.parent_.tr("Error"), self.parent_.tr("Failed to create notebook.")
+                    )
 
                 self.parent_.setPage()
 
                 return successful
 
             else:
-                QMessageBox.critical(self.parent_, self.parent_.tr("Error"),
-                                     self.parent_.tr("{the_item} is already exists.").format(the_item = self.parent_.tr("the '{name}' notebook").format(name = name)).capitalize())
+                QMessageBox.critical(
+                    self.parent_,
+                    self.parent_.tr("Error"),
+                    self.parent_.tr("{the_item} is already exists.")
+                    .format(the_item=self.parent_.tr("the '{name}' notebook").format(name=name))
+                    .capitalize(),
+                )
                 return False
 
     @Slot(QModelIndex)
@@ -562,7 +676,12 @@ class Options:
             if index.data(Qt.ItemDataRole.UserRole + 2) == "notebook":
                 for name_, table_ in self.parent_.maindb.items.copy():
                     if table_ == name:
-                        for page in [page for page in self.parent_.parent_.area.pages if page.document is not None and page.document.index == self.parent_.maindb.items[(name_, table_)].index()]:
+                        for page in [
+                            page
+                            for page in self.parent_.parent_.area.pages
+                            if page.document is not None
+                            and page.document.index == self.parent_.maindb.items[(name_, table_)].index()
+                        ]:
                             page.removeDocument()
 
                         self.unpin(self.parent_.maindb.items[(name_, table_)].index(), False, False)
@@ -572,7 +691,11 @@ class Options:
                 self.parent_.tree_view.model_.removeRow(index.row())
 
             elif index.data(Qt.ItemDataRole.UserRole + 2) == "document":
-                for page in [page for page in self.parent_.parent_.area.pages if page.document is not None and page.document.index == index]:
+                for page in [
+                    page
+                    for page in self.parent_.parent_.area.pages
+                    if page.document is not None and page.document.index == index
+                ]:
                     page.removeDocument()
 
                 self.parent_.maindb.items[(table, "__main__")].removeRow(index.row())
@@ -597,7 +720,9 @@ class Options:
                 index.model().setData(index, description, Qt.ItemDataRole.UserRole + 104)
 
             else:
-                QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.tr("Failed to edit description {of_item}.", index))
+                QMessageBox.critical(
+                    self.parent_, self.parent_.tr("Error"), self.tr("Failed to edit description {of_item}.", index)
+                )
 
     @Slot(QModelIndex)
     def export(self, index: QModelIndex, export_: str | None = None) -> None:
@@ -614,10 +739,16 @@ class Options:
             if index.data(Qt.ItemDataRole.UserRole + 2) == "notebook":
                 for name_, table_ in self.parent_.maindb.items:
                     if table_ == name:
-                        self.export(self.parent_.tree_view.mapFromSource(self.parent_.maindb.items[(name_, table_)].index()), export)
+                        self.export(
+                            self.parent_.tree_view.mapFromSource(self.parent_.maindb.items[(name_, table_)].index()),
+                            export,
+                        )
 
             elif index.data(Qt.ItemDataRole.UserRole + 2) == "document":
-                os.makedirs(os.path.join(USER_DIRS[index.data(Qt.ItemDataRole.UserRole + 25)[1]], "Nottodbox", table), exist_ok=True)
+                os.makedirs(
+                    os.path.join(USER_DIRS[index.data(Qt.ItemDataRole.UserRole + 25)[1]], "Nottodbox", table),
+                    exist_ok=True,
+                )
 
                 input_ = QTextEdit(index.data(Qt.ItemDataRole.UserRole + 104))
 
@@ -633,14 +764,25 @@ class Options:
                 input_.deleteLater()
 
                 if export == "pdf":
-                    writer = QPdfWriter(os.path.join(USER_DIRS[index.data(Qt.ItemDataRole.UserRole + 25)[1]], "Nottodbox", table, f"{name}.pdf"))
+                    writer = QPdfWriter(
+                        os.path.join(
+                            USER_DIRS[index.data(Qt.ItemDataRole.UserRole + 25)[1]], "Nottodbox", table, f"{name}.pdf"
+                        )
+                    )
                     writer.setTitle(name)
 
                     document = QTextDocument(content)
                     document.print_(writer)
 
-                elif export == "plain-text" or (export == "format" and index.data(Qt.ItemDataRole.UserRole + 23)[1] == "plain-text"):
-                    with open(os.path.join(USER_DIRS[index.data(Qt.ItemDataRole.UserRole + 25)[1]], "Nottodbox", table, f"{name}.txt"), "w+") as f:
+                elif export == "plain-text" or (
+                    export == "format" and index.data(Qt.ItemDataRole.UserRole + 23)[1] == "plain-text"
+                ):
+                    with open(
+                        os.path.join(
+                            USER_DIRS[index.data(Qt.ItemDataRole.UserRole + 25)[1]], "Nottodbox", table, f"{name}.txt"
+                        ),
+                        "w+",
+                    ) as f:
                         f.write(content)
 
                 else:
@@ -648,11 +790,21 @@ class Options:
 
                     document = QTextDocument(content)
 
-                    writer = QTextDocumentWriter(os.path.join(USER_DIRS[index.data(Qt.ItemDataRole.UserRole + 25)[1]], "Nottodbox", table, f"{name}.{export}"), export.encode("utf-8") if export != "odt" else b"odf")
+                    writer = QTextDocumentWriter(
+                        os.path.join(
+                            USER_DIRS[index.data(Qt.ItemDataRole.UserRole + 25)[1]],
+                            "Nottodbox",
+                            table,
+                            f"{name}.{export}",
+                        ),
+                        export.encode("utf-8") if export != "odt" else b"odf",
+                    )
                     writer.write(document)
 
             if export_ is None:
-                QMessageBox.information(self.parent_, self.parent_.tr("Successful"), self.tr("{the_item} exported.", index))
+                QMessageBox.information(
+                    self.parent_, self.parent_.tr("Successful"), self.tr("{the_item} exported.", index)
+                )
 
     def get(self, index: QModelIndex) -> tuple[str, str]:
         if index.data(Qt.ItemDataRole.UserRole + 2) == "notebook":
@@ -670,7 +822,9 @@ class Options:
             self.parent_.tree_view.setType(index)
 
         else:
-            QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.tr("Failed to mark as completed {the_item}.", index))
+            QMessageBox.critical(
+                self.parent_, self.parent_.tr("Error"), self.tr("Failed to mark as completed {the_item}.", index)
+            )
 
     @Slot(QModelIndex)
     def markAsUncompleted(self, index: QModelIndex) -> None:
@@ -681,15 +835,25 @@ class Options:
             self.parent_.tree_view.setType(index)
 
         else:
-            QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.tr("Failed to mark as uncompleted {the_item}.", index))
+            QMessageBox.critical(
+                self.parent_, self.parent_.tr("Error"), self.tr("Failed to mark as uncompleted {the_item}.", index)
+            )
 
     @Slot(QModelIndex, str)
     def open(self, index: QModelIndex, mode: str, make: bool = False) -> None:
-        if index not in [page.document.index for page in self.parent_.parent_.area.pages if page.document is not None and page.document.index == index]:
+        if index not in [
+            page.document.index
+            for page in self.parent_.parent_.area.pages
+            if page.document is not None and page.document.index == index
+        ]:
             if make:
                 index.model().setData(index, True, Qt.ItemDataRole.UserRole + 1)
 
-            self.parent_.parent_.area.target.addDocument(NormalView(self.parent_.parent_.area, self.parent_.maindb, index) if mode == "normal" else BackupView(self.parent_.parent_.area, self.parent_.maindb, index))
+            self.parent_.parent_.area.target.addDocument(
+                NormalView(self.parent_.parent_.area, self.parent_.maindb, index)
+                if mode == "normal"
+                else BackupView(self.parent_.parent_.area, self.parent_.maindb, index)
+            )
 
     @Slot(QModelIndex)
     def pin(self, index: QModelIndex, write: bool = True, update: bool = True) -> None:
@@ -697,7 +861,9 @@ class Options:
             name, table = self.get(index)
 
             if write and not self.parent_.maindb.set("yes", "pinned", name, table):
-                QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.tr("Failed to pin {the_item} to sidebar.", index))
+                QMessageBox.critical(
+                    self.parent_, self.parent_.tr("Error"), self.tr("Failed to pin {the_item} to sidebar.", index)
+                )
                 return
 
             if update:
@@ -707,8 +873,14 @@ class Options:
 
             if index.data(Qt.ItemDataRole.UserRole + 2) == "notebook":
                 for name_, table_ in self.parent_.maindb.items.copy():
-                    if table_ == name and "notebook" in self.parent_.maindb.items[(name_, table_)].data(Qt.ItemDataRole.UserRole + 26)[0]:
-                        self.parent_.parent_.parent_.sidebar.list_view.addItem(self.parent_.maindb.items[(name_, table_)].index())
+                    if (
+                        table_ == name
+                        and "notebook"
+                        in self.parent_.maindb.items[(name_, table_)].data(Qt.ItemDataRole.UserRole + 26)[0]
+                    ):
+                        self.parent_.parent_.parent_.sidebar.list_view.addItem(
+                            self.parent_.maindb.items[(name_, table_)].index()
+                        )
 
     @Slot(QModelIndex)
     def removeLock(self, index: QModelIndex) -> None:
@@ -718,13 +890,21 @@ class Options:
             index.model().setData(index, ["self", "disabled"], Qt.ItemDataRole.UserRole + 21)
             self.parent_.tree_view.setType(index)
 
-            for page in [page for page in self.parent_.parent_.area.pages if page.document is not None and page.document.index == index]:
+            for page in [
+                page
+                for page in self.parent_.parent_.area.pages
+                if page.document is not None and page.document.index == index
+            ]:
                 page.document.refreshSettings()
 
-            QMessageBox.information(self.parent_, self.parent_.tr("Successful"), self.tr("Lock removed {from_item}.", index))
+            QMessageBox.information(
+                self.parent_, self.parent_.tr("Successful"), self.tr("Lock removed {from_item}.", index)
+            )
 
         else:
-            QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.tr("Failed to remove lock {from_item}.", index))
+            QMessageBox.critical(
+                self.parent_, self.parent_.tr("Error"), self.tr("Failed to remove lock {from_item}.", index)
+            )
 
     @Slot(QModelIndex)
     def rename(self, index: QModelIndex) -> None:
@@ -746,7 +926,9 @@ class Options:
                 return
 
             if not self.parent_.maindb.checkIfItExists(new_name, table):
-                if self.parent_.maindb.rename("enabled" if diary else self.parent_.maindb.get("locked", name, table), new_name, name, table):
+                if self.parent_.maindb.rename(
+                    "enabled" if diary else self.parent_.maindb.get("locked", name, table), new_name, name, table
+                ):
                     if diary == "enabled":
                         index.model().setData(index, ("self", "enabled"), Qt.ItemDataRole.UserRole + 21)
 
@@ -755,18 +937,31 @@ class Options:
                     if index.data(Qt.ItemDataRole.UserRole + 2) == "notebook":
                         for name_, table_ in self.parent_.maindb.items.copy():
                             if table_ == name:
-                                self.parent_.maindb.items[(name_, table_)].setData(new_name, Qt.ItemDataRole.UserRole + 100)
+                                self.parent_.maindb.items[(name_, table_)].setData(
+                                    new_name, Qt.ItemDataRole.UserRole + 100
+                                )
 
-                                for page in [page for page in self.parent_.parent_.area.pages if page.document is not None and page.document.index == self.parent_.maindb.items[(name_, table_)].index()]:
+                                for page in [
+                                    page
+                                    for page in self.parent_.parent_.area.pages
+                                    if page.document is not None
+                                    and page.document.index == self.parent_.maindb.items[(name_, table_)].index()
+                                ]:
                                     page.document.refreshNames()
 
                                     if diary == "enabled":
                                         page.document.refreshSettings()
 
-                                self.parent_.maindb.items[(name_, new_name)] = self.parent_.maindb.items.pop((name_, table_))
+                                self.parent_.maindb.items[(name_, new_name)] = self.parent_.maindb.items.pop(
+                                    (name_, table_)
+                                )
 
                     elif index.data(Qt.ItemDataRole.UserRole + 2) == "document":
-                        for page in [page for page in self.parent_.parent_.area.pages if page.document is not None and page.document.index == index]:
+                        for page in [
+                            page
+                            for page in self.parent_.parent_.area.pages
+                            if page.document is not None and page.document.index == index
+                        ]:
                             page.document.refreshNames()
 
                         if diary == "enabled":
@@ -775,10 +970,14 @@ class Options:
                     self.parent_.maindb.items[(new_name, table)] = self.parent_.maindb.items.pop((name, table))
 
                 else:
-                    QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.tr("Failed to rename {the_item}.", index))
+                    QMessageBox.critical(
+                        self.parent_, self.parent_.tr("Error"), self.tr("Failed to rename {the_item}.", index)
+                    )
 
             else:
-                QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.tr("{the_item} is already exists.", index))
+                QMessageBox.critical(
+                    self.parent_, self.parent_.tr("Error"), self.tr("{the_item} is already exists.", index)
+                )
 
     @Slot(QModelIndex)
     def reset(self, index: QModelIndex) -> None:
@@ -787,7 +986,12 @@ class Options:
         if self.parent_.maindb.reset(name):
             for name_, table_ in self.parent_.maindb.items.copy():
                 if table_ == name:
-                    for page in [page for page in self.parent_.parent_.area.pages if page.document is not None and page.document.index == self.parent_.maindb.items[(name_, table_)].index()]:
+                    for page in [
+                        page
+                        for page in self.parent_.parent_.area.pages
+                        if page.document is not None
+                        and page.document.index == self.parent_.maindb.items[(name_, table_)].index()
+                    ]:
                         page.removeDocument()
 
                     del self.parent_.maindb.items[(name_, table_)]
@@ -802,45 +1006,57 @@ class Options:
         document, notebook = self.get(index)
 
         if self.parent_.maindb.restoreContent(document, notebook):
-            index.model().setData(index, self.parent_.maindb.getContent(document, notebook), Qt.ItemDataRole.UserRole + 104)
-            index.model().setData(index, self.parent_.maindb.getBackup(document, notebook), Qt.ItemDataRole.UserRole + 105)
+            index.model().setData(
+                index, self.parent_.maindb.getContent(document, notebook), Qt.ItemDataRole.UserRole + 104
+            )
+            index.model().setData(
+                index, self.parent_.maindb.getBackup(document, notebook), Qt.ItemDataRole.UserRole + 105
+            )
 
-            for page in [page for page in self.parent_.parent_.area.pages if page.document is not None and page.document.index == index]:
+            for page in [
+                page
+                for page in self.parent_.parent_.area.pages
+                if page.document is not None and page.document.index == index
+            ]:
                 page.document.refreshContent()
 
-            QMessageBox.information(self.parent_, self.parent_.tr("Successful"), self.tr("The content {of_item} restored.", index))
+            QMessageBox.information(
+                self.parent_, self.parent_.tr("Successful"), self.tr("The content {of_item} restored.", index)
+            )
 
         else:
-            QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.tr("Failed to restore content {of_item}.", index))
+            QMessageBox.critical(
+                self.parent_, self.parent_.tr("Error"), self.tr("Failed to restore content {of_item}.", index)
+            )
 
     def tr(self, text_: str, index: QModelIndex) -> str:
         name, table = self.get(index)
 
         if table == "__main__":
             if "{from_item}" in text_:
-                text = text_.format(from_item = self.parent_.tr("from '{name}' notebook").format(name = name))
+                text = text_.format(from_item=self.parent_.tr("from '{name}' notebook").format(name=name))
 
             elif "{of_item}" in text_:
-                text = text_.format(of_item = self.parent_.tr("of '{name}' notebook").format(name = name))
+                text = text_.format(of_item=self.parent_.tr("of '{name}' notebook").format(name=name))
 
             elif "{to_item}" in text_:
-                text = text_.format(to_item = self.parent_.tr("to '{name}' notebook").format(name = name))
+                text = text_.format(to_item=self.parent_.tr("to '{name}' notebook").format(name=name))
 
             elif "{the_item}" in text_:
-                text = text_.format(the_item = self.parent_.tr("the '{name}' notebook").format(name = name))
+                text = text_.format(the_item=self.parent_.tr("the '{name}' notebook").format(name=name))
 
         else:
             if "{from_item}" in text_:
-                text = text_.format(from_item = self.parent_.tr("from '{name}' document").format(name = name))
+                text = text_.format(from_item=self.parent_.tr("from '{name}' document").format(name=name))
 
             elif "{of_item}" in text_:
-                text = text_.format(of_item = self.parent_.tr("of '{name}' document").format(name = name))
+                text = text_.format(of_item=self.parent_.tr("of '{name}' document").format(name=name))
 
             elif "{to_item}" in text_:
-                text = text_.format(to_item = self.parent_.tr("to '{name}' document").format(name = name))
+                text = text_.format(to_item=self.parent_.tr("to '{name}' document").format(name=name))
 
             elif "{the_item}" in text_:
-                text = text_.format(the_item = self.parent_.tr("the '{name}' document").format(name = name))
+                text = text_.format(the_item=self.parent_.tr("the '{name}' document").format(name=name))
 
         return text.capitalize()
 
@@ -861,7 +1077,9 @@ class Options:
             name, table = self.get(index)
 
             if write and not self.parent_.maindb.set("no", "pinned", name, table):
-                QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.tr("Failed to unpin {the_item} from sidebar.", index))
+                QMessageBox.critical(
+                    self.parent_, self.parent_.tr("Error"), self.tr("Failed to unpin {the_item} from sidebar.", index)
+                )
                 return
 
             if update:
@@ -871,8 +1089,14 @@ class Options:
 
             if index.data(Qt.ItemDataRole.UserRole + 2) == "notebook":
                 for name_, table_ in self.parent_.maindb.items.copy():
-                    if table_ == name and "notebook" in self.parent_.maindb.items[(name_, table_)].data(Qt.ItemDataRole.UserRole + 26)[0]:
-                        self.parent_.parent_.parent_.sidebar.list_view.removeItem(self.parent_.maindb.items[(name_, table_)].index())
+                    if (
+                        table_ == name
+                        and "notebook"
+                        in self.parent_.maindb.items[(name_, table_)].data(Qt.ItemDataRole.UserRole + 26)[0]
+                    ):
+                        self.parent_.parent_.parent_.sidebar.list_view.removeItem(
+                            self.parent_.maindb.items[(name_, table_)].index()
+                        )
 
 
 class TreeView(QTreeView):
@@ -884,8 +1108,8 @@ class TreeView(QTreeView):
         self.buttons = [
             PushButton(parent.buttons, lambda: self.filterType(0), self.tr("Notes"), True, True),
             PushButton(parent.buttons, lambda: self.filterType(1), self.tr("To-dos"), True, True),
-            PushButton(parent.buttons, lambda: self.filterType(2), self.tr("Diaries"), True, True)
-            ]
+            PushButton(parent.buttons, lambda: self.filterType(2), self.tr("Diaries"), True, True),
+        ]
 
         self.types = ["note", "todo", "diary"]
 
@@ -1006,11 +1230,18 @@ class TreeView(QTreeView):
             return self.parent_.settings.value(f"globals/{SETTINGS_KEYS[number]}")
 
     def handleSettingViaNotebook(self, item: QStandardItem, number: int) -> str | None:
-        if self.parent_.maindb.items[(item.data(Qt.ItemDataRole.UserRole + 100), "__main__")].data(Qt.ItemDataRole.UserRole + 20 + number)[0][0] == "default":
+        if (
+            self.parent_.maindb.items[(item.data(Qt.ItemDataRole.UserRole + 100), "__main__")].data(
+                Qt.ItemDataRole.UserRole + 20 + number
+            )[0][0]
+            == "default"
+        ):
             return SETTINGS_DEFAULTS[number]
 
         else:
-            return self.parent_.maindb.items[(item.data(Qt.ItemDataRole.UserRole + 100), "__main__")].data(Qt.ItemDataRole.UserRole + 20 + number)[1]
+            return self.parent_.maindb.items[(item.data(Qt.ItemDataRole.UserRole + 100), "__main__")].data(
+                Qt.ItemDataRole.UserRole + 20 + number
+            )[1]
 
     def handleSetting(self, item: QStandardItem, number: int, value: str | None) -> tuple[tuple, str | None]:
         if value == "default":
@@ -1020,8 +1251,16 @@ class TreeView(QTreeView):
             return ("global",), self.handleSettingViaGlobal(number)
 
         elif value == "notebook":
-            if self.parent_.maindb.items[(item.data(Qt.ItemDataRole.UserRole + 100), "__main__")].data(Qt.ItemDataRole.UserRole + 20 + number)[0][0] == "global":
-                return ("notebook", "global",), self.handleSettingViaGlobal(number)
+            if (
+                self.parent_.maindb.items[(item.data(Qt.ItemDataRole.UserRole + 100), "__main__")].data(
+                    Qt.ItemDataRole.UserRole + 20 + number
+                )[0][0]
+                == "global"
+            ):
+                return (
+                    "notebook",
+                    "global",
+                ), self.handleSettingViaGlobal(number)
 
             else:
                 return ("notebook",), self.handleSettingViaNotebook(item, number)
@@ -1062,26 +1301,38 @@ class TreeView(QTreeView):
 
         menu.addSeparator()
         if index.data(Qt.ItemDataRole.UserRole + 2) == "notebook":
-            menu.addAction(Action(self, lambda: self.parent_.options.editDescription(index), self.tr("Edit Description")))
+            menu.addAction(
+                Action(self, lambda: self.parent_.options.editDescription(index), self.tr("Edit Description"))
+            )
 
         elif index.data(Qt.ItemDataRole.UserRole + 2) == "document":
             menu.addAction(Action(self, lambda: self.parent_.options.open(index, "normal", True), self.tr("Open")))
-            menu.addAction(Action(self, lambda: self.parent_.options.open(index, "backup", True), self.tr("Show Backup")))
+            menu.addAction(
+                Action(self, lambda: self.parent_.options.open(index, "backup", True), self.tr("Show Backup"))
+            )
             menu.addAction(Action(self, lambda: self.parent_.options.restoreContent(index), self.tr("Restore Content")))
             menu.addAction(Action(self, lambda: self.parent_.options.clearContent(index), self.tr("Clear Content")))
 
         menu.addSeparator()
         if index.data(Qt.ItemDataRole.UserRole + 20)[1] == "completed":
-            menu.addAction(Action(self, lambda: self.parent_.options.markAsUncompleted(index), self.tr("Mark as Uncompleted")))
+            menu.addAction(
+                Action(self, lambda: self.parent_.options.markAsUncompleted(index), self.tr("Mark as Uncompleted"))
+            )
             menu.addAction(Action(self, lambda: self.parent_.options.unmark(index), self.tr("Unmark")))
 
         elif index.data(Qt.ItemDataRole.UserRole + 20)[1] == "uncompleted":
-            menu.addAction(Action(self, lambda: self.parent_.options.markAsCompleted(index), self.tr("Mark as Completed")))
+            menu.addAction(
+                Action(self, lambda: self.parent_.options.markAsCompleted(index), self.tr("Mark as Completed"))
+            )
             menu.addAction(Action(self, lambda: self.parent_.options.unmark(index), self.tr("Unmark")))
 
         else:
-            menu.addAction(Action(self, lambda: self.parent_.options.markAsCompleted(index), self.tr("Mark as Completed")))
-            menu.addAction(Action(self, lambda: self.parent_.options.markAsUncompleted(index), self.tr("Mark as Uncompleted")))
+            menu.addAction(
+                Action(self, lambda: self.parent_.options.markAsCompleted(index), self.tr("Mark as Completed"))
+            )
+            menu.addAction(
+                Action(self, lambda: self.parent_.options.markAsUncompleted(index), self.tr("Mark as Uncompleted"))
+            )
 
         menu.addSeparator()
         if index.data(Qt.ItemDataRole.UserRole + 21)[1] == "enabled":
@@ -1108,11 +1359,15 @@ class TreeView(QTreeView):
         menu.addAction(Action(self, lambda: self.parent_.options.changeAppearance(index), self.tr("Change Appearance")))
         menu.addAction(Action(self, lambda: self.parent_.options.changeSettings(index), self.tr("Change Settings")))
 
-        pages = [page for page in self.parent_.parent_.area.pages if page.document is not None and page.document.index == index]
+        pages = [
+            page
+            for page in self.parent_.parent_.area.pages
+            if page.document is not None and page.document.index == index
+        ]
         if index.data(Qt.ItemDataRole.UserRole + 2) == "document" and pages != []:
             menu.addSeparator()
             for page in pages:
-                menu.addAction(Action(self, lambda page = page: page.removeDocument(), self.tr("Close")))
+                menu.addAction(Action(self, lambda page=page: page.removeDocument(), self.tr("Close")))
 
         menu.exec(global_pos)
 
@@ -1128,10 +1383,16 @@ class TreeView(QTreeView):
             context_data.setData(value, role)
 
     def setType(self, context_data: QModelIndex | QStandardItem) -> None:
-        if context_data.data(Qt.ItemDataRole.UserRole + 20)[1] is None and context_data.data(Qt.ItemDataRole.UserRole + 21)[1] == "disabled":
+        if (
+            context_data.data(Qt.ItemDataRole.UserRole + 20)[1] is None
+            and context_data.data(Qt.ItemDataRole.UserRole + 21)[1] == "disabled"
+        ):
             self.setData(context_data, "note", Qt.ItemDataRole.UserRole + 3)
 
-        elif context_data.data(Qt.ItemDataRole.UserRole + 20)[1] in ["completed", "uncompleted"] and context_data.data(Qt.ItemDataRole.UserRole + 21)[1] == "enabled":
+        elif (
+            context_data.data(Qt.ItemDataRole.UserRole + 20)[1] in ["completed", "uncompleted"]
+            and context_data.data(Qt.ItemDataRole.UserRole + 21)[1] == "enabled"
+        ):
             self.setData(context_data, "todo diary", Qt.ItemDataRole.UserRole + 3)
 
         elif context_data.data(Qt.ItemDataRole.UserRole + 20)[1] in ["completed", "uncompleted"]:
@@ -1180,7 +1441,9 @@ class ButtonDelegate(QStyledItemDelegate):
         content_rect = QRect(option.rect)
         content_rect.setLeft(content_rect.left() + name_padding)
         content_rect.setTop(name_rect.bottom() + name_padding / 2)
-        content_rect.setRight(option.rect.width() + (name_padding if index.data(Qt.ItemDataRole.UserRole + 2) == "document" else 0) - 10)
+        content_rect.setRight(
+            option.rect.width() + (name_padding if index.data(Qt.ItemDataRole.UserRole + 2) == "document" else 0) - 10
+        )
         content_rect.setHeight(name_fontmetrics.lineSpacing())
 
         creation_date = index.data(Qt.ItemDataRole.UserRole + 102)
@@ -1188,15 +1451,23 @@ class ButtonDelegate(QStyledItemDelegate):
         creation_rect = QRect(option.rect)
         creation_rect.setLeft(creation_rect.left() + name_padding)
         creation_rect.setTop(content_rect.bottom() + name_padding / 2)
-        creation_rect.setRight(QFontMetrics(QFont(option.font)).horizontalAdvance(creation_date) + creation_rect.left() + name_padding)
+        creation_rect.setRight(
+            QFontMetrics(QFont(option.font)).horizontalAdvance(creation_date) + creation_rect.left() + name_padding
+        )
         creation_rect.setHeight(name_fontmetrics.lineSpacing())
 
         modification_date = index.data(Qt.ItemDataRole.UserRole + 103)
 
         modification_rect = QRect(option.rect)
-        modification_rect.setLeft(option.rect.width() - QFontMetrics(QFont(option.font)).horizontalAdvance(modification_date) + (name_padding if index.data(Qt.ItemDataRole.UserRole + 2) == "document" else 0))
+        modification_rect.setLeft(
+            option.rect.width()
+            - QFontMetrics(QFont(option.font)).horizontalAdvance(modification_date)
+            + (name_padding if index.data(Qt.ItemDataRole.UserRole + 2) == "document" else 0)
+        )
         modification_rect.setTop(content_rect.bottom() + name_padding / 2)
-        modification_rect.setRight(option.rect.width() + (name_padding if index.data(Qt.ItemDataRole.UserRole + 2) == "document" else 0))
+        modification_rect.setRight(
+            option.rect.width() + (name_padding if index.data(Qt.ItemDataRole.UserRole + 2) == "document" else 0)
+        )
         modification_rect.setHeight(name_fontmetrics.lineSpacing())
 
         painter.save()
@@ -1209,14 +1480,14 @@ class ButtonDelegate(QStyledItemDelegate):
         situations = [
             bool(index.data(Qt.ItemDataRole.UserRole + 1) and index.data(Qt.ItemDataRole.UserRole + 2) == "document"),
             bool(option.state & QStyle.StateFlag.State_MouseOver),
-            True
-            ]
+            True,
+        ]
 
         defaults = [
             [option.palette.base().color(), option.palette.text().color(), option.palette.text().color()],
             [option.palette.button().color(), option.palette.text().color(), option.palette.buttonText().color()],
-            [option.palette.link().color(), option.palette.text().color(), option.palette.linkVisited().color()]
-            ]
+            [option.palette.link().color(), option.palette.text().color(), option.palette.linkVisited().color()],
+        ]
 
         colors = []
 
@@ -1251,7 +1522,10 @@ class ButtonDelegate(QStyledItemDelegate):
 
         painter.setFont(option.font)
 
-        painter.drawText(content_rect, QFontMetrics(QFont(option.font)).elidedText(content, Qt.TextElideMode.ElideRight, content_rect.width()))
+        painter.drawText(
+            content_rect,
+            QFontMetrics(QFont(option.font)).elidedText(content, Qt.TextElideMode.ElideRight, content_rect.width()),
+        )
         painter.drawText(creation_rect, creation_date)
         painter.drawText(modification_rect, modification_date)
 
@@ -1265,13 +1539,19 @@ class ButtonDelegate(QStyledItemDelegate):
         center_y = button_rect.center().y()
         center_x = button_rect.center().x()
 
-        painter.drawEllipse(center_x - self.dot_size / 2, center_y - self.dot_padding - self.dot_size / 2, self.dot_size, self.dot_size)
+        painter.drawEllipse(
+            center_x - self.dot_size / 2, center_y - self.dot_padding - self.dot_size / 2, self.dot_size, self.dot_size
+        )
         painter.drawEllipse(center_x - self.dot_size / 2, center_y - self.dot_size / 2, self.dot_size, self.dot_size)
-        painter.drawEllipse(center_x - self.dot_size / 2, center_y + self.dot_padding - self.dot_size / 2, self.dot_size, self.dot_size)
+        painter.drawEllipse(
+            center_x - self.dot_size / 2, center_y + self.dot_padding - self.dot_size / 2, self.dot_size, self.dot_size
+        )
 
         painter.restore()
 
-    def editorEvent(self, event: QEvent, model: QStandardItemModel, option: QStyleOptionViewItem, index: QModelIndex) -> bool:
+    def editorEvent(
+        self, event: QEvent, model: QStandardItemModel, option: QStyleOptionViewItem, index: QModelIndex
+    ) -> bool:
         if event.type() == QEvent.Type.MouseButtonPress:
             button_rect = self.getButtonRect(option)
 
@@ -1288,7 +1568,12 @@ class ButtonDelegate(QStyledItemDelegate):
         return super().editorEvent(event, model, option, index)
 
     def getButtonRect(self, option: QStyleOptionViewItem) -> QRect:
-        return QRect(option.rect.topRight().x() - self.button_size - 10, option.rect.topRight().y(), self.button_size, option.rect.height())
+        return QRect(
+            option.rect.topRight().x() - self.button_size - 10,
+            option.rect.topRight().y(),
+            self.button_size,
+            option.rect.height(),
+        )
 
     def sizeHint(self, option: QStyleOptionViewItem, index: QModelIndex) -> QRect:
         return QSize(option.rect.width(), 108)

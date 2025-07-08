@@ -20,11 +20,11 @@ for release in releases:
 
     if release.attrib["version"] == APP_VERSION:
         for line in release.find("description").find("ul").iter("li"):
-            changelog += f'\n- {line.text}'
+            changelog += f"\n- {line.text}"
 
         break
 
-changelog += f'\n\n**Full Changelog**: [{releases[number + 1].attrib["version"]}...{APP_VERSION}](https://github.com/MuKonqi/nottodbox/compare/{releases[number + 1].attrib["version"]}...{APP_VERSION})'
+changelog += f"\n\n**Full Changelog**: [{releases[number + 1].attrib['version']}...{APP_VERSION}](https://github.com/MuKonqi/nottodbox/compare/{releases[number + 1].attrib['version']}...{APP_VERSION})"
 
 with open("CHANGELOG.md", "w") as f:
     f.write(changelog)

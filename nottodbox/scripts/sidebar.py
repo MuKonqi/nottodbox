@@ -62,21 +62,32 @@ class Sidebar(QWidget):
             ToolButton(self, lambda checked: self.setCurrentIndex(checked, 0), self.tr("Home"), True, None, 60),
             ToolButton(self, lambda checked: self.setCurrentIndex(checked, 1), self.tr("Settings"), True, None, 60),
             ToolButton(self, lambda checked: self.setCurrentIndex(checked, 2), self.tr("About"), True, None, 60),
-            ToolButton(self, lambda: self.parent_.home.selector.setVisible(not self.parent_.home.selector.isVisible()), self.tr("Focus"), True, None, 60)
+            ToolButton(
+                self,
+                lambda: self.parent_.home.selector.setVisible(not self.parent_.home.selector.isVisible()),
+                self.tr("Focus"),
+                True,
+                None,
+                60,
+            ),
         ]
 
         self.list_view = ListView(self)
 
         self.row_spinbox = QSpinBox(self)
         self.row_spinbox.setMinimum(1)
-        self.row_spinbox.valueChanged.connect(lambda value: self.parent_.home.area.setArea(value, self.column_spinbox.value()))
+        self.row_spinbox.valueChanged.connect(
+            lambda value: self.parent_.home.area.setArea(value, self.column_spinbox.value())
+        )
 
         self.layout_label = Label(self, "x")
         self.layout_label.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Maximum)
 
         self.column_spinbox = QSpinBox(self)
         self.column_spinbox.setMinimum(1)
-        self.column_spinbox.valueChanged.connect(lambda value: self.parent_.home.area.setArea(self.row_spinbox.value(), value))
+        self.column_spinbox.valueChanged.connect(
+            lambda value: self.parent_.home.area.setArea(self.row_spinbox.value(), value)
+        )
 
         self.layout_ = QVBoxLayout(self)
 
@@ -109,8 +120,11 @@ class Sidebar(QWidget):
         self.parent_.setCurrentIndex(checked, index)
 
     def makeIcon(self, name: str) -> QIcon:
-        return QIcon(QPixmap(f":/icons/{name}-{'dark' if QApplication.palette().color(QPalette.ColorRole.WindowText).lightness() > QApplication.palette().color(QPalette.ColorRole.Window).lightness() else 'light'}"))
-
+        return QIcon(
+            QPixmap(
+                f":/icons/{name}-{'dark' if QApplication.palette().color(QPalette.ColorRole.WindowText).lightness() > QApplication.palette().color(QPalette.ColorRole.Window).lightness() else 'light'}"
+            )
+        )
 
     def refresh(self) -> None:
         for i in range(4):
@@ -180,16 +194,19 @@ class ButtonDelegate(QStyledItemDelegate):
         border_path.addRoundedRect(border_rect, 1, 1)
 
         situations = [
-            bool(index.data(Qt.ItemDataRole.UserRole + 1) and index.data(Qt.ItemDataRole.UserRole + 2).data(Qt.ItemDataRole.UserRole + 2) == "document"),
+            bool(
+                index.data(Qt.ItemDataRole.UserRole + 1)
+                and index.data(Qt.ItemDataRole.UserRole + 2).data(Qt.ItemDataRole.UserRole + 2) == "document"
+            ),
             bool(option.state & QStyle.StateFlag.State_MouseOver),
-            True
-            ]
+            True,
+        ]
 
         defaults = [
             [option.palette.base().color(), option.palette.text().color(), option.palette.text().color()],
             [option.palette.button().color(), option.palette.text().color(), option.palette.buttonText().color()],
-            [option.palette.link().color(), option.palette.text().color(), option.palette.linkVisited().color()]
-            ]
+            [option.palette.link().color(), option.palette.text().color(), option.palette.linkVisited().color()],
+        ]
 
         colors = []
 
@@ -198,11 +215,20 @@ class ButtonDelegate(QStyledItemDelegate):
         for status in situations:
             if status:
                 for j in range(3):
-                    if index.data(Qt.ItemDataRole.UserRole + 2).data(Qt.ItemDataRole.UserRole + 27 + j * 3 + i)[1] is None:
+                    if (
+                        index.data(Qt.ItemDataRole.UserRole + 2).data(Qt.ItemDataRole.UserRole + 27 + j * 3 + i)[1]
+                        is None
+                    ):
                         colors.append(defaults[i][j])
 
                     else:
-                        colors.append(QColor(index.data(Qt.ItemDataRole.UserRole + 2).data(Qt.ItemDataRole.UserRole + 27 + j * 3 + i)[1]))
+                        colors.append(
+                            QColor(
+                                index.data(Qt.ItemDataRole.UserRole + 2).data(
+                                    Qt.ItemDataRole.UserRole + 27 + j * 3 + i
+                                )[1]
+                            )
+                        )
 
                 break
 
@@ -218,9 +244,13 @@ class ButtonDelegate(QStyledItemDelegate):
 
         painter.setPen(colors[1])
         painter.setFont(name_font)
-        painter.drawText(name_rect, QFontMetrics(name_font).elidedText(name, Qt.TextElideMode.ElideRight, name_rect.width()))
+        painter.drawText(
+            name_rect, QFontMetrics(name_font).elidedText(name, Qt.TextElideMode.ElideRight, name_rect.width())
+        )
 
-    def editorEvent(self, event: QEvent, model: QStandardItemModel, option: QStyleOptionViewItem, index: QModelIndex) -> bool:
+    def editorEvent(
+        self, event: QEvent, model: QStandardItemModel, option: QStyleOptionViewItem, index: QModelIndex
+    ) -> bool:
         if event.type() == QEvent.Type.MouseButtonPress:
             indexes = [item.index() for item in self.parent_.items.values()]
             indexes.remove(index)
@@ -230,10 +260,14 @@ class ButtonDelegate(QStyledItemDelegate):
 
             model.setData(index, True, Qt.ItemDataRole.UserRole + 1)
 
-            index.data(Qt.ItemDataRole.UserRole + 2).data(Qt.ItemDataRole.UserRole + 10)(index.data(Qt.ItemDataRole.UserRole + 2))
+            index.data(Qt.ItemDataRole.UserRole + 2).data(Qt.ItemDataRole.UserRole + 10)(
+                index.data(Qt.ItemDataRole.UserRole + 2)
+            )
 
             if index.data(Qt.ItemDataRole.UserRole + 2).data(Qt.ItemDataRole.UserRole + 2) == "document":
-                index.data(Qt.ItemDataRole.UserRole + 2).data(Qt.ItemDataRole.UserRole + 11)(index.data(Qt.ItemDataRole.UserRole + 2), "normal", True)
+                index.data(Qt.ItemDataRole.UserRole + 2).data(Qt.ItemDataRole.UserRole + 11)(
+                    index.data(Qt.ItemDataRole.UserRole + 2), "normal", True
+                )
 
         return super().editorEvent(event, model, option, index)
 

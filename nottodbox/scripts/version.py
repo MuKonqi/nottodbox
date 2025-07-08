@@ -16,6 +16,6 @@
 # along with Nottodbox.  If not, see <https://www.gnu.org/licenses/>.
 
 
-APP_BUILD = 'None'
+APP_BUILD = "None"
 
 APP_VERSION = "v0.1.0"

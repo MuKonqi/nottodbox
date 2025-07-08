@@ -69,7 +69,9 @@ class MainDB:
 
         return False
 
-    def create(self, default: str, name: str, table: str = "__main__", date: str | None = None, content: str = "") -> bool:
+    def create(
+        self, default: str, name: str, table: str = "__main__", date: str | None = None, content: str = ""
+    ) -> bool:
         if date is None:
             date = datetime.datetime.now().strftime("%d/%m/%Y %H:%M")
 
@@ -79,7 +81,28 @@ class MainDB:
             (name, content, creation, modification, completed, locked, autosave, format, sync, folder, pinned, bg_normal, bg_hover, bg_clicked, fg_normal, fg_hover, fg_clicked, bd_normal, bd_hover, bd_clicked)
             values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
-            (name, content, date, date, default, default, default, default, default, default, default, default, default, default, default, default, default, default, default, default)
+            (
+                name,
+                content,
+                date,
+                date,
+                default,
+                default,
+                default,
+                default,
+                default,
+                default,
+                default,
+                default,
+                default,
+                default,
+                default,
+                default,
+                default,
+                default,
+                default,
+                default,
+            ),
         )
         self.db.commit()
 
@@ -88,7 +111,11 @@ class MainDB:
     def createDocument(self, default: str, locked: str, document: str, notebook: str) -> bool:
         date = datetime.datetime.now().strftime("%d/%m/%Y %H:%M")
 
-        if self.create(default, document, notebook, date) and self.checkIfItExists(document, notebook) and self.set(locked, "locked", document, notebook):
+        if (
+            self.create(default, document, notebook, date)
+            and self.checkIfItExists(document, notebook)
+            and self.set(locked, "locked", document, notebook)
+        ):
             return self.updateModification(notebook, "__main__", date)
 
         return False
@@ -120,7 +147,8 @@ class MainDB:
                 content TEXT,
                 backup TEXT
             );
-            """)
+            """
+        )
         self.db.commit()
 
         if name == "__main__" and not self.checkIfTheTableExists(name):
@@ -130,7 +158,11 @@ class MainDB:
         return True
 
     def createNotebook(self, default: str, locked: str, description: str, name: str) -> bool:
-        return self.createTable(name) & self.create(default, name, "__main__", None, description) & self.set(locked, "locked", name)
+        return (
+            self.createTable(name)
+            & self.create(default, name, "__main__", None, description)
+            & self.set(locked, "locked", name)
+        )
 
     def delete(self, name: str, table: str = "__main__") -> bool:
         self.cur.execute(f"delete from '{table}' where name = ?", (name,))
@@ -252,7 +284,11 @@ class MainDB:
         return self.get(column, name, table) == value
 
     def setBackup(self, content: str, document: str, notebook: str) -> bool:
-        if self.getLocked(document, notebook) != "enabled" or (self.getLocked(document, notebook) == "enabled" and datetime.datetime.strptime(self.get("creation", document, notebook), "%d/%m/%Y %H:%M").date() == datetime.datetime.today().date()):
+        if self.getLocked(document, notebook) != "enabled" or (
+            self.getLocked(document, notebook) == "enabled"
+            and datetime.datetime.strptime(self.get("creation", document, notebook), "%d/%m/%Y %H:%M").date()
+            == datetime.datetime.today().date()
+        ):
             self.cur.execute(f"update '{notebook}' set backup = ? where name = ?", (content, document))
             self.db.commit()
 

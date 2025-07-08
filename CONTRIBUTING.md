@@ -16,8 +16,8 @@ Please use the "Feature Request" template.
 ### Submit code changes
 Respect code style:
   - Linter: Ruff
-  - Formatter: None
-  - Naming: MyClass, myFunction, my_variable, MY_CONST and `self` for the first argument of class.
+  - Formatter: Ruff
+  - Naming: MyClass, myFunction, my_variable, MY_CONST and use `self` for the first argument of class.
 
 ### Translations
 

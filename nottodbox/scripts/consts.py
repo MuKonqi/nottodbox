@@ -21,20 +21,69 @@ import os
 
 from PySide6.QtCore import QStandardPaths
 
-SETTINGS_DEFAULTS = [None, "disabled", "enabled", "markdown", None, "documents", "no", None, None, None, None, None, None, None, None, None]
+SETTINGS_DEFAULTS = [
+    None,
+    "disabled",
+    "enabled",
+    "markdown",
+    None,
+    "documents",
+    "no",
+    None,
+    None,
+    None,
+    None,
+    None,
+    None,
+    None,
+    None,
+    None,
+]
 
 SETTINGS_OPTIONS = ["default", "global"]
 
-SETTINGS_KEYS = ["completed", "locked", "autosave", "format", "sync", "folder", "pinned", "bg_normal", "bg_hover", "bg_clicked", "fg_normal", "fg_hover", "fg_clicked", "bd_normal", "bd_hover", "bd_clicked"]
+SETTINGS_KEYS = [
+    "completed",
+    "locked",
+    "autosave",
+    "format",
+    "sync",
+    "folder",
+    "pinned",
+    "bg_normal",
+    "bg_hover",
+    "bg_clicked",
+    "fg_normal",
+    "fg_hover",
+    "fg_clicked",
+    "bd_normal",
+    "bd_hover",
+    "bd_clicked",
+]
 
-SETTINGS_VALUES = [["completed", "uncompleted", None], ["enabled", "disabled"], ["enabled", "disabled"], ["markdown", "html", "plain-text"], ["format", "pdf", "odt", "markdown", "html", "plain-text"], ["documents", "desktop"], ["yes", "no"]]
+SETTINGS_VALUES = [
+    ["completed", "uncompleted", None],
+    ["enabled", "disabled"],
+    ["enabled", "disabled"],
+    ["markdown", "html", "plain-text"],
+    ["format", "pdf", "odt", "markdown", "html", "plain-text"],
+    ["documents", "desktop"],
+    ["yes", "no"],
+]
 
 USER_NAME = getpass.getuser()
 
-USER_DIRS = {"desktop": QStandardPaths.standardLocations(QStandardPaths.StandardLocation.DesktopLocation)[0], "documents": QStandardPaths.standardLocations(QStandardPaths.StandardLocation.DocumentsLocation)[0]}
+USER_DIRS = {
+    "desktop": QStandardPaths.standardLocations(QStandardPaths.StandardLocation.DesktopLocation)[0],
+    "documents": QStandardPaths.standardLocations(QStandardPaths.StandardLocation.DocumentsLocation)[0],
+}
 
-USER_DATABASES_DIR = os.path.join(QStandardPaths.standardLocations(QStandardPaths.StandardLocation.GenericDataLocation)[0], "nottodbox", "databases")
+USER_DATABASES_DIR = os.path.join(
+    QStandardPaths.standardLocations(QStandardPaths.StandardLocation.GenericDataLocation)[0], "nottodbox", "databases"
+)
 os.makedirs(USER_DATABASES_DIR, exist_ok=True)
 
-USER_LOGS_DIR = os.path.join(QStandardPaths.standardLocations(QStandardPaths.StandardLocation.GenericDataLocation)[0], "nottodbox", "logs")
+USER_LOGS_DIR = os.path.join(
+    QStandardPaths.standardLocations(QStandardPaths.StandardLocation.GenericDataLocation)[0], "nottodbox", "logs"
+)
 os.makedirs(USER_LOGS_DIR, exist_ok=True)
