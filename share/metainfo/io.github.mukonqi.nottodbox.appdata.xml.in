@@ -137,4 +137,6 @@
             <image type="source">https://raw.githubusercontent.com/mukonqi/nottodbox/refs/heads/main/.github/images/dark.png</image>
         </screenshot>
     </screenshots>
+
+    <content_rating type="oars-1.0"></content_rating>
 </component>
