@@ -1,6 +1,6 @@
 # Nottodbox
 > [!TIP] 
-> You can check [wiki](wiki).
+> You can check [wiki](https://github.com/MuKonqi/nottodbox/wiki).
 
 <p align="center">
     <img src="share/icons/hicolor/96x96/apps/io.github.mukonqi.nottodbox.png" alt="Icon of Nottodbox"></img><br>
