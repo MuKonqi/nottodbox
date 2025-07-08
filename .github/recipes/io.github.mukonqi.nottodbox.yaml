@@ -37,4 +37,3 @@ modules:
       - type: git
         url: https://github.com/mukonqi/nottodbox
         tag: v0.1.0
-        commit: a3ec12bd0556f9977319ef252ddef0bd155481a9
