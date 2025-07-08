@@ -96,7 +96,7 @@ os.makedirs(NOTTODBOX_COLOR_SCHEMES_DIRS[1], exist_ok=True)
 COLOR_SCHEMES_DIRS.extend(KDE_COLOR_SCHEMES_DIRS)
 COLOR_SCHEMES_DIRS.extend(NOTTODBOX_COLOR_SCHEMES_DIRS)
 
-NUMBERS = {"1": "\u00b9", "2": "\u00b2", "3": "\u00b3", "4": "\u2074"}
+NUMBERS = {1: "\u00b9", 2: "\u00b2", 3: "\u00b3", 4: "\u2074"}
 
 
 class SettingsPage(QWidget):
