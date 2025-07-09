@@ -8,7 +8,7 @@
     <img src="https://img.shields.io/github/downloads/mukonqi/nottodbox/total?label=Downloads" alt="Downloads"></img>
     <img src="https://img.shields.io/github/v/release/mukonqi/nottodbox?label=Release" alt="Release"><br>
     <a href='https://flathub.org/apps/io.github.mukonqi.nottodbox'><img width='240' alt='Get it on Flathub' src='https://flathub.org/api/badge?locale=en' /></a>
-    <a href="https://github.com/MuKonqi/nottodbox/releases/download/latest/nottodbox.AppImage"><img width="260" alt="Download as an AppImage" src="https://docs.appimage.org/_images/download-appimage-banner.svg" /></a>
+    <a href="https://github.com/MuKonqi/nottodbox/releases/latest/download/nottodbox.AppImage"><img width="260" alt="Download as an AppImage" src="https://docs.appimage.org/_images/download-appimage-banner.svg" /></a>
 
 </p>
 
@@ -37,7 +37,7 @@
 
 ## Using
 
-### Installing from Flatpak / Flathub (only for Linux users) (recommended)
+### Installing via Flatpak from Flathub (only for Linux users) (recommended)
 > [!WARNING]
 > [Set up Flatpak](https://flatpak.org/setup/)
 
@@ -48,9 +48,9 @@
 > [!CAUTION]
 > If you can not run the file, check whether it is executable. If not, please make the file executable.
 
-- [Download for Linux](https://github.com/MuKonqi/nottodbox/releases/download/latest/nottodbox.AppImage)
-- [Download for macOS](https://github.com/MuKonqi/nottodbox/releases/download/latest/nottodbox.app.zip)
-- [Download for Windows](https://github.com/MuKonqi/nottodbox/releases/download/latest/nottodbox.exe)
+- [Download for Linux](https://github.com/MuKonqi/nottodbox/releases/latest/download/nottodbox.AppImage)
+- [Download for macOS](https://github.com/MuKonqi/nottodbox/releases/latest/download/nottodbox.app.zip)
+- [Download for Windows](https://github.com/MuKonqi/nottodbox/releases/latest/download/nottodbox.exe)
 
 ### Building a Flatpak
 
@@ -64,6 +64,7 @@
 
 > [!WARNING] 
 > Dependencies: Python (3.10 and higher), pip and git
+
 > [!CAUTION] 
 > Build command tested on bash and Python's executable's name may be different on your system.
 
