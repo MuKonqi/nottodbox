@@ -50,6 +50,13 @@
   <url type="bugtracker">https://github.com/mukonqi/nottodbox/issues</url>
   <launchable type="desktop-id">io.github.mukonqi.nottodbox.desktop</launchable>
   <releases>
+    <release version="v0.1.1" date="2025-07-09">
+      <description>
+        <ul>
+          <li>Add brand color to metadata</li>
+        </ul>
+      </description>
+    </release>
     <release version="v0.1.0" date="2025-07-08">
       <description>
         <ul>

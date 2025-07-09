@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "nottodbox"
-version = "0.1.0"
+version = "0.1.1"
 authors = [{name="MuKonqi (Muhammed S.)"}]
 description = "Organize notes, to-dos and diaries"
 readme = "README.md"
