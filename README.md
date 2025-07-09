@@ -57,7 +57,7 @@
 > [!WARNING]
 > [Set up Flatpak](https://flatpak.org/setup/)
 
-- Build: `git clone https://github.com/mukonqi/nottodbox.git ; cd nottodbox ; flatpak-builder --user --force-clean --install-deps-from flathub --install --sandbox .flatpak-builder/app .github/recipes/io.github.mukonqi.nottodbox.yaml`
+- Build: `wget https://raw.githubusercontent.com/flathub/io.github.mukonqi.nottodbox/refs/heads/master/io.github.mukonqi.nottodbox.yaml ; flatpak-builder --user --force-clean --install-deps-from flathub --install --sandbox .flatpak-builder/app io.github.mukonqi.nottodbox.yaml ; rm -rf .flatpak-builder io.github.mukonqi.nottodbox.yaml`
 - Run: `flatpak run --branch=master --arch=x86_64 --command=nottodbox io.github.mukonqi.nottodbox`
 
 ### Building via pip
