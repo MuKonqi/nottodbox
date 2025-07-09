@@ -146,4 +146,8 @@
     </screenshot>
   </screenshots>
   <content_rating type="oars-1.0"/>
+  <branding>
+    <color type="primary" scheme_preference="light">#4682b4</color>
+    <color type="primary" scheme_preference="dark">#2f5c80</color>
+  </branding>
 </component>
