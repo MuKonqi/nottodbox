@@ -79,9 +79,9 @@
 > [!CAUTION] 
 > Build command tested on bash.
 
-- Build for Linux: `export RUNNER_OS="Linux" ; bash .github/scripts/pyinstaller.sh`
-- Build for macOS: `export RUNNER_OS="macOS" ; bash .github/scripts/pyinstaller.sh`
-- Build for Windows: `export RUNNER_OS="Windows" ; bash .github/scripts/pyinstaller.sh`
+- Build for Linux: `export RUNNER_OS="Linux" ; python3 .github/scripts/consts.py ; bash .github/scripts/pyinstaller.sh`
+- Build for macOS: `export RUNNER_OS="macOS" ; python3 .github/scripts/consts.py ; bash .github/scripts/pyinstaller.sh`
+- Build for Windows: `export RUNNER_OS="Windows" ; python3 .github/scripts/consts.py ; bash .github/scripts/pyinstaller.sh`
 - Now you can find the executable in dist folder.
 
 ## Running from source

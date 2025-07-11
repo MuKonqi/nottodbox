@@ -35,6 +35,9 @@ jobs:
     - name: Set-up translations
       run: python3 .github/scripts/translations.py
 
+    - name: Set-up consts
+      run: python3 .github/scripts/consts.py --github
+
     - name: Build executable
       run: bash .github/scripts/pyinstaller.sh
 

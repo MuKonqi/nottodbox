@@ -1,3 +1,7 @@
+# AppImage
+AppDir/
+*.AppImage*
+
 # Flatpak
 .flatpak-builder/
 
@@ -20,6 +24,3 @@ nottodbox.spec
 
 # Python
 *__pycache__
-
-# ruff
-fix.txt
