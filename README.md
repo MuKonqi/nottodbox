@@ -84,7 +84,7 @@
 - Build for Windows: `export RUNNER_OS="Windows" ; python3 .github/scripts/consts.py ; bash .github/scripts/pyinstaller.sh`
 - Now you can find the executable in dist folder.
 
-## Running from source
+### Running from source
 
 > [!WARNING] 
 > Dependencies: Python (3.10 and higher), PySide6 and git
