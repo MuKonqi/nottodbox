@@ -26,7 +26,7 @@ from PySide6.QtCore import QLocale, QTranslator, qVersion
 from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import QApplication
 
-from .consts import USER_LOGS_DIR
+from .consts import USER_LOGS_DIR, USER_NOTTODBOX_DIR
 from .mainwindow import MainWindow
 from .resources import icons, locale  # noqa: F401
 from .version import APP_BUILD, APP_VERSION
@@ -55,6 +55,9 @@ class Application(QApplication):
                 self.installTranslator(translator)
             else:
                 logging.warning(f"Failed to load locale for {QLocale.system().name().split('_')[0]}.")
+
+        with open(os.path.join(USER_NOTTODBOX_DIR, "version"), "w") as f:
+            f.write(APP_VERSION)
 
         self.mainwindow = MainWindow()
 

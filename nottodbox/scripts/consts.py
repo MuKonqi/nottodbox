@@ -78,12 +78,12 @@ USER_DIRS = {
     "documents": QStandardPaths.standardLocations(QStandardPaths.StandardLocation.DocumentsLocation)[0],
 }
 
-USER_DATABASES_DIR = os.path.join(
-    QStandardPaths.standardLocations(QStandardPaths.StandardLocation.GenericDataLocation)[0], "nottodbox", "databases"
+USER_NOTTODBOX_DIR = os.path.join(
+    QStandardPaths.standardLocations(QStandardPaths.StandardLocation.GenericDataLocation)[0], "nottodbox"
 )
+
+USER_DATABASES_DIR = os.path.join(USER_NOTTODBOX_DIR, "databases")
 os.makedirs(USER_DATABASES_DIR, exist_ok=True)
 
-USER_LOGS_DIR = os.path.join(
-    QStandardPaths.standardLocations(QStandardPaths.StandardLocation.GenericDataLocation)[0], "nottodbox", "logs"
-)
+USER_LOGS_DIR = os.path.join(USER_NOTTODBOX_DIR, "logs")
 os.makedirs(USER_LOGS_DIR, exist_ok=True)
