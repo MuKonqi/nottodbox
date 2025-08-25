@@ -36,12 +36,7 @@ class Application(QApplication):
     def __init__(self, argv: list) -> None:
         super().__init__(argv)
 
-        logging.info(f"Nottodbox, version: {APP_VERSION}, build: {APP_BUILD}")
-        logging.info(f"Operating system: {platform.system()} {platform.release()} ({platform.platform()})")
         logging.info(f"Platform: {QApplication.platformName()}")
-        logging.info(f"Python: {platform.python_version()}")
-        logging.info(f"Qt: {qVersion()}")
-        logging.info(f"Language: {QLocale.system().name()} / {QLocale.system().name().split('_')[0]}")
 
         self.setApplicationVersion(APP_VERSION)
         self.setApplicationName("nottodbox")
@@ -96,6 +91,12 @@ def main() -> None:
 
     sys.stdout = StreamToLogger(logger, logging.INFO)
     sys.stderr = StreamToLogger(logger, logging.ERROR)
+
+    logging.info(f"Nottodbox, version: {APP_VERSION}, build: {APP_BUILD}")
+    logging.info(f"Operating system: {platform.system()} {platform.release()} ({platform.platform()})")
+    logging.info(f"Python: {platform.python_version()}")
+    logging.info(f"Language: {QLocale.system().name()} / {QLocale.system().name().split('_')[0]}")
+    logging.info(f"Qt: {qVersion()}")
 
     application = Application(sys.argv)
     sys.exit(application.exec())
