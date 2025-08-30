@@ -43,6 +43,7 @@ class CalendarWidget(QCalendarWidget):
     def paintCell(self, painter: QPainter | None, rect: QRect, date: QDate | datetime.date) -> None:
         super().paintCell(painter, rect, date)
 
+        # Hide future.
         if date >= self.maximumDate():
             painter.setOpacity(0)
 

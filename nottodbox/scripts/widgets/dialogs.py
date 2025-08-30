@@ -52,16 +52,19 @@ class GetColor(QColorDialog):
 
         self.buttonbox = self.findChild(QDialogButtonBox)
 
+        # Add a option for following default setting.
         if show_default:
             self.follow_default = PushButton(self.buttonbox, lambda: self.done(2), self.tr("Follow default"))
 
             self.buttonbox.addButton(self.follow_default, QDialogButtonBox.ButtonRole.ResetRole)
 
+        # Add a option for following global setting.
         if show_global:
             self.follow_global = PushButton(self.buttonbox, lambda: self.done(3), self.tr("Follow global"))
 
             self.buttonbox.addButton(self.follow_global, QDialogButtonBox.ButtonRole.ResetRole)
 
+        # Add a option for following notebook's setting.
         if show_notebook:
             self.follow_notebook = PushButton(self.buttonbox, lambda: self.done(4), self.tr("Follow notebook"))
 
@@ -71,6 +74,8 @@ class GetColor(QColorDialog):
         self.exec()
 
     def getColor(self) -> tuple[bool, str | None, QColor | None]:
+        """successful, type, color"""
+
         if self.result() == 1:
             return True, "new", self.selectedColor()
 
@@ -451,6 +456,7 @@ class ChangeSettings(Settings):
                 self.tr("Follow global ({})").format(self.settings.value(f"globals/{SETTINGS_KEYS[i]}"))
             )
 
+            # Add a option for following notebook if the item is a document.
             if index.data(ITEM_DATAS["type"]) == "document":
                 self.selectors[-1].insertItem(
                     2 if True else 1,

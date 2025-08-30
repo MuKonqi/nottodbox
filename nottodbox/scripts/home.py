@@ -119,6 +119,7 @@ class Area(QWidget):
                 self.pages.append(Page(self))
                 self.layout_.addWidget(self.pages[-1], row_, column_)
 
+        # Set first page as target.
         self.target = self.pages[0]
         self.target.setAsTarget()
 
@@ -481,6 +482,7 @@ class Options:
                                 ]:
                                     page.document.refreshSettings()
 
+                    # FIXME
                     if i == 6:
                         if options[values[i]] == "yes":
                             self.pin(index, False, False)
@@ -669,8 +671,9 @@ class Options:
         name, table = self.get(index)
 
         if self.parent_.maindb.delete(name, table):
-            self.unpin(index, False, False)
+            self.unpin(index, False, False) # because it is deleted
 
+            # Also delete the notebook's documents.
             if index.data(ITEM_DATAS["type"]) == "notebook":
                 for name_, table_ in self.parent_.maindb.items.copy():
                     if table_ == name:
@@ -682,7 +685,7 @@ class Options:
                         ]:
                             page.removeDocument()
 
-                        self.unpin(self.parent_.maindb.items[(name_, table_)].index(), False, False)
+                        self.unpin(self.parent_.maindb.items[(name_, table_)].index(), False, False) # because it is deleted
 
                         del self.parent_.maindb.items[(name_, table_)]
 
@@ -801,6 +804,8 @@ class Options:
                 )
 
     def get(self, index: QModelIndex) -> tuple[str, str]:
+        """Get name with table/notebook name."""
+
         if index.data(ITEM_DATAS["type"]) == "notebook":
             return index.data(ITEM_DATAS["name"]), "__main__"
 
@@ -840,6 +845,7 @@ class Options:
             for page in self.parent_.parent_.area.pages
             if page.document is not None and page.document.index == index
         ]:
+            # Making clicked that QModelIndex, this is optional because sometime's already clicked.
             if make:
                 index.model().setData(index, True, ITEM_DATAS["clicked"])
 
@@ -865,6 +871,7 @@ class Options:
 
             self.parent_.parent_.parent_.sidebar.list_view.addItem(index)
 
+            # Pin the documents that follow the notebook.
             if index.data(ITEM_DATAS["type"]) == "notebook":
                 for name_, table_ in self.parent_.maindb.items.copy():
                     if (
@@ -932,6 +939,7 @@ class Options:
                             if table_ == name:
                                 self.parent_.maindb.items[(name_, table_)].setData(new_name, ITEM_DATAS["notebook"])
 
+                                # Update the notebook's documents' datas.
                                 for page in [
                                     page
                                     for page in self.parent_.parent_.area.pages
@@ -1017,6 +1025,8 @@ class Options:
             )
 
     def tr(self, text_: str, index: QModelIndex) -> str:
+        """Just being lazy, sometimes..."""
+
         name, table = self.get(index)
 
         if table == "__main__":
@@ -1074,6 +1084,7 @@ class Options:
 
             self.parent_.parent_.parent_.sidebar.list_view.removeItem(index)
 
+            # Unpin the documents that follow the notebook.
             if index.data(ITEM_DATAS["type"]) == "notebook":
                 for name_, table_ in self.parent_.maindb.items.copy():
                     if (
@@ -1137,6 +1148,7 @@ class TreeView(QTreeView):
         for data in items:
             self.appendNotebook(data)
 
+        # Pin pinned items to sidebar after startup.
         for item in self.parent_.maindb.items.values():
             if item.data(ITEM_DATAS["pinned"])[1] == "yes":
                 self.parent_.options.pin(item.index(), False, False)
@@ -1210,6 +1222,8 @@ class TreeView(QTreeView):
         self.type_filterer.endResetModel()
 
     def handleSettingViaGlobal(self, number: int) -> str | None:
+        """Check whether it follows the default and return the actual setting."""
+
         if self.parent_.settings.value(f"globals/{SETTINGS_KEYS[number]}") == "default":
             return SETTINGS_DEFAULTS[number]
 
@@ -1217,6 +1231,8 @@ class TreeView(QTreeView):
             return self.parent_.settings.value(f"globals/{SETTINGS_KEYS[number]}")
 
     def handleSettingViaNotebook(self, item: QStandardItem, number: int) -> str | None:
+        """Check whether it follows the default or global setting and return the actual setting."""
+
         if (
             self.parent_.maindb.items[(item.data(ITEM_DATAS["notebook"]), "__main__")].data(
                 ITEM_DATAS["completed"] + number
@@ -1231,6 +1247,8 @@ class TreeView(QTreeView):
             )[1]
 
     def handleSetting(self, item: QStandardItem, number: int, value: str | None) -> tuple[tuple, str | None]:
+        """Check whether it follows the default or global setting or notebook and return the type with actual setting."""
+
         if value == "default":
             return ("default",), SETTINGS_DEFAULTS[number]
 
@@ -1373,6 +1391,8 @@ class TreeView(QTreeView):
             context_data.setData(value, role)
 
     def setType(self, context_data: QModelIndex | QStandardItem) -> None:
+        # Set document type by "completed" and "locked" columns.
+
         if (
             context_data.data(ITEM_DATAS["completed"])[1] is None
             and context_data.data(ITEM_DATAS["locked"])[1] == "disabled"
@@ -1467,12 +1487,14 @@ class ButtonDelegate(QStyledItemDelegate):
         border_path = QPainterPath()
         border_path.addRoundedRect(border_rect, 10, 10)
 
+        # mouse clicked, mouse hovered and other
         situations = [
             bool(index.data(ITEM_DATAS["clicked"]) and index.data(ITEM_DATAS["type"]) == "document"),
             bool(option.state & QStyle.StateFlag.State_MouseOver),
             True,
         ]
 
+        # default colors of background, foreground and border
         defaults = [
             [option.palette.base().color(), option.palette.text().color(), option.palette.text().color()],
             [option.palette.button().color(), option.palette.text().color(), option.palette.buttonText().color()],
@@ -1481,8 +1503,10 @@ class ButtonDelegate(QStyledItemDelegate):
 
         colors = []
 
+        # We must use an inverse loop for the QModelIndex data to match the “situations” variable.
         i = 2
 
+        # A loop from the most specific situation (clicked) to the general situation (other).
         for status in situations:
             if status:
                 for j in range(3):
@@ -1546,10 +1570,12 @@ class ButtonDelegate(QStyledItemDelegate):
             button_rect = self.getButtonRect(option)
 
             if event.button() == Qt.MouseButton.LeftButton:
+                # Open the menu.
                 if button_rect.contains(event.position().toPoint()):
                     self.menu_requested.emit(index)
                     return True
 
+                # Open the document.
                 elif index.data(ITEM_DATAS["type"]) == "document":
                     self.parent_.parent_.options.open(self.parent_.mapToSource(index), "normal")
 

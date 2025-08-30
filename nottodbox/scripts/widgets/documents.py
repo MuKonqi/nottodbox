@@ -80,6 +80,8 @@ class Document(QWidget):
         self.refreshNames()
 
     def handleGlobal(self, setting: str) -> str:
+        """Check whether it follows the default and return the actual setting."""
+
         if self.settings[(setting, "global")] is None:
             return self.settings[(setting, "default")]
 
@@ -87,6 +89,8 @@ class Document(QWidget):
             return self.settings[(setting, "global")]
 
     def handleNotebook(self, setting: str) -> None:
+        """Check whether it follows the default or global setting and return the actual setting."""
+
         if self.settings[(setting, "notebook")] is None:
             return self.settings[(setting, "default")]
 
@@ -97,12 +101,15 @@ class Document(QWidget):
             return self.settings[(setting, "notebook")]
 
     def handleSettings(self) -> None:
+        """Get settings from QModelIndex's datas."""
+
         self.settings["autosave"] = self.index.data(ITEM_DATAS["autosave"])[1]
         self.settings["folder"] = self.index.data(ITEM_DATAS["folder"])[1]
         self.settings["format"] = self.index.data(ITEM_DATAS["format"])[1]
         self.settings["locked"] = self.index.data(ITEM_DATAS["locked"])[1]
         self.settings["sync"] = self.index.data(ITEM_DATAS["sync"])[1]
 
+        # Update TextFormatter's status.
         self.helper.updateStatus(self.settings["format"])
 
     def refreshContent(self) -> None:
@@ -137,6 +144,7 @@ class BackupView(Document):
 
     @Slot()
     def restoreContent(self) -> None:
+        # Verification for old and locked diaries.
         if (
             self.settings["locked"] == "enabled"
             and datetime.datetime.strptime(self.creation, "%d/%m/%Y %H:%M").date() != datetime.datetime.today().date()

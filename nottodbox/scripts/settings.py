@@ -1106,6 +1106,7 @@ class DocumentSettings(GlobalSettings):
                             ITEM_DATAS["completed"] + i,
                         )
 
+                        # FIXME
                         if i == 6:
                             if self.values[i][self.selectors[i].currentIndex()] == "yes":
                                 self.parent_.parent_.home.selector.options.pin(item.index(), False, False)

@@ -196,6 +196,7 @@ class ButtonDelegate(QStyledItemDelegate):
         border_path = QPainterPath()
         border_path.addRoundedRect(border_rect, 1, 1)
 
+        # mouse clicked, mouse hovered and other
         situations = [
             bool(
                 index.data(ITEM_DATAS["clicked"])
@@ -205,6 +206,7 @@ class ButtonDelegate(QStyledItemDelegate):
             True,
         ]
 
+        # default colors of background, foreground and border
         defaults = [
             [option.palette.base().color(), option.palette.text().color(), option.palette.text().color()],
             [option.palette.button().color(), option.palette.text().color(), option.palette.buttonText().color()],
@@ -213,8 +215,10 @@ class ButtonDelegate(QStyledItemDelegate):
 
         colors = []
 
+        # We must use an inverse loop for the QModelIndex data to match the “situations” variable.
         i = 2
 
+        # A loop from the most specific situation (clicked) to the general situation (other).
         for status in situations:
             if status:
                 for j in range(3):
@@ -251,6 +255,7 @@ class ButtonDelegate(QStyledItemDelegate):
             indexes = [item.index() for item in self.parent_.items.values()]
             indexes.remove(index)
 
+            # Make unclicked all indexes except current index.
             for index_ in indexes:
                 model.setData(index_, False, ITEM_DATAS["clicked"])
 
@@ -258,6 +263,7 @@ class ButtonDelegate(QStyledItemDelegate):
 
             index.data(ITEM_DATAS["target"]).data(ITEM_DATAS["setCurrentIndex"])(index.data(ITEM_DATAS["type"]))
 
+            # Open the document.
             if index.data(ITEM_DATAS["target"]).data(ITEM_DATAS["type"]) == "document":
                 index.data(ITEM_DATAS["target"]).data(ITEM_DATAS["open"])(
                     index.data(ITEM_DATAS["type"]), "normal", True
