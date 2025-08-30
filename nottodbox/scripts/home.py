@@ -1120,7 +1120,7 @@ class TreeView(QTreeView):
         self.type_filterer.setSourceModel(self.model_)
         self.type_filterer.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
         self.type_filterer.setRecursiveFilteringEnabled(True)
-        self.type_filterer.setFilterRole(Qt.ItemDataRole.UserRole + 3)
+        self.type_filterer.setFilterRole(ITEM_DATAS["type_2"])
 
         self.normal_filterer = QSortFilterProxyModel(self)
         self.normal_filterer.setSourceModel(self.type_filterer)
@@ -1399,19 +1399,19 @@ class TreeView(QTreeView):
             context_data.data(ITEM_DATAS["completed"])[1] is None
             and context_data.data(ITEM_DATAS["locked"])[1] == "disabled"
         ):
-            self.setData(context_data, "note", Qt.ItemDataRole.UserRole + 3)
+            self.setData(context_data, "note", ITEM_DATAS["type_2"])
 
         elif (
             context_data.data(ITEM_DATAS["completed"])[1] in ["completed", "uncompleted"]
             and context_data.data(ITEM_DATAS["locked"])[1] == "enabled"
         ):
-            self.setData(context_data, "todo diary", Qt.ItemDataRole.UserRole + 3)
+            self.setData(context_data, "todo diary", ITEM_DATAS["type_2"])
 
         elif context_data.data(ITEM_DATAS["completed"])[1] in ["completed", "uncompleted"]:
-            self.setData(context_data, "todo", Qt.ItemDataRole.UserRole + 3)
+            self.setData(context_data, "todo", ITEM_DATAS["type_2"])
 
         elif context_data.data(ITEM_DATAS["locked"])[1] == "enabled":
-            self.setData(context_data, "diary", Qt.ItemDataRole.UserRole + 3)
+            self.setData(context_data, "diary", ITEM_DATAS["type_2"])
 
 
 class ButtonDelegate(QStyledItemDelegate):

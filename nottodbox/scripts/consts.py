@@ -24,6 +24,7 @@ from PySide6.QtCore import QStandardPaths, Qt
 ITEM_DATAS = {
     "clicked": Qt.ItemDataRole.UserRole + 1,
     "type": Qt.ItemDataRole.UserRole + 2,
+    "type_2": Qt.ItemDataRole.UserRole + 3,
     "setCurrentIndex": Qt.ItemDataRole.UserRole + 10,
     "open": Qt.ItemDataRole.UserRole + 11,
     "completed": Qt.ItemDataRole.UserRole + 20,
