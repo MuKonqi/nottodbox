@@ -1346,15 +1346,18 @@ class TreeView(QTreeView):
         menu.addAction(Action(self, lambda: self.parent_.options.changeAppearance(index), self.tr("Change Appearance")))
         menu.addAction(Action(self, lambda: self.parent_.options.changeSettings(index), self.tr("Change Settings")))
 
-        pages = [
-            page
-            for page in self.parent_.parent_.area.pages
-            if page.document is not None and page.document.index == index
-        ]
-        if index.data(ITEM_DATAS["type"]) == "document" and pages != []:
+        page = next(
+            (
+                page
+                for page in self.parent_.parent_.area.pages
+                if page.document is not None and page.document.index == index
+            ),
+            None,
+        )
+
+        if index.data(ITEM_DATAS["type"]) == "document" and page is not None:
             menu.addSeparator()
-            for page in pages:
-                menu.addAction(Action(self, lambda page=page: page.removeDocument(), self.tr("Close")))
+            menu.addAction(Action(self, page.removeDocument, self.tr("Close")))
 
         menu.exec(global_pos)
 
