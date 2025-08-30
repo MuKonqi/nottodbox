@@ -55,7 +55,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from .consts import SETTINGS_KEYS, SETTINGS_VALUES, USER_NAME
+from .consts import ITEM_DATAS, SETTINGS_KEYS, SETTINGS_VALUES, USER_NAME
 from .widgets.controls import ComboBox, HSeperator, Label, LineEdit, PushButton, VSeperator
 from .widgets.dialogs import ColorSelector
 
@@ -246,7 +246,7 @@ class ListView(QListView):
 
         for i in range(3):
             item = QStandardItem(self.localizeds[i])
-            item.setData(i, Qt.ItemDataRole.UserRole + 2)
+            item.setData(i, ITEM_DATAS["type"])
 
             self.model_.appendRow(item)
 
@@ -262,7 +262,7 @@ class ListView(QListView):
         self.setModel(self.model_)
         self.setItemDelegate(self.delegate)
         self.setCurrentIndex(self.indexes[0])
-        self.model_.setData(self.indexes[0], True, Qt.ItemDataRole.UserRole + 1)
+        self.model_.setData(self.indexes[0], True, ITEM_DATAS["clicked"])
 
 
 class ButtonDelegate(QStyledItemDelegate):
@@ -293,7 +293,7 @@ class ButtonDelegate(QStyledItemDelegate):
         border_path.addRoundedRect(border_rect, 1, 1)
 
         situations = [
-            bool(index.data(Qt.ItemDataRole.UserRole + 1)),
+            bool(index.data(ITEM_DATAS["clicked"])),
             bool(option.state & QStyle.StateFlag.State_MouseOver),
             True,
         ]
@@ -339,10 +339,10 @@ class ButtonDelegate(QStyledItemDelegate):
             indexes.remove(index)
 
             for index_ in indexes:
-                model.setData(index_, False, Qt.ItemDataRole.UserRole + 1)
+                model.setData(index_, False, ITEM_DATAS["clicked"])
 
-            model.setData(index, True, Qt.ItemDataRole.UserRole + 1)
-            self.parent_.parent_.widget.setCurrentIndex(index.data(Qt.ItemDataRole.UserRole + 2))
+            model.setData(index, True, ITEM_DATAS["clicked"])
+            self.parent_.parent_.widget.setCurrentIndex(index.data(ITEM_DATAS["type"]))
 
         return super().editorEvent(event, model, option, index)
 
@@ -1097,13 +1097,13 @@ class DocumentSettings(GlobalSettings):
 
             if check:
                 for item in self.parent_.parent_.home.selector.maindb.items.values():
-                    if "global" in item.data(Qt.ItemDataRole.UserRole + 20 + i)[0]:
+                    if "global" in item.data(ITEM_DATAS["completed"] + i)[0]:
                         item.setData(
                             (
-                                item.data(Qt.ItemDataRole.UserRole + 20 + i)[0],
+                                item.data(ITEM_DATAS["completed"] + i)[0],
                                 self.parent_.parent_.home.selector.tree_view.handleSettingViaGlobal(i),
                             ),
-                            Qt.ItemDataRole.UserRole + 20 + i,
+                            ITEM_DATAS["completed"] + i,
                         )
 
                         if i == 6:
@@ -1170,13 +1170,13 @@ class ListSettings(GlobalSettings):
 
             if check:
                 for item in self.parent_.parent_.home.selector.maindb.items.values():
-                    if "global" in item.data(Qt.ItemDataRole.UserRole + 27 + i)[0]:
+                    if "global" in item.data(ITEM_DATAS["bg_normal"] + i)[0]:
                         item.setData(
                             (
-                                item.data(Qt.ItemDataRole.UserRole + 27 + i)[0],
+                                item.data(ITEM_DATAS["bg_normal"] + i)[0],
                                 self.parent_.parent_.home.selector.tree_view.handleSettingViaGlobal(7 + i),
                             ),
-                            Qt.ItemDataRole.UserRole + 27 + i,
+                            ITEM_DATAS["bg_normal"] + i,
                         )
 
         return successful

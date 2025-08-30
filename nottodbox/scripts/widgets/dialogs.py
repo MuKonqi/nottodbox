@@ -32,7 +32,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from ..consts import SETTINGS_KEYS, SETTINGS_OPTIONS, SETTINGS_VALUES
+from ..consts import ITEM_DATAS, SETTINGS_KEYS, SETTINGS_OPTIONS, SETTINGS_VALUES
 from .controls import CalendarWidget, Label, LineEdit, PushButton
 
 
@@ -376,10 +376,10 @@ class ChangeAppearance(Settings):
                     widget,
                     True,
                     True,
-                    index.data(Qt.ItemDataRole.UserRole + 2) == "document",
-                    index.data(Qt.ItemDataRole.UserRole + 27 + i)[1]
-                    if index.data(Qt.ItemDataRole.UserRole + 27 + i)[0][0] == "self"
-                    else index.data(Qt.ItemDataRole.UserRole + 27 + i)[0][0],
+                    index.data(ITEM_DATAS["type"]) == "document",
+                    index.data(ITEM_DATAS["bg_normal"] + i)[1]
+                    if index.data(ITEM_DATAS["bg_normal"] + i)[0][0] == "self"
+                    else index.data(ITEM_DATAS["bg_normal"] + i)[0][0],
                 )
             )
 
@@ -406,7 +406,7 @@ class ChangeSettings(Settings):
 
         self.options = SETTINGS_OPTIONS.copy()
 
-        if index.data(Qt.ItemDataRole.UserRole + 2) == "document":
+        if index.data(ITEM_DATAS["type"]) == "document":
             self.options.append("notebook")
 
         self.localized_defaults = [
@@ -451,12 +451,12 @@ class ChangeSettings(Settings):
                 self.tr("Follow global ({})").format(self.settings.value(f"globals/{SETTINGS_KEYS[i]}"))
             )
 
-            if index.data(Qt.ItemDataRole.UserRole + 2) == "document":
+            if index.data(ITEM_DATAS["type"]) == "document":
                 self.selectors[-1].insertItem(
                     2 if True else 1,
                     self.tr("Follow notebook ({})").format(
-                        self.db.items[(index.data(Qt.ItemDataRole.UserRole + 100), "__main__")].data(
-                            Qt.ItemDataRole.UserRole + 20 + i
+                        self.db.items[(index.data(ITEM_DATAS["notebook"]), "__main__")].data(
+                            ITEM_DATAS["completed"] + i
                         )[1]
                     ),
                 )
@@ -472,13 +472,11 @@ class ChangeSettings(Settings):
             self.layout_.addWidget(widget)
 
             try:
-                self.selectors[-1].setCurrentIndex(
-                    self.options.index(index.data(Qt.ItemDataRole.UserRole + 20 + i)[0][0])
-                )
+                self.selectors[-1].setCurrentIndex(self.options.index(index.data(ITEM_DATAS["completed"] + i)[0][0]))
 
             except ValueError:
                 self.selectors[-1].setCurrentIndex(
-                    len(self.options) + SETTINGS_VALUES[i].index(index.data(Qt.ItemDataRole.UserRole + 20 + i)[1])
+                    len(self.options) + SETTINGS_VALUES[i].index(index.data(ITEM_DATAS["completed"] + i)[1])
                 )
 
         self.layout_.addWidget(

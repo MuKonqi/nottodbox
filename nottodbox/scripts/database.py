@@ -21,9 +21,7 @@
 import datetime
 import sqlite3
 
-from PySide6.QtCore import Qt
-
-from .consts import USER_DATABASES_DIR
+from .consts import ITEM_DATAS, USER_DATABASES_DIR
 
 
 class MainDB:
@@ -305,10 +303,10 @@ class MainDB:
 
         if table != "__main__":
             successful = self.set(date, "modification", table)
-            self.items[(table, "__main__")].setData(date, Qt.ItemDataRole.UserRole + 103)
+            self.items[(table, "__main__")].setData(date, ITEM_DATAS["modification"])
 
         successful = self.set(date, "modification", name, table) & successful
 
-        self.items[(name, table)].setData(date, Qt.ItemDataRole.UserRole + 103)
+        self.items[(name, table)].setData(date, ITEM_DATAS["modification"])
 
         return successful

@@ -44,8 +44,11 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from .consts import ITEM_DATAS
 from .resources import icons  # noqa: F401
 from .widgets.controls import HSeperator, Label, ToolButton
+
+ITEM_DATAS["target"] = ITEM_DATAS["type"]
 
 
 class Sidebar(QWidget):
@@ -153,8 +156,8 @@ class ListView(QListView):
 
     def addItem(self, index: QModelIndex) -> None:
         item = QStandardItem()
-        item.setData(False, Qt.ItemDataRole.UserRole + 1)
-        item.setData(index, Qt.ItemDataRole.UserRole + 2)
+        item.setData(False, ITEM_DATAS["clicked"])
+        item.setData(index, ITEM_DATAS["target"])
 
         self.model_.appendRow(item)
 
@@ -175,7 +178,7 @@ class ButtonDelegate(QStyledItemDelegate):
     def paint(self, painter: QPainter, option: QStyleOptionViewItem, index: QModelIndex) -> None:
         painter.save()
 
-        name = index.data(Qt.ItemDataRole.UserRole + 2).data(Qt.ItemDataRole.UserRole + 101)
+        name = index.data(ITEM_DATAS["target"]).data(ITEM_DATAS["name"])
 
         name_font = QFont(option.font)
         name_font.setWeight(QFont.Weight.Bold)
@@ -195,8 +198,8 @@ class ButtonDelegate(QStyledItemDelegate):
 
         situations = [
             bool(
-                index.data(Qt.ItemDataRole.UserRole + 1)
-                and index.data(Qt.ItemDataRole.UserRole + 2).data(Qt.ItemDataRole.UserRole + 2) == "document"
+                index.data(ITEM_DATAS["clicked"])
+                and index.data(ITEM_DATAS["target"]).data(ITEM_DATAS["type"]) == "document"
             ),
             bool(option.state & QStyle.StateFlag.State_MouseOver),
             True,
@@ -215,19 +218,12 @@ class ButtonDelegate(QStyledItemDelegate):
         for status in situations:
             if status:
                 for j in range(3):
-                    if (
-                        index.data(Qt.ItemDataRole.UserRole + 2).data(Qt.ItemDataRole.UserRole + 27 + j * 3 + i)[1]
-                        is None
-                    ):
+                    if index.data(ITEM_DATAS["target"]).data(ITEM_DATAS["bg_normal"] + j * 3 + i)[1] is None:
                         colors.append(defaults[i][j])
 
                     else:
                         colors.append(
-                            QColor(
-                                index.data(Qt.ItemDataRole.UserRole + 2).data(
-                                    Qt.ItemDataRole.UserRole + 27 + j * 3 + i
-                                )[1]
-                            )
+                            QColor(index.data(ITEM_DATAS["target"]).data(ITEM_DATAS["bg_normal"] + j * 3 + i)[1])
                         )
 
                 break
@@ -256,17 +252,15 @@ class ButtonDelegate(QStyledItemDelegate):
             indexes.remove(index)
 
             for index_ in indexes:
-                model.setData(index_, False, Qt.ItemDataRole.UserRole + 1)
+                model.setData(index_, False, ITEM_DATAS["clicked"])
 
-            model.setData(index, True, Qt.ItemDataRole.UserRole + 1)
+            model.setData(index, True, ITEM_DATAS["clicked"])
 
-            index.data(Qt.ItemDataRole.UserRole + 2).data(Qt.ItemDataRole.UserRole + 10)(
-                index.data(Qt.ItemDataRole.UserRole + 2)
-            )
+            index.data(ITEM_DATAS["target"]).data(ITEM_DATAS["setCurrentIndex"])(index.data(ITEM_DATAS["type"]))
 
-            if index.data(Qt.ItemDataRole.UserRole + 2).data(Qt.ItemDataRole.UserRole + 2) == "document":
-                index.data(Qt.ItemDataRole.UserRole + 2).data(Qt.ItemDataRole.UserRole + 11)(
-                    index.data(Qt.ItemDataRole.UserRole + 2), "normal", True
+            if index.data(ITEM_DATAS["target"]).data(ITEM_DATAS["type"]) == "document":
+                index.data(ITEM_DATAS["target"]).data(ITEM_DATAS["open"])(
+                    index.data(ITEM_DATAS["type"]), "normal", True
                 )
 
         return super().editorEvent(event, model, option, index)

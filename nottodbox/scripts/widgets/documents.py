@@ -40,7 +40,7 @@ from PySide6.QtGui import (
 )
 from PySide6.QtWidgets import QApplication, QMenu, QMessageBox, QTextEdit, QToolBar, QToolButton, QVBoxLayout, QWidget
 
-from ..consts import USER_DIRS
+from ..consts import ITEM_DATAS, USER_DIRS
 from .controls import Action, HSeperator, Label
 from .dialogs import GetColor, GetTwoNumber
 
@@ -57,7 +57,7 @@ class Document(QWidget):
         self.index = index
         self.mode = mode
 
-        self.creation = index.data(Qt.ItemDataRole.UserRole + 102)
+        self.creation = index.data(ITEM_DATAS["creation"])
 
         self.today = QDate.currentDate()
 
@@ -97,19 +97,17 @@ class Document(QWidget):
             return self.settings[(setting, "notebook")]
 
     def handleSettings(self) -> None:
-        self.settings["autosave"] = self.index.data(Qt.ItemDataRole.UserRole + 22)[1]
-        self.settings["folder"] = self.index.data(Qt.ItemDataRole.UserRole + 25)[1]
-        self.settings["format"] = self.index.data(Qt.ItemDataRole.UserRole + 23)[1]
-        self.settings["locked"] = self.index.data(Qt.ItemDataRole.UserRole + 21)[1]
-        self.settings["sync"] = self.index.data(Qt.ItemDataRole.UserRole + 24)[1]
+        self.settings["autosave"] = self.index.data(ITEM_DATAS["autosave"])[1]
+        self.settings["folder"] = self.index.data(ITEM_DATAS["folder"])[1]
+        self.settings["format"] = self.index.data(ITEM_DATAS["format"])[1]
+        self.settings["locked"] = self.index.data(ITEM_DATAS["locked"])[1]
+        self.settings["sync"] = self.index.data(ITEM_DATAS["sync"])[1]
 
         self.helper.updateStatus(self.settings["format"])
 
     def refreshContent(self) -> None:
         self.content = (
-            self.index.data(Qt.ItemDataRole.UserRole + 104)
-            if self.mode == "normal"
-            else self.index.data(Qt.ItemDataRole.UserRole + 105)
+            self.index.data(ITEM_DATAS["content"]) if self.mode == "normal" else self.index.data(ITEM_DATAS["backup"])
         )
 
         if self.settings["format"] == "plain-text":
@@ -122,8 +120,8 @@ class Document(QWidget):
             self.input.setHtml(self.content)
 
     def refreshNames(self) -> None:
-        self.document = self.index.data(Qt.ItemDataRole.UserRole + 101)
-        self.notebook = self.index.data(Qt.ItemDataRole.UserRole + 100)
+        self.document = self.index.data(ITEM_DATAS["name"])
+        self.notebook = self.index.data(ITEM_DATAS["notebook"])
 
         self.label.setText(self.document)
         self.input.setDocumentTitle(self.document)
@@ -154,10 +152,10 @@ class BackupView(Document):
 
         if self.db.restoreContent(self.document, self.notebook):
             self.index.model().setData(
-                self.index, self.db.getContent(self.document, self.notebook), Qt.ItemDataRole.UserRole + 104
+                self.index, self.db.getContent(self.document, self.notebook), ITEM_DATAS["content"]
             )
             self.index.model().setData(
-                self.index, self.db.getBackup(self.document, self.notebook), Qt.ItemDataRole.UserRole + 105
+                self.index, self.db.getBackup(self.document, self.notebook), ITEM_DATAS["backup"]
             )
 
             QMessageBox.information(self, self.tr("Successful"), self.tr("Content restored."))
@@ -697,15 +695,13 @@ class DocumentSaver(QObject):
                             )
                             writer.write(document)
 
-                self.parent_.index.model().setData(
-                    self.parent_.index, self.parent_.getText(), Qt.ItemDataRole.UserRole + 104
-                )
+                self.parent_.index.model().setData(self.parent_.index, self.parent_.getText(), ITEM_DATAS["content"])
 
                 if not autosave:
                     self.parent_.index.model().setData(
                         self.parent_.index,
                         self.parent_.db.getBackup(self.parent_.document, self.parent_.notebook),
-                        Qt.ItemDataRole.UserRole + 105,
+                        ITEM_DATAS["backup"],
                     )
 
                     self.parent_.show_messages.emit(True)

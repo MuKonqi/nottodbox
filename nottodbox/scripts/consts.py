@@ -19,7 +19,36 @@
 import getpass
 import os
 
-from PySide6.QtCore import QStandardPaths
+from PySide6.QtCore import QStandardPaths, Qt
+
+ITEM_DATAS = {
+    "clicked": Qt.ItemDataRole.UserRole + 1,
+    "type": Qt.ItemDataRole.UserRole + 2,
+    "setCurrentIndex": Qt.ItemDataRole.UserRole + 10,
+    "open": Qt.ItemDataRole.UserRole + 11,
+    "completed": Qt.ItemDataRole.UserRole + 20,
+    "locked": Qt.ItemDataRole.UserRole + 21,
+    "autosave": Qt.ItemDataRole.UserRole + 22,
+    "format": Qt.ItemDataRole.UserRole + 23,
+    "sync": Qt.ItemDataRole.UserRole + 24,
+    "folder": Qt.ItemDataRole.UserRole + 25,
+    "pinned": Qt.ItemDataRole.UserRole + 26,
+    "bg_normal": Qt.ItemDataRole.UserRole + 27,
+    "bg_hover": Qt.ItemDataRole.UserRole + 28,
+    "bg_clicked": Qt.ItemDataRole.UserRole + 29,
+    "fg_normal": Qt.ItemDataRole.UserRole + 30,
+    "fg_hover": Qt.ItemDataRole.UserRole + 31,
+    "fg_clicked": Qt.ItemDataRole.UserRole + 32,
+    "bd_normal": Qt.ItemDataRole.UserRole + 33,
+    "bd_hover": Qt.ItemDataRole.UserRole + 34,
+    "bd_clicked": Qt.ItemDataRole.UserRole + 35,
+    "notebook": Qt.ItemDataRole.UserRole + 100,
+    "name": Qt.ItemDataRole.UserRole + 101,
+    "creation": Qt.ItemDataRole.UserRole + 102,
+    "modification": Qt.ItemDataRole.UserRole + 103,
+    "content": Qt.ItemDataRole.UserRole + 104,
+    "backup": Qt.ItemDataRole.UserRole + 105,
+}
 
 SETTINGS_DEFAULTS = [
     None,
