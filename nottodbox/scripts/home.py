@@ -671,7 +671,7 @@ class Options:
         name, table = self.get(index)
 
         if self.parent_.maindb.delete(name, table):
-            self.unpin(index, False, False) # because it is deleted
+            self.unpin(index, False, False)  # because it is deleted
 
             # Also delete the notebook's documents.
             if index.data(ITEM_DATAS["type"]) == "notebook":
@@ -685,7 +685,9 @@ class Options:
                         ]:
                             page.removeDocument()
 
-                        self.unpin(self.parent_.maindb.items[(name_, table_)].index(), False, False) # because it is deleted
+                        self.unpin(
+                            self.parent_.maindb.items[(name_, table_)].index(), False, False
+                        )  # because it is deleted
 
                         del self.parent_.maindb.items[(name_, table_)]
 
