@@ -654,7 +654,9 @@ class DocumentSaver(QObject):
             ):
                 self.parent_.last_content = self.parent_.getText()
 
-                if self.parent_.settings["sync"] is not None and (self.parent_.settings["sync"].endswith("_all") or self.parent_.settings["sync"].endswith("_export")):
+                if self.parent_.settings["sync"] is not None and (
+                    self.parent_.settings["sync"].endswith("_all") or self.parent_.settings["sync"].endswith("_export")
+                ):
                     os.makedirs(
                         os.path.join(USER_DIRS[self.parent_.settings["folder"]], "Nottodbox", self.parent_.notebook),
                         exist_ok=True,
@@ -676,10 +678,7 @@ class DocumentSaver(QObject):
                         document = QTextDocument(self.parent_.getText())
                         document.print_(writer)
 
-                    elif sync == "plain-text" or (
-                        sync == "format"
-                        and self.parent_.settings["format"] == "plain-text"
-                    ):
+                    elif sync == "plain-text" or (sync == "format" and self.parent_.settings["format"] == "plain-text"):
                         with open(
                             os.path.join(
                                 USER_DIRS[self.parent_.settings["folder"]],
@@ -692,11 +691,7 @@ class DocumentSaver(QObject):
                             f.write(self.parent_.input.toPlainText())
 
                     else:
-                        export = (
-                            self.parent_.settings["format"]
-                            if sync == "format"
-                            else sync
-                        )
+                        export = self.parent_.settings["format"] if sync == "format" else sync
 
                         document = QTextDocument(self.parent_.getText())
 

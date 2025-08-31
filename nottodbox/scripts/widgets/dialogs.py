@@ -213,10 +213,17 @@ class GetName(Dialog):
 
     def get(self) -> tuple[bool, str] | tuple[bool, int, str]:
         if self.creation:
-            return self.result() == 1 and "/" not in self.name.text() and self.name.text() != "__main__", self.combobox.currentIndex(), self.name.text()
+            return (
+                self.result() == 1 and "/" not in self.name.text() and self.name.text() != "__main__",
+                self.combobox.currentIndex(),
+                self.name.text(),
+            )
 
         else:
-            return self.result() == 1 and "/" not in self.name.text() and self.name.text() != "__main__", self.name.text()
+            return (
+                self.result() == 1 and "/" not in self.name.text() and self.name.text() != "__main__",
+                self.name.text(),
+            )
 
     def set(self) -> int:
         self.layout_ = QVBoxLayout(self.input)
@@ -247,10 +254,19 @@ class GetDescription(Dialog):
 class GetNameAndDescription(GetName, GetDescription):
     def get(self) -> tuple[bool, str, str] | tuple[bool, int, str, str]:
         if self.creation:
-            return self.result() == 1 and "/" not in self.name.text() and self.name.text() != "__main__", self.combobox.currentIndex(), self.name.text(), self.description.text()
+            return (
+                self.result() == 1 and "/" not in self.name.text() and self.name.text() != "__main__",
+                self.combobox.currentIndex(),
+                self.name.text(),
+                self.description.text(),
+            )
 
         else:
-            return self.result() == 1 and "/" not in self.name.text() and self.name.text() != "__main__", self.name.text(), self.description.text()
+            return (
+                self.result() == 1 and "/" not in self.name.text() and self.name.text() != "__main__",
+                self.name.text(),
+                self.description.text(),
+            )
 
     def set(self) -> int:
         self.layout_ = QVBoxLayout(self.input)
@@ -439,7 +455,27 @@ class ChangeSettings(Settings):
             [self.tr("Enabled"), self.tr("Disabled")],
             [self.tr("Enabled"), self.tr("Disabled")],
             ["Markdown", "HTML", self.tr("Plain-text")],
-            ["{}, {}".format(setting, self.tr("with export synchronization")) for setting in [self.tr("Follow format"), "PDF", "ODT"]] + [f"Markdown, {mode}" for mode in [self.tr("with export and import synchronizations"), self.tr("with export synchronization"), self.tr("with import synchronization")]] + ["HTML, {}".format(self.tr("with export synchronization"))] + [f"Plain-text, {mode}" for mode in [self.tr("with export and import synchronizations"), self.tr("with export synchronization"), self.tr("with import synchronization")]],
+            [
+                "{}, {}".format(setting, self.tr("with export synchronization"))
+                for setting in [self.tr("Follow format"), "PDF", "ODT"]
+            ]
+            + [
+                f"Markdown, {mode}"
+                for mode in [
+                    self.tr("with export and import synchronizations"),
+                    self.tr("with export synchronization"),
+                    self.tr("with import synchronization"),
+                ]
+            ]
+            + ["HTML, {}".format(self.tr("with export synchronization"))]
+            + [
+                f"Plain-text, {mode}"
+                for mode in [
+                    self.tr("with export and import synchronizations"),
+                    self.tr("with export synchronization"),
+                    self.tr("with import synchronization"),
+                ]
+            ],
             [self.tr("Documents"), self.tr("Desktop")],
             [self.tr("Yes"), self.tr("No")],
         ]

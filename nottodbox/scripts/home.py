@@ -295,7 +295,10 @@ class Selector(QWidget):
         self.calendar_widget.setVisible(not (signal == Qt.CheckState.Unchecked or signal == 0))
 
     def getPageFromIndex(self, index: QModelIndex) -> None | typing.Any:
-        return next((page for page in self.parent_.area.pages if page.document is not None and page.document.index == index), None)
+        return next(
+            (page for page in self.parent_.area.pages if page.document is not None and page.document.index == index),
+            None,
+        )
 
     def setPage(self) -> None:
         if self.tree_view.model_.rowCount() == 0:
@@ -843,7 +846,14 @@ class Options:
 
     @Slot(QModelIndex, str)
     def open(self, index: QModelIndex, mode: str, make: bool = False) -> None:
-        if index != next((page.document.index for page in self.parent_.parent_.area.pages if page.document is not None and page.document.index == index), None):
+        if index != next(
+            (
+                page.document.index
+                for page in self.parent_.parent_.area.pages
+                if page.document is not None and page.document.index == index
+            ),
+            None,
+        ):
             # Making clicked that QModelIndex, this is optional because sometime's already clicked.
             if make:
                 index.model().setData(index, True, ITEM_DATAS["clicked"])
@@ -1433,9 +1443,16 @@ class Importer(QObject):
         for item in self.parent_.parent_.maindb.items.values():
             if item.data(ITEM_DATAS["sync"])[1] is not None:
                 sync = item.data(ITEM_DATAS["sync"])[1].removesuffix("_all").removesuffix("_import")
-                file = os.path.join(USER_DIRS[item.data(ITEM_DATAS["folder"])[1]], "Nottodbox", item.data(ITEM_DATAS["notebook"]), f'{item.data(ITEM_DATAS["name"])}.{"txt" if sync == "plain-text" else sync}')
+                file = os.path.join(
+                    USER_DIRS[item.data(ITEM_DATAS["folder"])[1]],
+                    "Nottodbox",
+                    item.data(ITEM_DATAS["notebook"]),
+                    f"{item.data(ITEM_DATAS['name'])}.{'txt' if sync == 'plain-text' else sync}",
+                )
 
-                if item.data(ITEM_DATAS["sync"])[1].endswith("_all") or item.data(ITEM_DATAS["sync"])[1].endswith("_import"):
+                if item.data(ITEM_DATAS["sync"])[1].endswith("_all") or item.data(ITEM_DATAS["sync"])[1].endswith(
+                    "_import"
+                ):
                     self.watcher.addPath(file)
 
                     if os.path.isfile(file):
@@ -1444,7 +1461,9 @@ class Importer(QObject):
 
                         page = self.parent_.parent_.getPageFromIndex(item.index())
 
-                        if file_date > db_date and (page is None or page.document.last_content != page.document.getText()):
+                        if file_date > db_date and (
+                            page is None or page.document.last_content != page.document.getText()
+                        ):
                             self.importDocument(file, item)
 
     def importDocument(self, file: str, item: QStandardItem) -> None:
@@ -1452,7 +1471,13 @@ class Importer(QObject):
             content = f.read()
 
             if content != item.data(ITEM_DATAS["content"]):
-                if self.parent_.parent_.maindb.saveDocument(content, item.data(ITEM_DATAS["content"]), False, item.data(ITEM_DATAS["name"]), item.data(ITEM_DATAS["notebook"])):
+                if self.parent_.parent_.maindb.saveDocument(
+                    content,
+                    item.data(ITEM_DATAS["content"]),
+                    False,
+                    item.data(ITEM_DATAS["name"]),
+                    item.data(ITEM_DATAS["notebook"]),
+                ):
                     item.setData(item.data(ITEM_DATAS["content"]), ITEM_DATAS["backup"])
                     item.setData(content, ITEM_DATAS["content"])
 
@@ -1467,7 +1492,12 @@ class Importer(QObject):
         item = self.parent_.parent_.maindb.items[tuple(reversed(os.path.splitext(file)[0].split("/")[-2:]))]
         sync = item.data(ITEM_DATAS["sync"])[1].removesuffix("_all").removesuffix("_export")
 
-        if file == os.path.join(USER_DIRS[item.data(ITEM_DATAS["folder"])[1]], "Nottodbox", item.data(ITEM_DATAS["notebook"]), f'{item.data(ITEM_DATAS["name"])}.{"txt" if sync == "plain-text" else sync}'):
+        if file == os.path.join(
+            USER_DIRS[item.data(ITEM_DATAS["folder"])[1]],
+            "Nottodbox",
+            item.data(ITEM_DATAS["notebook"]),
+            f"{item.data(ITEM_DATAS['name'])}.{'txt' if sync == 'plain-text' else sync}",
+        ):
             self.importDocument(file, item)
 
 
