@@ -102,7 +102,7 @@ def main() -> None:
     sys.stdout = StreamToLogger(logger, logging.INFO)
     sys.stderr = StreamToLogger(logger, logging.ERROR)
 
-    logging.info(f"Nottodbox, version: {APP_VERSION}, build: {APP_BUILD}, thread {threading.get_native_id()}")
+    logging.info(f"Nottodbox, version: {APP_VERSION}, build: {APP_BUILD}, process ID: {threading.get_native_id()}")
     logging.info(f"Operating system: {platform.system()} {platform.release()} ({platform.platform()})")
     logging.info(f"Python: {platform.python_version()}")
     logging.info(f"Language: {QLocale.system().name()} / {QLocale.system().name().split('_')[0]}")
