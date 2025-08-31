@@ -1490,15 +1490,17 @@ class Importer(QObject):
 
     def importFile(self, file: str) -> None:
         item = self.parent_.parent_.maindb.items[tuple(reversed(os.path.splitext(file)[0].split("/")[-2:]))]
-        sync = item.data(ITEM_DATAS["sync"])[1].removesuffix("_all").removesuffix("_export")
 
-        if file == os.path.join(
-            USER_DIRS[item.data(ITEM_DATAS["folder"])[1]],
-            "Nottodbox",
-            item.data(ITEM_DATAS["notebook"]),
-            f"{item.data(ITEM_DATAS['name'])}.{'txt' if sync == 'plain-text' else sync}",
-        ):
-            self.importDocument(file, item)
+        if item.data(ITEM_DATAS["sync"])[1].endswith("_all") or item.data(ITEM_DATAS["sync"])[1].endswith("_import"):
+            sync = item.data(ITEM_DATAS["sync"])[1].removesuffix("_all").removesuffix("_import")
+
+            if file == os.path.join(
+                USER_DIRS[item.data(ITEM_DATAS["folder"])[1]],
+                "Nottodbox",
+                item.data(ITEM_DATAS["notebook"]),
+                f"{item.data(ITEM_DATAS['name'])}.{'txt' if sync == 'plain-text' else sync}",
+            ):
+                self.importDocument(file, item)
 
 
 class ButtonDelegate(QStyledItemDelegate):
