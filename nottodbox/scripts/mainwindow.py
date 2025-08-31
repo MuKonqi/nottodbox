@@ -51,6 +51,8 @@ class MainWindow(QMainWindow):
 
     @Slot(QCloseEvent)
     def closeEvent(self, event: QCloseEvent) -> None:
+        self.widget.home.selector.tree_view.importer_thread.quit()
+
         self.qsettings.setValue("mainwindow/geometry", self.saveGeometry())
         self.qsettings.setValue("mainwindow/state", self.saveState())
 

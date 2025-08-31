@@ -18,17 +18,21 @@
 
 import datetime
 import os
+import typing
 
 from PySide6.QtCore import (
     QEvent,
+    QFileSystemWatcher,
     QMargins,
     QModelIndex,
+    QObject,
     QPoint,
     QRect,
     QSettings,
     QSize,
     QSortFilterProxyModel,
     Qt,
+    QThread,
     Signal,
     Slot,
 )
@@ -270,15 +274,16 @@ class Selector(QWidget):
         self.layout_.addWidget(self.calendar_widget)
         self.layout_.addWidget(self.pages)
 
-        self.setFixedWidth(330)
         self.maindb.updateDatabase()
         self.tree_view.appendAll()
+        self.parent_.parent_.sidebar.buttons[-1].setChecked(self.settings.value("selector/self") == "hidden")
+
+        self.setFixedWidth(330)
         self.enableCalendar(
             Qt.CheckState.Unchecked if self.settings.value("selector/calendar") == "hidden" else Qt.CheckState.Checked
         )
         self.setPage()
         self.setVisible(self.settings.value("selector/self") != "hidden")
-        self.parent_.parent_.sidebar.buttons[-1].setChecked(self.settings.value("selector/self") == "hidden")
 
     @Slot(int or Qt.CheckState)
     def enableCalendar(self, signal: int | Qt.CheckState) -> None:
@@ -288,6 +293,9 @@ class Selector(QWidget):
             )
 
         self.calendar_widget.setVisible(not (signal == Qt.CheckState.Unchecked or signal == 0))
+
+    def getPageFromIndex(self, index: QModelIndex) -> None | typing.Any:
+        return next((page for page in self.parent_.area.pages if page.document is not None and page.document.index == index), None)
 
     def setPage(self) -> None:
         if self.tree_view.model_.rowCount() == 0:
@@ -311,10 +319,10 @@ class Selector(QWidget):
     @Slot()
     def selectedDateChanged(self) -> None:
         if self.pages.currentIndex() == 0:
-            self.create_first_notebook.name.setText(self.calendar_widget.selectedDate().toString("dd/MM/yyyy"))
+            self.create_first_notebook.name.setText(self.calendar_widget.selectedDate().toString("dd.MM.yyyy"))
 
         elif self.pages.currentIndex() == 1:
-            self.search_entry.setText(self.calendar_widget.selectedDate().toString("dd/MM/yyyy"))
+            self.search_entry.setText(self.calendar_widget.selectedDate().toString("dd.MM.yyyy"))
 
     def setVisible(self, visible: bool) -> None:
         self.settings.setValue("selector/self", "hidden" if not visible else "visible")
@@ -337,7 +345,7 @@ class CreateFirstNotebook(QWidget):
         self.label.setFont(font)
 
         self.name = LineEdit(self, self.tr("Name (required)"))
-        self.name.setText(self.parent_.calendar_widget.selectedDate().toString("dd/MM/yyyy"))
+        self.name.setText(self.parent_.calendar_widget.selectedDate().toString("dd.MM.yyyy"))
 
         self.description = LineEdit(self, self.tr("Description (not required)"))
 
@@ -375,11 +383,8 @@ class Options:
             index.model().setData(index, ["self", "enabled"], ITEM_DATAS["locked"])
             self.parent_.tree_view.setType(index)
 
-            for page in [
-                page
-                for page in self.parent_.parent_.area.pages
-                if page.document is not None and page.document.index == index
-            ]:
+            page = self.parent_.getPageFromIndex(index)
+            if page is not None:
                 page.document.refreshSettings()
 
             QMessageBox.information(
@@ -461,11 +466,8 @@ class Options:
                         ITEM_DATAS["completed"] + i,
                     )
 
-                    for page in [
-                        page
-                        for page in self.parent_.parent_.area.pages
-                        if page.document is not None and page.document.index == index
-                    ]:
+                    page = self.parent_.getPageFromIndex(index)
+                    if page is not None:
                         page.document.refreshSettings()
 
                     if index.data(ITEM_DATAS["type"]) == "notebook":
@@ -520,11 +522,8 @@ class Options:
             index.model().setData(index, "", ITEM_DATAS["content"])
             index.model().setData(index, self.parent_.maindb.getBackup(document, notebook), ITEM_DATAS["backup"])
 
-            for page in [
-                page
-                for page in self.parent_.parent_.area.pages
-                if page.document is not None and page.document.index == index
-            ]:
+            page = self.parent_.getPageFromIndex(index)
+            if page is not None:
                 page.document.refreshContent()
 
             QMessageBox.information(
@@ -538,11 +537,8 @@ class Options:
 
     @Slot(QModelIndex)
     def close(self, index: QModelIndex) -> None:
-        for page in [
-            page
-            for page in self.parent_.parent_.area.pages
-            if page.document is not None and page.document.index == index
-        ]:
+        page = self.parent_.getPageFromIndex(index)
+        if page is not None:
             if page.document.mode == "normal" and page.document.last_content != page.document.getText():
                 self.question = QMessageBox.question(
                     self.parent_,
@@ -702,11 +698,8 @@ class Options:
                 self.parent_.tree_view.model_.removeRow(index.row())
 
             elif index.data(ITEM_DATAS["type"]) == "document":
-                for page in [
-                    page
-                    for page in self.parent_.parent_.area.pages
-                    if page.document is not None and page.document.index == index
-                ]:
+                page = self.parent_.getPageFromIndex(index)
+                if page is not None:
                     page.removeDocument()
 
                 self.parent_.maindb.items[(table, "__main__")].removeRow(index.row())
@@ -850,11 +843,7 @@ class Options:
 
     @Slot(QModelIndex, str)
     def open(self, index: QModelIndex, mode: str, make: bool = False) -> None:
-        if index not in [
-            page.document.index
-            for page in self.parent_.parent_.area.pages
-            if page.document is not None and page.document.index == index
-        ]:
+        if index != next((page.document.index for page in self.parent_.parent_.area.pages if page.document is not None and page.document.index == index), None):
             # Making clicked that QModelIndex, this is optional because sometime's already clicked.
             if make:
                 index.model().setData(index, True, ITEM_DATAS["clicked"])
@@ -900,11 +889,8 @@ class Options:
             index.model().setData(index, ["self", "disabled"], ITEM_DATAS["locked"])
             self.parent_.tree_view.setType(index)
 
-            for page in [
-                page
-                for page in self.parent_.parent_.area.pages
-                if page.document is not None and page.document.index == index
-            ]:
+            page = self.parent_.getPageFromIndex(index)
+            if page is not None:
                 page.document.refreshSettings()
 
             QMessageBox.information(
@@ -966,11 +952,8 @@ class Options:
                                 )
 
                     elif index.data(ITEM_DATAS["type"]) == "document":
-                        for page in [
-                            page
-                            for page in self.parent_.parent_.area.pages
-                            if page.document is not None and page.document.index == index
-                        ]:
+                        page = self.parent_.getPageFromIndex(index)
+                        if page is not None:
                             page.document.refreshNames()
 
                         if diary == "enabled":
@@ -1018,11 +1001,8 @@ class Options:
             index.model().setData(index, self.parent_.maindb.getContent(document, notebook), ITEM_DATAS["content"])
             index.model().setData(index, self.parent_.maindb.getBackup(document, notebook), ITEM_DATAS["backup"])
 
-            for page in [
-                page
-                for page in self.parent_.parent_.area.pages
-                if page.document is not None and page.document.index == index
-            ]:
+            page = self.parent_.getPageFromIndex(index)
+            if page is not None:
                 page.document.refreshContent()
 
             QMessageBox.information(
@@ -1107,6 +1087,9 @@ class Options:
 
 
 class TreeView(QTreeView):
+    failed_to_import = Signal(QModelIndex)
+    refresh_document = Signal(typing.Any)
+
     def __init__(self, parent: Selector):
         super().__init__(parent)
 
@@ -1146,11 +1129,19 @@ class TreeView(QTreeView):
         self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.setModel(self.normal_filterer)
 
+        self.failed_to_import.connect(self.failedToImport)
+        self.refresh_document.connect(self.refreshDocument)
         self.delegate.menu_requested.connect(self.openMenu)
         self.customContextMenuRequested.connect(self.openMenu)
 
     def appendAll(self) -> None:
         items = self.parent_.maindb.getAll()
+
+        self.importer = Importer(self)
+        self.importer_thread = QThread()
+        self.importer.moveToThread(self.importer_thread)
+        self.importer_thread.start()
+        self.importer.import_all.connect(self.importer.importAll)
 
         if items != []:
             self.parent_.pages.setCurrentIndex(1)
@@ -1162,6 +1153,8 @@ class TreeView(QTreeView):
         for item in self.parent_.maindb.items.values():
             if item.data(ITEM_DATAS["pinned"])[1] == "yes":
                 self.parent_.options.pin(item.index(), False, False)
+
+        self.importer.import_all.emit()
 
     def appendDocument(self, data: list, item: QStandardItem, notebook: str) -> None:
         document = QStandardItem()
@@ -1207,6 +1200,10 @@ class TreeView(QTreeView):
         self.setType(notebook)
 
         self.model_.appendRow(notebook)
+
+    @Slot(QModelIndex)
+    def failedToImport(self, index: QModelIndex) -> None:
+        QMessageBox.critical(self, self.tr("Error"), self.parent_.options.tr("{the_item} exported.", index))
 
     @Slot(int)
     def filterChanged(self, index: int) -> None:
@@ -1374,20 +1371,17 @@ class TreeView(QTreeView):
         menu.addAction(Action(self, lambda: self.parent_.options.changeAppearance(index), self.tr("Change Appearance")))
         menu.addAction(Action(self, lambda: self.parent_.options.changeSettings(index), self.tr("Change Settings")))
 
-        page = next(
-            (
-                page
-                for page in self.parent_.parent_.area.pages
-                if page.document is not None and page.document.index == index
-            ),
-            None,
-        )
+        page = self.parent_.getPageFromIndex(index)
 
         if index.data(ITEM_DATAS["type"]) == "document" and page is not None:
             menu.addSeparator()
             menu.addAction(Action(self, page.removeDocument, self.tr("Close")))
 
         menu.exec(global_pos)
+
+    @Slot(typing.Any)
+    def refreshDocument(self, page: typing.Any) -> None:
+        page.document.refreshContent()
 
     @Slot(QModelIndex)
     def setCurrentIndex(self, index: QModelIndex) -> None:
@@ -1401,7 +1395,7 @@ class TreeView(QTreeView):
             context_data.setData(value, role)
 
     def setType(self, context_data: QModelIndex | QStandardItem) -> None:
-        # Set document type by "completed" and "locked" columns.
+        """Set document type by "completed" and "locked" columns."""
 
         if (
             context_data.data(ITEM_DATAS["completed"])[1] is None
@@ -1420,6 +1414,61 @@ class TreeView(QTreeView):
 
         elif context_data.data(ITEM_DATAS["locked"])[1] == "enabled":
             self.setData(context_data, "diary", ITEM_DATAS["type_2"])
+
+
+class Importer(QObject):
+    import_all = Signal()
+    import_file = Signal(str)
+
+    def __init__(self, parent: TreeView) -> None:
+        super().__init__()
+
+        self.parent_ = parent
+
+        self.import_file.connect(self.importFile)
+        self.watcher = QFileSystemWatcher(self)
+        self.watcher.fileChanged.connect(self.import_file.emit)
+
+    def importAll(self) -> None:
+        for item in self.parent_.parent_.maindb.items.values():
+            if item.data(ITEM_DATAS["sync"])[1] is not None:
+                sync = item.data(ITEM_DATAS["sync"])[1].removesuffix("_all").removesuffix("_import")
+                file = os.path.join(USER_DIRS[item.data(ITEM_DATAS["folder"])[1]], "Nottodbox", item.data(ITEM_DATAS["notebook"]), f'{item.data(ITEM_DATAS["name"])}.{"txt" if sync == "plain-text" else sync}')
+
+                if item.data(ITEM_DATAS["sync"])[1].endswith("_all") or item.data(ITEM_DATAS["sync"])[1].endswith("_import"):
+                    self.watcher.addPath(file)
+
+                    if os.path.isfile(file):
+                        db_date = datetime.datetime.strptime(item.data(ITEM_DATAS["modification"]), "%d.%m.%Y %H:%M")
+                        file_date = datetime.datetime.fromtimestamp(os.path.getmtime(file))
+
+                        page = self.parent_.parent_.getPageFromIndex(item.index())
+
+                        if file_date > db_date and (page is None or page.document.last_content != page.document.getText()):
+                            self.importDocument(file, item)
+
+    def importDocument(self, file: str, item: QStandardItem) -> None:
+        with open(file) as f:
+            content = f.read()
+
+            if content != item.data(ITEM_DATAS["content"]):
+                if self.parent_.parent_.maindb.saveDocument(content, item.data(ITEM_DATAS["content"]), False, item.data(ITEM_DATAS["name"]), item.data(ITEM_DATAS["notebook"])):
+                    item.setData(item.data(ITEM_DATAS["content"]), ITEM_DATAS["backup"])
+                    item.setData(content, ITEM_DATAS["content"])
+
+                    page = self.parent_.parent_.getPageFromIndex(item.index())
+                    if page is not None:
+                        self.parent_.refresh_document.emit(page)
+
+                else:
+                    self.parent_.failed_to_import.emit(item.index())
+
+    def importFile(self, file: str) -> None:
+        item = self.parent_.parent_.maindb.items[tuple(reversed(os.path.splitext(file)[0].split("/")[-2:]))]
+        sync = item.data(ITEM_DATAS["sync"])[1].removesuffix("_all").removesuffix("_export")
+
+        if file == os.path.join(USER_DIRS[item.data(ITEM_DATAS["folder"])[1]], "Nottodbox", item.data(ITEM_DATAS["notebook"]), f'{item.data(ITEM_DATAS["name"])}.{"txt" if sync == "plain-text" else sync}'):
+            self.importDocument(file, item)
 
 
 class ButtonDelegate(QStyledItemDelegate):

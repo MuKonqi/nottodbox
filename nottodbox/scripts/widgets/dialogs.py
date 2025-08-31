@@ -177,7 +177,7 @@ class Export(Dialog):
 
     def get(self) -> tuple[bool, str | None]:
         if self.result() == 1:
-            return True, SETTINGS_VALUES[4][self.combobox.currentIndex()]
+            return True, ["format", "pdf", "odt", "markdown", "html", "plain-text"][self.combobox.currentIndex()]
 
         else:
             return False, None
@@ -205,18 +205,18 @@ class GetName(Dialog):
 
         self.calendar = CalendarWidget(self.input)
         self.calendar.selectionChanged.connect(
-            lambda: self.name.setText(self.calendar.selectedDate().toString("dd/MM/yyyy"))
+            lambda: self.name.setText(self.calendar.selectedDate().toString("dd.MM.yyyy"))
         )
 
         self.name = LineEdit(self.input, self.tr("Name (required)"))
-        self.name.setText(self.calendar.selectedDate().toString("dd/MM/yyyy"))
+        self.name.setText(self.calendar.selectedDate().toString("dd.MM.yyyy"))
 
     def get(self) -> tuple[bool, str] | tuple[bool, int, str]:
         if self.creation:
-            return self.result() == 1, self.combobox.currentIndex(), self.name.text()
+            return self.result() == 1 and "/" not in self.name.text() and self.name.text() != "__main__", self.combobox.currentIndex(), self.name.text()
 
         else:
-            return self.result() == 1, self.name.text()
+            return self.result() == 1 and "/" not in self.name.text() and self.name.text() != "__main__", self.name.text()
 
     def set(self) -> int:
         self.layout_ = QVBoxLayout(self.input)
@@ -229,7 +229,7 @@ class GetName(Dialog):
 
 
 class GetDescription(Dialog):
-    def __init__(self, parent: QWidget, window_title: str):
+    def __init__(self, parent: QWidget, window_title: str) -> None:
         super().__init__(parent, window_title)
 
         self.description = LineEdit(self.input, self.tr("Description (leave blank to remove)"))
@@ -247,10 +247,10 @@ class GetDescription(Dialog):
 class GetNameAndDescription(GetName, GetDescription):
     def get(self) -> tuple[bool, str, str] | tuple[bool, int, str, str]:
         if self.creation:
-            return self.result() == 1, self.combobox.currentIndex(), self.name.text(), self.description.text()
+            return self.result() == 1 and "/" not in self.name.text() and self.name.text() != "__main__", self.combobox.currentIndex(), self.name.text(), self.description.text()
 
         else:
-            return self.result() == 1, self.name.text(), self.description.text()
+            return self.result() == 1 and "/" not in self.name.text() and self.name.text() != "__main__", self.name.text(), self.description.text()
 
     def set(self) -> int:
         self.layout_ = QVBoxLayout(self.input)
@@ -268,7 +268,7 @@ class GetDate(Dialog):
         super().__init__(parent, title)
 
         self.calendar = CalendarWidget(self.input)
-        self.calendar.setSelectedDate(QDate.fromString(name, "dd/MM/yyyy"))
+        self.calendar.setSelectedDate(QDate.fromString(name, "dd.MM.yyyy"))
 
         self.layout_ = QVBoxLayout(self.input)
         self.layout_.addWidget(Label(self.input, label))
@@ -278,7 +278,7 @@ class GetDate(Dialog):
 
     def getResult(self) -> tuple[str, bool]:
         if self.result() == 1:
-            return QDate.toString(self.calendar.selectedDate(), "dd/MM/yyyy"), True
+            return QDate.toString(self.calendar.selectedDate(), "dd.MM.yyyy"), True
 
         else:
             return "", False
@@ -429,7 +429,7 @@ class ChangeSettings(Settings):
             self.tr("Content lock**"),
             self.tr("Auto-save"),
             self.tr("Document format"),
-            self.tr("External synchronization"),
+            self.tr("Synchronization"),
             self.tr("Export folder"),
             self.tr("Pinned to sidebar"),
         ]
@@ -439,7 +439,7 @@ class ChangeSettings(Settings):
             [self.tr("Enabled"), self.tr("Disabled")],
             [self.tr("Enabled"), self.tr("Disabled")],
             ["Markdown", "HTML", self.tr("Plain-text")],
-            [self.tr("Follow format"), "PDF", "ODT", "Markdown", "HTML", self.tr("Plain-text")],
+            ["{}, {}".format(setting, self.tr("with export synchronization")) for setting in [self.tr("Follow format"), "PDF", "ODT"]] + [f"Markdown, {mode}" for mode in [self.tr("with export and import synchronizations"), self.tr("with export synchronization"), self.tr("with import synchronization")]] + ["HTML, {}".format(self.tr("with export synchronization"))] + [f"Plain-text, {mode}" for mode in [self.tr("with export and import synchronizations"), self.tr("with export synchronization"), self.tr("with import synchronization")]],
             [self.tr("Documents"), self.tr("Desktop")],
             [self.tr("Yes"), self.tr("No")],
         ]
