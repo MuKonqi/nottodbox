@@ -51,6 +51,7 @@ from PySide6.QtGui import (
 )
 from PySide6.QtWidgets import (
     QAbstractItemView,
+    QApplication,
     QCheckBox,
     QComboBox,
     QDialogButtonBox,
@@ -62,7 +63,6 @@ from PySide6.QtWidgets import (
     QStyle,
     QStyledItemDelegate,
     QStyleOptionViewItem,
-    QTextEdit,
     QTreeView,
     QVBoxLayout,
     QWidget,
@@ -72,7 +72,7 @@ from .consts import ITEM_DATAS, SETTINGS_DEFAULTS, SETTINGS_KEYS, SETTINGS_OPTIO
 from .database import MainDB
 from .widgets.controls import Action, CalendarWidget, HSeperator, Label, LineEdit, PushButton, VSeperator
 from .widgets.dialogs import ChangeAppearance, ChangeSettings, Export, GetDescription, GetName, GetNameAndDescription
-from .widgets.documents import BackupView, NormalView
+from .widgets.documents import BackupView, NormalView, setDocument
 
 
 class HomePage(QWidget):
@@ -756,19 +756,8 @@ class Options:
                     os.path.join(USER_DIRS[index.data(ITEM_DATAS["folder"])[1]], "Nottodbox", table),
                     exist_ok=True,
                 )
-
-                input_ = QTextEdit(index.data(ITEM_DATAS["content"]))
-
-                if index.data(ITEM_DATAS["format"])[1] == "markdown":
-                    content = input_.toMarkdown()
-
-                elif index.data(ITEM_DATAS["format"])[1] == "html":
-                    content = input_.toHtml()
-
-                elif index.data(ITEM_DATAS["format"])[1] == "plain-text":
-                    content = input_.toPlainText()
-
-                input_.deleteLater()
+                document = QTextDocument()
+                setDocument(index.data(ITEM_DATAS["content"]), index.data(ITEM_DATAS["format"])[1], document)
 
                 if export == "pdf":
                     writer = QPdfWriter(
@@ -776,22 +765,22 @@ class Options:
                     )
                     writer.setTitle(name)
 
-                    document = QTextDocument(content)
                     document.print_(writer)
 
-                elif export == "plain-text" or (
-                    export == "format" and index.data(ITEM_DATAS["format"])[1] == "plain-text"
-                ):
+                elif export == "plain-text" or export == "markdown":
                     with open(
-                        os.path.join(USER_DIRS[index.data(ITEM_DATAS["folder"])[1]], "Nottodbox", table, f"{name}.txt"),
+                        os.path.join(
+                            USER_DIRS[index.data(ITEM_DATAS["folder"])[1]],
+                            "Nottodbox",
+                            table,
+                            f"{name}.{'txt' if export == 'plain-text' else 'md'}",
+                        ),
                         "w+",
                     ) as f:
-                        f.write(content)
+                        f.write(document.toPlainText() if export == "plain-text" else document.toMarkdown())
 
                 else:
                     export = index.data(ITEM_DATAS["format"])[1] if export == "format" else export
-
-                    document = QTextDocument(content)
 
                     writer = QTextDocumentWriter(
                         os.path.join(
@@ -1447,7 +1436,7 @@ class Importer(QObject):
                     USER_DIRS[item.data(ITEM_DATAS["folder"])[1]],
                     "Nottodbox",
                     item.data(ITEM_DATAS["notebook"]),
-                    f"{item.data(ITEM_DATAS['name'])}.{'txt' if sync == 'plain-text' else sync}",
+                    f"{item.data(ITEM_DATAS['name'])}.{'txt' if sync == 'plain-text' else 'md'}",
                 )
 
                 if item.data(ITEM_DATAS["sync"])[1].endswith("_all") or item.data(ITEM_DATAS["sync"])[1].endswith(
@@ -1459,34 +1448,54 @@ class Importer(QObject):
                         db_date = datetime.datetime.strptime(item.data(ITEM_DATAS["modification"]), "%d.%m.%Y %H:%M")
                         file_date = datetime.datetime.fromtimestamp(os.path.getmtime(file))
 
-                        page = self.parent_.parent_.getPageFromIndex(item.index())
-
-                        if file_date > db_date and (
-                            page is None or page.document.last_content != page.document.getText()
-                        ):
+                        if file_date > db_date:
                             self.importDocument(file, item)
 
     def importDocument(self, file: str, item: QStandardItem) -> None:
-        with open(file) as f:
-            content = f.read()
+        page = self.parent_.parent_.getPageFromIndex(item.index())
 
-            if content != item.data(ITEM_DATAS["content"]):
-                if self.parent_.parent_.maindb.saveDocument(
-                    content,
-                    item.data(ITEM_DATAS["content"]),
-                    False,
-                    item.data(ITEM_DATAS["name"]),
-                    item.data(ITEM_DATAS["notebook"]),
-                ):
-                    item.setData(item.data(ITEM_DATAS["content"]), ITEM_DATAS["backup"])
-                    item.setData(content, ITEM_DATAS["content"])
+        if (
+            page is None
+            or page.document.last_content == page.document.getText()
+            and QApplication.activeWindow() is None
+            and os.path.isfile(file)
+        ):
+            with open(file) as f:
+                input_ = QTextDocument()
 
-                    page = self.parent_.parent_.getPageFromIndex(item.index())
-                    if page is not None:
-                        self.parent_.refresh_document.emit(page)
+                if os.path.splitext(file)[1] == ".md":
+                    input_.setMarkdown(f.read())
 
-                else:
-                    self.parent_.failed_to_import.emit(item.index())
+                elif os.path.splitext(file)[1] == ".txt":
+                    input_.setPlainText(f.read())
+
+                if item.data(ITEM_DATAS["format"])[1] == "markdown":
+                    content = input_.toMarkdown()
+
+                elif item.data(ITEM_DATAS["format"])[1] == "html":
+                    content = input_.toHtml()
+
+                elif item.data(ITEM_DATAS["format"])[1] == "plain-text":
+                    content = input_.toPlainText()
+
+                if content != item.data(ITEM_DATAS["content"]):
+                    if self.parent_.parent_.maindb.saveDocument(
+                        content,
+                        item.data(ITEM_DATAS["content"]),
+                        False,
+                        item.data(ITEM_DATAS["name"]),
+                        item.data(ITEM_DATAS["notebook"]),
+                    ):
+                        item.setData(item.data(ITEM_DATAS["content"]), ITEM_DATAS["backup"])
+                        item.setData(content, ITEM_DATAS["content"])
+
+                        page = self.parent_.parent_.getPageFromIndex(item.index())
+                        if page is not None:
+                            page.document.last_content = content
+                            self.parent_.refresh_document.emit(page)
+
+                    else:
+                        self.parent_.failed_to_import.emit(item.index())
 
     def importFile(self, file: str) -> None:
         item = self.parent_.parent_.maindb.items[tuple(reversed(os.path.splitext(file)[0].split("/")[-2:]))]
@@ -1498,7 +1507,7 @@ class Importer(QObject):
                 USER_DIRS[item.data(ITEM_DATAS["folder"])[1]],
                 "Nottodbox",
                 item.data(ITEM_DATAS["notebook"]),
-                f"{item.data(ITEM_DATAS['name'])}.{'txt' if sync == 'plain-text' else sync}",
+                f"{item.data(ITEM_DATAS['name'])}.{'txt' if sync == 'plain-text' else 'md'}",
             ):
                 self.importDocument(file, item)
 

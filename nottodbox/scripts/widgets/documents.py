@@ -45,6 +45,17 @@ from .controls import Action, HSeperator, Label
 from .dialogs import GetColor, GetTwoNumber
 
 
+def setDocument(content_: str, format_: str, input_: QTextDocument | QTextEdit) -> None:
+    if format_ == "plain-text":
+        input_.setPlainText(content_)
+
+    elif format_ == "markdown":
+        input_.setMarkdown(content_)
+
+    elif format_ == "html":
+        input_.setHtml(content_)
+
+
 class Document(QWidget):
     def __init__(self, parent: QWidget, db, index: QModelIndex, mode: str) -> None:
         super().__init__(parent)
@@ -76,7 +87,7 @@ class Document(QWidget):
         self.layout_.addWidget(self.input)
 
         self.handleSettings()
-        self.refreshContentBase()
+        self.setContent()
         self.refreshNames()
 
     def handleGlobal(self, setting: str) -> str:
@@ -112,26 +123,19 @@ class Document(QWidget):
         # Update TextFormatter's status.
         self.helper.updateStatus(self.settings["format"])
 
-    def refreshContentBase(self) -> None:
-        self.content = (
-            self.index.data(ITEM_DATAS["content"]) if self.mode == "normal" else self.index.data(ITEM_DATAS["backup"])
-        )
-
-        if self.settings["format"] == "plain-text":
-            self.input.setPlainText(self.content)
-
-        elif self.settings["format"] == "markdown":
-            self.input.setMarkdown(self.content)
-
-        elif self.settings["format"] == "html":
-            self.input.setHtml(self.content)
-
     def refreshNames(self) -> None:
         self.document = self.index.data(ITEM_DATAS["name"])
         self.notebook = self.index.data(ITEM_DATAS["notebook"])
 
         self.label.setText(self.document)
         self.input.setDocumentTitle(self.document)
+
+    def setContent(self) -> None:
+        self.content = (
+            self.index.data(ITEM_DATAS["content"]) if self.mode == "normal" else self.index.data(ITEM_DATAS["backup"])
+        )
+
+        setDocument(self.content, self.settings["format"], self.input)
 
 
 class BackupView(Document):
@@ -143,7 +147,7 @@ class BackupView(Document):
         self.helper.button.triggered.connect(self.restoreContent)
 
     def refreshContent(self) -> None:
-        self.refreshContentBase()
+        self.setContent()
 
     def refreshSettings(self) -> None:
         self.handleSettings()
@@ -248,7 +252,7 @@ class NormalView(Document):
 
     def refreshContent(self) -> None:
         self.changeAutosaveConnections("disconnect")
-        self.refreshContentBase()
+        self.setContent()
         self.changeAutosaveConnections()
 
     def refreshSettings(self) -> None:
@@ -663,6 +667,7 @@ class DocumentSaver(QObject):
                     )
 
                     sync = self.parent_.settings["sync"].removesuffix("_all").removesuffix("_export")
+                    export = self.parent_.settings["format"] if sync == "format" else sync
 
                     if sync == "pdf":
                         writer = QPdfWriter(
@@ -675,25 +680,26 @@ class DocumentSaver(QObject):
                         )
                         writer.setTitle(self.parent_.document)
 
-                        document = QTextDocument(self.parent_.getText())
-                        document.print_(writer)
+                        self.parent_.input.document().print_(writer)
 
-                    elif sync == "plain-text" or (sync == "format" and self.parent_.settings["format"] == "plain-text"):
+                    elif export == "plain-text" or export == "markdown":
                         with open(
                             os.path.join(
                                 USER_DIRS[self.parent_.settings["folder"]],
                                 "Nottodbox",
                                 self.parent_.notebook,
-                                f"{self.parent_.document}.txt",
+                                f"{self.parent_.document}.{'txt' if export == 'plain-text' else 'md'}",
                             ),
                             "w+",
                         ) as f:
-                            f.write(self.parent_.input.toPlainText())
+                            f.write(
+                                self.parent_.input.toPlainText()
+                                if export == "plain-text"
+                                else self.parent_.input.toMarkdown()
+                            )
 
                     else:
                         export = self.parent_.settings["format"] if sync == "format" else sync
-
-                        document = QTextDocument(self.parent_.getText())
 
                         writer = QTextDocumentWriter(
                             os.path.join(
@@ -704,7 +710,7 @@ class DocumentSaver(QObject):
                             ),
                             export.encode("utf-8") if export != "odt" else b"odf",
                         )
-                        writer.write(document)
+                        writer.write(self.parent_.input.document())
 
                 self.parent_.index.model().setData(self.parent_.index, self.parent_.getText(), ITEM_DATAS["content"])
 
