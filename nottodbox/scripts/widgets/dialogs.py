@@ -25,6 +25,7 @@ from PySide6.QtWidgets import (
     QDialogButtonBox,
     QFormLayout,
     QHBoxLayout,
+    QMessageBox,
     QScrollArea,
     QSizePolicy,
     QSpinBox,
@@ -212,18 +213,18 @@ class GetName(Dialog):
         self.name.setText(self.calendar.selectedDate().toString("dd.MM.yyyy"))
 
     def get(self) -> tuple[bool, str] | tuple[bool, int, str]:
+        successful = True
+
+        if "/" in self.name.text() or self.name.text() == "__main__":
+            QMessageBox.critical(self, self.tr("Error"), self.tr("The name can not contain slash and be __main__."))
+
+            successful = False
+
         if self.creation:
-            return (
-                self.result() == 1 and "/" not in self.name.text() and self.name.text() != "__main__",
-                self.combobox.currentIndex(),
-                self.name.text(),
-            )
+            return self.result() == 1 and successful, self.combobox.currentIndex(), self.name.text()
 
         else:
-            return (
-                self.result() == 1 and "/" not in self.name.text() and self.name.text() != "__main__",
-                self.name.text(),
-            )
+            return self.result() == 1 and successful, self.name.text()
 
     def set(self) -> int:
         self.layout_ = QVBoxLayout(self.input)
@@ -253,20 +254,23 @@ class GetDescription(Dialog):
 
 class GetNameAndDescription(GetName, GetDescription):
     def get(self) -> tuple[bool, str, str] | tuple[bool, int, str, str]:
+        successful = True
+
+        if "/" in self.name.text() or self.name.text() == "__main__":
+            QMessageBox.critical(self, self.tr("Error"), self.tr("The name can not contain slash and be __main__."))
+
+            successful = False
+
         if self.creation:
             return (
-                self.result() == 1 and "/" not in self.name.text() and self.name.text() != "__main__",
+                self.result() == 1 and successful,
                 self.combobox.currentIndex(),
                 self.name.text(),
                 self.description.text(),
             )
 
         else:
-            return (
-                self.result() == 1 and "/" not in self.name.text() and self.name.text() != "__main__",
-                self.name.text(),
-                self.description.text(),
-            )
+            return self.result() == 1 and successful, self.name.text(), self.description.text()
 
     def set(self) -> int:
         self.layout_ = QVBoxLayout(self.input)
