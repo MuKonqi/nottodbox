@@ -57,11 +57,12 @@ class Application(QApplication):
             else:
                 logging.warning(f"Failed to load locale for {QLocale.system().name().split('_')[0]}.")
 
-        with open(os.path.join(USER_NOTTODBOX_DIR, "version")) as f:
-            app_old_version = f.read()
+        if os.path.isfile(os.path.join(USER_NOTTODBOX_DIR, "version")):
+            with open(os.path.join(USER_NOTTODBOX_DIR, "version")) as f:
+                app_old_version = f.read()
 
-        with open(os.path.join(USER_NOTTODBOX_DIR, "version_old"), "w") as f:
-            f.write(app_old_version)
+            with open(os.path.join(USER_NOTTODBOX_DIR, "version_old"), "w") as f:
+                f.write(app_old_version)
 
         with open(os.path.join(USER_NOTTODBOX_DIR, "version"), "w") as f:
             f.write(APP_VERSION)

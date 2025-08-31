@@ -329,14 +329,50 @@ class MainDB:
                 f"{USER_DATABASES_DIR}/main.db-{datetime.datetime.now().strftime('%d_%m_%Y_%H_%M')}.bak",
             )
 
+            self.cur.execute("update __main__ set creation = replace(creation, '/', '.')")
+            self.db.commit()
+
+            self.cur.execute("update __main__ set modification = replace(modification, '/', '.')")
+            self.db.commit()
+
+            self.cur.execute(
+                "update __main__ set sync = sync || ? where sync is not null and sync != '' and sync != ? and sync != ?",
+                ("_export", "default", "global"),
+            )
+            self.db.commit()
+
             self.cur.execute("select name from __main__")
 
-            for table in self.cur.fetchone():
+            for table in [fetch[0] for fetch in self.cur.fetchall()]:
+                try:
+                    datetime.datetime.strptime(table, "%d/%m/%Y")
+                    self.cur.execute("update __main__ set name = replace(name, '/', '.') where name = ?", (table,))
+                    self.db.commit()
+
+                except ValueError:
+                    pass
+
+                self.cur.execute(f"update '{table}' set creation = replace(creation, '/', '.')")
+                self.db.commit()
+
+                self.cur.execute(f"update '{table}' set modification = replace(modification, '/', '.')")
+                self.db.commit()
+
                 self.cur.execute(
                     f"update '{table}' set sync = sync || ? where sync is not null and sync != '' and sync != ? and sync != ? and sync != ?",
                     ("_export", "default", "global", "notebook"),
                 )
                 self.db.commit()
+
+                self.cur.execute(f"select name from '{table}'")
+                for name in [fetch[0] for fetch in self.cur.fetchall()]:
+                    try:
+                        datetime.datetime.strptime(name, "%d/%m/%Y")
+                        self.cur.execute(f"update '{table}' set name = replace(name, '/', '.') where name = ?", (name,))
+                        self.db.commit()
+
+                    except ValueError:
+                        pass
 
     def updateModification(self, name: str, table: str = "__main__", date: str | None = None) -> bool:
         if date is None:
