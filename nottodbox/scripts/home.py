@@ -235,21 +235,29 @@ class Selector(QWidget):
             Qt.CheckState.Unchecked if self.settings.value("selector/calendar") == "hidden" else Qt.CheckState.Checked
         )
 
+        self.pages = QStackedWidget(self)
+
+        self.updating = Label(self, self.tr("Database\nis updating"))
+        font = self.updating.font()
+        font.setBold(True)
+        font.setPointSize(24)
+        self.updating.setFont(font)
+
         self.create_first_notebook = CreateFirstNotebook(self)
+
+        self.container = QWidget(self)
+
+        self.pages.addWidget(self.updating)
+        self.pages.addWidget(self.create_first_notebook)
+        self.pages.addWidget(self.container)
 
         self.buttons_layout = QHBoxLayout(self.buttons)
         self.buttons_layout.setContentsMargins(0, 0, 0, 0)
 
-        self.container = QWidget(self)
-        self.container_layout = QGridLayout(self.container)
-
-        self.pages = QStackedWidget(self)
-        self.pages.addWidget(self.create_first_notebook)
-        self.pages.addWidget(self.container)
-
         for button in self.tree_view.buttons:
             self.buttons_layout.addWidget(button)
 
+        self.container_layout = QGridLayout(self.container)
         self.container_layout.setContentsMargins(0, 0, 0, 0)
         self.container_layout.setColumnStretch(1, 2)
         self.container_layout.addWidget(self.calendar_checkbox, 0, 0, 1, 1)
@@ -262,9 +270,9 @@ class Selector(QWidget):
         self.layout_.addWidget(self.calendar_widget)
         self.layout_.addWidget(self.pages)
 
-        self.tree_view.appendAll()
-
         self.setFixedWidth(330)
+        self.maindb.updateDatabase()
+        self.tree_view.appendAll()
         self.enableCalendar(
             Qt.CheckState.Unchecked if self.settings.value("selector/calendar") == "hidden" else Qt.CheckState.Checked
         )
@@ -287,7 +295,7 @@ class Selector(QWidget):
             self.calendar_checkbox.setCheckState(Qt.CheckState.Checked)
             self.do_not_write = False
 
-            self.pages.setCurrentIndex(0)
+            self.pages.setCurrentIndex(1)
 
         else:
             self.do_not_write = True
@@ -298,7 +306,7 @@ class Selector(QWidget):
             )
             self.do_not_write = False
 
-            self.pages.setCurrentIndex(1)
+            self.pages.setCurrentIndex(2)
 
     @Slot()
     def selectedDateChanged(self) -> None:
@@ -581,7 +589,7 @@ class Options:
 
             if not self.parent_.maindb.checkIfItExists(document, notebook):
                 try:
-                    diary = bool(datetime.datetime.strptime(document, "%d/%m/%Y"))
+                    diary = bool(datetime.datetime.strptime(document, "%d.%m.%Y"))
 
                 except ValueError:
                     diary = False
@@ -631,7 +639,7 @@ class Options:
         if ok:
             if not self.parent_.maindb.checkIfItExists(name):
                 try:
-                    diary = bool(datetime.datetime.strptime(name, "%d/%m/%Y"))
+                    diary = bool(datetime.datetime.strptime(name, "%d.%m.%Y"))
 
                 except ValueError:
                     diary = False
@@ -918,7 +926,7 @@ class Options:
 
         if ok:
             try:
-                diary = bool(datetime.datetime.strptime(new_name, "%d/%m/%Y"))
+                diary = bool(datetime.datetime.strptime(new_name, "%d.%m.%Y"))
 
             except ValueError:
                 diary = False

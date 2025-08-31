@@ -19,9 +19,15 @@
 
 
 import datetime
+import os
+import shutil
 import sqlite3
 
-from .consts import ITEM_DATAS, USER_DATABASES_DIR
+from .consts import ITEM_DATAS, USER_DATABASES_DIR, USER_NOTTODBOX_DIR
+
+
+def checkVersion(ver1: list, ver2: list) -> bool:
+    return bool(ver1[0] > ver2[0] or ver1[0] == ver2[0] and ver1[1] > ver2[1] or ver1[0] == ver2[0] and ver1[1] == ver2[1] and ver1[2] > ver2[2] or ver1 == ver2)
 
 
 class MainDB:
@@ -71,7 +77,7 @@ class MainDB:
         self, default: str, name: str, table: str = "__main__", date: str | None = None, content: str = ""
     ) -> bool:
         if date is None:
-            date = datetime.datetime.now().strftime("%d/%m/%Y %H:%M")
+            date = datetime.datetime.now().strftime("%d.%m.%Y %H:%M")
 
         self.cur.execute(
             f"""
@@ -107,7 +113,7 @@ class MainDB:
         return self.checkIfItExists(name, table)
 
     def createDocument(self, default: str, locked: str, document: str, notebook: str) -> bool:
-        date = datetime.datetime.now().strftime("%d/%m/%Y %H:%M")
+        date = datetime.datetime.now().strftime("%d.%m.%Y %H:%M")
 
         if (
             self.create(default, document, notebook, date)
@@ -284,7 +290,7 @@ class MainDB:
     def setBackup(self, content: str, document: str, notebook: str) -> bool:
         if self.getLocked(document, notebook) != "enabled" or (
             self.getLocked(document, notebook) == "enabled"
-            and datetime.datetime.strptime(self.get("creation", document, notebook), "%d/%m/%Y %H:%M").date()
+            and datetime.datetime.strptime(self.get("creation", document, notebook), "%d.%m.%Y %H:%M").date()
             == datetime.datetime.today().date()
         ):
             self.cur.execute(f"update '{notebook}' set backup = ? where name = ?", (content, document))
@@ -295,9 +301,28 @@ class MainDB:
         else:
             return True
 
+    def updateDatabase(self) -> None:
+        update = False
+
+        shutil.copy2(f"{USER_DATABASES_DIR}/main.db", f"{USER_DATABASES_DIR}/main.db-{datetime.datetime.now().strftime('%d.%m.%Y %H:%M')}.bak")
+
+        target_version = [int(i) for i in "v0.2.0"[1:].split(".")]
+
+        if os.path.isfile(os.path.join(USER_NOTTODBOX_DIR, "version_old")):
+            with open(os.path.join(USER_NOTTODBOX_DIR, "version_old")) as f:
+                app_old_version = [int(i) for i in f.read()[1:].split(".")]
+
+                update = not checkVersion(app_old_version, target_version)
+
+        else:
+            update = True
+
+        if update:
+            pass
+
     def updateModification(self, name: str, table: str = "__main__", date: str | None = None) -> bool:
         if date is None:
-            date = datetime.datetime.now().strftime("%d/%m/%Y %H:%M")
+            date = datetime.datetime.now().strftime("%d.%m.%Y %H:%M")
 
         successful = True
 
