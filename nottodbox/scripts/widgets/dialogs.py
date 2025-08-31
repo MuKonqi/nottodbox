@@ -456,24 +456,24 @@ class ChangeSettings(Settings):
             [self.tr("Enabled"), self.tr("Disabled")],
             ["Markdown", "HTML", self.tr("Plain-text")],
             [
-                "{}, {}".format(setting, self.tr("with export synchronization"))
+                "{}, {}".format(setting, self.tr("with only export synchronization"))
                 for setting in [self.tr("Follow format"), "PDF", "ODT"]
             ]
             + [
                 f"Markdown, {mode}"
                 for mode in [
-                    self.tr("with export and import synchronizations"),
-                    self.tr("with export synchronization"),
-                    self.tr("with import synchronization"),
+                    self.tr("with both synchronizations"),
+                    self.tr("with only export synchronization"),
+                    self.tr("with only import synchronization"),
                 ]
             ]
-            + ["HTML, {}".format(self.tr("with export synchronization"))]
+            + ["HTML, {}".format(self.tr("with only export synchronization"))]
             + [
                 f"Plain-text, {mode}"
                 for mode in [
-                    self.tr("with export and import synchronizations"),
-                    self.tr("with export synchronization"),
-                    self.tr("with import synchronization"),
+                    self.tr("with both synchronizations"),
+                    self.tr("with only export synchronization"),
+                    self.tr("with only import synchronization"),
                 ]
             ],
             [self.tr("Documents"), self.tr("Desktop")],
