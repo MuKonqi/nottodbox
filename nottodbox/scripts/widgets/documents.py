@@ -682,21 +682,17 @@ class DocumentSaver(QObject):
 
                         self.parent_.input.document().print_(writer)
 
-                    elif export == "plain-text" or export == "markdown":
+                    elif export == "plain-text":
                         with open(
                             os.path.join(
                                 USER_DIRS[self.parent_.settings["folder"]],
                                 "Nottodbox",
                                 self.parent_.notebook,
-                                f"{self.parent_.document}.{'txt' if export == 'plain-text' else 'md'}",
+                                f"{self.parent_.document}.txt",
                             ),
                             "w+",
                         ) as f:
-                            f.write(
-                                self.parent_.input.toPlainText()
-                                if export == "plain-text"
-                                else self.parent_.input.toMarkdown()
-                            )
+                            f.write(self.parent_.input.toPlainText())
 
                     else:
                         export = self.parent_.settings["format"] if sync == "format" else sync

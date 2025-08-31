@@ -767,17 +767,17 @@ class Options:
 
                     document.print_(writer)
 
-                elif export == "plain-text" or export == "markdown":
+                elif export == "plain-text":
                     with open(
                         os.path.join(
                             USER_DIRS[index.data(ITEM_DATAS["folder"])[1]],
                             "Nottodbox",
                             table,
-                            f"{name}.{'txt' if export == 'plain-text' else 'md'}",
+                            f"{name}.txt",
                         ),
                         "w+",
                     ) as f:
-                        f.write(document.toPlainText() if export == "plain-text" else document.toMarkdown())
+                        f.write(document.toPlainText())
 
                 else:
                     export = index.data(ITEM_DATAS["format"])[1] if export == "format" else export
@@ -1436,7 +1436,7 @@ class Importer(QObject):
                     USER_DIRS[item.data(ITEM_DATAS["folder"])[1]],
                     "Nottodbox",
                     item.data(ITEM_DATAS["notebook"]),
-                    f"{item.data(ITEM_DATAS['name'])}.{'txt' if sync == 'plain-text' else 'md'}",
+                    f"{item.data(ITEM_DATAS['name'])}.{'txt' if sync == 'plain-text' else 'markdown'}",
                 )
 
                 if item.data(ITEM_DATAS["sync"])[1].endswith("_all") or item.data(ITEM_DATAS["sync"])[1].endswith(
@@ -1463,7 +1463,7 @@ class Importer(QObject):
             with open(file) as f:
                 input_ = QTextDocument()
 
-                if os.path.splitext(file)[1] == ".md":
+                if os.path.splitext(file)[1] == ".markdown":
                     input_.setMarkdown(f.read())
 
                 elif os.path.splitext(file)[1] == ".txt":
@@ -1507,7 +1507,7 @@ class Importer(QObject):
                 USER_DIRS[item.data(ITEM_DATAS["folder"])[1]],
                 "Nottodbox",
                 item.data(ITEM_DATAS["notebook"]),
-                f"{item.data(ITEM_DATAS['name'])}.{'txt' if sync == 'plain-text' else 'md'}",
+                f"{item.data(ITEM_DATAS['name'])}.{'txt' if sync == 'plain-text' else 'markdown'}",
             ):
                 self.importDocument(file, item)
 
