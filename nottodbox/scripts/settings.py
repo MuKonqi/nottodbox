@@ -55,7 +55,8 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from .consts import ITEM_DATAS, SETTINGS_KEYS, SETTINGS_VALUES, USER_NAME
+from .consts import ITEM_DATAS, SETTINGS_KEYS, SETTINGS_VALUES, USER_NAME, USER_NOTTODBOX_DIR
+from .database import checkVersion
 from .widgets.controls import ComboBox, HSeperator, Label, LineEdit, PushButton, VSeperator
 from .widgets.dialogs import ColorSelector
 
@@ -1019,7 +1020,7 @@ class DocumentSettings(GlobalSettings):
             self.tr("Content lock**"),
             self.tr("Auto-save"),
             self.tr("Document format"),
-            self.tr("External synchronization"),
+            self.tr("Synchronization"),
             self.tr("Export folder"),
             self.tr("Pinned to sidebar"),
         ]
@@ -1085,6 +1086,22 @@ class DocumentSettings(GlobalSettings):
         self.layout_.addWidget(
             Label(self, self.tr("**Setting this to 'Enabled' converts to a diary."), Qt.AlignmentFlag.AlignLeft)
         )
+
+        update = False
+
+        target_version = [int(i) for i in "v0.2.0"[1:].split(".")]
+
+        if os.path.isfile(os.path.join(USER_NOTTODBOX_DIR, "version_old")):
+            with open(os.path.join(USER_NOTTODBOX_DIR, "version_old")) as f:
+                app_old_version = [int(i) for i in f.read()[1:].split(".")]
+
+                update = not checkVersion(app_old_version, target_version)
+
+        else:
+            update = True
+
+        if update and self.parent_.settings.value("global/sync") != "default":
+            self.parent_.settings.setValue("global/sync", f"{self.parent_.settings.value('global/sync')}_export")
 
         self.load()
 
