@@ -45,6 +45,17 @@ from .controls import Action, HSeperator, Label
 from .dialogs import GetColor, GetTwoNumber
 
 
+def setDocument(content_: str, format_: str, input_: QTextDocument | QTextEdit) -> None:
+    if format_ == "plain-text":
+        input_.setPlainText(content_)
+
+    elif format_ == "markdown":
+        input_.setMarkdown(content_)
+
+    elif format_ == "html":
+        input_.setHtml(content_)
+
+
 class Document(QWidget):
     def __init__(self, parent: QWidget, db, index: QModelIndex, mode: str) -> None:
         super().__init__(parent)
@@ -76,7 +87,7 @@ class Document(QWidget):
         self.layout_.addWidget(self.input)
 
         self.handleSettings()
-        self.refreshContent()
+        self.setContent()
         self.refreshNames()
 
     def handleGlobal(self, setting: str) -> str:
@@ -112,26 +123,19 @@ class Document(QWidget):
         # Update TextFormatter's status.
         self.helper.updateStatus(self.settings["format"])
 
-    def refreshContent(self) -> None:
-        self.content = (
-            self.index.data(ITEM_DATAS["content"]) if self.mode == "normal" else self.index.data(ITEM_DATAS["backup"])
-        )
-
-        if self.settings["format"] == "plain-text":
-            self.input.setPlainText(self.content)
-
-        elif self.settings["format"] == "markdown":
-            self.input.setMarkdown(self.content)
-
-        elif self.settings["format"] == "html":
-            self.input.setHtml(self.content)
-
     def refreshNames(self) -> None:
         self.document = self.index.data(ITEM_DATAS["name"])
         self.notebook = self.index.data(ITEM_DATAS["notebook"])
 
         self.label.setText(self.document)
         self.input.setDocumentTitle(self.document)
+
+    def setContent(self) -> None:
+        self.content = (
+            self.index.data(ITEM_DATAS["content"]) if self.mode == "normal" else self.index.data(ITEM_DATAS["backup"])
+        )
+
+        setDocument(self.content, self.settings["format"], self.input)
 
 
 class BackupView(Document):
@@ -141,6 +145,12 @@ class BackupView(Document):
         self.input.setReadOnly(True)
 
         self.helper.button.triggered.connect(self.restoreContent)
+
+    def refreshContent(self) -> None:
+        self.setContent()
+
+    def refreshSettings(self) -> None:
+        self.handleSettings()
 
     @Slot()
     def restoreContent(self) -> None:
@@ -171,9 +181,6 @@ class BackupView(Document):
         else:
             QMessageBox.critical(self, self.tr("Error"), self.tr("Failed to restore content."))
 
-    def refreshSettings(self) -> None:
-        self.handleSettings()
-
 
 class NormalView(Document):
     show_messages = Signal(bool)
@@ -187,11 +194,10 @@ class NormalView(Document):
 
         self.show_messages.connect(self.showMessages)
 
-        self.saver = DocumentSaver(self)
-        self.saver.save_document.connect(self.saver.saveDocument)
-
         self.saver_thread = QThread()
 
+        self.saver = DocumentSaver(self)
+        self.saver.save_document.connect(self.saver.saveDocument)
         self.saver.moveToThread(self.saver_thread)
 
         self.helper.button.triggered.connect(lambda: self.saver.saveDocument())
@@ -243,6 +249,11 @@ class NormalView(Document):
 
         else:
             QMessageBox.critical(self, self.tr("Error"), self.tr("Failed to save document."))
+
+    def refreshContent(self) -> None:
+        self.changeAutosaveConnections("disconnect")
+        self.setContent()
+        self.changeAutosaveConnections()
 
     def refreshSettings(self) -> None:
         self.handleSettings()
@@ -647,61 +658,55 @@ class DocumentSaver(QObject):
             ):
                 self.parent_.last_content = self.parent_.getText()
 
-                if self.parent_.settings["sync"] is not None:
+                if self.parent_.settings["sync"] is not None and (
+                    self.parent_.settings["sync"].endswith("_all") or self.parent_.settings["sync"].endswith("_export")
+                ):
                     os.makedirs(
                         os.path.join(USER_DIRS[self.parent_.settings["folder"]], "Nottodbox", self.parent_.notebook),
                         exist_ok=True,
                     )
 
-                    if self.parent_.settings["sync"] is not None:
-                        if self.parent_.settings["sync"] == "pdf":
-                            writer = QPdfWriter(
-                                os.path.join(
-                                    USER_DIRS[self.parent_.settings["folder"]],
-                                    "Nottodbox",
-                                    self.parent_.notebook,
-                                    f"{self.parent_.document}.pdf",
-                                )
+                    sync = self.parent_.settings["sync"].removesuffix("_all").removesuffix("_export")
+                    export = self.parent_.settings["format"] if sync == "format" else sync
+
+                    if sync == "pdf":
+                        writer = QPdfWriter(
+                            os.path.join(
+                                USER_DIRS[self.parent_.settings["folder"]],
+                                "Nottodbox",
+                                self.parent_.notebook,
+                                f"{self.parent_.document}.pdf",
                             )
-                            writer.setTitle(self.parent_.document)
+                        )
+                        writer.setTitle(self.parent_.document)
 
-                            document = QTextDocument(self.parent_.getText())
-                            document.print_(writer)
+                        self.parent_.input.document().print_(writer)
 
-                        elif self.parent_.settings["sync"] == "plain-text" or (
-                            self.parent_.settings["sync"] == "format"
-                            and self.parent_.settings["format"] == "plain-text"
-                        ):
-                            with open(
-                                os.path.join(
-                                    USER_DIRS[self.parent_.settings["folder"]],
-                                    "Nottodbox",
-                                    self.parent_.notebook,
-                                    f"{self.parent_.document}.txt",
-                                ),
-                                "w+",
-                            ) as f:
-                                f.write(self.parent_.input.toPlainText())
+                    elif export == "plain-text":
+                        with open(
+                            os.path.join(
+                                USER_DIRS[self.parent_.settings["folder"]],
+                                "Nottodbox",
+                                self.parent_.notebook,
+                                f"{self.parent_.document}.txt",
+                            ),
+                            "w+",
+                        ) as f:
+                            f.write(self.parent_.input.toPlainText())
 
-                        else:
-                            export = (
-                                self.parent_.settings["format"]
-                                if self.parent_.settings["sync"] == "format"
-                                else self.parent_.settings["sync"]
-                            )
+                    else:
+                        export = self.parent_.settings["format"] if sync == "format" else sync
 
-                            document = QTextDocument(self.parent_.getText())
-
-                            writer = QTextDocumentWriter(
-                                os.path.join(
-                                    USER_DIRS[self.parent_.settings["folder"]],
-                                    "Nottodbox",
-                                    self.parent_.notebook,
-                                    f"{self.parent_.document}.{export}",
-                                ),
-                                export.encode("utf-8") if export != "odt" else b"odf",
-                            )
-                            writer.write(document)
+                        writer = QTextDocumentWriter(
+                            os.path.join(
+                                USER_DIRS[self.parent_.settings["folder"]],
+                                "Nottodbox",
+                                self.parent_.notebook,
+                                f"{self.parent_.document}.{export}",
+                            ),
+                            export.encode("utf-8") if export != "odt" else b"odf",
+                        )
+                        writer.write(self.parent_.input.document())
 
                 self.parent_.index.model().setData(self.parent_.index, self.parent_.getText(), ITEM_DATAS["content"])
 

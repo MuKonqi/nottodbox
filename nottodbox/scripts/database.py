@@ -27,7 +27,15 @@ from .consts import ITEM_DATAS, USER_DATABASES_DIR, USER_NOTTODBOX_DIR
 
 
 def checkVersion(ver1: list, ver2: list) -> bool:
-    return bool(ver1[0] > ver2[0] or ver1[0] == ver2[0] and ver1[1] > ver2[1] or ver1[0] == ver2[0] and ver1[1] == ver2[1] and ver1[2] > ver2[2] or ver1 == ver2)
+    return bool(
+        ver1[0] > ver2[0]
+        or ver1[0] == ver2[0]
+        and ver1[1] > ver2[1]
+        or ver1[0] == ver2[0]
+        and ver1[1] == ver2[1]
+        and ver1[2] > ver2[2]
+        or ver1 == ver2
+    )
 
 
 class MainDB:
@@ -304,8 +312,6 @@ class MainDB:
     def updateDatabase(self) -> None:
         update = False
 
-        shutil.copy2(f"{USER_DATABASES_DIR}/main.db", f"{USER_DATABASES_DIR}/main.db-{datetime.datetime.now().strftime('%d.%m.%Y %H:%M')}.bak")
-
         target_version = [int(i) for i in "v0.2.0"[1:].split(".")]
 
         if os.path.isfile(os.path.join(USER_NOTTODBOX_DIR, "version_old")):
@@ -318,7 +324,19 @@ class MainDB:
             update = True
 
         if update:
-            pass
+            shutil.copy2(
+                f"{USER_DATABASES_DIR}/main.db",
+                f"{USER_DATABASES_DIR}/main.db-{datetime.datetime.now().strftime('%d_%m_%Y_%H_%M')}.bak",
+            )
+
+            self.cur.execute("select name from __main__")
+
+            for table in self.cur.fetchone():
+                self.cur.execute(
+                    f"update '{table}' set sync = sync || ? where sync is not null and sync != '' and sync != ? and sync != ? and sync != ?",
+                    ("_export", "default", "global", "notebook"),
+                )
+                self.db.commit()
 
     def updateModification(self, name: str, table: str = "__main__", date: str | None = None) -> bool:
         if date is None:
