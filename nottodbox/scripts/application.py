@@ -27,7 +27,7 @@ from PySide6.QtCore import QLocale, QTranslator, qVersion
 from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import QApplication
 
-from .consts import USER_LOGS_DIR, USER_NOTTODBOX_DIR
+from .consts import USER_DIRS, USER_LOGS_DIR, USER_NOTTODBOX_DIR
 from .mainwindow import MainWindow
 from .resources import icons, locale  # noqa: F401
 from .version import APP_BUILD, APP_VERSION
@@ -102,6 +102,11 @@ def main() -> None:
 
     sys.stdout = StreamToLogger(logger, logging.INFO)
     sys.stderr = StreamToLogger(logger, logging.ERROR)
+
+    # These folders shouldn't be deleted. We must ensure that those folders exist.
+    if APP_BUILD != "Flatpak":
+        for directory in [os.path.join(user_dir, "Nottodbox") for user_dir in list(USER_DIRS.values())]:
+            os.makedirs(directory, exist_ok=True)
 
     logging.info(f"Nottodbox, version: {APP_VERSION}, build: {APP_BUILD}, process ID: {threading.get_native_id()}")
     logging.info(f"Operating system: {platform.system()} {platform.release()} ({platform.platform()})")

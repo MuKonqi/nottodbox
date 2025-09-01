@@ -1417,17 +1417,24 @@ class TreeView(QTreeView):
 class Importer(QObject):
     import_all = Signal()
     import_file = Signal(str)
+    watch_directory = Signal(str)
 
     def __init__(self, parent: TreeView) -> None:
         super().__init__()
 
         self.parent_ = parent
 
+        self.failed_to_watch = []
+
         self.import_all.connect(self.importAll)
         self.import_file.connect(self.importFile)
+        self.watch_directory.connect(self.watchDirectory)
 
         self.watcher = QFileSystemWatcher(self)
+        self.watcher.directoryChanged.connect(self.watch_directory.emit)
         self.watcher.fileChanged.connect(self.import_file.emit)
+
+        self.watcher.addPaths([os.path.join(user_dir, "Nottodbox") for user_dir in list(USER_DIRS.values())])
 
     @Slot()
     def importAll(self) -> None:
@@ -1447,7 +1454,9 @@ class Importer(QObject):
                     f"{item.data(ITEM_DATAS['name'])}.{'txt' if sync == 'plain-text' else sync}",
                 )
 
-                self.watcher.addPath(file)
+                if not self.watcher.addPath(file):
+                    self.failed_to_watch.append(file)
+                    self.watcher.addPath(os.path.dirname(file))
 
                 if os.path.isfile(file):
                     db_date = datetime.datetime.strptime(item.data(ITEM_DATAS["modification"]), "%d.%m.%Y %H:%M")
@@ -1508,8 +1517,9 @@ class Importer(QObject):
 
     @Slot(str)
     def importFile(self, file: str) -> None:
-        if file not in self.watcher.files():
-            self.watcher.addPath(file)
+        if file not in self.watcher.files() and not self.watcher.addPath(file):
+            self.watcher.addPath(os.path.dirname(file))
+            self.failed_to_watch.append(file)
 
         item = self.parent_.parent_.maindb.items[tuple(reversed(os.path.splitext(file)[0].split("/")[-2:]))]
 
@@ -1526,6 +1536,21 @@ class Importer(QObject):
             ):
                 self.importDocument(file, item)
 
+    @Slot(str)
+    def watchDirectory(self, directory: str) -> None:
+        if directory in [os.path.join(user_dir, "Nottodbox") for user_dir in list(USER_DIRS.values())]:
+            for path in self.failed_to_watch.copy():
+                if os.path.dirname(path) not in self.watcher.directories() and os.path.isdir(os.path.dirname(path)):
+                    if self.watcher.addPath(path):
+                        self.failed_to_watch.remove(path)
+
+                    else:
+                        self.watcher.addPath(os.path.dirname(path))
+
+        else:
+            for path in self.failed_to_watch.copy():
+                if os.path.dirname(path) == directory and self.watcher.addPath(path):
+                    self.failed_to_watch.remove(path)
 
 class ButtonDelegate(QStyledItemDelegate):
     menu_requested = Signal(QModelIndex)
