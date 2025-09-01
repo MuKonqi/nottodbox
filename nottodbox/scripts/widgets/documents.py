@@ -19,14 +19,34 @@
 
 
 import datetime
+import json
 import os
 
-from PySide6.QtCore import QDate, QModelIndex, QObject, Qt, QThread, Signal, Slot
+from PySide6.QtCore import (
+    QDate,
+    QEvent,
+    QMargins,
+    QModelIndex,
+    QObject,
+    QRect,
+    QSize,
+    QSortFilterProxyModel,
+    Qt,
+    QThread,
+    Signal,
+    Slot,
+)
 from PySide6.QtGui import (
     QDesktopServices,
+    QFont,
     QMouseEvent,
+    QPainter,
+    QPainterPath,
     QPalette,
     QPdfWriter,
+    QPen,
+    QStandardItem,
+    QStandardItemModel,
     QTextBlockFormat,
     QTextCharFormat,
     QTextCursor,
@@ -38,159 +58,337 @@ from PySide6.QtGui import (
     QTextTable,
     QTextTableFormat,
 )
-from PySide6.QtWidgets import QApplication, QMenu, QMessageBox, QTextEdit, QToolBar, QToolButton, QVBoxLayout, QWidget
+from PySide6.QtWidgets import (
+    QAbstractItemView,
+    QApplication,
+    QListView,
+    QMenu,
+    QMessageBox,
+    QStyle,
+    QStyledItemDelegate,
+    QStyleOptionButton,
+    QStyleOptionViewItem,
+    QTextEdit,
+    QToolBar,
+    QToolButton,
+    QVBoxLayout,
+    QWidget,
+)
 
 from ..consts import ITEM_DATAS, USER_DIRS
-from .controls import Action, HSeperator, Label
+from .controls import Action, HSeperator, Label, LineEdit
 from .dialogs import GetColor, GetTwoNumber
 
 
-def setDocument(content_: str, format_: str, input_: QTextDocument | QTextEdit) -> None:
-    if format_ == "plain-text":
-        input_.setPlainText(content_)
-
-    elif format_ == "markdown":
-        input_.setMarkdown(content_)
-
-    elif format_ == "html":
-        input_.setHtml(content_)
-
-
-class Document(QWidget):
-    def __init__(self, parent: QWidget, db, index: QModelIndex, mode: str) -> None:
+class BackupView(QWidget):
+    def __init__(self, parent: QWidget, db, index: QModelIndex) -> None:
         super().__init__(parent)
 
         self.parent_ = parent
-
-        self.settings = {}
-
         self.db = db
         self.index = index
-        self.mode = mode
 
-        self.creation = index.data(ITEM_DATAS["creation"])
-
-        self.today = QDate.currentDate()
+        self.format = index.data(ITEM_DATAS["format"])[1]
+        self.mode = "backup"
 
         self.label = Label(self)
 
-        self.input = TextEdit(self)
-        self.input.setAcceptRichText(True)
+        self.listview = BackupListView(self)
 
-        self.helper = DocumentHelper(self)
-        self.input.cursorPositionChanged.connect(self.helper.updateButtons)
+        self.content_entry = LineEdit(self, self.tr("Filter by content..."))
+        self.content_entry.textChanged.connect(self.listview.filterContent)
+
+        self.creation_entry = LineEdit(self, self.tr("Filter by date..."))
+        self.creation_entry.textChanged.connect(self.listview.filterDate)
 
         self.layout_ = QVBoxLayout(self)
         self.layout_.addWidget(self.label)
         self.layout_.addWidget(HSeperator(self))
-        self.layout_.addWidget(self.helper)
-        self.layout_.addWidget(self.input)
+        self.layout_.addWidget(self.content_entry)
+        self.layout_.addWidget(self.creation_entry)
+        self.layout_.addWidget(self.listview)
 
-        self.handleSettings()
-        self.setContent()
+        self.refreshContent()
         self.refreshNames()
 
-    def handleGlobal(self, setting: str) -> str:
-        """Check whether it follows the default and return the actual setting."""
-
-        if self.settings[(setting, "global")] is None:
-            return self.settings[(setting, "default")]
-
-        else:
-            return self.settings[(setting, "global")]
-
-    def handleNotebook(self, setting: str) -> None:
-        """Check whether it follows the default or global setting and return the actual setting."""
-
-        if self.settings[(setting, "notebook")] is None:
-            return self.settings[(setting, "default")]
-
-        elif self.settings[(setting, "notebook")] == "global":
-            return self.handleGlobal(setting)
-
-        else:
-            return self.settings[(setting, "notebook")]
-
-    def handleSettings(self) -> None:
-        """Get settings from QModelIndex's datas."""
-
-        self.settings["autosave"] = self.index.data(ITEM_DATAS["autosave"])[1]
-        self.settings["folder"] = self.index.data(ITEM_DATAS["folder"])[1]
-        self.settings["format"] = self.index.data(ITEM_DATAS["format"])[1]
-        self.settings["locked"] = self.index.data(ITEM_DATAS["locked"])[1]
-        self.settings["sync"] = self.index.data(ITEM_DATAS["sync"])[1]
-
-        # Update TextFormatter's status.
-        self.helper.updateStatus(self.settings["format"])
+    def refreshContent(self) -> None:
+        self.listview.deleteAll()
+        self.listview.appendAll()
 
     def refreshNames(self) -> None:
         self.document = self.index.data(ITEM_DATAS["name"])
         self.notebook = self.index.data(ITEM_DATAS["notebook"])
 
-        self.label.setText(self.document)
-        self.input.setDocumentTitle(self.document)
+        self.label.setText(self.tr("Backup: {}").format(self.document))
 
-    def setContent(self) -> None:
-        self.content = (
-            self.index.data(ITEM_DATAS["content"]) if self.mode == "normal" else self.index.data(ITEM_DATAS["backup"])
+
+class BackupListView(QListView):
+    def __init__(self, parent: BackupView) -> None:
+        super().__init__(parent)
+
+        self.parent_ = parent
+
+        self.items = {}
+
+        self.model_ = QStandardItemModel(self)
+
+        self.content_filterer = QSortFilterProxyModel(self)
+        self.content_filterer.setSourceModel(self.model_)
+        self.content_filterer.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
+        self.content_filterer.setRecursiveFilteringEnabled(True)
+        self.content_filterer.setFilterRole(ITEM_DATAS["content"])
+
+        self.date_filterer = QSortFilterProxyModel(self)
+        self.date_filterer.setSourceModel(self.content_filterer)
+        self.date_filterer.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
+        self.date_filterer.setRecursiveFilteringEnabled(True)
+        self.date_filterer.setFilterRole(ITEM_DATAS["name"])
+
+        self.delegate = BackupDelegate(self)
+        self.delegate.clicked.connect(self.delegateClicked)
+
+        self.setMouseTracking(True)
+        self.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
+        self.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+        self.setItemDelegate(self.delegate)
+        self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.setModel(self.date_filterer)
+        self.setUniformItemSizes(False)
+
+    def appendAll(self) -> None:
+        backups = json.loads(self.parent_.index.data(ITEM_DATAS["backup"]))
+
+        for date, content in backups.items():
+            self.appendItem(date, content)
+
+    def appendItem(self, date: str, content: str) -> None:
+        self.items[date] = QStandardItem()
+
+        self.items[date].setData(content, ITEM_DATAS["content"])
+        self.items[date].setData(date, ITEM_DATAS["name"])
+
+        self.model_.appendRow(self.items[date])
+
+    def deleteAll(self) -> None:
+        for date in self.items.copy():
+            self.deleteItem(date)
+
+    def deleteItem(self, date: str) -> None:
+        self.model_.removeRow(self.items[date].row())
+
+        del self.items[date]
+
+    @Slot(QModelIndex, str)
+    def delegateClicked(self, index: QModelIndex, operation: str) -> None:
+        if operation == "restore":
+            if self.parent_.db.restoreContent(
+                index.data(ITEM_DATAS["name"]), self.parent_.document, self.parent_.notebook
+            ):
+                self.parent_.index.model().setData(
+                    self.parent_.index,
+                    self.parent_.db.getBackups(self.parent_.document, self.parent_.notebook),
+                    ITEM_DATAS["backup"],
+                )
+                self.parent_.index.model().setData(
+                    self.parent_.index,
+                    self.parent_.db.getContent(self.parent_.document, self.parent_.notebook),
+                    ITEM_DATAS["content"],
+                )
+
+                QMessageBox.information(
+                    self,
+                    self.tr("Successful"),
+                    self.tr("The backup '{}' '{of_item}' restored.").format(
+                        index.data(ITEM_DATAS["name"]),
+                        of_item=self.tr("the {name} document").format(name=self.parent_.document),
+                    ),
+                )
+
+                self.parent_.refreshContent()
+
+            else:
+                QMessageBox.critical(
+                    self,
+                    self.tr("Error"),
+                    self.tr("Failed to restore '{}' backup of '{of_item}'.").format(
+                        index.data(ITEM_DATAS["name"]),
+                        of_item=self.tr("the {name} document").format(name=self.parent_.document),
+                    ),
+                )
+
+        if operation == "delete":
+            if self.parent_.db.deleteBackup(
+                index.data(ITEM_DATAS["name"]), self.parent_.document, self.parent_.notebook
+            ):
+                self.parent_.index.model().setData(
+                    self.parent_.index,
+                    self.parent_.db.getBackups(self.parent_.document, self.parent_.notebook),
+                    ITEM_DATAS["backup"],
+                )
+
+                QMessageBox.information(
+                    self,
+                    self.tr("Successful"),
+                    self.tr("The '{}' backup '{of_item}' deleted.").format(
+                        index.data(ITEM_DATAS["name"]),
+                        of_item=self.tr("the {name} document").format(name=self.parent_.document),
+                    ),
+                )
+
+                self.deleteItem(index.data(ITEM_DATAS["name"]))
+
+            else:
+                QMessageBox.critical(
+                    self,
+                    self.tr("Error"),
+                    self.tr("Failed to delete '{}' backup of '{of_item}'.").format(
+                        index.data(ITEM_DATAS["name"]),
+                        of_item=self.tr("the {name} document").format(name=self.parent_.document),
+                    ),
+                )
+
+    @Slot(str)
+    def filterContent(self, text: str) -> None:
+        self.content_filterer.beginResetModel()
+        self.content_filterer.setFilterFixedString(text)
+        self.content_filterer.endResetModel()
+
+    @Slot(str)
+    def filterDate(self, text: str) -> None:
+        self.date_filterer.beginResetModel()
+        self.date_filterer.setFilterFixedString(text)
+        self.date_filterer.endResetModel()
+
+
+class BackupDelegate(QStyledItemDelegate):
+    clicked = Signal(QModelIndex, str)
+
+    def __init__(self, parent: BackupListView) -> None:
+        super().__init__(parent)
+
+        self.parent_ = parent
+
+        self.hovered_index = QModelIndex()
+        self.hovered_button = None
+
+    def paint(self, painter: QPainter, option: QStyleOptionViewItem, index: QModelIndex) -> None:
+        painter.save()
+
+        name_font = QFont(option.font)
+        name_font.setWeight(QFont.Weight.Bold)
+
+        style = QApplication.style()
+
+        option_restore = QStyleOptionButton()
+        option_restore.rect = self.getButtonRects(option.rect)[0]
+        option_restore.text = self.tr("Restore")
+        option_restore.state = QStyle.State(QStyle.StateFlag.State_Enabled)
+        if self.hovered_index == index and self.hovered_button == "restore":
+            option_restore.state |= QStyle.StateFlag.State_MouseOver
+
+        option_delete = QStyleOptionButton()
+        option_delete.rect = self.getButtonRects(option.rect)[1]
+        option_delete.text = self.tr("Delete")
+        option_delete.state = QStyle.State(QStyle.StateFlag.State_Enabled)
+        if self.hovered_index == index and self.hovered_button == "delete":
+            option_delete.state |= QStyle.StateFlag.State_MouseOver
+
+        text_document = QTextDocument()
+        documentSetContent(index.data(ITEM_DATAS["content"]), self.parent_.parent_.format, text_document)
+
+        border_rect = QRect(option.rect.marginsRemoved(QMargins(10, 10, 10, 10)))
+        border_path = QPainterPath()
+        border_path.addRoundedRect(border_rect, 10, 10)
+
+        colors = [option.palette.base().color(), option.palette.text().color(), option.palette.text().color()]
+        border_pen = QPen(colors[2], 5)
+
+        painter.setPen(border_pen)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+        painter.drawPath(border_path)
+        painter.fillPath(border_path, colors[0])
+
+        painter.setPen(colors[1])
+        painter.setFont(name_font)
+        painter.drawText(
+            QRect(option.rect.left() + 15, option.rect.top() + 10, option.rect.width() - 160, 40),
+            self.tr("Date: {}").format(index.data(ITEM_DATAS["name"])),
+            Qt.AlignmentFlag.AlignVCenter,
         )
 
-        setDocument(self.content, self.settings["format"], self.input)
+        painter.restore()
+        painter.save()
+
+        style.drawControl(QStyle.ControlElement.CE_PushButton, option_restore, painter)
+        style.drawControl(QStyle.ControlElement.CE_PushButton, option_delete, painter)
+
+        text_document.setTextWidth(option.rect.adjusted(10, 50, -10, -10).width())
+        painter.translate(option.rect.adjusted(10, 50, -10, -10).topLeft())
+        text_document.drawContents(painter)
+
+        painter.restore()
+
+    def editorEvent(
+        self, event: QEvent, model: QStandardItemModel, option: QStyleOptionViewItem, index: QModelIndex
+    ) -> bool:
+        restore_rect, delete_rect = self.getButtonRects(option.rect)
+        pos = event.position().toPoint()
+
+        if event.type() == QEvent.Type.MouseMove:
+            new_hover_button = None
+            if restore_rect.contains(pos):
+                new_hover_button = "restore"
+            elif delete_rect.contains(pos):
+                new_hover_button = "delete"
+
+            if self.hovered_button != new_hover_button or self.hovered_index != index:
+                self.hovered_button = new_hover_button
+                self.hovered_index = index
+                self.parent_.update(index)
+            return True
+
+        if event.type() == QEvent.MouseButtonRelease and event.button() == Qt.LeftButton:
+            if restore_rect.contains(pos):
+                self.clicked.emit(index, "restore")
+                return True
+
+            elif delete_rect.contains(pos):
+                self.clicked.emit(index, "delete")
+                return True
+
+        return super().editorEvent(event, model, option, index)
+
+    def getButtonRects(self, rect: QRect) -> tuple[QRect, QRect]:
+        return QRect(rect.right() - 140 + QStyle.PM_DefaultFrameWidth / 2, rect.top() + 15, 60, 30), QRect(
+            rect.right() - 75 + QStyle.PM_DefaultFrameWidth / 2, rect.top() + 15, 60, 30
+        )
+
+    def sizeHint(self, option: QStyleOptionViewItem, index: QModelIndex) -> QSize:
+        text_document = QTextDocument()
+        text_document.setTextWidth(option.rect.adjusted(10, 50, -10, -10).width())
+        documentSetContent(index.data(ITEM_DATAS["content"]), self.parent_.parent_.format, text_document)
+
+        return QSize(option.rect.width(), text_document.size().height() + 60)
 
 
-class BackupView(Document):
-    def __init__(self, parent: QWidget, db, index: QModelIndex) -> None:
-        super().__init__(parent, db, index, "backup")
-
-        self.input.setReadOnly(True)
-
-        self.helper.button.triggered.connect(self.restoreContent)
-
-    def refreshContent(self) -> None:
-        self.setContent()
-
-    def refreshSettings(self) -> None:
-        self.handleSettings()
-
-    @Slot()
-    def restoreContent(self) -> None:
-        # Verification for old and locked diaries.
-        if (
-            self.settings["locked"] == "enabled"
-            and datetime.datetime.strptime(self.creation, "%d.%m.%Y %H:%M").date() != datetime.datetime.today().date()
-        ):
-            question = QMessageBox.question(
-                self,
-                self.tr("Question"),
-                self.tr("Diaries are unique to the day they are written.\nDo you really want to change the content?"),
-            )
-
-            if question != QMessageBox.StandardButton.Yes:
-                return
-
-        if self.db.restoreContent(self.document, self.notebook):
-            self.index.model().setData(
-                self.index, self.db.getContent(self.document, self.notebook), ITEM_DATAS["content"]
-            )
-            self.index.model().setData(
-                self.index, self.db.getBackup(self.document, self.notebook), ITEM_DATAS["backup"]
-            )
-
-            QMessageBox.information(self, self.tr("Successful"), self.tr("Content restored."))
-
-        else:
-            QMessageBox.critical(self, self.tr("Error"), self.tr("Failed to restore content."))
-
-
-class NormalView(Document):
+class DocumentView(QWidget):
     show_messages = Signal(bool)
 
     def __init__(self, parent: QWidget, db, index: QModelIndex) -> None:
-        super().__init__(parent, db, index, "normal")
+        super().__init__(parent)
 
+        self.parent_ = parent
+        self.db = db
+        self.index = index
+
+        self.settings = {}
         self.connected = False
+        self.mode = "normal"
 
-        self.last_content = self.content
+        self.creation = index.data(ITEM_DATAS["creation"])
+
+        self.today = QDate.currentDate()
 
         self.show_messages.connect(self.showMessages)
 
@@ -200,11 +398,29 @@ class NormalView(Document):
         self.saver.save_document.connect(self.saver.saveDocument)
         self.saver.moveToThread(self.saver_thread)
 
-        self.helper.button.triggered.connect(lambda: self.saver.saveDocument())
-
         self.save = lambda: self.saver.save_document.emit(True)
 
+        self.label = Label(self)
+
+        self.input = DocumentTextEdit(self)
+        self.input.setAcceptRichText(True)
+
+        self.helper = DocumentHelper(self)
+        self.helper.button.triggered.connect(lambda: self.saver.saveDocument())
+        self.input.cursorPositionChanged.connect(self.helper.updateButtons)
+
+        self.layout_ = QVBoxLayout(self)
+        self.layout_.addWidget(self.label)
+        self.layout_.addWidget(HSeperator(self))
+        self.layout_.addWidget(self.helper)
+        self.layout_.addWidget(self.input)
+
+        self.setSettings()
+        self.setContent()
+        self.refreshNames()
         self.changeAutosaveConnections()
+
+        self.last_content = self.content
 
     def changeAutosaveConnections(self, event: str | None = None) -> None:
         if (
@@ -242,6 +458,39 @@ class NormalView(Document):
         elif format_ == "html":
             return self.input.toHtml()
 
+    def refreshContent(self) -> None:
+        self.changeAutosaveConnections("disconnect")
+        self.setContent()
+        self.changeAutosaveConnections()
+
+    def refreshSettings(self) -> None:
+        self.setSettings()
+        self.changeAutosaveConnections()
+
+    def refreshNames(self) -> None:
+        self.document = self.index.data(ITEM_DATAS["name"])
+        self.notebook = self.index.data(ITEM_DATAS["notebook"])
+
+        self.label.setText(self.tr("Document: {}").format(self.document))
+        self.input.setDocumentTitle(self.document)
+
+    def setContent(self) -> None:
+        self.content = self.index.data(ITEM_DATAS["content"])
+
+        documentSetContent(self.content, self.settings["format"], self.input)
+
+    def setSettings(self) -> None:
+        """Get settings from QModelIndex's datas."""
+
+        self.settings["autosave"] = self.index.data(ITEM_DATAS["autosave"])[1]
+        self.settings["folder"] = self.index.data(ITEM_DATAS["folder"])[1]
+        self.settings["format"] = self.index.data(ITEM_DATAS["format"])[1]
+        self.settings["locked"] = self.index.data(ITEM_DATAS["locked"])[1]
+        self.settings["sync"] = self.index.data(ITEM_DATAS["sync"])[1]
+
+        # Update TextFormatter's status.
+        self.helper.updateStatus(self.settings["format"])
+
     @Slot(bool)
     def showMessages(self, successful: bool) -> None:
         if successful:
@@ -250,19 +499,9 @@ class NormalView(Document):
         else:
             QMessageBox.critical(self, self.tr("Error"), self.tr("Failed to save document."))
 
-    def refreshContent(self) -> None:
-        self.changeAutosaveConnections("disconnect")
-        self.setContent()
-        self.changeAutosaveConnections()
-
-    def refreshSettings(self) -> None:
-        self.handleSettings()
-
-        self.changeAutosaveConnections()
-
 
 class DocumentHelper(QToolBar):
-    def __init__(self, parent: BackupView | NormalView) -> None:
+    def __init__(self, parent: DocumentView) -> None:
         super().__init__(parent)
 
         self.parent_ = parent
@@ -624,7 +863,7 @@ class DocumentHelper(QToolBar):
 class DocumentSaver(QObject):
     save_document = Signal(bool)
 
-    def __init__(self, parent: NormalView) -> None:
+    def __init__(self, parent: DocumentView) -> None:
         super().__init__()
 
         self.parent_ = parent
@@ -713,7 +952,7 @@ class DocumentSaver(QObject):
                 if not autosave:
                     self.parent_.index.model().setData(
                         self.parent_.index,
-                        self.parent_.db.getBackup(self.parent_.document, self.parent_.notebook),
+                        self.parent_.db.getBackups(self.parent_.document, self.parent_.notebook),
                         ITEM_DATAS["backup"],
                     )
 
@@ -727,8 +966,8 @@ class DocumentSaver(QObject):
                 return False
 
 
-class TextEdit(QTextEdit):
-    def __init__(self, parent: BackupView | NormalView) -> None:
+class DocumentTextEdit(QTextEdit):
+    def __init__(self, parent: DocumentView) -> None:
         super().__init__(parent)
 
         self.parent_ = parent
@@ -748,3 +987,14 @@ class TextEdit(QTextEdit):
             self.anchor = None
 
         super().mouseReleaseEvent(event)
+
+
+def documentSetContent(content_: str, format_: str, input_: QTextDocument | QTextEdit) -> None:
+    if format_ == "plain-text":
+        input_.setPlainText(content_)
+
+    elif format_ == "markdown":
+        input_.setMarkdown(content_)
+
+    elif format_ == "html":
+        input_.setHtml(content_)

@@ -72,7 +72,7 @@ from .consts import ITEM_DATAS, SETTINGS_DEFAULTS, SETTINGS_KEYS, SETTINGS_OPTIO
 from .database import MainDB
 from .widgets.controls import Action, CalendarWidget, HSeperator, Label, LineEdit, PushButton, VSeperator
 from .widgets.dialogs import ChangeAppearance, ChangeSettings, Export, GetDescription, GetName, GetNameAndDescription
-from .widgets.documents import BackupView, NormalView, setDocument
+from .widgets.documents import BackupView, DocumentView, documentSetContent
 
 
 class HomePage(QWidget):
@@ -163,7 +163,7 @@ class Page(QWidget):
         self.layout_.addWidget(HSeperator(self), 2, 1)
         self.layout_.addWidget(VSeperator(self), 1, 0)
 
-    def addDocument(self, document: NormalView | BackupView) -> None:
+    def addDocument(self, document: DocumentView | BackupView) -> None:
         if self.document is not None:
             self.removeDocument()
 
@@ -294,9 +294,15 @@ class Selector(QWidget):
 
         self.calendar_widget.setVisible(not (signal == Qt.CheckState.Unchecked or signal == 0))
 
-    def getPageFromIndex(self, index: QModelIndex) -> None | typing.Any:
+    def getPageFromIndex(self, index: QModelIndex, only_normal: bool = True) -> None | typing.Any:
+        modes = ["normal"] if only_normal else ["backup", "normal"]
+
         return next(
-            (page for page in self.parent_.area.pages if page.document is not None and page.document.index == index),
+            (
+                page
+                for page in self.parent_.area.pages
+                if page.document is not None and page.document.mode in modes and page.document.index == index
+            ),
             None,
         )
 
@@ -523,9 +529,9 @@ class Options:
 
         if self.parent_.maindb.clearContent(document, notebook):
             index.model().setData(index, "", ITEM_DATAS["content"])
-            index.model().setData(index, self.parent_.maindb.getBackup(document, notebook), ITEM_DATAS["backup"])
+            index.model().setData(index, self.parent_.maindb.getBackups(document, notebook), ITEM_DATAS["backup"])
 
-            page = self.parent_.getPageFromIndex(index)
+            page = self.parent_.getPageFromIndex(index, False)
             if page is not None:
                 page.document.refreshContent()
 
@@ -540,7 +546,7 @@ class Options:
 
     @Slot(QModelIndex)
     def close(self, index: QModelIndex) -> None:
-        page = self.parent_.getPageFromIndex(index)
+        page = self.parent_.getPageFromIndex(index, False)
         if page is not None:
             if page.document.mode == "normal" and page.document.last_content != page.document.getText():
                 self.question = QMessageBox.question(
@@ -701,7 +707,7 @@ class Options:
                 self.parent_.tree_view.model_.removeRow(index.row())
 
             elif index.data(ITEM_DATAS["type"]) == "document":
-                page = self.parent_.getPageFromIndex(index)
+                page = self.parent_.getPageFromIndex(index, False)
                 if page is not None:
                     page.removeDocument()
 
@@ -746,10 +752,7 @@ class Options:
             if index.data(ITEM_DATAS["type"]) == "notebook":
                 for name_, table_ in self.parent_.maindb.items:
                     if table_ == name:
-                        self.export(
-                            self.parent_.tree_view.mapFromSource(self.parent_.maindb.items[(name_, table_)].index()),
-                            export,
-                        )
+                        self.export(self.parent_.maindb.items[(name_, table_)].index(), export)
 
             elif index.data(ITEM_DATAS["type"]) == "document":
                 os.makedirs(
@@ -757,7 +760,7 @@ class Options:
                     exist_ok=True,
                 )
                 document = QTextDocument()
-                setDocument(index.data(ITEM_DATAS["content"]), index.data(ITEM_DATAS["format"])[1], document)
+                documentSetContent(index.data(ITEM_DATAS["content"]), index.data(ITEM_DATAS["format"])[1], document)
 
                 if export == "pdf":
                     writer = QPdfWriter(
@@ -843,12 +846,12 @@ class Options:
             ),
             None,
         ):
-            # Making clicked that QModelIndex, this is optional because sometime's already clicked.
+            # Making clicked the QModelIndex, this is optional because it is already clicked if not called from the sidebar.
             if make:
                 index.model().setData(index, True, ITEM_DATAS["clicked"])
 
             self.parent_.parent_.area.target.addDocument(
-                NormalView(self.parent_.parent_.area, self.parent_.maindb, index)
+                DocumentView(self.parent_.parent_.area, self.parent_.maindb, index)
                 if mode == "normal"
                 else BackupView(self.parent_.parent_.area, self.parent_.maindb, index)
             )
@@ -951,11 +954,11 @@ class Options:
                                 )
 
                     elif index.data(ITEM_DATAS["type"]) == "document":
-                        page = self.parent_.getPageFromIndex(index)
+                        page = self.parent_.getPageFromIndex(index, False)
                         if page is not None:
                             page.document.refreshNames()
 
-                        if diary == "enabled":
+                        if page.document.mode == "normal" and diary == "enabled":
                             page.document.refreshSettings()
 
                     self.parent_.maindb.items[(new_name, table)] = self.parent_.maindb.items.pop((name, table))
@@ -991,27 +994,6 @@ class Options:
 
         else:
             QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.tr("Failed to reset {the_item}.", index))
-
-    @Slot(QModelIndex)
-    def restoreContent(self, index: QModelIndex) -> None:
-        document, notebook = self.get(index)
-
-        if self.parent_.maindb.restoreContent(document, notebook):
-            index.model().setData(index, self.parent_.maindb.getContent(document, notebook), ITEM_DATAS["content"])
-            index.model().setData(index, self.parent_.maindb.getBackup(document, notebook), ITEM_DATAS["backup"])
-
-            page = self.parent_.getPageFromIndex(index)
-            if page is not None:
-                page.document.refreshContent()
-
-            QMessageBox.information(
-                self.parent_, self.parent_.tr("Successful"), self.tr("The content {of_item} restored.", index)
-            )
-
-        else:
-            QMessageBox.critical(
-                self.parent_, self.parent_.tr("Error"), self.tr("Failed to restore content {of_item}.", index)
-            )
 
     def tr(self, text_: str, index: QModelIndex) -> str:
         """Just being lazy, sometimes..."""
@@ -1089,7 +1071,7 @@ class TreeView(QTreeView):
     failed_to_import = Signal(QModelIndex)
     refresh_document = Signal(typing.Any)
 
-    def __init__(self, parent: Selector):
+    def __init__(self, parent: Selector) -> None:
         super().__init__(parent)
 
         self.parent_ = parent
@@ -1128,10 +1110,10 @@ class TreeView(QTreeView):
         self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.setModel(self.normal_filterer)
 
+        self.delegate.clicked.connect(self.delegateClicked)
+        self.customContextMenuRequested.connect(self.openMenu)
         self.failed_to_import.connect(self.failedToImport)
         self.refresh_document.connect(self.refreshDocument)
-        self.delegate.menu_requested.connect(self.openMenu)
-        self.customContextMenuRequested.connect(self.openMenu)
 
     def appendAll(self) -> None:
         items = self.parent_.maindb.getAll()
@@ -1198,6 +1180,16 @@ class TreeView(QTreeView):
         self.setType(notebook)
 
         self.model_.appendRow(notebook)
+
+    @Slot(QEvent, QStandardItemModel, QStyleOptionViewItem, QModelIndex)
+    def delegateClicked(self, index: QModelIndex, operation: str) -> None:
+        if operation == "menu":
+            self.openMenu(index)
+
+        elif operation == "open" and index.data(ITEM_DATAS["type"]) == "document":
+            self.parent_.options.open(self.mapToSource(index), "normal")
+
+        self.model_.setData(self.mapToSource(index), True, ITEM_DATAS["clicked"])
 
     @Slot(QModelIndex)
     def failedToImport(self, index: QModelIndex) -> None:
@@ -1318,10 +1310,8 @@ class TreeView(QTreeView):
         elif index.data(ITEM_DATAS["type"]) == "document":
             menu.addAction(Action(self, lambda: self.parent_.options.open(index, "normal", True), self.tr("Open")))
             menu.addAction(
-                Action(self, lambda: self.parent_.options.open(index, "backup", True), self.tr("Show Backup"))
+                Action(self, lambda: self.parent_.options.open(index, "backup", True), self.tr("Show Backups"))
             )
-            menu.addAction(Action(self, lambda: self.parent_.options.restoreContent(index), self.tr("Restore Content")))
-            menu.addAction(Action(self, lambda: self.parent_.options.clearContent(index), self.tr("Clear Content")))
 
         menu.addSeparator()
         if index.data(ITEM_DATAS["completed"])[1] == "completed":
@@ -1358,18 +1348,20 @@ class TreeView(QTreeView):
 
         menu.addSeparator()
         menu.addAction(Action(self, lambda: self.parent_.options.export(index), self.tr("Export")))
+        if index.data(ITEM_DATAS["type"]) == "document":
+            menu.addAction(Action(self, lambda: self.parent_.options.clearContent(index), self.tr("Clear Content")))
 
         menu.addSeparator()
         menu.addAction(Action(self, lambda: self.parent_.options.rename(index), self.tr("Rename")))
-        menu.addAction(Action(self, lambda: self.parent_.options.delete(index), self.tr("Delete")))
         if index.data(ITEM_DATAS["type"]) == "notebook":
             menu.addAction(Action(self, lambda: self.parent_.options.reset(index), self.tr("Reset")))
+        menu.addAction(Action(self, lambda: self.parent_.options.delete(index), self.tr("Delete")))
 
         menu.addSeparator()
         menu.addAction(Action(self, lambda: self.parent_.options.changeAppearance(index), self.tr("Change Appearance")))
         menu.addAction(Action(self, lambda: self.parent_.options.changeSettings(index), self.tr("Change Settings")))
 
-        page = self.parent_.getPageFromIndex(index)
+        page = self.parent_.getPageFromIndex(index, False)
 
         if index.data(ITEM_DATAS["type"]) == "document" and page is not None:
             menu.addSeparator()
@@ -1412,6 +1404,180 @@ class TreeView(QTreeView):
 
         elif context_data.data(ITEM_DATAS["locked"])[1] == "enabled":
             self.setData(context_data, "diary", ITEM_DATAS["type_2"])
+
+
+class ButtonDelegate(QStyledItemDelegate):
+    clicked = Signal(QModelIndex, str)
+
+    dot_size = 4
+    dot_padding = 8
+    button_size = 24
+
+    def paint(self, painter: QPainter, option: QStyleOptionViewItem, index: QModelIndex) -> None:
+        painter.save()
+
+        name = index.data(ITEM_DATAS["name"])
+
+        if index.data(ITEM_DATAS["completed"])[1] == "completed":
+            name = f"[+] {name}"
+
+        elif index.data(ITEM_DATAS["completed"])[1] == "uncompleted":
+            name = f"[-] {name}"
+
+        name_font = QFont(option.font)
+        name_font.setWeight(QFont.Weight.Bold)
+        name_fontmetrics = QFontMetrics(name_font)
+        name_padding = name_fontmetrics.lineSpacing()
+
+        name_rect = QRect(option.rect)
+        name_rect.setLeft(name_rect.left() + name_padding)
+        name_rect.setTop(name_rect.top() + name_padding)
+        name_rect.setRight(option.rect.width())
+        name_rect.setHeight(name_padding)
+
+        content = index.data(ITEM_DATAS["content"])
+
+        content_rect = QRect(option.rect)
+        content_rect.setLeft(content_rect.left() + name_padding)
+        content_rect.setTop(name_rect.bottom() + name_padding / 2)
+        content_rect.setRight(
+            option.rect.width() + (name_padding if index.data(ITEM_DATAS["type"]) == "document" else 0) - 10
+        )
+        content_rect.setHeight(name_padding)
+
+        creation_date = index.data(ITEM_DATAS["creation"])
+
+        creation_rect = QRect(option.rect)
+        creation_rect.setLeft(creation_rect.left() + name_padding)
+        creation_rect.setTop(content_rect.bottom() + name_padding / 2)
+        creation_rect.setRight(
+            QFontMetrics(QFont(option.font)).horizontalAdvance(creation_date) + creation_rect.left() + name_padding
+        )
+        creation_rect.setHeight(name_padding)
+
+        modification_date = index.data(ITEM_DATAS["modification"])
+
+        modification_rect = QRect(option.rect)
+        modification_rect.setLeft(
+            option.rect.width()
+            - QFontMetrics(QFont(option.font)).horizontalAdvance(modification_date)
+            + (name_padding if index.data(ITEM_DATAS["type"]) == "document" else 0)
+        )
+        modification_rect.setTop(content_rect.bottom() + name_padding / 2)
+        modification_rect.setRight(
+            option.rect.width() + (name_padding if index.data(ITEM_DATAS["type"]) == "document" else 0)
+        )
+        modification_rect.setHeight(name_padding)
+
+        border_rect = QRect(option.rect.marginsRemoved(QMargins(10, 10, 10, 10)))
+
+        border_path = QPainterPath()
+        border_path.addRoundedRect(border_rect, 10, 10)
+
+        # mouse clicked, mouse hovered and other
+        situations = [
+            bool(index.data(ITEM_DATAS["clicked"]) and index.data(ITEM_DATAS["type"]) == "document"),
+            bool(option.state & QStyle.StateFlag.State_MouseOver),
+            True,
+        ]
+
+        # default colors of background, foreground and border
+        defaults = [
+            [option.palette.base().color(), option.palette.text().color(), option.palette.text().color()],
+            [option.palette.button().color(), option.palette.text().color(), option.palette.buttonText().color()],
+            [option.palette.link().color(), option.palette.text().color(), option.palette.linkVisited().color()],
+        ]
+
+        colors = []
+
+        # We must use an inverse loop for the QModelIndex data to match the “situations” variable.
+        i = 2
+
+        # A loop from the most specific situation (clicked) to the general situation (other).
+        for status in situations:
+            if status:
+                for j in range(3):
+                    if index.data(ITEM_DATAS["bg_normal"] + j * 3 + i)[1] is None:
+                        colors.append(defaults[i][j])
+
+                    else:
+                        colors.append(QColor(index.data(ITEM_DATAS["bg_normal"] + j * 3 + i)[1]))
+
+                break
+
+            i -= 1
+
+        border_pen = QPen(colors[2], 5)
+        painter.setPen(border_pen)
+
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+        painter.drawPath(border_path)
+        painter.fillPath(border_path, colors[0])
+
+        painter.restore()
+        painter.save()
+
+        painter.setPen(colors[1])
+        painter.setFont(name_font)
+
+        painter.drawText(name_rect, name_fontmetrics.elidedText(name, Qt.TextElideMode.ElideRight, name_rect.width()))
+
+        painter.setFont(option.font)
+
+        painter.drawText(
+            content_rect,
+            QFontMetrics(QFont(option.font)).elidedText(content, Qt.TextElideMode.ElideRight, content_rect.width()),
+        )
+        painter.drawText(creation_rect, creation_date)
+        painter.drawText(modification_rect, modification_date)
+
+        painter.restore()
+        painter.save()
+
+        painter.setPen(colors[2])
+        painter.setBrush(colors[1])
+
+        button_rect = self.getButtonRect(option)
+        center_y = button_rect.center().y()
+        center_x = button_rect.center().x()
+
+        painter.drawEllipse(
+            center_x - self.dot_size / 2, center_y - self.dot_padding - self.dot_size / 2, self.dot_size, self.dot_size
+        )
+        painter.drawEllipse(center_x - self.dot_size / 2, center_y - self.dot_size / 2, self.dot_size, self.dot_size)
+        painter.drawEllipse(
+            center_x - self.dot_size / 2, center_y + self.dot_padding - self.dot_size / 2, self.dot_size, self.dot_size
+        )
+
+        painter.restore()
+
+    def editorEvent(
+        self, event: QEvent, model: QStandardItemModel, option: QStyleOptionViewItem, index: QModelIndex
+    ) -> bool:
+        if event.type() == QEvent.Type.MouseButtonPress:
+            button_rect = self.getButtonRect(option)
+
+            if event.button() == Qt.MouseButton.LeftButton:
+                # Open the menu.
+                if button_rect.contains(event.position().toPoint()):
+                    self.clicked.emit(index, "menu")
+                    return True
+
+                # Open the document.
+                self.clicked.emit(index, "open")
+
+        return super().editorEvent(event, model, option, index)
+
+    def getButtonRect(self, option: QStyleOptionViewItem) -> QRect:
+        return QRect(
+            option.rect.topRight().x() - self.button_size - 10,
+            option.rect.topRight().y(),
+            self.button_size,
+            option.rect.height(),
+        )
+
+    def sizeHint(self, option: QStyleOptionViewItem, index: QModelIndex) -> QRect:
+        return QSize(option.rect.width(), 108)
 
 
 class Importer(QObject):
@@ -1551,185 +1717,3 @@ class Importer(QObject):
             for path in self.failed_to_watch.copy():
                 if os.path.dirname(path) == directory and self.watcher.addPath(path):
                     self.failed_to_watch.remove(path)
-
-class ButtonDelegate(QStyledItemDelegate):
-    menu_requested = Signal(QModelIndex)
-
-    dot_size = 4
-    dot_padding = 8
-    button_size = 24
-
-    def __init__(self, parent: TreeView) -> None:
-        super().__init__(parent)
-
-        self.parent_ = parent
-
-    def paint(self, painter: QPainter, option: QStyleOptionViewItem, index: QModelIndex) -> None:
-        painter.save()
-
-        name = index.data(ITEM_DATAS["name"])
-
-        if index.data(ITEM_DATAS["completed"])[1] == "completed":
-            name = f"[+] {name}"
-
-        elif index.data(ITEM_DATAS["completed"])[1] == "uncompleted":
-            name = f"[-] {name}"
-
-        name_font = QFont(option.font)
-        name_font.setWeight(QFont.Weight.Bold)
-        name_fontmetrics = QFontMetrics(name_font)
-        name_padding = name_fontmetrics.lineSpacing()
-
-        name_rect = QRect(option.rect)
-        name_rect.setLeft(name_rect.left() + name_padding)
-        name_rect.setTop(name_rect.top() + name_padding)
-        name_rect.setRight(option.rect.width())
-        name_rect.setHeight(name_fontmetrics.lineSpacing())
-
-        content = index.data(ITEM_DATAS["content"])
-
-        content_rect = QRect(option.rect)
-        content_rect.setLeft(content_rect.left() + name_padding)
-        content_rect.setTop(name_rect.bottom() + name_padding / 2)
-        content_rect.setRight(
-            option.rect.width() + (name_padding if index.data(ITEM_DATAS["type"]) == "document" else 0) - 10
-        )
-        content_rect.setHeight(name_fontmetrics.lineSpacing())
-
-        creation_date = index.data(ITEM_DATAS["creation"])
-
-        creation_rect = QRect(option.rect)
-        creation_rect.setLeft(creation_rect.left() + name_padding)
-        creation_rect.setTop(content_rect.bottom() + name_padding / 2)
-        creation_rect.setRight(
-            QFontMetrics(QFont(option.font)).horizontalAdvance(creation_date) + creation_rect.left() + name_padding
-        )
-        creation_rect.setHeight(name_fontmetrics.lineSpacing())
-
-        modification_date = index.data(ITEM_DATAS["modification"])
-
-        modification_rect = QRect(option.rect)
-        modification_rect.setLeft(
-            option.rect.width()
-            - QFontMetrics(QFont(option.font)).horizontalAdvance(modification_date)
-            + (name_padding if index.data(ITEM_DATAS["type"]) == "document" else 0)
-        )
-        modification_rect.setTop(content_rect.bottom() + name_padding / 2)
-        modification_rect.setRight(
-            option.rect.width() + (name_padding if index.data(ITEM_DATAS["type"]) == "document" else 0)
-        )
-        modification_rect.setHeight(name_fontmetrics.lineSpacing())
-
-        painter.save()
-
-        border_rect = QRect(option.rect.marginsRemoved(QMargins(10, 10, 10, 10)))
-
-        border_path = QPainterPath()
-        border_path.addRoundedRect(border_rect, 10, 10)
-
-        # mouse clicked, mouse hovered and other
-        situations = [
-            bool(index.data(ITEM_DATAS["clicked"]) and index.data(ITEM_DATAS["type"]) == "document"),
-            bool(option.state & QStyle.StateFlag.State_MouseOver),
-            True,
-        ]
-
-        # default colors of background, foreground and border
-        defaults = [
-            [option.palette.base().color(), option.palette.text().color(), option.palette.text().color()],
-            [option.palette.button().color(), option.palette.text().color(), option.palette.buttonText().color()],
-            [option.palette.link().color(), option.palette.text().color(), option.palette.linkVisited().color()],
-        ]
-
-        colors = []
-
-        # We must use an inverse loop for the QModelIndex data to match the “situations” variable.
-        i = 2
-
-        # A loop from the most specific situation (clicked) to the general situation (other).
-        for status in situations:
-            if status:
-                for j in range(3):
-                    if index.data(ITEM_DATAS["bg_normal"] + j * 3 + i)[1] is None:
-                        colors.append(defaults[i][j])
-
-                    else:
-                        colors.append(QColor(index.data(ITEM_DATAS["bg_normal"] + j * 3 + i)[1]))
-
-                break
-
-            i -= 1
-
-        border_pen = QPen(colors[2], 5)
-        painter.setPen(border_pen)
-
-        painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
-        painter.drawPath(border_path)
-        painter.fillPath(border_path, colors[0])
-
-        painter.restore()
-
-        painter.setPen(colors[1])
-        painter.setFont(name_font)
-
-        painter.drawText(name_rect, name_fontmetrics.elidedText(name, Qt.TextElideMode.ElideRight, name_rect.width()))
-
-        painter.setFont(option.font)
-
-        painter.drawText(
-            content_rect,
-            QFontMetrics(QFont(option.font)).elidedText(content, Qt.TextElideMode.ElideRight, content_rect.width()),
-        )
-        painter.drawText(creation_rect, creation_date)
-        painter.drawText(modification_rect, modification_date)
-
-        painter.restore()
-        painter.save()
-
-        painter.setPen(colors[2])
-        painter.setBrush(colors[1])
-
-        button_rect = self.getButtonRect(option)
-        center_y = button_rect.center().y()
-        center_x = button_rect.center().x()
-
-        painter.drawEllipse(
-            center_x - self.dot_size / 2, center_y - self.dot_padding - self.dot_size / 2, self.dot_size, self.dot_size
-        )
-        painter.drawEllipse(center_x - self.dot_size / 2, center_y - self.dot_size / 2, self.dot_size, self.dot_size)
-        painter.drawEllipse(
-            center_x - self.dot_size / 2, center_y + self.dot_padding - self.dot_size / 2, self.dot_size, self.dot_size
-        )
-
-        painter.restore()
-
-    def editorEvent(
-        self, event: QEvent, model: QStandardItemModel, option: QStyleOptionViewItem, index: QModelIndex
-    ) -> bool:
-        if event.type() == QEvent.Type.MouseButtonPress:
-            button_rect = self.getButtonRect(option)
-
-            if event.button() == Qt.MouseButton.LeftButton:
-                # Open the menu.
-                if button_rect.contains(event.position().toPoint()):
-                    self.menu_requested.emit(index)
-                    return True
-
-                # Open the document.
-                elif index.data(ITEM_DATAS["type"]) == "document":
-                    self.parent_.parent_.options.open(self.parent_.mapToSource(index), "normal")
-
-                model.setData(index, not index.data(ITEM_DATAS["clicked"]), ITEM_DATAS["clicked"])
-
-        return super().editorEvent(event, model, option, index)
-
-    def getButtonRect(self, option: QStyleOptionViewItem) -> QRect:
-        return QRect(
-            option.rect.topRight().x() - self.button_size - 10,
-            option.rect.topRight().y(),
-            self.button_size,
-            option.rect.height(),
-        )
-
-    def sizeHint(self, option: QStyleOptionViewItem, index: QModelIndex) -> QRect:
-        return QSize(option.rect.width(), 108)
