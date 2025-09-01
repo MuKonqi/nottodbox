@@ -19,6 +19,7 @@
 
 
 import datetime
+import json
 import os
 import shutil
 import sqlite3
@@ -47,6 +48,21 @@ class MainDB:
 
         self.createTable("__main__")
 
+    def addBackup(self, content: str, document: str, notebook: str) -> bool:
+        date = datetime.datetime.strptime(self.get("creation", document, notebook), "%d.%m.%Y %H:%M")
+
+        if self.getLocked(document, notebook) != "enabled" or (self.getLocked(document, notebook) == "enabled" and date.date() == datetime.datetime.today().date()):
+            backups = self.getBackups(document, notebook)
+            backups[date] = content
+
+            self.cur.execute(f"update '{notebook}' set backup = ? where name = ?", (backups, document))
+            self.db.commit()
+
+            return self.getBackups(document, notebook) == backups
+
+        else:
+            return True
+
     def checkIfItExists(self, name: str, table: str = "__main__") -> bool:
         self.cur.execute(f"select * from '{table}' where name = ?", (name,))
 
@@ -61,6 +77,9 @@ class MainDB:
 
         except TypeError:
             return False
+
+    def checkIfTheBackupExists(self, date: str, document: str, notebook: str) -> bool:
+        return date in self.getBackups(document, notebook)
 
     def checkIfTheTableExists(self, name: str = "__main__") -> bool:
         try:
@@ -77,7 +96,7 @@ class MainDB:
         self.db.commit()
 
         if self.getContent(document, notebook) == "" and self.updateModification(document, notebook):
-            return self.setBackup(content, document, notebook)
+            return self.addBackup(content, document, notebook)
 
         return False
 
@@ -193,6 +212,16 @@ class MainDB:
 
         return False
 
+    def deleteBackup(self, date: str, document: str, notebook: str) -> bool:
+        if self.checkIfTheBackupExists(date, document, notebook):
+            backups = self.getBackups(document, notebook)
+            del backups[date]
+
+            return self.set(json.dumps(backups), "backup", document, notebook)
+
+        else:
+            return True
+
     def get(self, column: str, name: str, table: str = "__main__") -> str:
         self.cur.execute(f"select {column} from '{table}' where name = ?", (name,))
 
@@ -219,8 +248,8 @@ class MainDB:
 
         return items
 
-    def getBackup(self, document: str, notebook: str) -> str:
-        return self.get("backup", document, notebook)
+    def getBackups(self, document: str, notebook: str) -> dict:
+        return json.loads(self.get("backup", document, notebook))
 
     def getContent(self, document: str, notebook: str) -> str:
         return self.get("content", document, notebook)
@@ -264,15 +293,17 @@ class MainDB:
 
         return self.getNotebook(name)[0] == []
 
-    def restoreContent(self, document: str, notebook: str) -> bool:
-        self.cur.execute(f"select content, backup from '{notebook}' where name = ?", (document,))
-        content, backup = self.cur.fetchone()
+    def restoreContent(self, date: str, document: str, notebook: str) -> bool:
+        if self.checkIfTheBackupExists(date, document, notebook):
+            self.cur.execute(f"select content, backup from '{notebook}' where name = ?", (document,))
+            content, backups = self.cur.fetchone()
+            backup = json.loads(backups)[date]
 
-        self.cur.execute(f"update '{notebook}' set content = ? where name = ?", (backup, document))
-        self.db.commit()
+            self.cur.execute(f"update '{notebook}' set content = ? where name = ?", (backup, document))
+            self.db.commit()
 
-        if self.getContent(document, notebook) == backup and self.updateModification(document, notebook):
-            return self.setBackup(content, document, notebook)
+            if self.getContent(document, notebook) == backup and self.updateModification(document, notebook):
+                return self.addBackup(content, document, notebook)
 
         return False
 
@@ -285,7 +316,7 @@ class MainDB:
                 return True
 
             else:
-                return self.setBackup(backup, document, notebook)
+                return self.addBackup(backup, document, notebook)
 
         return False
 
@@ -294,20 +325,6 @@ class MainDB:
         self.db.commit()
 
         return self.get(column, name, table) == value
-
-    def setBackup(self, content: str, document: str, notebook: str) -> bool:
-        if self.getLocked(document, notebook) != "enabled" or (
-            self.getLocked(document, notebook) == "enabled"
-            and datetime.datetime.strptime(self.get("creation", document, notebook), "%d.%m.%Y %H:%M").date()
-            == datetime.datetime.today().date()
-        ):
-            self.cur.execute(f"update '{notebook}' set backup = ? where name = ?", (content, document))
-            self.db.commit()
-
-            return self.getBackup(document, notebook) == content
-
-        else:
-            return True
 
     def updateDatabase(self) -> None:
         update = False
@@ -373,6 +390,9 @@ class MainDB:
 
                     except ValueError:
                         pass
+
+                    self.cur.execute(f"update '{table}' set backup = ? where name = ?", (json.dumps({"2025": self.get("backup", name, table)}), name))
+                    self.db.commit()
 
     def updateModification(self, name: str, table: str = "__main__", date: str | None = None) -> bool:
         if date is None:

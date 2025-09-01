@@ -529,7 +529,7 @@ class Options:
 
         if self.parent_.maindb.clearContent(document, notebook):
             index.model().setData(index, "", ITEM_DATAS["content"])
-            index.model().setData(index, self.parent_.maindb.getBackup(document, notebook), ITEM_DATAS["backup"])
+            index.model().setData(index, self.parent_.maindb.getBackups(document, notebook), ITEM_DATAS["backup"])
 
             page = self.parent_.getPageFromIndex(index, False)
             if page is not None:
@@ -1004,7 +1004,7 @@ class Options:
 
         if self.parent_.maindb.restoreContent(document, notebook):
             index.model().setData(index, self.parent_.maindb.getContent(document, notebook), ITEM_DATAS["content"])
-            index.model().setData(index, self.parent_.maindb.getBackup(document, notebook), ITEM_DATAS["backup"])
+            index.model().setData(index, self.parent_.maindb.getBackups(document, notebook), ITEM_DATAS["backup"])
 
             page = self.parent_.getPageFromIndex(index, False)
             if page is not None:
