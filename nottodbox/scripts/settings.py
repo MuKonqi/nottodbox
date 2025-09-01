@@ -1031,20 +1031,17 @@ class DocumentSettings(GlobalSettings):
             [self.tr("Enabled"), self.tr("Disabled")],
             ["Markdown", "HTML", self.tr("Plain-text")],
             [
-                "{}, {}".format(setting, self.tr("with only export synchronization"))
-                for setting in [self.tr("Follow format"), "PDF", "ODT"]
-            ]
-            + [
-                f"Markdown, {mode}"
+                "{}, {}".format(self.tr("Follow format"), mode)
                 for mode in [
                     self.tr("with both synchronizations"),
                     self.tr("with only export synchronization"),
                     self.tr("with only import synchronization"),
                 ]
             ]
-            + ["HTML, {}".format(self.tr("with only export synchronization"))]
+            + ["{}, {}".format(setting, self.tr("with only export synchronization")) for setting in ["PDF", "ODT"]]
             + [
-                f"Plain-text, {mode}"
+                f"{base}, {mode}"
+                for base in ["Markdown", "HTML", self.tr("Plain-text")]
                 for mode in [
                     self.tr("with both synchronizations"),
                     self.tr("with only export synchronization"),

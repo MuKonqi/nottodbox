@@ -96,10 +96,9 @@ SETTINGS_VALUES = [
     ["enabled", "disabled"],
     ["enabled", "disabled"],
     ["markdown", "html", "plain-text"],
-    ["format_export", "pdf_export", "odt_export"]
-    + [f"markdown_{mode}" for mode in ["all", "export", "import"]]
-    + ["html_export"]
-    + [f"plain-text_{mode}" for mode in ["all", "export", "import"]],
+    [f"format_{mode}" for mode in ["all", "export", "import"]]
+    + ["pdf_export", "odt_export"]
+    + [f"{base}_{mode}" for base in ["markdown", "html", "plain-text"] for mode in ["all", "export", "import"]],
     ["documents", "desktop"],
     ["yes", "no"],
 ]

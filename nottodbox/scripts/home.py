@@ -1432,11 +1432,14 @@ class Importer(QObject):
         for item in self.parent_.parent_.maindb.items.values():
             if item.data(ITEM_DATAS["sync"])[1] is not None:
                 sync = item.data(ITEM_DATAS["sync"])[1].removesuffix("_all").removesuffix("_import")
+                if sync == "format":
+                    sync = item.data(ITEM_DATAS["format"])[1]
+
                 file = os.path.join(
                     USER_DIRS[item.data(ITEM_DATAS["folder"])[1]],
                     "Nottodbox",
                     item.data(ITEM_DATAS["notebook"]),
-                    f"{item.data(ITEM_DATAS['name'])}.{'txt' if sync == 'plain-text' else 'markdown'}",
+                    f"{item.data(ITEM_DATAS['name'])}.{'txt' if sync == 'plain-text' else sync}",
                 )
 
                 if item.data(ITEM_DATAS["sync"])[1].endswith("_all") or item.data(ITEM_DATAS["sync"])[1].endswith(
@@ -1465,6 +1468,9 @@ class Importer(QObject):
 
                 if os.path.splitext(file)[1] == ".markdown":
                     input_.setMarkdown(f.read())
+
+                if os.path.splitext(file)[1] == ".html":
+                    input_.setHtml(f.read())
 
                 elif os.path.splitext(file)[1] == ".txt":
                     input_.setPlainText(f.read())
@@ -1502,12 +1508,14 @@ class Importer(QObject):
 
         if item.data(ITEM_DATAS["sync"])[1].endswith("_all") or item.data(ITEM_DATAS["sync"])[1].endswith("_import"):
             sync = item.data(ITEM_DATAS["sync"])[1].removesuffix("_all").removesuffix("_import")
+            if sync == "format":
+                sync = item.data(ITEM_DATAS["format"])[1]
 
             if file == os.path.join(
                 USER_DIRS[item.data(ITEM_DATAS["folder"])[1]],
                 "Nottodbox",
                 item.data(ITEM_DATAS["notebook"]),
-                f"{item.data(ITEM_DATAS['name'])}.{'txt' if sync == 'plain-text' else 'markdown'}",
+                f"{item.data(ITEM_DATAS['name'])}.{'txt' if sync == 'plain-text' else sync}",
             ):
                 self.importDocument(file, item)
 
