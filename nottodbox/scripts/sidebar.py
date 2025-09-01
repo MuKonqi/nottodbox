@@ -16,7 +16,7 @@
 # along with Nottodbox.  If not, see <https://www.gnu.org/licenses/>.
 
 
-from PySide6.QtCore import QEvent, QMargins, QModelIndex, QRect, QSize, Slot
+from PySide6.QtCore import QEvent, QMargins, QModelIndex, QRect, QSize, Signal, Slot
 from PySide6.QtGui import (
     QColor,
     QFont,
@@ -145,6 +145,7 @@ class ListView(QListView):
         self.model_ = QStandardItemModel(self)
 
         self.delegate = ButtonDelegate(self)
+        self.delegate.clicked.connect(self.delegateClicked)
 
         self.setMouseTracking(True)
         self.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
@@ -163,6 +164,25 @@ class ListView(QListView):
 
         self.items[index] = item
 
+    @Slot(QEvent, QStandardItemModel, QStyleOptionViewItem, QModelIndex)
+    def delegateClicked(self, event: QEvent, model: QStandardItemModel, option: QStyleOptionViewItem, index: QModelIndex) -> None:
+        indexes = [item.index() for item in self.items.values()]
+        indexes.remove(index)
+
+        # Make unclicked all indexes except current index.
+        for index_ in indexes:
+            model.setData(index_, False, ITEM_DATAS["clicked"])
+
+        model.setData(index, True, ITEM_DATAS["clicked"])
+
+        index.data(ITEM_DATAS["target"]).data(ITEM_DATAS["setCurrentIndex"])(index.data(ITEM_DATAS["type"]))
+
+        # Open the document.
+        if index.data(ITEM_DATAS["target"]).data(ITEM_DATAS["type"]) == "document":
+            index.data(ITEM_DATAS["target"]).data(ITEM_DATAS["open"])(
+                index.data(ITEM_DATAS["type"]), "normal", True
+            )
+
     def removeItem(self, index: QModelIndex) -> None:
         self.model_.removeRow(self.items[index].row())
 
@@ -170,6 +190,8 @@ class ListView(QListView):
 
 
 class ButtonDelegate(QStyledItemDelegate):
+    clicked = Signal(QEvent, QStandardItemModel, QStyleOptionViewItem, QModelIndex)
+
     def __init__(self, parent: ListView) -> None:
         super().__init__(parent)
 
@@ -252,22 +274,7 @@ class ButtonDelegate(QStyledItemDelegate):
         self, event: QEvent, model: QStandardItemModel, option: QStyleOptionViewItem, index: QModelIndex
     ) -> bool:
         if event.type() == QEvent.Type.MouseButtonPress:
-            indexes = [item.index() for item in self.parent_.items.values()]
-            indexes.remove(index)
-
-            # Make unclicked all indexes except current index.
-            for index_ in indexes:
-                model.setData(index_, False, ITEM_DATAS["clicked"])
-
-            model.setData(index, True, ITEM_DATAS["clicked"])
-
-            index.data(ITEM_DATAS["target"]).data(ITEM_DATAS["setCurrentIndex"])(index.data(ITEM_DATAS["type"]))
-
-            # Open the document.
-            if index.data(ITEM_DATAS["target"]).data(ITEM_DATAS["type"]) == "document":
-                index.data(ITEM_DATAS["target"]).data(ITEM_DATAS["open"])(
-                    index.data(ITEM_DATAS["type"]), "normal", True
-                )
+            self.clicked.emit(event, model, option, index)
 
         return super().editorEvent(event, model, option, index)
 

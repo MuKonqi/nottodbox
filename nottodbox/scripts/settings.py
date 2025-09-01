@@ -20,7 +20,7 @@ import configparser
 import json
 import os
 
-from PySide6.QtCore import QEvent, QMargins, QModelIndex, QRect, QSettings, QSize, QStandardPaths, Qt, Slot
+from PySide6.QtCore import QEvent, QMargins, QModelIndex, QRect, QSettings, QSize, QStandardPaths, Qt, Signal, Slot
 from PySide6.QtGui import (
     QColor,
     QFont,
@@ -254,6 +254,7 @@ class ListView(QListView):
             self.indexes.append(item.index())
 
         self.delegate = ButtonDelegate(self)
+        self.delegate.clicked.connect(self.delegateClicked)
 
         self.setFixedWidth(140)
         self.setMouseTracking(True)
@@ -265,8 +266,21 @@ class ListView(QListView):
         self.setCurrentIndex(self.indexes[0])
         self.model_.setData(self.indexes[0], True, ITEM_DATAS["clicked"])
 
+    @Slot(QEvent, QStandardItemModel, QStyleOptionViewItem, QModelIndex)
+    def delegateClicked(self, event: QEvent, model: QStandardItemModel, option: QStyleOptionViewItem, index: QModelIndex) -> None:
+        indexes = self.indexes.copy()
+        indexes.remove(index)
+
+        for index_ in indexes:
+            model.setData(index_, False, ITEM_DATAS["clicked"])
+
+        model.setData(index, True, ITEM_DATAS["clicked"])
+        self.parent_.widget.setCurrentIndex(index.data(ITEM_DATAS["type"]))
+
 
 class ButtonDelegate(QStyledItemDelegate):
+    clicked = Signal(QEvent, QStandardItemModel, QStyleOptionViewItem, QModelIndex)
+
     def __init__(self, parent: ListView) -> None:
         super().__init__(parent)
 
@@ -336,14 +350,7 @@ class ButtonDelegate(QStyledItemDelegate):
         self, event: QEvent, model: QStandardItemModel, option: QStyleOptionViewItem, index: QModelIndex
     ) -> bool:
         if event.type() == QEvent.Type.MouseButtonPress:
-            indexes = self.parent_.indexes.copy()
-            indexes.remove(index)
-
-            for index_ in indexes:
-                model.setData(index_, False, ITEM_DATAS["clicked"])
-
-            model.setData(index, True, ITEM_DATAS["clicked"])
-            self.parent_.parent_.widget.setCurrentIndex(index.data(ITEM_DATAS["type"]))
+            self.clicked.emit(event, model, option, index)
 
         return super().editorEvent(event, model, option, index)
 

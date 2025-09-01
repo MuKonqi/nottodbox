@@ -1134,10 +1134,10 @@ class TreeView(QTreeView):
         self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.setModel(self.normal_filterer)
 
+        self.delegate.clicked.connect(self.delegateClicked)
+        self.customContextMenuRequested.connect(self.openMenu)
         self.failed_to_import.connect(self.failedToImport)
         self.refresh_document.connect(self.refreshDocument)
-        self.delegate.menu_requested.connect(self.openMenu)
-        self.customContextMenuRequested.connect(self.openMenu)
 
     def appendAll(self) -> None:
         items = self.parent_.maindb.getAll()
@@ -1204,6 +1204,22 @@ class TreeView(QTreeView):
         self.setType(notebook)
 
         self.model_.appendRow(notebook)
+
+    @Slot(QEvent, QStandardItemModel, QStyleOptionViewItem, QModelIndex)
+    def delegateClicked(self, event: QEvent, model: QStandardItemModel, option: QStyleOptionViewItem, index: QModelIndex) -> None:
+        button_rect = self.delegate.getButtonRect(option)
+
+        if event.button() == Qt.MouseButton.LeftButton:
+            # Open the menu.
+            if button_rect.contains(event.position().toPoint()):
+                self.openMenu(index)
+                return True
+
+            # Open the document.
+            elif index.data(ITEM_DATAS["type"]) == "document":
+                self.parent_.options.open(self.mapToSource(index), "normal")
+
+            model.setData(index, True, ITEM_DATAS["clicked"])
 
     @Slot(QModelIndex)
     def failedToImport(self, index: QModelIndex) -> None:
@@ -1420,147 +1436,8 @@ class TreeView(QTreeView):
             self.setData(context_data, "diary", ITEM_DATAS["type_2"])
 
 
-class Importer(QObject):
-    import_all = Signal()
-    import_file = Signal(str)
-    watch_directory = Signal(str)
-
-    def __init__(self, parent: TreeView) -> None:
-        super().__init__()
-
-        self.parent_ = parent
-
-        self.failed_to_watch = []
-
-        self.import_all.connect(self.importAll)
-        self.import_file.connect(self.importFile)
-        self.watch_directory.connect(self.watchDirectory)
-
-        self.watcher = QFileSystemWatcher(self)
-        self.watcher.directoryChanged.connect(self.watch_directory.emit)
-        self.watcher.fileChanged.connect(self.import_file.emit)
-
-        self.watcher.addPaths([os.path.join(user_dir, "Nottodbox") for user_dir in list(USER_DIRS.values())])
-
-    @Slot()
-    def importAll(self) -> None:
-        for item in self.parent_.parent_.maindb.items.values():
-            if item.data(ITEM_DATAS["sync"])[1] is not None and (
-                item.data(ITEM_DATAS["sync"])[1].endswith("_all")
-                or item.data(ITEM_DATAS["sync"])[1].endswith("_import")
-            ):
-                sync = item.data(ITEM_DATAS["sync"])[1].removesuffix("_all").removesuffix("_import")
-                if sync == "format":
-                    sync = item.data(ITEM_DATAS["format"])[1]
-
-                file = os.path.join(
-                    USER_DIRS[item.data(ITEM_DATAS["folder"])[1]],
-                    "Nottodbox",
-                    item.data(ITEM_DATAS["notebook"]),
-                    f"{item.data(ITEM_DATAS['name'])}.{'txt' if sync == 'plain-text' else sync}",
-                )
-
-                if not self.watcher.addPath(file):
-                    self.failed_to_watch.append(file)
-                    self.watcher.addPath(os.path.dirname(file))
-
-                if os.path.isfile(file):
-                    db_date = datetime.datetime.strptime(item.data(ITEM_DATAS["modification"]), "%d.%m.%Y %H:%M")
-                    file_date = datetime.datetime.fromtimestamp(os.path.getmtime(file))
-
-                    if file_date > db_date:
-                        self.importDocument(file, item)
-
-    @Slot(str, QStandardItem)
-    def importDocument(self, file: str, item: QStandardItem) -> None:
-        page = self.parent_.parent_.getPageFromIndex(item.index())
-
-        if (
-            page is None
-            or page.document.last_content == page.document.getText()
-            and QApplication.activeWindow() is None
-            and os.path.isfile(file)
-        ):
-            with open(file) as f:
-                input_ = QTextDocument()
-
-                if os.path.splitext(file)[1] == ".markdown":
-                    input_.setMarkdown(f.read())
-
-                if os.path.splitext(file)[1] == ".html":
-                    input_.setHtml(f.read())
-
-                elif os.path.splitext(file)[1] == ".txt":
-                    input_.setPlainText(f.read())
-
-                if item.data(ITEM_DATAS["format"])[1] == "markdown":
-                    content = input_.toMarkdown()
-
-                elif item.data(ITEM_DATAS["format"])[1] == "html":
-                    content = input_.toHtml()
-
-                elif item.data(ITEM_DATAS["format"])[1] == "plain-text":
-                    content = input_.toPlainText()
-
-                if content != item.data(ITEM_DATAS["content"]):
-                    if self.parent_.parent_.maindb.saveDocument(
-                        content,
-                        item.data(ITEM_DATAS["content"]),
-                        False,
-                        item.data(ITEM_DATAS["name"]),
-                        item.data(ITEM_DATAS["notebook"]),
-                    ):
-                        item.setData(item.data(ITEM_DATAS["content"]), ITEM_DATAS["backup"])
-                        item.setData(content, ITEM_DATAS["content"])
-
-                        page = self.parent_.parent_.getPageFromIndex(item.index())
-                        if page is not None:
-                            page.document.last_content = content
-                            self.parent_.refresh_document.emit(page)
-
-                    else:
-                        self.parent_.failed_to_import.emit(item.index())
-
-    @Slot(str)
-    def importFile(self, file: str) -> None:
-        if file not in self.watcher.files() and not self.watcher.addPath(file):
-            self.watcher.addPath(os.path.dirname(file))
-            self.failed_to_watch.append(file)
-
-        item = self.parent_.parent_.maindb.items[tuple(reversed(os.path.splitext(file)[0].split("/")[-2:]))]
-
-        if item.data(ITEM_DATAS["sync"])[1].endswith("_all") or item.data(ITEM_DATAS["sync"])[1].endswith("_import"):
-            sync = item.data(ITEM_DATAS["sync"])[1].removesuffix("_all").removesuffix("_import")
-            if sync == "format":
-                sync = item.data(ITEM_DATAS["format"])[1]
-
-            if file == os.path.join(
-                USER_DIRS[item.data(ITEM_DATAS["folder"])[1]],
-                "Nottodbox",
-                item.data(ITEM_DATAS["notebook"]),
-                f"{item.data(ITEM_DATAS['name'])}.{'txt' if sync == 'plain-text' else sync}",
-            ):
-                self.importDocument(file, item)
-
-    @Slot(str)
-    def watchDirectory(self, directory: str) -> None:
-        if directory in [os.path.join(user_dir, "Nottodbox") for user_dir in list(USER_DIRS.values())]:
-            for path in self.failed_to_watch.copy():
-                if os.path.dirname(path) not in self.watcher.directories() and os.path.isdir(os.path.dirname(path)):
-                    if self.watcher.addPath(path):
-                        self.failed_to_watch.remove(path)
-
-                    else:
-                        self.watcher.addPath(os.path.dirname(path))
-
-        else:
-            for path in self.failed_to_watch.copy():
-                if os.path.dirname(path) == directory and self.watcher.addPath(path):
-                    self.failed_to_watch.remove(path)
-
-
 class ButtonDelegate(QStyledItemDelegate):
-    menu_requested = Signal(QModelIndex)
+    clicked = Signal(QEvent, QStandardItemModel, QStyleOptionViewItem, QModelIndex)
 
     dot_size = 4
     dot_padding = 8
@@ -1714,19 +1591,7 @@ class ButtonDelegate(QStyledItemDelegate):
         self, event: QEvent, model: QStandardItemModel, option: QStyleOptionViewItem, index: QModelIndex
     ) -> bool:
         if event.type() == QEvent.Type.MouseButtonPress:
-            button_rect = self.getButtonRect(option)
-
-            if event.button() == Qt.MouseButton.LeftButton:
-                # Open the menu.
-                if button_rect.contains(event.position().toPoint()):
-                    self.menu_requested.emit(index)
-                    return True
-
-                # Open the document.
-                elif index.data(ITEM_DATAS["type"]) == "document":
-                    self.parent_.parent_.options.open(self.parent_.mapToSource(index), "normal")
-
-                model.setData(index, not index.data(ITEM_DATAS["clicked"]), ITEM_DATAS["clicked"])
+            self.clicked.emit(event, model, option, index)
 
         return super().editorEvent(event, model, option, index)
 
@@ -1740,3 +1605,142 @@ class ButtonDelegate(QStyledItemDelegate):
 
     def sizeHint(self, option: QStyleOptionViewItem, index: QModelIndex) -> QRect:
         return QSize(option.rect.width(), 108)
+
+
+class Importer(QObject):
+    import_all = Signal()
+    import_file = Signal(str)
+    watch_directory = Signal(str)
+
+    def __init__(self, parent: TreeView) -> None:
+        super().__init__()
+
+        self.parent_ = parent
+
+        self.failed_to_watch = []
+
+        self.import_all.connect(self.importAll)
+        self.import_file.connect(self.importFile)
+        self.watch_directory.connect(self.watchDirectory)
+
+        self.watcher = QFileSystemWatcher(self)
+        self.watcher.directoryChanged.connect(self.watch_directory.emit)
+        self.watcher.fileChanged.connect(self.import_file.emit)
+
+        self.watcher.addPaths([os.path.join(user_dir, "Nottodbox") for user_dir in list(USER_DIRS.values())])
+
+    @Slot()
+    def importAll(self) -> None:
+        for item in self.parent_.parent_.maindb.items.values():
+            if item.data(ITEM_DATAS["sync"])[1] is not None and (
+                item.data(ITEM_DATAS["sync"])[1].endswith("_all")
+                or item.data(ITEM_DATAS["sync"])[1].endswith("_import")
+            ):
+                sync = item.data(ITEM_DATAS["sync"])[1].removesuffix("_all").removesuffix("_import")
+                if sync == "format":
+                    sync = item.data(ITEM_DATAS["format"])[1]
+
+                file = os.path.join(
+                    USER_DIRS[item.data(ITEM_DATAS["folder"])[1]],
+                    "Nottodbox",
+                    item.data(ITEM_DATAS["notebook"]),
+                    f"{item.data(ITEM_DATAS['name'])}.{'txt' if sync == 'plain-text' else sync}",
+                )
+
+                if not self.watcher.addPath(file):
+                    self.failed_to_watch.append(file)
+                    self.watcher.addPath(os.path.dirname(file))
+
+                if os.path.isfile(file):
+                    db_date = datetime.datetime.strptime(item.data(ITEM_DATAS["modification"]), "%d.%m.%Y %H:%M")
+                    file_date = datetime.datetime.fromtimestamp(os.path.getmtime(file))
+
+                    if file_date > db_date:
+                        self.importDocument(file, item)
+
+    @Slot(str, QStandardItem)
+    def importDocument(self, file: str, item: QStandardItem) -> None:
+        page = self.parent_.parent_.getPageFromIndex(item.index())
+
+        if (
+            page is None
+            or page.document.last_content == page.document.getText()
+            and QApplication.activeWindow() is None
+            and os.path.isfile(file)
+        ):
+            with open(file) as f:
+                input_ = QTextDocument()
+
+                if os.path.splitext(file)[1] == ".markdown":
+                    input_.setMarkdown(f.read())
+
+                if os.path.splitext(file)[1] == ".html":
+                    input_.setHtml(f.read())
+
+                elif os.path.splitext(file)[1] == ".txt":
+                    input_.setPlainText(f.read())
+
+                if item.data(ITEM_DATAS["format"])[1] == "markdown":
+                    content = input_.toMarkdown()
+
+                elif item.data(ITEM_DATAS["format"])[1] == "html":
+                    content = input_.toHtml()
+
+                elif item.data(ITEM_DATAS["format"])[1] == "plain-text":
+                    content = input_.toPlainText()
+
+                if content != item.data(ITEM_DATAS["content"]):
+                    if self.parent_.parent_.maindb.saveDocument(
+                        content,
+                        item.data(ITEM_DATAS["content"]),
+                        False,
+                        item.data(ITEM_DATAS["name"]),
+                        item.data(ITEM_DATAS["notebook"]),
+                    ):
+                        item.setData(item.data(ITEM_DATAS["content"]), ITEM_DATAS["backup"])
+                        item.setData(content, ITEM_DATAS["content"])
+
+                        page = self.parent_.parent_.getPageFromIndex(item.index())
+                        if page is not None:
+                            page.document.last_content = content
+                            self.parent_.refresh_document.emit(page)
+
+                    else:
+                        self.parent_.failed_to_import.emit(item.index())
+
+    @Slot(str)
+    def importFile(self, file: str) -> None:
+        if file not in self.watcher.files() and not self.watcher.addPath(file):
+            self.watcher.addPath(os.path.dirname(file))
+            self.failed_to_watch.append(file)
+
+        item = self.parent_.parent_.maindb.items[tuple(reversed(os.path.splitext(file)[0].split("/")[-2:]))]
+
+        if item.data(ITEM_DATAS["sync"])[1].endswith("_all") or item.data(ITEM_DATAS["sync"])[1].endswith("_import"):
+            sync = item.data(ITEM_DATAS["sync"])[1].removesuffix("_all").removesuffix("_import")
+            if sync == "format":
+                sync = item.data(ITEM_DATAS["format"])[1]
+
+            if file == os.path.join(
+                USER_DIRS[item.data(ITEM_DATAS["folder"])[1]],
+                "Nottodbox",
+                item.data(ITEM_DATAS["notebook"]),
+                f"{item.data(ITEM_DATAS['name'])}.{'txt' if sync == 'plain-text' else sync}",
+            ):
+                self.importDocument(file, item)
+
+    @Slot(str)
+    def watchDirectory(self, directory: str) -> None:
+        if directory in [os.path.join(user_dir, "Nottodbox") for user_dir in list(USER_DIRS.values())]:
+            for path in self.failed_to_watch.copy():
+                if os.path.dirname(path) not in self.watcher.directories() and os.path.isdir(os.path.dirname(path)):
+                    if self.watcher.addPath(path):
+                        self.failed_to_watch.remove(path)
+
+                    else:
+                        self.watcher.addPath(os.path.dirname(path))
+
+        else:
+            for path in self.failed_to_watch.copy():
+                if os.path.dirname(path) == directory and self.watcher.addPath(path):
+                    self.failed_to_watch.remove(path)
