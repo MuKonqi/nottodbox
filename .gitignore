@@ -13,6 +13,9 @@ nottodbox/scripts/resources/locale.py
 *.qm
 *.pot
 
+# Other
+test.py
+
 # pipx
 build/
 nottodbox.egg-info

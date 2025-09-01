@@ -72,7 +72,7 @@ from .consts import ITEM_DATAS, SETTINGS_DEFAULTS, SETTINGS_KEYS, SETTINGS_OPTIO
 from .database import MainDB
 from .widgets.controls import Action, CalendarWidget, HSeperator, Label, LineEdit, PushButton, VSeperator
 from .widgets.dialogs import ChangeAppearance, ChangeSettings, Export, GetDescription, GetName, GetNameAndDescription
-from .widgets.documents import BackupView, NormalView, setDocument
+from .widgets.documents import BackupView, DocumentView, documentSetContent
 
 
 class HomePage(QWidget):
@@ -163,7 +163,7 @@ class Page(QWidget):
         self.layout_.addWidget(HSeperator(self), 2, 1)
         self.layout_.addWidget(VSeperator(self), 1, 0)
 
-    def addDocument(self, document: NormalView | BackupView) -> None:
+    def addDocument(self, document: DocumentView | BackupView) -> None:
         if self.document is not None:
             self.removeDocument()
 
@@ -294,9 +294,15 @@ class Selector(QWidget):
 
         self.calendar_widget.setVisible(not (signal == Qt.CheckState.Unchecked or signal == 0))
 
-    def getPageFromIndex(self, index: QModelIndex) -> None | typing.Any:
+    def getPageFromIndex(self, index: QModelIndex, only_normal: bool = True) -> None | typing.Any:
+        modes = ["normal"] if only_normal else ["backup", "normal"]
+
         return next(
-            (page for page in self.parent_.area.pages if page.document is not None and page.document.index == index),
+            (
+                page
+                for page in self.parent_.area.pages
+                if page.document is not None and page.document.mode in modes and page.document.index == index
+            ),
             None,
         )
 
@@ -525,7 +531,7 @@ class Options:
             index.model().setData(index, "", ITEM_DATAS["content"])
             index.model().setData(index, self.parent_.maindb.getBackup(document, notebook), ITEM_DATAS["backup"])
 
-            page = self.parent_.getPageFromIndex(index)
+            page = self.parent_.getPageFromIndex(index, False)
             if page is not None:
                 page.document.refreshContent()
 
@@ -540,7 +546,7 @@ class Options:
 
     @Slot(QModelIndex)
     def close(self, index: QModelIndex) -> None:
-        page = self.parent_.getPageFromIndex(index)
+        page = self.parent_.getPageFromIndex(index, False)
         if page is not None:
             if page.document.mode == "normal" and page.document.last_content != page.document.getText():
                 self.question = QMessageBox.question(
@@ -701,7 +707,7 @@ class Options:
                 self.parent_.tree_view.model_.removeRow(index.row())
 
             elif index.data(ITEM_DATAS["type"]) == "document":
-                page = self.parent_.getPageFromIndex(index)
+                page = self.parent_.getPageFromIndex(index, False)
                 if page is not None:
                     page.removeDocument()
 
@@ -757,7 +763,7 @@ class Options:
                     exist_ok=True,
                 )
                 document = QTextDocument()
-                setDocument(index.data(ITEM_DATAS["content"]), index.data(ITEM_DATAS["format"])[1], document)
+                documentSetContent(index.data(ITEM_DATAS["content"]), index.data(ITEM_DATAS["format"])[1], document)
 
                 if export == "pdf":
                     writer = QPdfWriter(
@@ -848,7 +854,7 @@ class Options:
                 index.model().setData(index, True, ITEM_DATAS["clicked"])
 
             self.parent_.parent_.area.target.addDocument(
-                NormalView(self.parent_.parent_.area, self.parent_.maindb, index)
+                DocumentView(self.parent_.parent_.area, self.parent_.maindb, index)
                 if mode == "normal"
                 else BackupView(self.parent_.parent_.area, self.parent_.maindb, index)
             )
@@ -951,11 +957,11 @@ class Options:
                                 )
 
                     elif index.data(ITEM_DATAS["type"]) == "document":
-                        page = self.parent_.getPageFromIndex(index)
+                        page = self.parent_.getPageFromIndex(index, False)
                         if page is not None:
                             page.document.refreshNames()
 
-                        if diary == "enabled":
+                        if page.document.mode == "normal" and diary == "enabled":
                             page.document.refreshSettings()
 
                     self.parent_.maindb.items[(new_name, table)] = self.parent_.maindb.items.pop((name, table))
@@ -1000,7 +1006,7 @@ class Options:
             index.model().setData(index, self.parent_.maindb.getContent(document, notebook), ITEM_DATAS["content"])
             index.model().setData(index, self.parent_.maindb.getBackup(document, notebook), ITEM_DATAS["backup"])
 
-            page = self.parent_.getPageFromIndex(index)
+            page = self.parent_.getPageFromIndex(index, False)
             if page is not None:
                 page.document.refreshContent()
 
@@ -1551,6 +1557,7 @@ class Importer(QObject):
             for path in self.failed_to_watch.copy():
                 if os.path.dirname(path) == directory and self.watcher.addPath(path):
                     self.failed_to_watch.remove(path)
+
 
 class ButtonDelegate(QStyledItemDelegate):
     menu_requested = Signal(QModelIndex)

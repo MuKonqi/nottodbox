@@ -45,152 +45,45 @@ from .controls import Action, HSeperator, Label
 from .dialogs import GetColor, GetTwoNumber
 
 
-def setDocument(content_: str, format_: str, input_: QTextDocument | QTextEdit) -> None:
-    if format_ == "plain-text":
-        input_.setPlainText(content_)
-
-    elif format_ == "markdown":
-        input_.setMarkdown(content_)
-
-    elif format_ == "html":
-        input_.setHtml(content_)
-
-
-class Document(QWidget):
-    def __init__(self, parent: QWidget, db, index: QModelIndex, mode: str) -> None:
+class BackupView(QWidget):
+    def __init__(self, parent: QWidget, db, index: QModelIndex) -> None:
         super().__init__(parent)
 
         self.parent_ = parent
-
-        self.settings = {}
-
         self.db = db
         self.index = index
-        self.mode = mode
 
-        self.creation = index.data(ITEM_DATAS["creation"])
+        self.format = index.data(ITEM_DATAS["format"])[1]
+        self.mode = "backup"
 
-        self.today = QDate.currentDate()
-
-        self.label = Label(self)
-
-        self.input = TextEdit(self)
-        self.input.setAcceptRichText(True)
-
-        self.helper = DocumentHelper(self)
-        self.input.cursorPositionChanged.connect(self.helper.updateButtons)
-
-        self.layout_ = QVBoxLayout(self)
-        self.layout_.addWidget(self.label)
-        self.layout_.addWidget(HSeperator(self))
-        self.layout_.addWidget(self.helper)
-        self.layout_.addWidget(self.input)
-
-        self.handleSettings()
-        self.setContent()
+        self.refreshContent()
         self.refreshNames()
 
-    def handleGlobal(self, setting: str) -> str:
-        """Check whether it follows the default and return the actual setting."""
-
-        if self.settings[(setting, "global")] is None:
-            return self.settings[(setting, "default")]
-
-        else:
-            return self.settings[(setting, "global")]
-
-    def handleNotebook(self, setting: str) -> None:
-        """Check whether it follows the default or global setting and return the actual setting."""
-
-        if self.settings[(setting, "notebook")] is None:
-            return self.settings[(setting, "default")]
-
-        elif self.settings[(setting, "notebook")] == "global":
-            return self.handleGlobal(setting)
-
-        else:
-            return self.settings[(setting, "notebook")]
-
-    def handleSettings(self) -> None:
-        """Get settings from QModelIndex's datas."""
-
-        self.settings["autosave"] = self.index.data(ITEM_DATAS["autosave"])[1]
-        self.settings["folder"] = self.index.data(ITEM_DATAS["folder"])[1]
-        self.settings["format"] = self.index.data(ITEM_DATAS["format"])[1]
-        self.settings["locked"] = self.index.data(ITEM_DATAS["locked"])[1]
-        self.settings["sync"] = self.index.data(ITEM_DATAS["sync"])[1]
-
-        # Update TextFormatter's status.
-        self.helper.updateStatus(self.settings["format"])
+    def refreshContent(self) -> None:
+        pass
 
     def refreshNames(self) -> None:
         self.document = self.index.data(ITEM_DATAS["name"])
         self.notebook = self.index.data(ITEM_DATAS["notebook"])
 
-        self.label.setText(self.document)
-        self.input.setDocumentTitle(self.document)
 
-    def setContent(self) -> None:
-        self.content = (
-            self.index.data(ITEM_DATAS["content"]) if self.mode == "normal" else self.index.data(ITEM_DATAS["backup"])
-        )
-
-        setDocument(self.content, self.settings["format"], self.input)
-
-
-class BackupView(Document):
-    def __init__(self, parent: QWidget, db, index: QModelIndex) -> None:
-        super().__init__(parent, db, index, "backup")
-
-        self.input.setReadOnly(True)
-
-        self.helper.button.triggered.connect(self.restoreContent)
-
-    def refreshContent(self) -> None:
-        self.setContent()
-
-    def refreshSettings(self) -> None:
-        self.handleSettings()
-
-    @Slot()
-    def restoreContent(self) -> None:
-        # Verification for old and locked diaries.
-        if (
-            self.settings["locked"] == "enabled"
-            and datetime.datetime.strptime(self.creation, "%d.%m.%Y %H:%M").date() != datetime.datetime.today().date()
-        ):
-            question = QMessageBox.question(
-                self,
-                self.tr("Question"),
-                self.tr("Diaries are unique to the day they are written.\nDo you really want to change the content?"),
-            )
-
-            if question != QMessageBox.StandardButton.Yes:
-                return
-
-        if self.db.restoreContent(self.document, self.notebook):
-            self.index.model().setData(
-                self.index, self.db.getContent(self.document, self.notebook), ITEM_DATAS["content"]
-            )
-            self.index.model().setData(
-                self.index, self.db.getBackup(self.document, self.notebook), ITEM_DATAS["backup"]
-            )
-
-            QMessageBox.information(self, self.tr("Successful"), self.tr("Content restored."))
-
-        else:
-            QMessageBox.critical(self, self.tr("Error"), self.tr("Failed to restore content."))
-
-
-class NormalView(Document):
+class DocumentView(QWidget):
     show_messages = Signal(bool)
 
     def __init__(self, parent: QWidget, db, index: QModelIndex) -> None:
-        super().__init__(parent, db, index, "normal")
+        super().__init__(parent)
 
+        self.parent_ = parent
+        self.db = db
+        self.index = index
+
+        self.settings = {}
         self.connected = False
+        self.mode = "normal"
 
-        self.last_content = self.content
+        self.creation = index.data(ITEM_DATAS["creation"])
+
+        self.today = QDate.currentDate()
 
         self.show_messages.connect(self.showMessages)
 
@@ -200,11 +93,29 @@ class NormalView(Document):
         self.saver.save_document.connect(self.saver.saveDocument)
         self.saver.moveToThread(self.saver_thread)
 
-        self.helper.button.triggered.connect(lambda: self.saver.saveDocument())
-
         self.save = lambda: self.saver.save_document.emit(True)
 
+        self.label = Label(self)
+
+        self.input = DocumentTextEdit(self)
+        self.input.setAcceptRichText(True)
+
+        self.helper = DocumentHelper(self)
+        self.helper.button.triggered.connect(lambda: self.saver.saveDocument())
+        self.input.cursorPositionChanged.connect(self.helper.updateButtons)
+
+        self.layout_ = QVBoxLayout(self)
+        self.layout_.addWidget(self.label)
+        self.layout_.addWidget(HSeperator(self))
+        self.layout_.addWidget(self.helper)
+        self.layout_.addWidget(self.input)
+
+        self.setSettings()
+        self.setContent()
+        self.refreshNames()
         self.changeAutosaveConnections()
+
+        self.last_content = self.content
 
     def changeAutosaveConnections(self, event: str | None = None) -> None:
         if (
@@ -242,6 +153,39 @@ class NormalView(Document):
         elif format_ == "html":
             return self.input.toHtml()
 
+    def refreshContent(self) -> None:
+        self.changeAutosaveConnections("disconnect")
+        self.setContent()
+        self.changeAutosaveConnections()
+
+    def refreshSettings(self) -> None:
+        self.setSettings()
+        self.changeAutosaveConnections()
+
+    def refreshNames(self) -> None:
+        self.document = self.index.data(ITEM_DATAS["name"])
+        self.notebook = self.index.data(ITEM_DATAS["notebook"])
+
+        self.label.setText(self.document)
+        self.input.setDocumentTitle(self.document)
+
+    def setContent(self) -> None:
+        self.content = self.index.data(ITEM_DATAS["content"])
+
+        documentSetContent(self.content, self.settings["format"], self.input)
+
+    def setSettings(self) -> None:
+        """Get settings from QModelIndex's datas."""
+
+        self.settings["autosave"] = self.index.data(ITEM_DATAS["autosave"])[1]
+        self.settings["folder"] = self.index.data(ITEM_DATAS["folder"])[1]
+        self.settings["format"] = self.index.data(ITEM_DATAS["format"])[1]
+        self.settings["locked"] = self.index.data(ITEM_DATAS["locked"])[1]
+        self.settings["sync"] = self.index.data(ITEM_DATAS["sync"])[1]
+
+        # Update TextFormatter's status.
+        self.helper.updateStatus(self.settings["format"])
+
     @Slot(bool)
     def showMessages(self, successful: bool) -> None:
         if successful:
@@ -250,19 +194,9 @@ class NormalView(Document):
         else:
             QMessageBox.critical(self, self.tr("Error"), self.tr("Failed to save document."))
 
-    def refreshContent(self) -> None:
-        self.changeAutosaveConnections("disconnect")
-        self.setContent()
-        self.changeAutosaveConnections()
-
-    def refreshSettings(self) -> None:
-        self.handleSettings()
-
-        self.changeAutosaveConnections()
-
 
 class DocumentHelper(QToolBar):
-    def __init__(self, parent: BackupView | NormalView) -> None:
+    def __init__(self, parent: DocumentView) -> None:
         super().__init__(parent)
 
         self.parent_ = parent
@@ -624,7 +558,7 @@ class DocumentHelper(QToolBar):
 class DocumentSaver(QObject):
     save_document = Signal(bool)
 
-    def __init__(self, parent: NormalView) -> None:
+    def __init__(self, parent: DocumentView) -> None:
         super().__init__()
 
         self.parent_ = parent
@@ -727,8 +661,8 @@ class DocumentSaver(QObject):
                 return False
 
 
-class TextEdit(QTextEdit):
-    def __init__(self, parent: BackupView | NormalView) -> None:
+class DocumentTextEdit(QTextEdit):
+    def __init__(self, parent: DocumentView) -> None:
         super().__init__(parent)
 
         self.parent_ = parent
@@ -748,3 +682,14 @@ class TextEdit(QTextEdit):
             self.anchor = None
 
         super().mouseReleaseEvent(event)
+
+
+def documentSetContent(content_: str, format_: str, input_: QTextDocument | QTextEdit) -> None:
+    if format_ == "plain-text":
+        input_.setPlainText(content_)
+
+    elif format_ == "markdown":
+        input_.setMarkdown(content_)
+
+    elif format_ == "html":
+        input_.setHtml(content_)
