@@ -266,20 +266,21 @@ class ListView(QListView):
         self.setCurrentIndex(self.indexes[0])
         self.model_.setData(self.indexes[0], True, ITEM_DATAS["clicked"])
 
-    @Slot(QEvent, QStandardItemModel, QStyleOptionViewItem, QModelIndex)
-    def delegateClicked(self, event: QEvent, model: QStandardItemModel, option: QStyleOptionViewItem, index: QModelIndex) -> None:
+    @Slot(QModelIndex)
+    def delegateClicked(self, index: QModelIndex) -> None:
         indexes = self.indexes.copy()
         indexes.remove(index)
 
+        # Make unclicked all indexes except current index.
         for index_ in indexes:
-            model.setData(index_, False, ITEM_DATAS["clicked"])
+            self.model_.setData(index_, False, ITEM_DATAS["clicked"])
 
-        model.setData(index, True, ITEM_DATAS["clicked"])
+        self.model_.setData(index, True, ITEM_DATAS["clicked"])
         self.parent_.widget.setCurrentIndex(index.data(ITEM_DATAS["type"]))
 
 
 class ButtonDelegate(QStyledItemDelegate):
-    clicked = Signal(QEvent, QStandardItemModel, QStyleOptionViewItem, QModelIndex)
+    clicked = Signal(QModelIndex)
 
     def __init__(self, parent: ListView) -> None:
         super().__init__(parent)
@@ -307,12 +308,14 @@ class ButtonDelegate(QStyledItemDelegate):
         border_path = QPainterPath()
         border_path.addRoundedRect(border_rect, 1, 1)
 
+        # mouse clicked, mouse hovered and other
         situations = [
             bool(index.data(ITEM_DATAS["clicked"])),
             bool(option.state & QStyle.StateFlag.State_MouseOver),
             True,
         ]
 
+        # default colors of background, foreground and border
         defaults = [
             [option.palette.base().color(), option.palette.text().color(), option.palette.text().color()],
             [option.palette.button().color(), option.palette.text().color(), option.palette.buttonText().color()],
@@ -321,8 +324,10 @@ class ButtonDelegate(QStyledItemDelegate):
 
         colors = []
 
+        # We must use an inverse loop for the QModelIndex data to match the “situations” variable.
         i = 2
 
+        # A loop from the most specific situation (clicked) to the general situation (other).
         for status in situations:
             if status:
                 for j in range(3):
@@ -340,17 +345,20 @@ class ButtonDelegate(QStyledItemDelegate):
         painter.fillPath(border_path, colors[0])
 
         painter.restore()
+        painter.save()
 
         painter.setPen(colors[1])
         painter.setFont(name_font)
 
         painter.drawText(name_rect, name)
 
+        painter.restore()
+
     def editorEvent(
         self, event: QEvent, model: QStandardItemModel, option: QStyleOptionViewItem, index: QModelIndex
     ) -> bool:
         if event.type() == QEvent.Type.MouseButtonPress:
-            self.clicked.emit(event, model, option, index)
+            self.clicked.emit(index)
 
         return super().editorEvent(event, model, option, index)
 

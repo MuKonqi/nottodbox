@@ -752,10 +752,7 @@ class Options:
             if index.data(ITEM_DATAS["type"]) == "notebook":
                 for name_, table_ in self.parent_.maindb.items:
                     if table_ == name:
-                        self.export(
-                            self.parent_.tree_view.mapFromSource(self.parent_.maindb.items[(name_, table_)].index()),
-                            export,
-                        )
+                        self.export(self.parent_.maindb.items[(name_, table_)].index(), export)
 
             elif index.data(ITEM_DATAS["type"]) == "document":
                 os.makedirs(
@@ -998,27 +995,6 @@ class Options:
         else:
             QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.tr("Failed to reset {the_item}.", index))
 
-    @Slot(QModelIndex)
-    def restoreContent(self, index: QModelIndex) -> None:
-        document, notebook = self.get(index)
-
-        if self.parent_.maindb.restoreContent(document, notebook):
-            index.model().setData(index, self.parent_.maindb.getContent(document, notebook), ITEM_DATAS["content"])
-            index.model().setData(index, self.parent_.maindb.getBackups(document, notebook), ITEM_DATAS["backup"])
-
-            page = self.parent_.getPageFromIndex(index, False)
-            if page is not None:
-                page.document.refreshContent()
-
-            QMessageBox.information(
-                self.parent_, self.parent_.tr("Successful"), self.tr("The content {of_item} restored.", index)
-            )
-
-        else:
-            QMessageBox.critical(
-                self.parent_, self.parent_.tr("Error"), self.tr("Failed to restore content {of_item}.", index)
-            )
-
     def tr(self, text_: str, index: QModelIndex) -> str:
         """Just being lazy, sometimes..."""
 
@@ -1095,7 +1071,7 @@ class TreeView(QTreeView):
     failed_to_import = Signal(QModelIndex)
     refresh_document = Signal(typing.Any)
 
-    def __init__(self, parent: Selector):
+    def __init__(self, parent: Selector) -> None:
         super().__init__(parent)
 
         self.parent_ = parent
@@ -1206,20 +1182,14 @@ class TreeView(QTreeView):
         self.model_.appendRow(notebook)
 
     @Slot(QEvent, QStandardItemModel, QStyleOptionViewItem, QModelIndex)
-    def delegateClicked(self, event: QEvent, model: QStandardItemModel, option: QStyleOptionViewItem, index: QModelIndex) -> None:
-        button_rect = self.delegate.getButtonRect(option)
+    def delegateClicked(self, index: QModelIndex, operation: str) -> None:
+        if operation == "menu":
+            self.openMenu(index)
 
-        if event.button() == Qt.MouseButton.LeftButton:
-            # Open the menu.
-            if button_rect.contains(event.position().toPoint()):
-                self.openMenu(index)
-                return True
+        elif operation == "open" and index.data(ITEM_DATAS["type"]) == "document":
+            self.parent_.options.open(self.mapToSource(index), "normal")
 
-            # Open the document.
-            elif index.data(ITEM_DATAS["type"]) == "document":
-                self.parent_.options.open(self.mapToSource(index), "normal")
-
-            model.setData(index, True, ITEM_DATAS["clicked"])
+        self.model_.setData(self.mapToSource(index), True, ITEM_DATAS["clicked"])
 
     @Slot(QModelIndex)
     def failedToImport(self, index: QModelIndex) -> None:
@@ -1340,10 +1310,8 @@ class TreeView(QTreeView):
         elif index.data(ITEM_DATAS["type"]) == "document":
             menu.addAction(Action(self, lambda: self.parent_.options.open(index, "normal", True), self.tr("Open")))
             menu.addAction(
-                Action(self, lambda: self.parent_.options.open(index, "backup", True), self.tr("Show Backup"))
+                Action(self, lambda: self.parent_.options.open(index, "backup", True), self.tr("Show Backups"))
             )
-            menu.addAction(Action(self, lambda: self.parent_.options.restoreContent(index), self.tr("Restore Content")))
-            menu.addAction(Action(self, lambda: self.parent_.options.clearContent(index), self.tr("Clear Content")))
 
         menu.addSeparator()
         if index.data(ITEM_DATAS["completed"])[1] == "completed":
@@ -1380,12 +1348,14 @@ class TreeView(QTreeView):
 
         menu.addSeparator()
         menu.addAction(Action(self, lambda: self.parent_.options.export(index), self.tr("Export")))
+        if index.data(ITEM_DATAS["type"]) == "document":
+            menu.addAction(Action(self, lambda: self.parent_.options.clearContent(index), self.tr("Clear Content")))
 
         menu.addSeparator()
         menu.addAction(Action(self, lambda: self.parent_.options.rename(index), self.tr("Rename")))
-        menu.addAction(Action(self, lambda: self.parent_.options.delete(index), self.tr("Delete")))
         if index.data(ITEM_DATAS["type"]) == "notebook":
             menu.addAction(Action(self, lambda: self.parent_.options.reset(index), self.tr("Reset")))
+        menu.addAction(Action(self, lambda: self.parent_.options.delete(index), self.tr("Delete")))
 
         menu.addSeparator()
         menu.addAction(Action(self, lambda: self.parent_.options.changeAppearance(index), self.tr("Change Appearance")))
@@ -1437,16 +1407,11 @@ class TreeView(QTreeView):
 
 
 class ButtonDelegate(QStyledItemDelegate):
-    clicked = Signal(QEvent, QStandardItemModel, QStyleOptionViewItem, QModelIndex)
+    clicked = Signal(QModelIndex, str)
 
     dot_size = 4
     dot_padding = 8
     button_size = 24
-
-    def __init__(self, parent: TreeView) -> None:
-        super().__init__(parent)
-
-        self.parent_ = parent
 
     def paint(self, painter: QPainter, option: QStyleOptionViewItem, index: QModelIndex) -> None:
         painter.save()
@@ -1468,7 +1433,7 @@ class ButtonDelegate(QStyledItemDelegate):
         name_rect.setLeft(name_rect.left() + name_padding)
         name_rect.setTop(name_rect.top() + name_padding)
         name_rect.setRight(option.rect.width())
-        name_rect.setHeight(name_fontmetrics.lineSpacing())
+        name_rect.setHeight(name_padding)
 
         content = index.data(ITEM_DATAS["content"])
 
@@ -1478,7 +1443,7 @@ class ButtonDelegate(QStyledItemDelegate):
         content_rect.setRight(
             option.rect.width() + (name_padding if index.data(ITEM_DATAS["type"]) == "document" else 0) - 10
         )
-        content_rect.setHeight(name_fontmetrics.lineSpacing())
+        content_rect.setHeight(name_padding)
 
         creation_date = index.data(ITEM_DATAS["creation"])
 
@@ -1488,7 +1453,7 @@ class ButtonDelegate(QStyledItemDelegate):
         creation_rect.setRight(
             QFontMetrics(QFont(option.font)).horizontalAdvance(creation_date) + creation_rect.left() + name_padding
         )
-        creation_rect.setHeight(name_fontmetrics.lineSpacing())
+        creation_rect.setHeight(name_padding)
 
         modification_date = index.data(ITEM_DATAS["modification"])
 
@@ -1502,9 +1467,7 @@ class ButtonDelegate(QStyledItemDelegate):
         modification_rect.setRight(
             option.rect.width() + (name_padding if index.data(ITEM_DATAS["type"]) == "document" else 0)
         )
-        modification_rect.setHeight(name_fontmetrics.lineSpacing())
-
-        painter.save()
+        modification_rect.setHeight(name_padding)
 
         border_rect = QRect(option.rect.marginsRemoved(QMargins(10, 10, 10, 10)))
 
@@ -1552,6 +1515,7 @@ class ButtonDelegate(QStyledItemDelegate):
         painter.fillPath(border_path, colors[0])
 
         painter.restore()
+        painter.save()
 
         painter.setPen(colors[1])
         painter.setFont(name_font)
@@ -1591,7 +1555,16 @@ class ButtonDelegate(QStyledItemDelegate):
         self, event: QEvent, model: QStandardItemModel, option: QStyleOptionViewItem, index: QModelIndex
     ) -> bool:
         if event.type() == QEvent.Type.MouseButtonPress:
-            self.clicked.emit(event, model, option, index)
+            button_rect = self.getButtonRect(option)
+
+            if event.button() == Qt.MouseButton.LeftButton:
+                # Open the menu.
+                if button_rect.contains(event.position().toPoint()):
+                    self.clicked.emit(index, "menu")
+                    return True
+
+                # Open the document.
+                self.clicked.emit(index, "open")
 
         return super().editorEvent(event, model, option, index)
 
