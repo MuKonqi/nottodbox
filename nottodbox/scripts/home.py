@@ -849,7 +849,7 @@ class Options:
             ),
             None,
         ):
-            # Making clicked that QModelIndex, this is optional because sometime's already clicked.
+            # Making clicked the QModelIndex, this is optional because it is already clicked if not called from the sidebar.
             if make:
                 index.model().setData(index, True, ITEM_DATAS["clicked"])
 
@@ -1375,7 +1375,7 @@ class TreeView(QTreeView):
         menu.addAction(Action(self, lambda: self.parent_.options.changeAppearance(index), self.tr("Change Appearance")))
         menu.addAction(Action(self, lambda: self.parent_.options.changeSettings(index), self.tr("Change Settings")))
 
-        page = self.parent_.getPageFromIndex(index)
+        page = self.parent_.getPageFromIndex(index, False)
 
         if index.data(ITEM_DATAS["type"]) == "document" and page is not None:
             menu.addSeparator()
