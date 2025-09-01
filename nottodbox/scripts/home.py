@@ -1140,7 +1140,6 @@ class TreeView(QTreeView):
         self.importer_thread = QThread()
         self.importer.moveToThread(self.importer_thread)
         self.importer_thread.start()
-        self.importer.import_all.connect(self.importer.importAll)
 
         if items != []:
             self.parent_.pages.setCurrentIndex(1)
@@ -1424,13 +1423,19 @@ class Importer(QObject):
 
         self.parent_ = parent
 
+        self.import_all.connect(self.importAll)
         self.import_file.connect(self.importFile)
+
         self.watcher = QFileSystemWatcher(self)
         self.watcher.fileChanged.connect(self.import_file.emit)
 
+    @Slot()
     def importAll(self) -> None:
         for item in self.parent_.parent_.maindb.items.values():
-            if item.data(ITEM_DATAS["sync"])[1] is not None:
+            if item.data(ITEM_DATAS["sync"])[1] is not None and (
+                item.data(ITEM_DATAS["sync"])[1].endswith("_all")
+                or item.data(ITEM_DATAS["sync"])[1].endswith("_import")
+            ):
                 sync = item.data(ITEM_DATAS["sync"])[1].removesuffix("_all").removesuffix("_import")
                 if sync == "format":
                     sync = item.data(ITEM_DATAS["format"])[1]
@@ -1442,18 +1447,16 @@ class Importer(QObject):
                     f"{item.data(ITEM_DATAS['name'])}.{'txt' if sync == 'plain-text' else sync}",
                 )
 
-                if item.data(ITEM_DATAS["sync"])[1].endswith("_all") or item.data(ITEM_DATAS["sync"])[1].endswith(
-                    "_import"
-                ):
-                    self.watcher.addPath(file)
+                self.watcher.addPath(file)
 
-                    if os.path.isfile(file):
-                        db_date = datetime.datetime.strptime(item.data(ITEM_DATAS["modification"]), "%d.%m.%Y %H:%M")
-                        file_date = datetime.datetime.fromtimestamp(os.path.getmtime(file))
+                if os.path.isfile(file):
+                    db_date = datetime.datetime.strptime(item.data(ITEM_DATAS["modification"]), "%d.%m.%Y %H:%M")
+                    file_date = datetime.datetime.fromtimestamp(os.path.getmtime(file))
 
-                        if file_date > db_date:
-                            self.importDocument(file, item)
+                    if file_date > db_date:
+                        self.importDocument(file, item)
 
+    @Slot(str, QStandardItem)
     def importDocument(self, file: str, item: QStandardItem) -> None:
         page = self.parent_.parent_.getPageFromIndex(item.index())
 
@@ -1503,7 +1506,11 @@ class Importer(QObject):
                     else:
                         self.parent_.failed_to_import.emit(item.index())
 
+    @Slot(str)
     def importFile(self, file: str) -> None:
+        if file not in self.watcher.files():
+            self.watcher.addPath(file)
+
         item = self.parent_.parent_.maindb.items[tuple(reversed(os.path.splitext(file)[0].split("/")[-2:]))]
 
         if item.data(ITEM_DATAS["sync"])[1].endswith("_all") or item.data(ITEM_DATAS["sync"])[1].endswith("_import"):
