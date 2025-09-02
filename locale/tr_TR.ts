@@ -246,52 +246,52 @@ Do you want to overwrite it?</source>
 <context>
     <name>ChangeAppearance</name>
     <message>
-        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="377"/>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="421"/>
         <source>Change Appearance</source>
         <translation>Görünümü Değiştir</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="380"/>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="424"/>
         <source>Background color</source>
         <translation>Arka plan rengi</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="381"/>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="425"/>
         <source>Background color when mouse is over</source>
         <translation>Fare üzerinde olduğunda arka plan rengi</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="382"/>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="426"/>
         <source>Background color when clicked</source>
         <translation>Tıklandığında arka plan rengi</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="383"/>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="427"/>
         <source>Foreground color</source>
         <translation>Metin rengi</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="384"/>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="428"/>
         <source>Foreground color when mouse is over</source>
         <translation>Fare üzerinde olduğunda yazı rengi</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="385"/>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="429"/>
         <source>Foreground color when clicked</source>
         <translation>Tıklandığında yazı rengi</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="386"/>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="430"/>
         <source>Border color</source>
         <translation>Kenar rengi</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="387"/>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="431"/>
         <source>Border color when mouse is over</source>
         <translation>Fare üzerinde olduğunda kenar rengi</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="388"/>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="432"/>
         <source>Border color when clicked</source>
         <translation>Tıklandığında kenar rengi</translation>
     </message>
@@ -299,150 +299,150 @@ Do you want to overwrite it?</source>
 <context>
     <name>ChangeSettings</name>
     <message>
-        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="428"/>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="472"/>
         <source>Change Settings</source>
         <translation>Ayarları Değiştir</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="438"/>
-        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="442"/>
-        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="458"/>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="482"/>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="486"/>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="502"/>
         <source>None</source>
         <translation>Hiçbiri</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="439"/>
-        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="459"/>
-        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="460"/>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="483"/>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="503"/>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="504"/>
         <source>Disabled</source>
         <translation>Devre dışı</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="440"/>
-        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="459"/>
-        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="460"/>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="484"/>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="503"/>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="504"/>
         <source>Enabled</source>
         <translation>Atkif</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="443"/>
-        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="480"/>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="487"/>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="524"/>
         <source>Documents</source>
         <translation>Belgeler</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="444"/>
-        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="481"/>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="488"/>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="525"/>
         <source>No</source>
         <translation>Hayır</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="448"/>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="492"/>
         <source>Completion status*</source>
         <translation>Tamamlanma durumu*</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="449"/>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="493"/>
         <source>Content lock**</source>
         <translation>İçerik kilidi**</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="450"/>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="494"/>
         <source>Auto-save</source>
         <translation>Oto. kayıt</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="451"/>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="495"/>
         <source>Document format</source>
         <translation>Belge biçimi</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="452"/>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="496"/>
         <source>Synchronization</source>
         <translation>Senkronizasyon</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="453"/>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="497"/>
         <source>Export folder</source>
         <translation>Dışa aktarma klasörü</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="454"/>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="498"/>
         <source>Pinned to sidebar</source>
         <translation>Yan çubuğa sabitlendi</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="458"/>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="502"/>
         <source>Completed</source>
         <translation>Tamamlanmış</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="458"/>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="502"/>
         <source>Uncompleted</source>
         <translation>Tamamlanmamış</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="461"/>
-        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="474"/>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="505"/>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="518"/>
         <source>Plain-text</source>
         <translation>Düz metin</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="463"/>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="507"/>
         <source>Follow format</source>
         <translation>Biçimi takip et</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="465"/>
-        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="475"/>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="509"/>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="519"/>
         <source>with both synchronizations</source>
         <translation>iki tür senkronizasyonla</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="466"/>
-        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="470"/>
-        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="476"/>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="510"/>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="514"/>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="520"/>
         <source>with only export synchronization</source>
         <translation>sadece dışa aktarma senkronizasyonuyla</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="467"/>
-        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="477"/>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="511"/>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="521"/>
         <source>with only import synchronization</source>
         <translation>sadece içe aktarma senkronizasyonuyla</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="480"/>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="524"/>
         <source>Desktop</source>
         <translation>Masaüstü</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="481"/>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="525"/>
         <source>Yes</source>
         <translation>Evet</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="491"/>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="535"/>
         <source>Follow default ({})</source>
         <translation>Varsayılanı takip et ({})</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="493"/>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="537"/>
         <source>Follow global ({})</source>
         <translation>Küreseli takip et ({})</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="500"/>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="544"/>
         <source>Follow notebook ({})</source>
         <translation>Not defterini takip et ({})</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="528"/>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="572"/>
         <source>*Setting this to &apos;Completed&apos; or &apos;Uncompleted&apos; converts to a to-do.</source>
         <translation>*Bunu &apos;Tamamlanmış&apos; veya &apos;Tamamlanmamış&apos; olarak ayarlamak bir yapılacağa dönüştürür.</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="533"/>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="577"/>
         <source>**Setting this to &apos;Enabled&apos; converts to a diary.</source>
         <translation>**Bunu &apos;Aktif&apos; olarak ayarlamak bir günlüğe dönüştürür.</translation>
     </message>
@@ -450,19 +450,19 @@ Do you want to overwrite it?</source>
 <context>
     <name>ColorSelector</name>
     <message>
-        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="112"/>
-        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="137"/>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="156"/>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="181"/>
         <source>Select color ({})</source>
         <translation>Renk seçin ({})</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="112"/>
-        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="137"/>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="156"/>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="181"/>
         <source>default</source>
         <translation>varsayılan</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="130"/>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="174"/>
         <source>Select a Color</source>
         <translation>Bir Renk Seçin</translation>
     </message>
@@ -1079,17 +1079,17 @@ Gerçekten içeriği değiştirmek istiyor musunuz?</translation>
 <context>
     <name>Export</name>
     <message>
-        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="168"/>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="212"/>
         <source>Export As...</source>
         <translation>Dışa Aktar...</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="173"/>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="217"/>
         <source>Plain-text</source>
         <translation>Düz metin</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="173"/>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="217"/>
         <source>Follow format</source>
         <translation>Biçimi takip et</translation>
     </message>
@@ -1097,17 +1097,17 @@ Gerçekten içeriği değiştirmek istiyor musunuz?</translation>
 <context>
     <name>GetColor</name>
     <message>
-        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="58"/>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="102"/>
         <source>Follow default</source>
         <translation>Varsayılanı takip et</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="64"/>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="108"/>
         <source>Follow global</source>
         <translation>Küreseli takip et</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="70"/>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="114"/>
         <source>Follow notebook</source>
         <translation>Not defterini takip et</translation>
     </message>
@@ -1115,7 +1115,7 @@ Gerçekten içeriği değiştirmek istiyor musunuz?</translation>
 <context>
     <name>GetDescription</name>
     <message>
-        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="243"/>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="287"/>
         <source>Description (leave blank to remove)</source>
         <translation>Açıklama (kaldırmak için boş bırakın)</translation>
     </message>
@@ -1123,52 +1123,52 @@ Gerçekten içeriği değiştirmek istiyor musunuz?</translation>
 <context>
     <name>GetName</name>
     <message>
-        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="198"/>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="242"/>
         <source>Settings will follow:</source>
         <translation>Ayarlar şunu takip etsin:</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="201"/>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="245"/>
         <source>Default</source>
         <translation>Varsayılan</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="201"/>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="245"/>
         <source>Global</source>
         <translation>Küresel</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="203"/>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="247"/>
         <source>Notebook</source>
         <translation>Not defteri</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="212"/>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="256"/>
         <source>Name (required)</source>
         <translation>İsim (zorunlu)</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="219"/>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="263"/>
         <source>Error</source>
         <translation>Hata</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="219"/>
-        <source>The name can not contain slash and be &apos;__main__&apos;.</source>
-        <translation>İsim eğik çizgi içeremez ve &apos;__main__&apos; olamaz.</translation>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="263"/>
+        <source>The name is invalid.</source>
+        <translation>İsim geçersiz.</translation>
     </message>
 </context>
 <context>
     <name>GetNameAndDescription</name>
     <message>
-        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="260"/>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="304"/>
         <source>Error</source>
         <translation>Hata</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="260"/>
-        <source>The name can not contain slash and be &apos;__main__&apos;.</source>
-        <translation>İsim eğik çizgi içeremez ve &apos;__main__&apos; olamaz.</translation>
+        <location filename="../nottodbox/scripts/widgets/dialogs.py" line="304"/>
+        <source>The name is invalid.</source>
+        <translation>İsim geçersiz.</translation>
     </message>
 </context>
 <context>

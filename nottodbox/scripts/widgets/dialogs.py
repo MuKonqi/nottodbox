@@ -16,6 +16,9 @@
 # along with Nottodbox.  If not, see <https://www.gnu.org/licenses/>.
 
 
+import platform
+import re
+
 from PySide6.QtCore import QDate, QModelIndex, QSettings, Qt, Slot
 from PySide6.QtGui import QColor, QPixmap
 from PySide6.QtWidgets import (
@@ -35,6 +38,47 @@ from PySide6.QtWidgets import (
 
 from ..consts import ITEM_DATAS, SETTINGS_KEYS, SETTINGS_OPTIONS, SETTINGS_VALUES
 from .controls import CalendarWidget, Label, LineEdit, PushButton
+
+WINDOWS_RESERVED_NAMES = {
+    "CON",
+    "PRN",
+    "AUX",
+    "NUL",
+    *{f"COM{i}" for i in range(1, 10)},
+    *{f"LPT{i}" for i in range(1, 10)},
+}
+
+
+def isTheNameValid(name: str) -> bool:
+    if not isinstance(name, str):
+        return False
+
+    if name == "__main__":
+        return False
+
+    if len(name) == 0 or len(name) > 255:
+        return False
+
+    if "\x00" in name:
+        return False
+
+    if name in {".", ".."}:
+        return False
+
+    if platform.system().lower() == "windows":
+        return not (
+            any(ord(c) < 32 for c in name)
+            or re.search(r'[<>:"/\\|?*]', name)
+            or name.endswith(" ")
+            or name.endswith(".")
+            or name.upper() in WINDOWS_RESERVED_NAMES
+        )
+
+    elif platform.system().lower() == "darwin":
+        return not ("/" in name or ":" in name)
+
+    elif platform.system().lower() == "linux":
+        return "/" not in name
 
 
 class GetColor(QColorDialog):
@@ -215,8 +259,8 @@ class GetName(Dialog):
     def get(self) -> tuple[bool, str] | tuple[bool, int, str]:
         successful = True
 
-        if "/" in self.name.text() or self.name.text() == "__main__":
-            QMessageBox.critical(self, self.tr("Error"), self.tr("The name can not contain slash and be '__main__'."))
+        if not isTheNameValid(self.name.text()):
+            QMessageBox.critical(self, self.tr("Error"), self.tr("The name is invalid."))
 
             successful = False
 
@@ -256,8 +300,8 @@ class GetNameAndDescription(GetName, GetDescription):
     def get(self) -> tuple[bool, str, str] | tuple[bool, int, str, str]:
         successful = True
 
-        if "/" in self.name.text() or self.name.text() == "__main__":
-            QMessageBox.critical(self, self.tr("Error"), self.tr("The name can not contain slash and be '__main__'."))
+        if not isTheNameValid(self.name.text()):
+            QMessageBox.critical(self, self.tr("Error"), self.tr("The name is invalid."))
 
             successful = False
 
