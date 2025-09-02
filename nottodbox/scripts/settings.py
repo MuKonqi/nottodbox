@@ -1112,8 +1112,14 @@ class DocumentSettings(GlobalSettings):
         else:
             update = True
 
-        if update and self.parent_.settings.value("global/sync") != "default":
-            self.parent_.settings.setValue("global/sync", f"{self.parent_.settings.value('global/sync')}_export")
+        if (
+            update
+            and self.parent_.settings.value("globals/sync") != "default"
+            and not self.parent_.settings.value("globals/sync").endswith("_all")
+            and not self.parent_.settings.value("globals/sync").endswith("_export")
+            and not self.parent_.settings.value("globals/sync").endswith("_import")
+        ):
+            self.parent_.settings.setValue("globals/sync", f"{self.parent_.settings.value('globals/sync')}_export")
 
         self.load()
 
