@@ -463,7 +463,7 @@ class DocumentView(QWidget):
     def changeAutosaveConnections(self, event: str | None = None) -> None:
         if (
             self.settings["locked"] == "disabled"
-            or datetime.datetime.strptime(self.creation, "%d.%m.%Y %H:%M").date() == datetime.datetime.today().date()
+            or datetime.datetime.strptime(self.creation, "%d.%m.%Y %H:%M:%S").date() == datetime.datetime.today().date()
         ) and ((self.settings["autosave"] == "enabled" and not self.connected) or event == "connect"):
             self.input.textChanged.connect(self.save)
             self.saver_thread.start()
@@ -474,7 +474,7 @@ class DocumentView(QWidget):
             or event == "disconnect"
             or (
                 self.settings["locked"] == "enabled"
-                and datetime.datetime.strptime(self.creation, "%d.%m.%Y %H:%M").date()
+                and datetime.datetime.strptime(self.creation, "%d.%m.%Y %H:%M:%S").date()
                 != datetime.datetime.today().date()
             )
         ):
@@ -911,7 +911,7 @@ class DocumentSaver(QObject):
         if not autosave or (autosave and self.parent_.settings["autosave"] == "enabled"):
             if (
                 self.parent_.settings["locked"] == "enabled"
-                and datetime.datetime.strptime(self.parent_.creation, "%d.%m.%Y %H:%M").date()
+                and datetime.datetime.strptime(self.parent_.creation, "%d.%m.%Y %H:%M:%S").date()
                 != datetime.datetime.today().date()
             ):
                 if autosave:

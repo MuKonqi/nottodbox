@@ -51,11 +51,11 @@ class MainDB:
     def addBackup(self, content: str, document: str, notebook: str) -> bool:
         if self.getLocked(document, notebook) != "enabled" or (
             self.getLocked(document, notebook) == "enabled"
-            and datetime.datetime.strptime(self.get("creation", document, notebook), "%d.%m.%Y %H:%M").date()
+            and datetime.datetime.strptime(self.get("creation", document, notebook), "%d.%m.%Y %H:%M:%S").date()
             == datetime.datetime.today().date()
         ):
             backups = json.loads(self.getBackups(document, notebook))
-            backups[datetime.datetime.now().strftime("%d.%m.%Y %H:%M")] = content
+            backups[datetime.datetime.now().strftime("%d.%m.%Y %H:%M:%S")] = content
 
             self.cur.execute(f"UPDATE '{notebook}' SET backup = ? WHERE name = ?", (json.dumps(backups), document))
             self.db.commit()
@@ -106,7 +106,7 @@ class MainDB:
         self, default: str, name: str, table: str = "__main__", date: str | None = None, content: str = ""
     ) -> bool:
         if date is None:
-            date = datetime.datetime.now().strftime("%d.%m.%Y %H:%M")
+            date = datetime.datetime.now().strftime("%d.%m.%Y %H:%M:%S")
 
         self.cur.execute(
             f"""
@@ -142,7 +142,7 @@ class MainDB:
         return self.checkIfItExists(name, table)
 
     def createDocument(self, default: str, locked: str, document: str, notebook: str) -> bool:
-        date = datetime.datetime.now().strftime("%d.%m.%Y %H:%M")
+        date = datetime.datetime.now().strftime("%d.%m.%Y %H:%M:%S")
 
         if (
             self.create(default, document, notebook, date)
@@ -348,10 +348,16 @@ class MainDB:
                 f"{USER_DATABASES_DIR}/main.db-{datetime.datetime.now().strftime('%d_%m_%Y_%H_%M')}.bak",
             )
 
-            self.cur.execute("UPDATE __main__ SET creation = REPLACE(creation, '/', '.')")
+            self.cur.execute("UPDATE __main__ SET creation = REPLACE(creation, ?, ?)", ("/", "."))
             self.db.commit()
 
-            self.cur.execute("UPDATE __main__ SET modification = REPLACE(modification, '/', '.')")
+            self.cur.execute("UPDATE __main__ SET creation = creation || ? WHERE creation LIKE ?", (":00", "__.__.____ __:__"))
+            self.db.commit()
+
+            self.cur.execute("UPDATE __main__ SET modification = REPLACE(modification, ?, ?)", ("/", "."))
+            self.db.commit()
+
+            self.cur.execute("UPDATE __main__ SET modification = modification || ? WHERE modification LIKE ?", (":00", "__.__.____ __:__"))
             self.db.commit()
 
             self.cur.execute(
@@ -365,16 +371,22 @@ class MainDB:
             for table in [fetch[0] for fetch in self.cur.fetchall()]:
                 try:
                     datetime.datetime.strptime(table, "%d/%m/%Y")
-                    self.cur.execute("UPDATE __main__ SET name = REPLACE(name, '/', '.') WHERE name = ?", (table,))
+                    self.cur.execute("UPDATE __main__ SET name = REPLACE(name, ?, ?) WHERE name = ?", ("/", ".", table))
                     self.db.commit()
 
                 except ValueError:
                     pass
 
-                self.cur.execute(f"update '{table}' SET creation = REPLACE(creation, '/', '.')")
+                self.cur.execute(f"update '{table}' SET creation = REPLACE(creation, ?, ?)", ("/", "."))
                 self.db.commit()
 
-                self.cur.execute(f"update '{table}' SET modification = REPLACE(modification, '/', '.')")
+                self.cur.execute(f"UPDATE '{table}' SET creation = creation || ? WHERE creation LIKE ?", (":00", "__.__.____ __:__"))
+                self.db.commit()
+
+                self.cur.execute(f"update '{table}' SET modification = REPLACE(modification, ?, ?)", ("/", "."))
+                self.db.commit()
+
+                self.cur.execute(f"UPDATE '{table}' SET modification = modification || ? WHERE modification LIKE ?", (":00", "__.__.____ __:__"))
                 self.db.commit()
 
                 self.cur.execute(
@@ -387,7 +399,7 @@ class MainDB:
                 for name in [fetch[0] for fetch in self.cur.fetchall()]:
                     try:
                         datetime.datetime.strptime(name, "%d/%m/%Y")
-                        self.cur.execute(f"UPDATE '{table}' SET name = REPLACE(name, '/', '.') WHERE name = ?", (name,))
+                        self.cur.execute(f"UPDATE '{table}' SET name = REPLACE(name, ?, ?) WHERE name = ?", ("/", ".", name))
                         self.db.commit()
 
                     except ValueError:
@@ -411,7 +423,7 @@ class MainDB:
 
     def updateModification(self, name: str, table: str = "__main__", date: str | None = None) -> bool:
         if date is None:
-            date = datetime.datetime.now().strftime("%d.%m.%Y %H:%M")
+            date = datetime.datetime.now().strftime("%d.%m.%Y %H:%M:%S")
 
         successful = True
 

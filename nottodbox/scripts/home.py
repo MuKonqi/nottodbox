@@ -1432,7 +1432,7 @@ class ButtonDelegate(QStyledItemDelegate):
         name_rect = QRect(option.rect)
         name_rect.setLeft(name_rect.left() + name_padding)
         name_rect.setTop(name_rect.top() + name_padding)
-        name_rect.setRight(option.rect.width())
+        name_rect.setRight(option.rect.width() - name_padding)
         name_rect.setHeight(name_padding)
 
         content = index.data(ITEM_DATAS["content"])
@@ -1445,7 +1445,7 @@ class ButtonDelegate(QStyledItemDelegate):
         )
         content_rect.setHeight(name_padding)
 
-        creation_date = index.data(ITEM_DATAS["creation"])
+        creation_date = datetime.datetime.strptime(index.data(ITEM_DATAS["creation"]), "%d.%m.%Y %H:%M:%S").strftime("%d.%m.%Y %H:%M")
 
         creation_rect = QRect(option.rect)
         creation_rect.setLeft(creation_rect.left() + name_padding)
@@ -1455,7 +1455,7 @@ class ButtonDelegate(QStyledItemDelegate):
         )
         creation_rect.setHeight(name_padding)
 
-        modification_date = index.data(ITEM_DATAS["modification"])
+        modification_date = datetime.datetime.strptime(index.data(ITEM_DATAS["modification"]), "%d.%m.%Y %H:%M:%S").strftime("%d.%m.%Y %H:%M")
 
         modification_rect = QRect(option.rect)
         modification_rect.setLeft(
@@ -1625,7 +1625,7 @@ class Importer(QObject):
                     self.watcher.addPath(os.path.dirname(file))
 
                 if os.path.isfile(file):
-                    db_date = datetime.datetime.strptime(item.data(ITEM_DATAS["modification"]), "%d.%m.%Y %H:%M")
+                    db_date = datetime.datetime.strptime(item.data(ITEM_DATAS["modification"]), "%d.%m.%Y %H:%M:%S")
                     file_date = datetime.datetime.fromtimestamp(os.path.getmtime(file))
 
                     if file_date > db_date:
