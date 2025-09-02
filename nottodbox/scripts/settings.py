@@ -693,7 +693,7 @@ class Appearance(QWidget):
     def importColorScheme(self) -> None:
         paths = QFileDialog.getOpenFileNames(
             self,
-            self.tr("Import a {the_item}").format(the_item=self.tr("Color scheme")).title(),
+            self.tr("Import a {item}").format(item=self.tr("Color scheme")).title(),
             "",
             self.tr("Color schemes (*.colors *.json)"),
         )[0]
@@ -763,8 +763,8 @@ class Appearance(QWidget):
                 QMessageBox.critical(
                     self,
                     self.tr("Error"),
-                    self.tr("{the_item} can not be renamed.").format(
-                        the_item=self.tr("'{name}' color scheme").format(name=name)
+                    self.tr("{item} can not be renamed.").format(
+                        item=self.tr("'{name}' color scheme").format(name=name)
                     ),
                 )
 

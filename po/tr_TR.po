@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-09 13:07+0300\n"
+"POT-Creation-Date: 2025-07-09 13:09+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Muhammed S. <mukonqi@gmail.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,12 +17,12 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: share/applications/io.github.mukonqi.nottodbox.desktop.in:3
+#: share/applications/io.github.mukonqi.nottodbox.desktop.in:2
 #: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:5
 msgid "Nottodbox"
 msgstr "Nottodbox"
 
-#: share/applications/io.github.mukonqi.nottodbox.desktop.in:4
+#: share/applications/io.github.mukonqi.nottodbox.desktop.in:3
 #: share/metainfo/io.github.mukonqi.nottodbox.appdata.xml.in:6
 msgid "Organize notes, to-dos and diaries"
 msgstr "Notları, yapılacakları ve günlükleri düzenleyin"

@@ -216,7 +216,7 @@ class GetName(Dialog):
         successful = True
 
         if "/" in self.name.text() or self.name.text() == "__main__":
-            QMessageBox.critical(self, self.tr("Error"), self.tr("The name can not contain slash and be __main__."))
+            QMessageBox.critical(self, self.tr("Error"), self.tr("The name can not contain slash and be '__main__'."))
 
             successful = False
 
@@ -257,7 +257,7 @@ class GetNameAndDescription(GetName, GetDescription):
         successful = True
 
         if "/" in self.name.text() or self.name.text() == "__main__":
-            QMessageBox.critical(self, self.tr("Error"), self.tr("The name can not contain slash and be __main__."))
+            QMessageBox.critical(self, self.tr("Error"), self.tr("The name can not contain slash and be '__main__'."))
 
             successful = False
 

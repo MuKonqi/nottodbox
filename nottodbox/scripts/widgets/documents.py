@@ -219,9 +219,9 @@ class BackupListView(QListView):
                 QMessageBox.information(
                     self,
                     self.tr("Successful"),
-                    self.tr("The backup '{}' '{of_item}' restored.").format(
+                    self.tr("The backup '{}' {of_item} restored.").format(
                         index.data(ITEM_DATAS["name"]),
-                        of_item=self.tr("the {name} document").format(name=self.parent_.document),
+                        of_item=self.tr("of the '{name}' document").format(name=self.parent_.document),
                     ),
                 )
 
@@ -231,9 +231,9 @@ class BackupListView(QListView):
                 QMessageBox.critical(
                     self,
                     self.tr("Error"),
-                    self.tr("Failed to restore '{}' backup of '{of_item}'.").format(
+                    self.tr("Failed to restore '{}' backup {of_item}.").format(
                         index.data(ITEM_DATAS["name"]),
-                        of_item=self.tr("the {name} document").format(name=self.parent_.document),
+                        of_item=self.tr("of the '{name}' document").format(name=self.parent_.document),
                     ),
                 )
 
@@ -250,9 +250,9 @@ class BackupListView(QListView):
                 QMessageBox.information(
                     self,
                     self.tr("Successful"),
-                    self.tr("The '{}' backup '{of_item}' deleted.").format(
+                    self.tr("The '{}' backup {of_item} deleted.").format(
                         index.data(ITEM_DATAS["name"]),
-                        of_item=self.tr("the {name} document").format(name=self.parent_.document),
+                        of_item=self.tr("of the '{name}' document").format(name=self.parent_.document),
                     ),
                 )
 
@@ -262,9 +262,9 @@ class BackupListView(QListView):
                 QMessageBox.critical(
                     self,
                     self.tr("Error"),
-                    self.tr("Failed to delete '{}' backup of '{of_item}'.").format(
+                    self.tr("Failed to delete '{}' backup {of_item}.").format(
                         index.data(ITEM_DATAS["name"]),
-                        of_item=self.tr("the {name} document").format(name=self.parent_.document),
+                        of_item=self.tr("of the '{name}' document").format(name=self.parent_.document),
                     ),
                 )
 
@@ -544,7 +544,7 @@ class DocumentHelper(QToolBar):
 
         self.parent_ = parent
 
-        self.button = self.addAction(self.tr("Save") if self.parent_.mode == "normal" else self.tr("Restore Content"))
+        self.button = self.addAction(self.tr("Save"))
         self.button.setStatusTip(self.tr("Auto-saves do not change backups and disabled for outdated diaries."))
 
         self.bold_action = Action(self, self.setBold, self.tr("Bold"))
@@ -664,7 +664,7 @@ class DocumentHelper(QToolBar):
 
     def setBackgroundColor(self) -> None:
         ok, status, qcolor = GetColor(
-            self, True, False, False, Qt.GlobalColor.white, self.tr("Select {} Color").format(self.tr("Background"))
+            self, True, False, False, Qt.GlobalColor.white, self.tr("Select a {} Color").format(self.tr("Background"))
         ).getColor()
 
         if ok:
@@ -804,7 +804,7 @@ class DocumentHelper(QToolBar):
 
     def setTextColor(self) -> None:
         ok, status, qcolor = GetColor(
-            self, True, False, False, Qt.GlobalColor.white, self.tr("Select {} Color").format(self.tr("Text"))
+            self, True, False, False, Qt.GlobalColor.white, self.tr("Select a {} Color").format(self.tr("Text"))
         ).getColor()
 
         if ok:

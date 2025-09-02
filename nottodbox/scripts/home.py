@@ -221,7 +221,7 @@ class Selector(QWidget):
                 self.tr("By name"),
                 self.tr("By creation date"),
                 self.tr("By modification date"),
-                self.tr("By content / description"),
+                self.tr("By content or description"),
             ]
         )
         self.filter_combobox.currentIndexChanged.connect(self.tree_view.filterChanged)
@@ -552,7 +552,7 @@ class Options:
                 self.question = QMessageBox.question(
                     self.parent_,
                     self.parent_.tr("Question"),
-                    self.tr("{the_item} not saved.\nWhat would you like to do?", index),
+                    self.tr("{item} not saved.\nWhat would you like to do?", index),
                     QMessageBox.StandardButton.Save
                     | QMessageBox.StandardButton.Discard
                     | QMessageBox.StandardButton.Cancel,
@@ -622,8 +622,8 @@ class Options:
                 QMessageBox.critical(
                     self.parent_,
                     self.parent_.tr("Error"),
-                    self.parent_.tr("{the_item} is already exists.")
-                    .format(the_item=self.parent_.tr("the '{name}' document").format(name=document))
+                    self.parent_.tr("{item} is already exists.")
+                    .format(item=self.parent_.tr("the '{name}' document").format(name=document))
                     .capitalize(),
                 )
 
@@ -673,8 +673,8 @@ class Options:
                 QMessageBox.critical(
                     self.parent_,
                     self.parent_.tr("Error"),
-                    self.parent_.tr("{the_item} is already exists.")
-                    .format(the_item=self.parent_.tr("the '{name}' notebook").format(name=name))
+                    self.parent_.tr("{item} is already exists.")
+                    .format(item=self.parent_.tr("the '{name}' notebook").format(name=name))
                     .capitalize(),
                 )
                 return False
@@ -716,7 +716,7 @@ class Options:
             del self.parent_.maindb.items[(name, table)]
 
         else:
-            QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.tr("Failed to delete {the_item}.", index))
+            QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.tr("Failed to delete {item}.", index))
 
         self.parent_.setPage()
 
@@ -797,9 +797,7 @@ class Options:
                     writer.write(document)
 
             if export_ is None:
-                QMessageBox.information(
-                    self.parent_, self.parent_.tr("Successful"), self.tr("{the_item} exported.", index)
-                )
+                QMessageBox.information(self.parent_, self.parent_.tr("Successful"), self.tr("{item} exported.", index))
 
     def get(self, index: QModelIndex) -> tuple[str, str]:
         """Get name with table/notebook name."""
@@ -820,7 +818,7 @@ class Options:
 
         else:
             QMessageBox.critical(
-                self.parent_, self.parent_.tr("Error"), self.tr("Failed to mark as completed {the_item}.", index)
+                self.parent_, self.parent_.tr("Error"), self.tr("Failed to mark as completed {item}.", index)
             )
 
     @Slot(QModelIndex)
@@ -833,7 +831,7 @@ class Options:
 
         else:
             QMessageBox.critical(
-                self.parent_, self.parent_.tr("Error"), self.tr("Failed to mark as uncompleted {the_item}.", index)
+                self.parent_, self.parent_.tr("Error"), self.tr("Failed to mark as uncompleted {item}.", index)
             )
 
     @Slot(QModelIndex, str)
@@ -863,7 +861,7 @@ class Options:
 
             if write and not self.parent_.maindb.set("yes", "pinned", name, table):
                 QMessageBox.critical(
-                    self.parent_, self.parent_.tr("Error"), self.tr("Failed to pin {the_item} to sidebar.", index)
+                    self.parent_, self.parent_.tr("Error"), self.tr("Failed to pin {item} to sidebar.", index)
                 )
                 return
 
@@ -902,6 +900,19 @@ class Options:
         else:
             QMessageBox.critical(
                 self.parent_, self.parent_.tr("Error"), self.tr("Failed to remove lock {from_item}.", index)
+            )
+
+    @Slot(QModelIndex)
+    def removeMark(self, index: QModelIndex) -> None:
+        name, table = self.get(index)
+
+        if self.parent_.maindb.set(None, "completed", name, table):
+            index.model().setData(index, ["self", None], ITEM_DATAS["completed"])
+            self.parent_.tree_view.setType(index)
+
+        else:
+            QMessageBox.critical(
+                self.parent_, self.parent_.tr("Error"), self.tr("Failed to remove mark {of_item}.", index)
             )
 
     @Slot(QModelIndex)
@@ -965,12 +976,12 @@ class Options:
 
                 else:
                     QMessageBox.critical(
-                        self.parent_, self.parent_.tr("Error"), self.tr("Failed to rename {the_item}.", index)
+                        self.parent_, self.parent_.tr("Error"), self.tr("Failed to rename {item}.", index)
                     )
 
             else:
                 QMessageBox.critical(
-                    self.parent_, self.parent_.tr("Error"), self.tr("{the_item} is already exists.", index)
+                    self.parent_, self.parent_.tr("Error"), self.tr("{item} is already exists.", index)
                 )
 
     @Slot(QModelIndex)
@@ -993,7 +1004,7 @@ class Options:
             self.parent_.maindb.items[(name, table)].removeRows(0, self.parent_.maindb.items[(name, table)].rowCount())
 
         else:
-            QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.tr("Failed to reset {the_item}.", index))
+            QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.tr("Failed to reset {item}.", index))
 
     def tr(self, text_: str, index: QModelIndex) -> str:
         """Just being lazy, sometimes..."""
@@ -1002,42 +1013,31 @@ class Options:
 
         if table == "__main__":
             if "{from_item}" in text_:
-                text = text_.format(from_item=self.parent_.tr("from '{name}' notebook").format(name=name))
+                text = text_.format(from_item=self.parent_.tr("from the '{name}' notebook").format(name=name))
 
             elif "{of_item}" in text_:
-                text = text_.format(of_item=self.parent_.tr("of '{name}' notebook").format(name=name))
+                text = text_.format(of_item=self.parent_.tr("of the '{name}' notebook").format(name=name))
 
             elif "{to_item}" in text_:
-                text = text_.format(to_item=self.parent_.tr("to '{name}' notebook").format(name=name))
+                text = text_.format(to_item=self.parent_.tr("to the '{name}' notebook").format(name=name))
 
-            elif "{the_item}" in text_:
-                text = text_.format(the_item=self.parent_.tr("the '{name}' notebook").format(name=name))
+            elif "{item}" in text_:
+                text = text_.format(item=self.parent_.tr("the '{name}' notebook").format(name=name))
 
         else:
             if "{from_item}" in text_:
-                text = text_.format(from_item=self.parent_.tr("from '{name}' document").format(name=name))
+                text = text_.format(from_item=self.parent_.tr("from the '{name}' document").format(name=name))
 
             elif "{of_item}" in text_:
-                text = text_.format(of_item=self.parent_.tr("of '{name}' document").format(name=name))
+                text = text_.format(of_item=self.parent_.tr("of the '{name}' document").format(name=name))
 
             elif "{to_item}" in text_:
-                text = text_.format(to_item=self.parent_.tr("to '{name}' document").format(name=name))
+                text = text_.format(to_item=self.parent_.tr("to the '{name}' document").format(name=name))
 
-            elif "{the_item}" in text_:
-                text = text_.format(the_item=self.parent_.tr("the '{name}' document").format(name=name))
+            elif "{item}" in text_:
+                text = text_.format(item=self.parent_.tr("the '{name}' document").format(name=name))
 
         return text.capitalize()
-
-    @Slot(QModelIndex)
-    def unmark(self, index: QModelIndex) -> None:
-        name, table = self.get(index)
-
-        if self.parent_.maindb.set(None, "completed", name, table):
-            index.model().setData(index, ["self", None], ITEM_DATAS["completed"])
-            self.parent_.tree_view.setType(index)
-
-        else:
-            QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.tr("Failed to unmark {the_item}.", index))
 
     @Slot(QModelIndex)
     def unpin(self, index: QModelIndex, write: bool = True, update: bool = True) -> None:
@@ -1046,7 +1046,7 @@ class Options:
 
             if write and not self.parent_.maindb.set("no", "pinned", name, table):
                 QMessageBox.critical(
-                    self.parent_, self.parent_.tr("Error"), self.tr("Failed to unpin {the_item} from sidebar.", index)
+                    self.parent_, self.parent_.tr("Error"), self.tr("Failed to unpin {item} from sidebar.", index)
                 )
                 return
 
@@ -1193,7 +1193,7 @@ class TreeView(QTreeView):
 
     @Slot(QModelIndex)
     def failedToImport(self, index: QModelIndex) -> None:
-        QMessageBox.critical(self, self.tr("Error"), self.parent_.options.tr("{the_item} exported.", index))
+        QMessageBox.critical(self, self.tr("Error"), self.parent_.options.tr("Failed to import {item}.", index))
 
     @Slot(int)
     def filterChanged(self, index: int) -> None:
@@ -1318,13 +1318,13 @@ class TreeView(QTreeView):
             menu.addAction(
                 Action(self, lambda: self.parent_.options.markAsUncompleted(index), self.tr("Mark as Uncompleted"))
             )
-            menu.addAction(Action(self, lambda: self.parent_.options.unmark(index), self.tr("Unmark")))
+            menu.addAction(Action(self, lambda: self.parent_.options.removeMark(index), self.tr("Remove Mark")))
 
         elif index.data(ITEM_DATAS["completed"])[1] == "uncompleted":
             menu.addAction(
                 Action(self, lambda: self.parent_.options.markAsCompleted(index), self.tr("Mark as Completed"))
             )
-            menu.addAction(Action(self, lambda: self.parent_.options.unmark(index), self.tr("Unmark")))
+            menu.addAction(Action(self, lambda: self.parent_.options.removeMark(index), self.tr("Remove Mark")))
 
         else:
             menu.addAction(
