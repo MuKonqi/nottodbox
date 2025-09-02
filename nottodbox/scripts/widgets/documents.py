@@ -458,7 +458,7 @@ class DocumentView(QWidget):
         self.refreshNames()
         self.changeAutosaveConnections()
 
-        self.last_content = self.content
+        self.last_content = self.getText()
 
     def changeAutosaveConnections(self, event: str | None = None) -> None:
         if (
