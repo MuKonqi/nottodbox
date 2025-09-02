@@ -50,6 +50,15 @@
   <url type="bugtracker">https://github.com/mukonqi/nottodbox/issues</url>
   <launchable type="desktop-id">io.github.mukonqi.nottodbox.desktop</launchable>
   <releases>
+    <release version="v0.2.0" date="2025-09-02">
+      <description>
+        <ul>
+          <li>Multiple backups support</li>
+          <li>Importing with synchrozation</li>
+          <li>And various fixes &amp; improvements</li>
+        </ul>
+      </description>
+    </release>
     <release version="v0.1.1" date="2025-07-09">
       <description>
         <ul>
