@@ -22,7 +22,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QFontDatabase
 from PySide6.QtWidgets import QApplication, QHBoxLayout, QStyle, QTextEdit, QVBoxLayout, QWidget
 
-from .version import APP_VERSION
+from .version import APP_BUILD, APP_VERSION
 from .widgets.controls import HSeperator, Label, PushButton
 
 
@@ -84,6 +84,7 @@ class AboutPage(QWidget):
         self.layout_.addWidget(self.icon_and_nottodbox)
         self.layout_.addWidget(HSeperator(self))
         self.layout_.addWidget(self.version_label)
+        self.layout_.addWidget(Label(self, self.tr("Build") + f": {APP_BUILD}"))
         self.layout_.addWidget(self.source_label)
         self.layout_.addWidget(HSeperator(self))
         self.layout_.addWidget(self.developer_label)

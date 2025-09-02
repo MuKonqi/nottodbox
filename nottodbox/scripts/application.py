@@ -20,8 +20,8 @@ import logging
 import os
 import platform
 import sys
-import threading
 from datetime import datetime
+from typing import TextIO
 
 from PySide6.QtCore import QLocale, QTranslator, qVersion
 from PySide6.QtGui import QPixmap
@@ -70,18 +70,25 @@ class Application(QApplication):
         self.mainwindow = MainWindow()
 
 
-class StreamToLogger:
-    def __init__(self, logger, log_level=logging.INFO) -> None:
+class StreamToLogger(TextIO):
+    def __init__(self, logger: logging.Logger, log_level: int = logging.INFO) -> None:
         self.logger = logger
         self.log_level = log_level
+        self.buffer_ = ""
 
-    def write(self, message) -> None:
-        message = message.strip()
-        if message:
-            self.logger.log(self.log_level, message)
+    def write(self, message: str) -> None:
+        self.buffer_ += message
 
-    def flush(self):
-        pass
+        while "\n" in self.buffer_:
+            line, self.buffer_ = self.buffer_.split("\n", 1)
+
+            if line.strip():
+                self.logger.log(self.log_level, line.strip())
+
+    def flush(self) -> None:
+        if self.buffer_.strip():
+            self.logger.log(self.log_level, self.buffer_.strip())
+        self.buffer_ = ""
 
 
 def main() -> None:
@@ -108,7 +115,7 @@ def main() -> None:
         for directory in [os.path.join(user_dir, "Nottodbox") for user_dir in list(USER_DIRS.values())]:
             os.makedirs(directory, exist_ok=True)
 
-    logging.info(f"Nottodbox, version: {APP_VERSION}, build: {APP_BUILD}, process ID: {threading.get_native_id()}")
+    logging.info(f"Nottodbox, version: {APP_VERSION}, build: {APP_BUILD}")
     logging.info(f"Operating system: {platform.system()} {platform.release()} ({platform.platform()})")
     logging.info(f"Python: {platform.python_version()}")
     logging.info(f"Language: {QLocale.system().name()} / {QLocale.system().name().split('_')[0]}")
