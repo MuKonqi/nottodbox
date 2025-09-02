@@ -355,8 +355,8 @@ class MainDB:
             self.db.commit()
 
             self.cur.execute(
-                "update __main__ set sync = sync || ? where sync is not null and sync != '' and sync != ? and sync != ?",
-                ("_export", "default", "global"),
+                "update __main__ set sync = sync || ? where sync is not null and sync != ? and sync != ? and sync != ? and sync not like ? and sync not like ? and sync not like ?",
+                ("_export", "", "default", "global", "%_all", "%_export", "%_import"),
             )
             self.db.commit()
 
@@ -378,8 +378,8 @@ class MainDB:
                 self.db.commit()
 
                 self.cur.execute(
-                    f"update '{table}' set sync = sync || ? where sync is not null and sync != '' and sync != ? and sync != ? and sync != ?",
-                    ("_export", "default", "global", "notebook"),
+                    f"update '{table}' set sync = sync || ? where sync is not null and sync != ? and sync != ? and sync != ? and sync != ? and sync not like ? and sync not like ? and sync not like ?",
+                    ("_export", "", "default", "global", "notebook", "%_all", "%_export", "%_import"),
                 )
                 self.db.commit()
 
@@ -393,11 +393,21 @@ class MainDB:
                     except ValueError:
                         pass
 
-                    self.cur.execute(
-                        f"update '{table}' set backup = ? where name = ?",
-                        (json.dumps({"2025": self.get("backup", name, table)}), name),
-                    )
-                    self.db.commit()
+                    if self.get("backup", name, table) is not None and self.get("backup", name, table) != "":
+                        try:
+                            if "2025" not in json.loads(self.get("backup", name, table)):
+                                self.cur.execute(
+                                    f"update '{table}' set backup = ? where name = ?",
+                                    (json.dumps({"2025": self.get("backup", name, table)}), name),
+                                )
+                                self.db.commit()
+
+                        except (json.JSONDecodeError, TypeError):
+                            self.cur.execute(
+                                f"update '{table}' set backup = ? where name = ?",
+                                (json.dumps({"2025": self.get("backup", name, table)}), name),
+                            )
+                            self.db.commit()
 
     def updateModification(self, name: str, table: str = "__main__", date: str | None = None) -> bool:
         if date is None:
