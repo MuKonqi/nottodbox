@@ -1581,7 +1581,10 @@ class ButtonDelegate(QStyledItemDelegate):
         )
 
     def sizeHint(self, option: QStyleOptionViewItem, index: QModelIndex) -> QRect:
-        return QSize(option.rect.width(), 108)
+        font = QFont(option.font)
+        font.setBold(True)
+
+        return QSize(option.rect.width(), option.rect.height() + 6 * QFontMetrics(font).lineSpacing())
 
 
 class Importer(QObject):
