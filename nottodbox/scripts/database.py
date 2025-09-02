@@ -57,7 +57,7 @@ class MainDB:
             backups = json.loads(self.getBackups(document, notebook))
             backups[datetime.datetime.now().strftime("%d.%m.%Y %H:%M")] = content
 
-            self.cur.execute(f"update '{notebook}' set backup = ? where name = ?", (json.dumps(backups), document))
+            self.cur.execute(f"UPDATE '{notebook}' SET backup = ? WHERE name = ?", (json.dumps(backups), document))
             self.db.commit()
 
             return json.loads(self.getBackups(document, notebook)) == backups
@@ -66,7 +66,7 @@ class MainDB:
             return True
 
     def checkIfItExists(self, name: str, table: str = "__main__") -> bool:
-        self.cur.execute(f"select * from '{table}' where name = ?", (name,))
+        self.cur.execute(f"SELECT * FROM '{table}' WHERE name = ?", (name,))
 
         try:
             self.cur.fetchone()[0]
@@ -85,7 +85,7 @@ class MainDB:
 
     def checkIfTheTableExists(self, name: str = "__main__") -> bool:
         try:
-            self.cur.execute(f"select * from '{name}'")
+            self.cur.execute(f"SELECT * FROM '{name}'")
             return True
 
         except sqlite3.OperationalError:
@@ -94,7 +94,7 @@ class MainDB:
     def clearContent(self, document: str, notebook: str) -> bool:
         content = self.getContent(document, notebook)
 
-        self.cur.execute(f"update '{notebook}' set content = '' where name = ?", (document,))
+        self.cur.execute(f"UPDATE '{notebook}' SET content = '' WHERE name = ?", (document,))
         self.db.commit()
 
         if self.getContent(document, notebook) == "" and self.updateModification(document, notebook):
@@ -112,7 +112,7 @@ class MainDB:
             f"""
             INSERT INTO '{table}'
             (name, content, creation, modification, completed, locked, autosave, format, sync, folder, pinned, bg_normal, bg_hover, bg_clicked, fg_normal, fg_hover, fg_clicked, bd_normal, bd_hover, bd_clicked)
-            values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 name,
@@ -198,11 +198,11 @@ class MainDB:
         )
 
     def delete(self, name: str, table: str = "__main__") -> bool:
-        self.cur.execute(f"delete from '{table}' where name = ?", (name,))
+        self.cur.execute(f"DELETE FROM '{table}' WHERE name = ?", (name,))
         self.db.commit()
 
         if table == "__main__":
-            self.cur.execute(f"drop table if exists '{name}'")
+            self.cur.execute(f"DROP TABLE IF EXISTS '{name}'")
             self.db.commit()
 
         if not self.checkIfItExists(name, table):
@@ -225,7 +225,7 @@ class MainDB:
             return True
 
     def get(self, column: str, name: str, table: str = "__main__") -> str:
-        self.cur.execute(f"select {column} from '{table}' where name = ?", (name,))
+        self.cur.execute(f"SELECT {column} FROM '{table}' WHERE NAME = ?", (name,))
 
         try:
             fetch = self.cur.fetchone()[0]
@@ -238,10 +238,10 @@ class MainDB:
     def getAll(self) -> list:
         items = []
 
-        self.cur.execute("select * from __main__")
+        self.cur.execute("SELECT * FROM __main__")
 
         for data in self.cur.fetchall():
-            self.cur.execute(f"select * from '{data[len(data) - 5]}'")
+            self.cur.execute(f"SELECT * FROM '{data[len(data) - 5]}'")
 
             data = list(data)
             data.insert(0, self.cur.fetchall())
@@ -257,27 +257,27 @@ class MainDB:
         return self.get("content", document, notebook)
 
     def getDocument(self, document: str, notebook: str) -> list:
-        self.cur.execute(f"select * from '{notebook}' where name = ?", (document,))
+        self.cur.execute(f"SELECT * FROM '{notebook}' WHERE name = ?", (document,))
         return self.cur.fetchone()
 
     def getLocked(self, document: str, notebook: str) -> bool:
         return self.get("locked", document, notebook) == 0
 
     def getNotebook(self, name: str) -> list:
-        self.cur.execute("select * from __main__ where name = ?", (name,))
+        self.cur.execute("SELECT * FROM __main__ WHERE name = ?", (name,))
         data = list(self.cur.fetchall()[0])
 
-        self.cur.execute(f"select * from '{name}'")
+        self.cur.execute(f"SELECT * FROM '{name}'")
         data.insert(0, self.cur.fetchall())
 
         return data
 
     def rename(self, locked: str, new_name: str, name: str, table: str = "__main__") -> bool:
-        self.cur.execute(f"update '{table}' set locked = ?, name = ? where name = ?", (locked, new_name, name))
+        self.cur.execute(f"UPDATE '{table}' SET locked = ?, name = ? WHERE name = ?", (locked, new_name, name))
         self.db.commit()
 
         if table == "__main__":
-            self.cur.execute(f"alter table '{name}' rename to '{new_name}'")
+            self.cur.execute(f"ALTER TABLE '{name}' RENAME TO '{new_name}'")
             self.db.commit()
 
         if self.checkIfItExists(new_name, table):
@@ -297,11 +297,11 @@ class MainDB:
 
     def restoreContent(self, date: str, document: str, notebook: str) -> bool:
         if self.checkIfTheBackupExists(date, document, notebook):
-            self.cur.execute(f"select content, backup from '{notebook}' where name = ?", (document,))
+            self.cur.execute(f"SELECT content, backup from '{notebook}' WHERE name = ?", (document,))
             content, backups = self.cur.fetchone()
             backup = json.loads(backups)[date]
 
-            self.cur.execute(f"update '{notebook}' set content = ? where name = ?", (backup, document))
+            self.cur.execute(f"UPDATE '{notebook}' SET content = ? WHERE name = ?", (backup, document))
             self.db.commit()
 
             if self.getContent(document, notebook) == backup and self.updateModification(document, notebook):
@@ -310,7 +310,7 @@ class MainDB:
         return False
 
     def saveDocument(self, content: str, backup: str, autosave: bool, document: str, notebook: str) -> bool:
-        self.cur.execute(f"update '{notebook}' set content = ? where name = ?", (content, document))
+        self.cur.execute(f"UPDATE '{notebook}' SET content = ? WHERE name = ?", (content, document))
         self.db.commit()
 
         if self.getContent(document, notebook) == content and self.updateModification(document, notebook):
@@ -323,7 +323,7 @@ class MainDB:
         return False
 
     def set(self, value: str | None, column: str, name: str, table: str = "__main__") -> bool:
-        self.cur.execute(f"update '{table}' set {column} = ? where name = ?", (value, name))
+        self.cur.execute(f"UPDATE '{table}' SET {column} = ? WHERE name = ?", (value, name))
         self.db.commit()
 
         return self.get(column, name, table) == value
@@ -348,46 +348,46 @@ class MainDB:
                 f"{USER_DATABASES_DIR}/main.db-{datetime.datetime.now().strftime('%d_%m_%Y_%H_%M')}.bak",
             )
 
-            self.cur.execute("update __main__ set creation = replace(creation, '/', '.')")
+            self.cur.execute("UPDATE __main__ SET creation = REPLACE(creation, '/', '.')")
             self.db.commit()
 
-            self.cur.execute("update __main__ set modification = replace(modification, '/', '.')")
+            self.cur.execute("UPDATE __main__ SET modification = REPLACE(modification, '/', '.')")
             self.db.commit()
 
             self.cur.execute(
-                "update __main__ set sync = sync || ? where sync is not null and sync != ? and sync != ? and sync != ? and sync not like ? and sync not like ? and sync not like ?",
+                "UPDATE __main__ SET sync = sync || ? WHERE sync is NOT NULL AND sync != ? AND sync != ? AND sync != ? AND sync NOT LIKE ? AND sync NOT LIKE ? AND sync NOT LIKE ?",
                 ("_export", "", "default", "global", "%_all", "%_export", "%_import"),
             )
             self.db.commit()
 
-            self.cur.execute("select name from __main__")
+            self.cur.execute("SELECT name FROM __main__")
 
             for table in [fetch[0] for fetch in self.cur.fetchall()]:
                 try:
                     datetime.datetime.strptime(table, "%d/%m/%Y")
-                    self.cur.execute("update __main__ set name = replace(name, '/', '.') where name = ?", (table,))
+                    self.cur.execute("UPDATE __main__ SET name = REPLACE(name, '/', '.') WHERE name = ?", (table,))
                     self.db.commit()
 
                 except ValueError:
                     pass
 
-                self.cur.execute(f"update '{table}' set creation = replace(creation, '/', '.')")
+                self.cur.execute(f"update '{table}' SET creation = REPLACE(creation, '/', '.')")
                 self.db.commit()
 
-                self.cur.execute(f"update '{table}' set modification = replace(modification, '/', '.')")
+                self.cur.execute(f"update '{table}' SET modification = REPLACE(modification, '/', '.')")
                 self.db.commit()
 
                 self.cur.execute(
-                    f"update '{table}' set sync = sync || ? where sync is not null and sync != ? and sync != ? and sync != ? and sync != ? and sync not like ? and sync not like ? and sync not like ?",
+                    f"UPDATE '{table}' SET sync = sync || ? WHERE sync is NOT NULL AND sync != ? AND sync != ? AND sync != ? AND sync != ? AND sync NOT LIKE ? AND sync NOT LIKE ? AND sync NOT LIKE ?",
                     ("_export", "", "default", "global", "notebook", "%_all", "%_export", "%_import"),
                 )
                 self.db.commit()
 
-                self.cur.execute(f"select name from '{table}'")
+                self.cur.execute(f"SELECT name FROM '{table}'")
                 for name in [fetch[0] for fetch in self.cur.fetchall()]:
                     try:
                         datetime.datetime.strptime(name, "%d/%m/%Y")
-                        self.cur.execute(f"update '{table}' set name = replace(name, '/', '.') where name = ?", (name,))
+                        self.cur.execute(f"UPDATE '{table}' SET name = REPLACE(name, '/', '.') WHERE name = ?", (name,))
                         self.db.commit()
 
                     except ValueError:
@@ -397,14 +397,14 @@ class MainDB:
                         try:
                             if "2025" not in json.loads(self.get("backup", name, table)):
                                 self.cur.execute(
-                                    f"update '{table}' set backup = ? where name = ?",
+                                    f"UPDATE '{table}' SET backup = ? WHERE name = ?",
                                     (json.dumps({"2025": self.get("backup", name, table)}), name),
                                 )
                                 self.db.commit()
 
                         except (json.JSONDecodeError, TypeError):
                             self.cur.execute(
-                                f"update '{table}' set backup = ? where name = ?",
+                                f"UPDATE '{table}' SET backup = ? WHERE name = ?",
                                 (json.dumps({"2025": self.get("backup", name, table)}), name),
                             )
                             self.db.commit()
