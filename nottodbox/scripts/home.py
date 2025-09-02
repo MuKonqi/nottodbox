@@ -1445,7 +1445,9 @@ class ButtonDelegate(QStyledItemDelegate):
         )
         content_rect.setHeight(name_padding)
 
-        creation_date = datetime.datetime.strptime(index.data(ITEM_DATAS["creation"]), "%d.%m.%Y %H:%M:%S").strftime("%d.%m.%Y %H:%M")
+        creation_date = datetime.datetime.strptime(index.data(ITEM_DATAS["creation"]), "%d.%m.%Y %H:%M:%S").strftime(
+            "%d.%m.%Y %H:%M"
+        )
 
         creation_rect = QRect(option.rect)
         creation_rect.setLeft(creation_rect.left() + name_padding)
@@ -1455,7 +1457,9 @@ class ButtonDelegate(QStyledItemDelegate):
         )
         creation_rect.setHeight(name_padding)
 
-        modification_date = datetime.datetime.strptime(index.data(ITEM_DATAS["modification"]), "%d.%m.%Y %H:%M:%S").strftime("%d.%m.%Y %H:%M")
+        modification_date = datetime.datetime.strptime(
+            index.data(ITEM_DATAS["modification"]), "%d.%m.%Y %H:%M:%S"
+        ).strftime("%d.%m.%Y %H:%M")
 
         modification_rect = QRect(option.rect)
         modification_rect.setLeft(
