@@ -53,8 +53,10 @@
     <release version="v0.2.0" date="2025-09-02">
       <description>
         <ul>
-          <li>Multiple backups support</li>
-          <li>Importing with synchrozation</li>
+          <li>New big feature: Multiple backups support</li>
+          <li>New big feature: Importing with synchrozation</li>
+          <li>Change date-time format to %d.%m.%Y %H:%M:%S (e.g., 02.09.2025 00:00:00)</li>
+          <li>Improve header of opened documents and backups</li>
           <li>And various fixes &amp; improvements</li>
         </ul>
       </description>
