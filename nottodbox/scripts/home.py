@@ -851,9 +851,9 @@ class Options:
                 index.model().setData(index, True, ITEM_DATAS["clicked"])
 
             self.parent_.parent_.area.target.addDocument(
-                DocumentView(self.parent_.parent_.area, self.parent_.maindb, index)
+                DocumentView(self.parent_.parent_.area, self.parent_.parent_.area.target, self.parent_.maindb, index)
                 if mode == "normal"
-                else BackupView(self.parent_.parent_.area, self.parent_.maindb, index)
+                else BackupView(self.parent_.parent_.area, self.parent_.parent_.area.target, self.parent_.maindb, index)
             )
 
     @Slot(QModelIndex)

@@ -61,9 +61,11 @@ from PySide6.QtGui import (
 from PySide6.QtWidgets import (
     QAbstractItemView,
     QApplication,
+    QHBoxLayout,
     QListView,
     QMenu,
     QMessageBox,
+    QSizePolicy,
     QStyle,
     QStyledItemDelegate,
     QStyleOptionButton,
@@ -76,22 +78,35 @@ from PySide6.QtWidgets import (
 )
 
 from ..consts import ITEM_DATAS, USER_DIRS
-from .controls import Action, HSeperator, Label, LineEdit
+from .controls import Action, HSeperator, Label, LineEdit, PushButton
 from .dialogs import GetColor, GetTwoNumber
 
 
 class BackupView(QWidget):
-    def __init__(self, parent: QWidget, db, index: QModelIndex) -> None:
+    def __init__(self, parent: QWidget, container: QWidget, db, index: QModelIndex) -> None:
         super().__init__(parent)
 
         self.parent_ = parent
+        self.container = container
         self.db = db
         self.index = index
 
         self.format = index.data(ITEM_DATAS["format"])[1]
         self.mode = "backup"
 
-        self.label = Label(self)
+        self.header = QWidget(self)
+
+        self.mode_label = Label(self.header, self.tr("Backup:"))
+        self.mode_label.setFixedWidth(75)
+
+        self.label = Label(self.header)
+        self.label.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
+        font = self.label.font()
+        font.setBold(True)
+        self.label.setFont(font)
+
+        self.close_button = PushButton(self.header, self.container.removeDocument, self.tr("Close"))
+        self.close_button.setFixedWidth(75)
 
         self.listview = BackupListView(self)
 
@@ -101,8 +116,13 @@ class BackupView(QWidget):
         self.creation_entry = LineEdit(self, self.tr("Filter by date..."))
         self.creation_entry.textChanged.connect(self.listview.filterDate)
 
+        self.header_layout = QHBoxLayout(self.header)
+        self.header_layout.addWidget(self.mode_label)
+        self.header_layout.addWidget(self.label)
+        self.header_layout.addWidget(self.close_button)
+
         self.layout_ = QVBoxLayout(self)
-        self.layout_.addWidget(self.label)
+        self.layout_.addWidget(self.header)
         self.layout_.addWidget(HSeperator(self))
         self.layout_.addWidget(self.content_entry)
         self.layout_.addWidget(self.creation_entry)
@@ -119,7 +139,7 @@ class BackupView(QWidget):
         self.document = self.index.data(ITEM_DATAS["name"])
         self.notebook = self.index.data(ITEM_DATAS["notebook"])
 
-        self.label.setText(self.tr("Backup: {}").format(self.document))
+        self.label.setText(self.document)
 
 
 class BackupListView(QListView):
@@ -375,10 +395,11 @@ class BackupDelegate(QStyledItemDelegate):
 class DocumentView(QWidget):
     show_messages = Signal(bool)
 
-    def __init__(self, parent: QWidget, db, index: QModelIndex) -> None:
+    def __init__(self, parent: QWidget, container: QWidget, db, index: QModelIndex) -> None:
         super().__init__(parent)
 
         self.parent_ = parent
+        self.container = container
         self.db = db
         self.index = index
 
@@ -400,7 +421,19 @@ class DocumentView(QWidget):
 
         self.save = lambda: self.saver.save_document.emit(True)
 
-        self.label = Label(self)
+        self.header = QWidget(self)
+
+        self.mode_label = Label(self.header, self.tr("Document:"))
+        self.mode_label.setFixedWidth(75)
+
+        self.label = Label(self.header)
+        self.label.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
+        font = self.label.font()
+        font.setBold(True)
+        self.label.setFont(font)
+
+        self.close_button = PushButton(self.header, self.container.removeDocument, self.tr("Close"))
+        self.close_button.setFixedWidth(75)
 
         self.input = DocumentTextEdit(self)
         self.input.setAcceptRichText(True)
@@ -409,8 +442,13 @@ class DocumentView(QWidget):
         self.helper.button.triggered.connect(lambda: self.saver.saveDocument())
         self.input.cursorPositionChanged.connect(self.helper.updateButtons)
 
+        self.header_layout = QHBoxLayout(self.header)
+        self.header_layout.addWidget(self.mode_label)
+        self.header_layout.addWidget(self.label)
+        self.header_layout.addWidget(self.close_button)
+
         self.layout_ = QVBoxLayout(self)
-        self.layout_.addWidget(self.label)
+        self.layout_.addWidget(self.header)
         self.layout_.addWidget(HSeperator(self))
         self.layout_.addWidget(self.helper)
         self.layout_.addWidget(self.input)
@@ -471,7 +509,7 @@ class DocumentView(QWidget):
         self.document = self.index.data(ITEM_DATAS["name"])
         self.notebook = self.index.data(ITEM_DATAS["notebook"])
 
-        self.label.setText(self.tr("Document: {}").format(self.document))
+        self.label.setText(self.document)
         self.input.setDocumentTitle(self.document)
 
     def setContent(self) -> None:
