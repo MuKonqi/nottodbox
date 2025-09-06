@@ -21,7 +21,6 @@ import os
 import platform
 import sys
 from datetime import datetime
-from typing import TextIO
 
 from PySide6.QtCore import QLocale, QTranslator, qVersion
 from PySide6.QtGui import QPixmap
@@ -70,7 +69,7 @@ class Application(QApplication):
         self.mainwindow = MainWindow()
 
 
-class StreamToLogger(TextIO):
+class StreamToLogger:
     def __init__(self, logger: logging.Logger, log_level: int = logging.INFO) -> None:
         self.logger = logger
         self.log_level = log_level
@@ -90,9 +89,6 @@ class StreamToLogger(TextIO):
 
 
 def main() -> None:
-    # Store original stdoerr before redirecting to prevent recursion
-    original_stderr = sys.stderr
-
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)
 
@@ -104,8 +100,7 @@ def main() -> None:
     file_handler.setFormatter(formatter)
     logger.addHandler(file_handler)
 
-    # Use the original stderr for the console handler
-    console_handler = logging.StreamHandler(original_stderr)
+    console_handler = logging.StreamHandler()
     console_handler.setFormatter(formatter)
     logger.addHandler(console_handler)
 
