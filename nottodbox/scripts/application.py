@@ -70,22 +70,17 @@ class Application(QApplication):
 
 
 class StreamToLogger:
-    def __init__(self, logger: logging.Logger, log_level: int = logging.INFO) -> None:
+    def __init__(self, logger: logging.Logger, log_level=logging.INFO) -> None:
         self.logger = logger
         self.log_level = log_level
-        self.buffer_ = ""
 
     def write(self, message: str) -> None:
-        self.buffer_ += message
-        while "\n" in self.buffer_:
-            line, self.buffer_ = self.buffer_.split("\n", 1)
-            if line.strip():
-                self.logger.log(self.log_level, line.strip())
+        message = message.strip()
+        if message:
+            self.logger.log(self.log_level, message)
 
-    def flush(self) -> None:
-        if self.buffer_.strip():
-            self.logger.log(self.log_level, self.buffer_.strip())
-        self.buffer_ = ""
+    def flush(self):
+        pass
 
 
 def main() -> None:
