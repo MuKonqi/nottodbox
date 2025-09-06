@@ -78,10 +78,8 @@ class StreamToLogger(TextIO):
 
     def write(self, message: str) -> None:
         self.buffer_ += message
-
         while "\n" in self.buffer_:
             line, self.buffer_ = self.buffer_.split("\n", 1)
-
             if line.strip():
                 self.logger.log(self.log_level, line.strip())
 
@@ -103,7 +101,7 @@ def main() -> None:
     file_handler.setFormatter(formatter)
     logger.addHandler(file_handler)
 
-    console_handler = logging.StreamHandler()
+    console_handler = logging.StreamHandler(sys.__stdout__)
     console_handler.setFormatter(formatter)
     logger.addHandler(console_handler)
 
