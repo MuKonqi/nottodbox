@@ -21,6 +21,7 @@ import os
 import platform
 import sys
 from datetime import datetime
+from typing import TextIO
 
 from PySide6.QtCore import QLocale, QTranslator, qVersion
 from PySide6.QtGui import QPixmap
@@ -69,18 +70,23 @@ class Application(QApplication):
         self.mainwindow = MainWindow()
 
 
-class StreamToLogger:
-    def __init__(self, logger: logging.Logger, log_level=logging.INFO) -> None:
+class StreamToLogger(TextIO):
+    def __init__(self, logger: logging.Logger, log_level: int = logging.INFO) -> None:
         self.logger = logger
         self.log_level = log_level
+        self.buffer_ = ""
 
     def write(self, message: str) -> None:
-        message = message.strip()
-        if message:
-            self.logger.log(self.log_level, message)
+        self.buffer_ += message
+        while "\n" in self.buffer_:
+            line, self.buffer_ = self.buffer_.split("\n", 1)
+            if line.strip():
+                self.logger.log(self.log_level, line.strip())
 
-    def flush(self):
-        pass
+    def flush(self) -> None:
+        if self.buffer_.strip():
+            self.logger.log(self.log_level, self.buffer_.strip())
+        self.buffer_ = ""
 
 
 def main() -> None:
