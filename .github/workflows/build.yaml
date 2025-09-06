@@ -14,7 +14,10 @@ jobs:
         os: ['ubuntu-22.04', 'macos-14', 'windows-2022']
 
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.pull_request.head.ref || github.ref_name }}
 
     - uses: samypr100/setup-dev-drive@v3
       if: runner.os == 'Windows'
