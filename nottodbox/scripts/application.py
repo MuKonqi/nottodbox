@@ -90,6 +90,9 @@ class StreamToLogger(TextIO):
 
 
 def main() -> None:
+    # Store original stdoerr before redirecting to prevent recursion
+    original_stderr = sys.stderr
+
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)
 
@@ -101,7 +104,8 @@ def main() -> None:
     file_handler.setFormatter(formatter)
     logger.addHandler(file_handler)
 
-    console_handler = logging.StreamHandler()
+    # Use the original stderr for the console handler
+    console_handler = logging.StreamHandler(original_stderr)
     console_handler.setFormatter(formatter)
     logger.addHandler(console_handler)
 
