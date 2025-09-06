@@ -177,7 +177,10 @@ class BackupListView(QListView):
         self.setUniformItemSizes(False)
 
     def appendAll(self) -> None:
-        if self.parent_.index.data(ITEM_DATAS["backup"]) is not None and self.parent_.index.data(ITEM_DATAS["backup"]) != "":
+        if (
+            self.parent_.index.data(ITEM_DATAS["backup"]) is not None
+            and self.parent_.index.data(ITEM_DATAS["backup"]) != ""
+        ):
             backups = json.loads(self.parent_.index.data(ITEM_DATAS["backup"]))
 
             for date, content in backups.items():

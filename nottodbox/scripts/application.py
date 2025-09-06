@@ -78,10 +78,8 @@ class StreamToLogger(TextIO):
 
     def write(self, message: str) -> None:
         self.buffer_ += message
-
         while "\n" in self.buffer_:
             line, self.buffer_ = self.buffer_.split("\n", 1)
-
             if line.strip():
                 self.logger.log(self.log_level, line.strip())
 
@@ -107,8 +105,18 @@ def main() -> None:
     console_handler.setFormatter(formatter)
     logger.addHandler(console_handler)
 
-    sys.stdout = StreamToLogger(logger, logging.INFO)
-    sys.stderr = StreamToLogger(logger, logging.ERROR)
+    # Safe redirection of stdout/stderr
+    try:
+        if sys.stdout is not None:
+            sys.stdout = StreamToLogger(logger, logging.INFO)
+    except Exception:
+        pass
+
+    try:
+        if sys.stderr is not None:
+            sys.stderr = StreamToLogger(logger, logging.ERROR)
+    except Exception:
+        pass
 
     # These folders shouldn't be deleted. We must ensure that those folders exist.
     if APP_BUILD != "Flatpak":
