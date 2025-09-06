@@ -162,17 +162,17 @@ Do you want to overwrite it?</source>
 <context>
     <name>BackupDelegate</name>
     <message>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="306"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="310"/>
         <source>Restore</source>
         <translation>Geri Yükle</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="313"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="317"/>
         <source>Delete</source>
         <translation>Sil</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="336"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="340"/>
         <source>Date: {}</source>
         <translation>Tarih: {}</translation>
     </message>
@@ -180,42 +180,42 @@ Do you want to overwrite it?</source>
 <context>
     <name>BackupListView</name>
     <message>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="221"/>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="252"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="225"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="256"/>
         <source>Successful</source>
         <translation>Başarılı</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="222"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="226"/>
         <source>The backup &apos;{}&apos; {of_item} restored.</source>
         <translation>{of_item} &apos;{}&apos; yedeği geri yüklendi.</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="224"/>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="236"/>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="255"/>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="267"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="228"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="240"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="259"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="271"/>
         <source>of the &apos;{name}&apos; document</source>
         <translation>&apos;{name}&apos; belgesinin</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="233"/>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="264"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="237"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="268"/>
         <source>Error</source>
         <translation>Hata</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="234"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="238"/>
         <source>Failed to restore &apos;{}&apos; backup {of_item}.</source>
         <translation>{of_item} &apos;{}&apos; yedeği geri yüklenemedi.</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="253"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="257"/>
         <source>The &apos;{}&apos; backup {of_item} deleted.</source>
         <translation>{of_item} &apos;{}&apos; yedeği silindi.</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="265"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="269"/>
         <source>Failed to delete &apos;{}&apos; backup {of_item}.</source>
         <translation>{of_item} &apos;{}&apos; yedeği silinemedi.</translation>
     </message>
@@ -659,235 +659,235 @@ Do you want to overwrite it?</source>
 <context>
     <name>DocumentHelper</name>
     <message>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="547"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="551"/>
         <source>Save</source>
         <translation>Kaydet</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="548"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="552"/>
         <source>Auto-saves do not change backups and disabled for outdated diaries.</source>
         <translation>Oto. kaydetmeler yedekleri değiştirmez ve tarihi geçmiş günlükler için devre dışıdırlar.</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="550"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="554"/>
         <source>Bold</source>
         <translation>Kalın</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="554"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="558"/>
         <source>Italic</source>
         <translation>İtalik</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="558"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="562"/>
         <source>Underline</source>
         <translation>Altı Çizili</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="562"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="566"/>
         <source>Strike through</source>
         <translation>Ortadan çizili</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="570"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="574"/>
         <source>Heading</source>
         <translation>Başlıklama</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="573"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="577"/>
         <source>Basic text</source>
         <translation>Basit metin</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="574"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="578"/>
         <source>Title</source>
         <translation>Başlık</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="575"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="579"/>
         <source>Subtitle</source>
         <translation>Alt başlık</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="576"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="580"/>
         <source>Section</source>
         <translation>Bölüm</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="577"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="581"/>
         <source>Subsection</source>
         <translation>Alt bölüm</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="578"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="582"/>
         <source>Paragraph</source>
         <translation>Paragraf</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="579"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="583"/>
         <source>Subparagraph</source>
         <translation>Alt paragraf</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="584"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="588"/>
         <source>List</source>
         <translation>Liste</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="588"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="592"/>
         <source>Unordered</source>
         <translation>Sırasız</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="590"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="594"/>
         <source>Ordered with decimal numbers</source>
         <translation>Artan sayılarla sıralanmış</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="593"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="597"/>
         <source>Ordered with lowercase letters</source>
         <translation>Küçük harflerle sıralanmış</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="596"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="600"/>
         <source>Ordered with uppercase letters</source>
         <translation>Büyük harflerle sıralanmış</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="601"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="605"/>
         <source>Alignment</source>
         <translation>Hizalama</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="604"/>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="610"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="608"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="614"/>
         <source>Setting alignment is only available in HTML format.</source>
         <translation>Hizalama sadece HTML biçiminde mevcuttur.</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="607"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="611"/>
         <source>Left</source>
         <translation>Sol</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="608"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="612"/>
         <source>Center</source>
         <translation>Orta</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="609"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="613"/>
         <source>Right</source>
         <translation>Sağ</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="615"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="619"/>
         <source>Table</source>
         <translation>Tablo</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="617"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="621"/>
         <source>Link</source>
         <translation>Bağlantı</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="619"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="623"/>
         <source>Text color</source>
         <translation>Metin rengi</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="620"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="624"/>
         <source>Setting text color is only available in HTML format.</source>
         <translation>Metin rengi ayarlama sadece HTML biçiminde mevcuttur.</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="622"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="626"/>
         <source>Background color</source>
         <translation>Arka plan rengi</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="623"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="627"/>
         <source>Setting background color is only available in HTML format.</source>
         <translation>Arka plan rengi ayarlama sadece HTML biçiminde mevcuttur.</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="667"/>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="807"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="671"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="811"/>
         <source>Select a {} Color</source>
         <translation>Bir {} Rengi Seçin</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="667"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="671"/>
         <source>Background</source>
         <translation>Arka Plan</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="746"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="750"/>
         <source>Add Link</source>
         <translation>Bağlantı Ekle</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="748"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="752"/>
         <source>Link text:</source>
         <translation>Bağlantı metni:</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="749"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="753"/>
         <source>Link URL:</source>
         <translation>Bağlantı URL&apos;si:</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="750"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="754"/>
         <source>Not required</source>
         <translation>Zorunlu değil</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="751"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="755"/>
         <source>Required</source>
         <translation>Zorunlu</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="771"/>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="802"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="775"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="806"/>
         <source>Error</source>
         <translation>Hata</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="771"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="775"/>
         <source>The URL is required, it can not be blank.</source>
         <translation>URL zorunludur, boş olamaz.</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="791"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="795"/>
         <source>Add Table</source>
         <translation>Tablo Ekle</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="791"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="795"/>
         <source>Row number:</source>
         <translation>Satır sayısı:</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="791"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="795"/>
         <source>Column number:</source>
         <translation>Sütün sayısı:</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="803"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="807"/>
         <source>The row and column numbers are required, they can not be blank.</source>
         <translation>Satır ve sütün sayıları zorunludur, onlar boş olamazlar.</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="807"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="811"/>
         <source>Text</source>
         <translation>Metin</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="871"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="875"/>
         <source>Text formatter is only available in Markdown and HTML formats.</source>
         <translation>Metin biçimlendiricisi sadece Markdown ve HTML biçimlerinde mevcuttur.</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="898"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="902"/>
         <source>Text formatter is not available for backups.</source>
         <translation>Metin biçimlendiricisi yedekler için kullanılamaz.</translation>
     </message>
@@ -895,12 +895,12 @@ Do you want to overwrite it?</source>
 <context>
     <name>DocumentSaver</name>
     <message>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="924"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="928"/>
         <source>Question</source>
         <translation>Soru</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="927"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="931"/>
         <source>Diaries are unique to the day they are written.
 Do you really want to change the content?</source>
         <translation>Günlükler yazıldıkları güne özellerdir.
@@ -1046,32 +1046,32 @@ Gerçekten içeriği değiştirmek istiyor musunuz?</translation>
 <context>
     <name>DocumentView</name>
     <message>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="426"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="430"/>
         <source>Document:</source>
         <translation>Belge:</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="435"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="439"/>
         <source>Close</source>
         <translation>Kapat</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="535"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="539"/>
         <source>Successful</source>
         <translation>Başarılı</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="535"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="539"/>
         <source>Document saved.</source>
         <translation>Belge kaydedildi.</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="538"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="542"/>
         <source>Error</source>
         <translation>Hata</translation>
     </message>
     <message>
-        <location filename="../nottodbox/scripts/widgets/documents.py" line="538"/>
+        <location filename="../nottodbox/scripts/widgets/documents.py" line="542"/>
         <source>Failed to save document.</source>
         <translation>Belge kaydedilemedi.</translation>
     </message>

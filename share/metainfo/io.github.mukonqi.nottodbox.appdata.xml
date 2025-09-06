@@ -50,6 +50,13 @@
   <url type="bugtracker">https://github.com/mukonqi/nottodbox/issues</url>
   <launchable type="desktop-id">io.github.mukonqi.nottodbox.desktop</launchable>
   <releases>
+    <release version="v0.2.1" date="2025-09-06">
+      <description>
+        <ul>
+          <li>Improve redirecting of stderr &amp; stdout</li>
+        </ul>
+      </description>
+    </release>
     <release version="v0.2.0" date="2025-09-02">
       <description>
         <ul>
