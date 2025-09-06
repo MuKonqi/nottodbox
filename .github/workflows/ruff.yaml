@@ -13,9 +13,9 @@ jobs:
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          fetch-depth: 0 
+          fetch-depth: 0
 
-      - name: Set-up Python
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.13'
@@ -23,12 +23,20 @@ jobs:
       - name: Install Ruff
         run: pip install ruff
 
+      - name: Get PR branch name
+        id: get_branch
+        run: |
+          echo "branch_name=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
+
+      - name: Ensure on PR branch
+        run: |
+          git checkout ${{ steps.get_branch.outputs.branch_name }}
+
       - name: Run Ruff Format
         id: ruff_format_step
         run: |
           echo "Running ruff format..."
           ruff format .
-
           if git diff --exit-code; then
             echo "No formatting changes detected."
             echo "has_format_changes=false" >> $GITHUB_OUTPUT
@@ -44,14 +52,13 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add .
           git commit -m "style: Format code (via Ruff)"
-          git push
+          git push origin HEAD:${{ steps.get_branch.outputs.branch_name }}
 
       - name: Run Ruff Check and Fix
         id: ruff_check_step
         run: |
           echo "Running ruff check --fix..."
           ruff check . --fix
-
           if git diff --exit-code; then
             echo "No linting changes detected."
             echo "has_lint_changes=false" >> $GITHUB_OUTPUT
@@ -67,4 +74,4 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add .
           git commit -m "fix: Apply linting fixes (via Ruff)"
-          git push
+          git push origin HEAD:${{ steps.get_branch.outputs.branch_name }}
