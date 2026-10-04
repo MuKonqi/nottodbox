@@ -741,6 +741,18 @@ class Options:
     def export(self, index: QModelIndex, export_: str | None = None) -> None:
         name, table = self.get(index)
 
+        if not os.path.isdir(os.path.join(USER_DIRS[index.data(ITEM_DATAS["folder"])[1]], "Nottodbox")):
+            QMessageBox.error(
+                self.parent_,
+                self.parent_.tr("Error"),
+                self.parent_.tr(
+                    "The {} folder is not exists. Exporting has been disabled.".format(
+                        os.path.join(USER_DIRS[index.data(ITEM_DATAS["folder"])[1]], "Nottodbox")
+                    )
+                ),
+            )
+            return
+
         if export_ is None:
             ok, export = Export(self.parent_).get()
 

@@ -372,6 +372,8 @@ class Appearance(QWidget):
 
         self.parent_ = parent
 
+        self.tr_custom_color_scheme = self.tr("Custom color scheme")
+
         self.default_style = QApplication.style().objectName().title()
 
         self.styles_combobox = ComboBox(self)
@@ -498,7 +500,7 @@ class Appearance(QWidget):
             self.use_default_color_scheme = True
             self.custom_color_schemes.setEnabled(False)
 
-        elif value == self.tr("Custom"):
+        elif value == self.tr_custom_color_scheme:
             self.custom_color_schemes.setEnabled(True)
 
         else:
@@ -637,7 +639,7 @@ class Appearance(QWidget):
 
         self.color_schemes_list = list(self.color_schemes.keys())
         self.color_schemes_list.insert(0, self.tr("Style default"))
-        self.color_schemes_list.append(self.tr("Custom"))
+        self.color_schemes_list.append(self.tr_custom_color_scheme)
 
         self.color_schemes_combobox.addItems(self.color_schemes_list)
 
@@ -901,7 +903,7 @@ class CustomColorSchemes(QWidget):
         self.setEnabled(False)
 
     def apply(self, format_change_acceptted: bool = True) -> bool:
-        if self.parent_.color_schemes_combobox.currentText() == self.tr("Custom"):
+        if self.parent_.color_schemes_combobox.currentText() == self.parent_.tr_custom_color_scheme:
             overwrited = False
 
             name = self.name.text()

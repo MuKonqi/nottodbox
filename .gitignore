@@ -27,3 +27,4 @@ nottodbox.spec
 
 # Python
 *__pycache__
+uv.lock

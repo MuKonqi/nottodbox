@@ -411,6 +411,8 @@ class DocumentView(QWidget):
         self.connected = False
         self.mode = "normal"
 
+        self.sync_usable = True
+
         self.creation = index.data(ITEM_DATAS["creation"])
 
         self.today = QDate.currentDate()
@@ -461,6 +463,7 @@ class DocumentView(QWidget):
         self.setContent()
         self.refreshNames()
         self.changeAutosaveConnections()
+        self.checkFolders()
 
         self.last_content = self.getText()
 
@@ -486,6 +489,21 @@ class DocumentView(QWidget):
                 self.input.textChanged.disconnect(self.save)
             self.saver_thread.quit()
             self.connected = False
+
+    def checkFolders(self) -> None:
+        if self.settings["sync"] is not None and not os.path.isdir(
+            os.path.join(USER_DIRS[self.settings["folder"]], "Nottodbox")
+        ):
+            QMessageBox.warning(
+                self,
+                self.tr("Warning"),
+                self.tr(
+                    "The {} folder is not exists. Synchronization has been disabled.".format(
+                        os.path.join(USER_DIRS[self.settings["folder"]], "Nottodbox")
+                    )
+                ),
+            )
+            self.sync_usable = False
 
     def getText(self, format_: str | None = None) -> str:
         if format_ is None:
@@ -939,8 +957,13 @@ class DocumentSaver(QObject):
             ):
                 self.parent_.last_content = self.parent_.getText()
 
-                if self.parent_.settings["sync"] is not None and (
-                    self.parent_.settings["sync"].endswith("_all") or self.parent_.settings["sync"].endswith("_export")
+                if (
+                    self.parent_.settings["sync"] is not None
+                    and self.parent_.sync_usable
+                    and (
+                        self.parent_.settings["sync"].endswith("_all")
+                        or self.parent_.settings["sync"].endswith("_export")
+                    )
                 ):
                     os.makedirs(
                         os.path.join(USER_DIRS[self.parent_.settings["folder"]], "Nottodbox", self.parent_.notebook),

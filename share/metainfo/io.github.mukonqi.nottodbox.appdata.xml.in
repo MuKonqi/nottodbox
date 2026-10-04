@@ -43,6 +43,14 @@
     <launchable type="desktop-id">io.github.mukonqi.nottodbox.desktop</launchable>
 
     <releases>
+        <release version="v0.2.2" date="2026-10-04">
+            <description>
+                <ul>
+                    <li>Fix custom color schemes not applying on Turkish and improve applying</li>
+                    <li>Do not crete automatically Desktop/Nottodbox and Documents/Nottodbox folders</li>
+                </ul>
+            </description>
+        </release>
         <release version="v0.2.1" date="2025-09-06">
             <description>
                 <ul>

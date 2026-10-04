@@ -27,10 +27,17 @@ from PySide6.QtCore import QLocale, QTranslator, qVersion
 from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import QApplication
 
-from .consts import USER_DIRS, USER_LOGS_DIR, USER_NOTTODBOX_DIR
+from .consts import USER_LOGS_DIR, USER_NOTTODBOX_DIR
 from .mainwindow import MainWindow
-from .resources import icons, locale  # noqa: F401
 from .version import APP_BUILD, APP_VERSION
+
+LOCALE_FOUND = True
+try:
+    from .resources import icons, locale  # noqa: F401
+except ImportError:
+    from .resources import icons  # noqa: F401
+
+    LOCALE_FOUND = False
 
 
 class Application(QApplication):
@@ -45,17 +52,20 @@ class Application(QApplication):
         self.setDesktopFileName("io.github.mukonqi.nottodbox")
         self.setWindowIcon(QPixmap(":/icons/window"))
 
-        translator = QTranslator(self)
-        if translator.load(f":/locale/{QLocale.system().name()}.qm"):
-            self.installTranslator(translator)
-        else:
-            logging.warning(f"Failed to load locale for {QLocale.system().name()}.")
-
+        if LOCALE_FOUND:
             translator = QTranslator(self)
-            if translator.load(f":/locale/{QLocale.system().name().split('_')[0]}.qm"):
+            if translator.load(f":/locale/{QLocale.system().name()}.qm"):
                 self.installTranslator(translator)
             else:
-                logging.warning(f"Failed to load locale for {QLocale.system().name().split('_')[0]}.")
+                logging.warning(f"Failed to load locale for {QLocale.system().name()}.")
+
+                translator = QTranslator(self)
+                if translator.load(f":/locale/{QLocale.system().name().split('_')[0]}.qm"):
+                    self.installTranslator(translator)
+                else:
+                    logging.warning(f"Failed to load locale for {QLocale.system().name().split('_')[0]}.")
+        else:
+            logging.warning("Locale module not found.")
 
         if os.path.isfile(os.path.join(USER_NOTTODBOX_DIR, "version")):
             with open(os.path.join(USER_NOTTODBOX_DIR, "version")) as f:
@@ -117,11 +127,6 @@ def main() -> None:
             sys.stderr = StreamToLogger(logger, logging.ERROR)
     except Exception:
         pass
-
-    # These folders shouldn't be deleted. We must ensure that those folders exist.
-    if APP_BUILD != "Flatpak":
-        for directory in [os.path.join(user_dir, "Nottodbox") for user_dir in list(USER_DIRS.values())]:
-            os.makedirs(directory, exist_ok=True)
 
     logging.info(f"Nottodbox, version: {APP_VERSION}, build: {APP_BUILD}")
     logging.info(f"Operating system: {platform.system()} {platform.release()} ({platform.platform()})")
