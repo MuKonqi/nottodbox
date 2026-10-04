@@ -742,7 +742,7 @@ class Options:
         name, table = self.get(index)
 
         if not os.path.isdir(os.path.join(USER_DIRS[index.data(ITEM_DATAS["folder"])[1]], "Nottodbox")):
-            QMessageBox.error(
+            QMessageBox.critical(
                 self.parent_,
                 self.parent_.tr("Error"),
                 self.parent_.tr(
