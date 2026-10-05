@@ -494,16 +494,18 @@ class DocumentView(QWidget):
         if self.settings["sync"] is not None and not os.path.isdir(
             os.path.join(USER_DIRS[self.settings["folder"]], "Nottodbox")
         ):
-            QMessageBox.warning(
-                self,
-                self.tr("Warning"),
-                self.tr(
-                    "The {} folder is not exists. Synchronization has been disabled.".format(
-                        os.path.join(USER_DIRS[self.settings["folder"]], "Nottodbox")
-                    )
-                ),
-            )
-            self.sync_usable = False
+            try:
+                os.makedirs(os.path.join(USER_DIRS[self.settings["folder"]], "Nottodbox"))
+                os.rmdir(os.path.join(USER_DIRS[self.settings["folder"]], "Nottodbox"))
+            except (OSError, PermissionError):
+                QMessageBox.warning(
+                    self,
+                    self.tr("Warning"),
+                    self.tr(
+                        "The {} folder is not exists. Synchronization has been disabled.\nIf you want the use that feature, create that folder manually."
+                    ).format(os.path.join(USER_DIRS[self.settings["folder"]], "Nottodbox")),
+                )
+                self.sync_usable = False
 
     def getText(self, format_: str | None = None) -> str:
         if format_ is None:

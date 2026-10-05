@@ -378,7 +378,7 @@ class CreateFirstNotebook(QWidget):
             self.parent_.setPage()
 
 
-class Options:
+class Options(QObject):
     pages = {}
 
     def __init__(self, parent: Selector) -> None:
@@ -397,12 +397,12 @@ class Options:
                 page.document.refreshSettings()
 
             QMessageBox.information(
-                self.parent_, self.parent_.tr("Successful"), self.tr("Lock added {to_item}.", index)
+                self.parent_, self.tr("Successful"), self.trFormat(self.tr("Lock added {to_item}."), index)
             )
 
         else:
             QMessageBox.critical(
-                self.parent_, self.parent_.tr("Error"), self.tr("Failed to add lock {to_item}.", index)
+                self.parent_, self.tr("Error"), self.trFormat(self.tr("Failed to add lock {to_item}."), index)
             )
 
     @Slot(QModelIndex)
@@ -443,12 +443,16 @@ class Options:
 
             if successful:
                 QMessageBox.information(
-                    self.parent_, self.parent_.tr("Successful"), self.tr("New appearance applied {to_item}.", index)
+                    self.parent_,
+                    self.tr("Successful"),
+                    self.trFormat(self.tr("New appearance applied {to_item}."), index),
                 )
 
             else:
                 QMessageBox.critical(
-                    self.parent_, self.parent_.tr("Error"), self.tr("Failed to apply new appearance {to_item}.", index)
+                    self.parent_,
+                    self.tr("Error"),
+                    self.trFormat(self.tr("Failed to apply new appearance {to_item}."), index),
                 )
 
     @Slot(QModelIndex)
@@ -514,12 +518,16 @@ class Options:
 
             if successful:
                 QMessageBox.information(
-                    self.parent_, self.parent_.tr("Successful"), self.tr("New settings applied {to_item}.", index)
+                    self.parent_,
+                    self.tr("Successful"),
+                    self.trFormat(self.tr("New settings applied {to_item}."), index),
                 )
 
             else:
                 QMessageBox.critical(
-                    self.parent_, self.parent_.tr("Error"), self.tr("Failed to apply new settings {to_item}.", index)
+                    self.parent_,
+                    self.tr("Error"),
+                    self.trFormat(self.tr("Failed to apply new settings {to_item}."), index),
                 )
 
     @Slot(QModelIndex)
@@ -536,12 +544,12 @@ class Options:
                 page.document.refreshContent()
 
             QMessageBox.information(
-                self.parent_, self.parent_.tr("Successful"), self.tr("The content {of_item} cleared.", index)
+                self.parent_, self.tr("Successful"), self.trFormat(self.tr("The content {of_item} cleared."), index)
             )
 
         else:
             QMessageBox.critical(
-                self.parent_, self.parent_.tr("Error"), self.tr("Failed to clear the content {of_item}.", index)
+                self.parent_, self.tr("Error"), self.trFormat(self.tr("Failed to clear the content {of_item}."), index)
             )
 
     @Slot(QModelIndex)
@@ -551,8 +559,8 @@ class Options:
             if page.document.mode == "normal" and page.document.last_content != page.document.getText():
                 self.question = QMessageBox.question(
                     self.parent_,
-                    self.parent_.tr("Question"),
-                    self.tr("{item} not saved.\nWhat would you like to do?", index),
+                    self.tr("Question"),
+                    self.trFormat(self.tr("{item} not saved.\nWhat would you like to do?"), index),
                     QMessageBox.StandardButton.Save
                     | QMessageBox.StandardButton.Discard
                     | QMessageBox.StandardButton.Cancel,
@@ -576,7 +584,7 @@ class Options:
 
     @Slot(QModelIndex)
     def createDocument(self, index: QModelIndex) -> None:
-        dialog = GetName(self.parent_, self.parent_.tr("Create Document"), True, "document")
+        dialog = GetName(self.parent_, self.tr("Create Document"), True, "document")
         dialog.set()
         ok, default, document = dialog.get()
 
@@ -600,7 +608,7 @@ class Options:
                     diary = False
 
                 if document == "":
-                    QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.parent_.tr("A name is required."))
+                    QMessageBox.critical(self.parent_, self.tr("Error"), self.tr("A name is required."))
                     return
 
                 if self.parent_.maindb.createDocument(default, "enabled" if diary else default, document, notebook):
@@ -614,16 +622,14 @@ class Options:
                         self.pin(self.parent_.maindb.items[(document, notebook)].index(), False, False)
 
                 else:
-                    QMessageBox.critical(
-                        self.parent_, self.parent_.tr("Error"), self.parent_.tr("Failed to create document.")
-                    )
+                    QMessageBox.critical(self.parent_, self.tr("Error"), self.tr("Failed to create document."))
 
             else:
                 QMessageBox.critical(
                     self.parent_,
-                    self.parent_.tr("Error"),
-                    self.parent_.tr("{item} is already exists.")
-                    .format(item=self.parent_.tr("the '{name}' document").format(name=document))
+                    self.tr("Error"),
+                    self.tr("{item} is already exists.")
+                    .format(item=self.tr("the '{name}' document").format(name=document))
                     .capitalize(),
                 )
 
@@ -632,7 +638,7 @@ class Options:
         ok = True
 
         if name is None:
-            dialog = GetNameAndDescription(self.parent_, self.parent_.tr("Create Notebook"), True, "notebook")
+            dialog = GetNameAndDescription(self.parent_, self.tr("Create Notebook"), True, "notebook")
             dialog.set()
             ok, default, name, description = dialog.get()
 
@@ -650,7 +656,7 @@ class Options:
                     diary = False
 
                 if name == "":
-                    QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.parent_.tr("A name is required."))
+                    QMessageBox.critical(self.parent_, self.tr("Error"), self.tr("A name is required."))
                     return
 
                 successful = self.parent_.maindb.createNotebook(
@@ -661,9 +667,7 @@ class Options:
                     self.parent_.tree_view.appendNotebook(self.parent_.maindb.getNotebook(name))
 
                 else:
-                    QMessageBox.critical(
-                        self.parent_, self.parent_.tr("Error"), self.parent_.tr("Failed to create notebook.")
-                    )
+                    QMessageBox.critical(self.parent_, self.tr("Error"), self.tr("Failed to create notebook."))
 
                 self.parent_.setPage()
 
@@ -672,9 +676,9 @@ class Options:
             else:
                 QMessageBox.critical(
                     self.parent_,
-                    self.parent_.tr("Error"),
-                    self.parent_.tr("{item} is already exists.")
-                    .format(item=self.parent_.tr("the '{name}' notebook").format(name=name))
+                    self.tr("Error"),
+                    self.tr("{item} is already exists.")
+                    .format(item=self.tr("the '{name}' notebook").format(name=name))
                     .capitalize(),
                 )
                 return False
@@ -716,7 +720,9 @@ class Options:
             del self.parent_.maindb.items[(name, table)]
 
         else:
-            QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.tr("Failed to delete {item}.", index))
+            QMessageBox.critical(
+                self.parent_, self.tr("Error"), self.trFormat(self.tr("Failed to delete {item}."), index)
+            )
 
         self.parent_.setPage()
 
@@ -724,7 +730,7 @@ class Options:
     def editDescription(self, index: QModelIndex) -> None:
         name = index.data(ITEM_DATAS["name"])
 
-        dialog = GetDescription(self.parent_, self.parent_.tr("Edit Description"))
+        dialog = GetDescription(self.parent_, self.tr("Edit Description"))
         dialog.set()
         ok, description = dialog.get()
 
@@ -734,7 +740,9 @@ class Options:
 
             else:
                 QMessageBox.critical(
-                    self.parent_, self.parent_.tr("Error"), self.tr("Failed to edit description {of_item}.", index)
+                    self.parent_,
+                    self.tr("Error"),
+                    self.trFormat(self.tr("Failed to edit description {of_item}."), index),
                 )
 
     @Slot(QModelIndex)
@@ -742,16 +750,18 @@ class Options:
         name, table = self.get(index)
 
         if not os.path.isdir(os.path.join(USER_DIRS[index.data(ITEM_DATAS["folder"])[1]], "Nottodbox")):
-            QMessageBox.critical(
-                self.parent_,
-                self.parent_.tr("Error"),
-                self.parent_.tr(
-                    "The {} folder is not exists. Exporting has been disabled.".format(
-                        os.path.join(USER_DIRS[index.data(ITEM_DATAS["folder"])[1]], "Nottodbox")
-                    )
-                ),
-            )
-            return
+            try:
+                os.makedirs(os.path.join(USER_DIRS[index.data(ITEM_DATAS["folder"])[1]], "Nottodbox"))
+                os.rmdir(os.path.join(USER_DIRS[index.data(ITEM_DATAS["folder"])[1]], "Nottodbox"))
+            except (OSError, PermissionError):
+                QMessageBox.critical(
+                    self.parent_,
+                    self.tr("Error"),
+                    self.tr(
+                        "The {} folder is not exists. Exporting has been disabled.\nIf you want the use the feature, create that folder manually."
+                    ).format(os.path.join(USER_DIRS[index.data(ITEM_DATAS["folder"])[1]], "Nottodbox")),
+                )
+                return
 
         if export_ is None:
             ok, export = Export(self.parent_).get()
@@ -809,7 +819,9 @@ class Options:
                     writer.write(document)
 
             if export_ is None:
-                QMessageBox.information(self.parent_, self.parent_.tr("Successful"), self.tr("{item} exported.", index))
+                QMessageBox.information(
+                    self.parent_, self.tr("Successful"), self.trFormat(self.tr("{item} exported."), index)
+                )
 
     def get(self, index: QModelIndex) -> tuple[str, str]:
         """Get name with table/notebook name."""
@@ -830,7 +842,7 @@ class Options:
 
         else:
             QMessageBox.critical(
-                self.parent_, self.parent_.tr("Error"), self.tr("Failed to mark as completed {item}.", index)
+                self.parent_, self.tr("Error"), self.trFormat(self.tr("Failed to mark as completed {item}."), index)
             )
 
     @Slot(QModelIndex)
@@ -843,7 +855,7 @@ class Options:
 
         else:
             QMessageBox.critical(
-                self.parent_, self.parent_.tr("Error"), self.tr("Failed to mark as uncompleted {item}.", index)
+                self.parent_, self.tr("Error"), self.trFormat(self.tr("Failed to mark as uncompleted {item}."), index)
             )
 
     @Slot(QModelIndex, str)
@@ -873,7 +885,7 @@ class Options:
 
             if write and not self.parent_.maindb.set("yes", "pinned", name, table):
                 QMessageBox.critical(
-                    self.parent_, self.parent_.tr("Error"), self.tr("Failed to pin {item} to sidebar.", index)
+                    self.parent_, self.tr("Error"), self.trFormat(self.tr("Failed to pin {item} to sidebar."), index)
                 )
                 return
 
@@ -906,12 +918,12 @@ class Options:
                 page.document.refreshSettings()
 
             QMessageBox.information(
-                self.parent_, self.parent_.tr("Successful"), self.tr("Lock removed {from_item}.", index)
+                self.parent_, self.tr("Successful"), self.trFormat(self.tr("Lock removed {from_item}."), index)
             )
 
         else:
             QMessageBox.critical(
-                self.parent_, self.parent_.tr("Error"), self.tr("Failed to remove lock {from_item}.", index)
+                self.parent_, self.tr("Error"), self.trFormat(self.tr("Failed to remove lock {from_item}."), index)
             )
 
     @Slot(QModelIndex)
@@ -924,14 +936,14 @@ class Options:
 
         else:
             QMessageBox.critical(
-                self.parent_, self.parent_.tr("Error"), self.tr("Failed to remove mark {of_item}.", index)
+                self.parent_, self.tr("Error"), self.trFormat(self.tr("Failed to remove mark {of_item}."), index)
             )
 
     @Slot(QModelIndex)
     def rename(self, index: QModelIndex) -> None:
         name, table = self.get(index)
 
-        dialog = GetName(self.parent_, self.parent_.tr("Rename"))
+        dialog = GetName(self.parent_, self.tr("Rename"))
         dialog.set()
         ok, new_name = dialog.get()
 
@@ -943,7 +955,7 @@ class Options:
                 diary = False
 
             if new_name == "":
-                QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.parent_.tr("A name is required."))
+                QMessageBox.critical(self.parent_, self.tr("Error"), self.tr("A name is required."))
                 return
 
             if not self.parent_.maindb.checkIfItExists(new_name, table):
@@ -988,12 +1000,12 @@ class Options:
 
                 else:
                     QMessageBox.critical(
-                        self.parent_, self.parent_.tr("Error"), self.tr("Failed to rename {item}.", index)
+                        self.parent_, self.tr("Error"), self.trFormat(self.tr("Failed to rename {item}."), index)
                     )
 
             else:
                 QMessageBox.critical(
-                    self.parent_, self.parent_.tr("Error"), self.tr("{item} is already exists.", index)
+                    self.parent_, self.tr("Error"), self.trFormat(self.tr("{item} is already exists."), index)
                 )
 
     @Slot(QModelIndex)
@@ -1016,38 +1028,40 @@ class Options:
             self.parent_.maindb.items[(name, table)].removeRows(0, self.parent_.maindb.items[(name, table)].rowCount())
 
         else:
-            QMessageBox.critical(self.parent_, self.parent_.tr("Error"), self.tr("Failed to reset {item}.", index))
+            QMessageBox.critical(
+                self.parent_, self.tr("Error"), self.trFormat(self.tr("Failed to reset {item}."), index)
+            )
 
-    def tr(self, text_: str, index: QModelIndex) -> str:
+    def trFormat(self, text_: str, index: QModelIndex) -> str:
         """Just being lazy, sometimes..."""
 
         name, table = self.get(index)
 
         if table == "__main__":
             if "{from_item}" in text_:
-                text = text_.format(from_item=self.parent_.tr("from the '{name}' notebook").format(name=name))
+                text = text_.format(from_item=self.tr("from the '{name}' notebook").format(name=name))
 
             elif "{of_item}" in text_:
-                text = text_.format(of_item=self.parent_.tr("of the '{name}' notebook").format(name=name))
+                text = text_.format(of_item=self.tr("of the '{name}' notebook").format(name=name))
 
             elif "{to_item}" in text_:
-                text = text_.format(to_item=self.parent_.tr("to the '{name}' notebook").format(name=name))
+                text = text_.format(to_item=self.tr("to the '{name}' notebook").format(name=name))
 
             elif "{item}" in text_:
-                text = text_.format(item=self.parent_.tr("the '{name}' notebook").format(name=name))
+                text = text_.format(item=self.tr("the '{name}' notebook").format(name=name))
 
         else:
             if "{from_item}" in text_:
-                text = text_.format(from_item=self.parent_.tr("from the '{name}' document").format(name=name))
+                text = text_.format(from_item=self.tr("from the '{name}' document").format(name=name))
 
             elif "{of_item}" in text_:
-                text = text_.format(of_item=self.parent_.tr("of the '{name}' document").format(name=name))
+                text = text_.format(of_item=self.tr("of the '{name}' document").format(name=name))
 
             elif "{to_item}" in text_:
-                text = text_.format(to_item=self.parent_.tr("to the '{name}' document").format(name=name))
+                text = text_.format(to_item=self.tr("to the '{name}' document").format(name=name))
 
             elif "{item}" in text_:
-                text = text_.format(item=self.parent_.tr("the '{name}' document").format(name=name))
+                text = text_.format(item=self.tr("the '{name}' document").format(name=name))
 
         return text.capitalize()
 
@@ -1058,7 +1072,9 @@ class Options:
 
             if write and not self.parent_.maindb.set("no", "pinned", name, table):
                 QMessageBox.critical(
-                    self.parent_, self.parent_.tr("Error"), self.tr("Failed to unpin {item} from sidebar.", index)
+                    self.parent_,
+                    self.tr("Error"),
+                    self.trFormat(self.tr("Failed to unpin {item} from sidebar."), index),
                 )
                 return
 
@@ -1205,7 +1221,9 @@ class TreeView(QTreeView):
 
     @Slot(QModelIndex)
     def failedToImport(self, index: QModelIndex) -> None:
-        QMessageBox.critical(self, self.tr("Error"), self.parent_.options.tr("Failed to import {item}.", index))
+        QMessageBox.critical(
+            self, self.tr("Error"), self.parent_.options.trFormat(self.tr("Failed to import {item}."), index)
+        )
 
     @Slot(int)
     def filterChanged(self, index: int) -> None:
