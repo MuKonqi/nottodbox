@@ -409,9 +409,7 @@ class Appearance(QWidget):
         self.layout_.addRow("{}*:".format(self.tr("Style")), self.styles_combobox)
         self.layout_.addRow(Label(self, self.tr("Color scheme").title()))
         self.layout_.addRow("{}:".format(self.tr("Color scheme")), self.color_schemes_widget)
-        self.layout_.addRow(
-            "{} {}:".format(self.tr("Custom"), self.tr("Color scheme").lower()), self.custom_color_schemes.name
-        )
+        self.layout_.addRow("{}:".format(self.tr("Custom color scheme name")), self.custom_color_schemes.name)
         self.layout_.addWidget(self.custom_color_schemes)
         self.layout_.addRow(HSeperator(self))
         self.layout_.addRow(Label(self, self.tr("Warning: Some styles may not be detected"), 0x0001))
