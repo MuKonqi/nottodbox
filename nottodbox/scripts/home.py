@@ -993,8 +993,8 @@ class Options(QObject):
                         if page is not None:
                             page.document.refreshNames()
 
-                        if page.document.mode == "normal" and diary == "enabled":
-                            page.document.refreshSettings()
+                            if page.document.mode == "normal" and diary == "enabled":
+                                page.document.refreshSettings()
 
                     self.parent_.maindb.items[(new_name, table)] = self.parent_.maindb.items.pop((name, table))
 
