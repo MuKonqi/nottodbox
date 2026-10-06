@@ -89,7 +89,7 @@ class AboutPage(QWidget):
         self.layout_.addWidget(HSeperator(self))
         self.layout_.addWidget(self.developer_label)
         self.layout_.addWidget(HSeperator(self))
-        self.layout_.addWidget(Label(self, self.tr("Copyright (C)") + ": 2024-2025 MuKonqi (Muhammed S.)"))
+        self.layout_.addWidget(Label(self, self.tr("Copyright (C)") + ": 2024-2026 MuKonqi (Muhammed S.)"))
         self.layout_.addWidget(Label(self, self.tr("License: GNU General Public License, Version 3 or later")))
         self.layout_.addWidget(self.license_textedit, 0, Qt.AlignmentFlag.AlignCenter)
         self.layout_.addWidget(HSeperator(self))
