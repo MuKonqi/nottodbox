@@ -50,15 +50,15 @@
   <url type="bugtracker">https://github.com/mukonqi/nottodbox/issues</url>
   <launchable type="desktop-id">io.github.mukonqi.nottodbox.desktop</launchable>
   <releases>
-    <!-- <release version="v0.2.3" date="2026-10-06">
-            <description>
-                <ul>
-                    <li>Fix translations not working for Options class (remove usage of self.parent_.tr)</li>
-                    <li>Try to create Desktop/Nottodbox and Documents/Nottodbox folders when needed</li>
-                    <li>Do not try to check page mode if the page is none</li>
-                </ul>
-            </description>
-        </release> -->
+    <release version="v0.2.3" date="2026-10-06">
+      <description>
+        <ul>
+          <li>Fix translations not working for Options class (remove usage of self.parent_.tr)</li>
+          <li>Try to create Desktop/Nottodbox and Documents/Nottodbox folders when needed</li>
+          <li>Do not try to check page mode if the page is none</li>
+        </ul>
+      </description>
+    </release>
     <release version="v0.2.2" date="2026-10-04">
       <description>
         <ul>

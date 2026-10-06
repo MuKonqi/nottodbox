@@ -18,4 +18,4 @@
 
 APP_BUILD = "None"
 
-APP_VERSION = "v0.2.2"
+APP_VERSION = "v0.2.3"
